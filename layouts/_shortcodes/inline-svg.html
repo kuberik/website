@@ -1,0 +1,20 @@
+{{- $path := .Get "path" -}}
+{{- $class := .Get "class" -}}
+{{- $themeAware := .Get "themeAware" | default false -}}
+
+{{- if $themeAware -}}
+{{- /* For theme-aware SVGs, create two img tags with dark mode toggle */ -}}
+{{- $baseName := replaceRE `\.svg$` "" $path -}}
+{{- $lightPath := printf "%s-light.svg" $baseName -}}
+{{- $darkPath := printf "%s-dark.svg" $baseName -}}
+<img src="/{{ $lightPath }}" class="{{ $class }} hx:block hx:dark:hidden" alt="" />
+<img src="/{{ $darkPath }}" class="{{ $class }} hx:hidden hx:dark:block" alt="" />
+{{- else -}}
+{{- /* For regular SVGs, inline them as before */ -}}
+{{- $svgContent := readFile (printf "static/%s" $path) -}}
+{{- /* Remove width and height attributes for responsive sizing */ -}}
+{{- $svgContent = replaceRE `width="[^"]*"` "" $svgContent -}}
+{{- $svgContent = replaceRE `height="[^"]*"` "" $svgContent -}}
+{{- /* Add class to SVG tag */ -}}
+{{- $svgWithClass := replaceRE `<svg` (printf `<svg class="%s" ` $class) $svgContent -}} {{- $svgWithClass | safeHTML
+    -}} {{- end -}}

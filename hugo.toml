@@ -1,0 +1,57 @@
+baseURL = 'http://example.org/'
+languageCode = 'en-us'
+title = 'kuberik'
+theme = 'hextra'
+
+[params]
+  rollout_controller_version = "v0.7.0"
+  openkruise_controller_version = "v0.3.3"
+  datadog_controller_version = "v0.1.0"
+  environment_controller_version = "v0.1.5"
+
+  [params.search]
+    enable = true
+    type = "flexsearch"
+
+  [params.navbar]
+    displayTitle = true
+    displayLogo = true
+    [params.navbar.logo]
+      path = "logo.svg"
+      dark = "logo-dark.svg"
+
+  [params.footer]
+    enable = true
+    displayCopyright = true
+    displayPoweredBy = false
+
+  [params.sidebar]
+    autoCollapseState = false
+    collapsible = false
+
+[markup]
+  [markup.goldmark]
+    [markup.goldmark.renderer]
+      unsafe = true
+  [markup.highlight]
+    style = 'github-dark'
+
+[menu]
+  [[menu.main]]
+    identifier = "documentation"
+    name = "Documentation"
+    url = "/docs/"
+    weight = 1
+
+  [[menu.main]]
+    name = "Search"
+    weight = 2
+    [menu.main.params]
+      type = "search"
+
+  [[menu.main]]
+    name = "GitHub"
+    url = "https://github.com/kuberik"
+    weight = 3
+    [menu.main.params]
+      icon = "github"

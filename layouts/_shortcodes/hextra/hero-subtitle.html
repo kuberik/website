@@ -1,0 +1,11 @@
+{{- /*
+Override of hero-subtitle shortcode to use safeHTML instead of markdownify.
+This allows HTML tags like <strong> to render correctly.
+    */ -}}
+
+    {{- $style := .Get "style" -}}
+
+    <p class="not-prose hx:text-xl hx:text-gray-600 hx:dark:text-gray-400 hx:sm:text-xl" {{ with $style
+        }}style="{{ . | safeCSS }}" {{ end }}>
+        {{ .Inner | safeHTML }}
+    </p>

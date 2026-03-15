@@ -1,0 +1,31 @@
+hiddenMemberFields:
+  - "TypeMeta"
+
+externalPackages:
+  - match: ^k8s\.io/(api|apimachinery/pkg/apis)/
+    target: https://kubernetes.io/docs/reference/generated/kubernetes-api/v1.24/#{{- lower .TypeIdentifier -}}-{{- arrIndex .PackageSegments -1 -}}-{{- arrIndex .PackageSegments -2 -}}
+
+hideTypePatterns:
+  - "List$"
+  - "Phase"
+
+markdownDisabled: true
+
+stripPrefix:
+  - meta/v1.
+  - k8s.io/api/core/v1.
+  - k8s.io/apimachinery/pkg/apis/meta/v1.
+
+apis:
+  - name: rollout-controller
+    title: Rollout API
+    package: github.com/kuberik/rollout-controller
+    path: api/v1alpha1
+  - name: environment-controller
+    title: Environment API
+    package: github.com/kuberik/environment-controller
+    path: api/v1alpha1
+  - name: openkruise-controller
+    title: OpenKruise Integration API
+    package: github.com/kuberik/openkruise-controller
+    path: api/v1alpha1

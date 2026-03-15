@@ -1,0 +1,15 @@
+{{- /*
+Custom hero container override to support inline SVG instead of img tags.
+This version removes the image parameter handling to allow Inner content with SVGs.
+*/ -}}
+
+{{- $class := .Get "class" -}}
+{{- $cols := .Get "cols" | default 2 -}}
+{{- $style := .Get "style" -}}
+
+{{- $css := printf "--hextra-feature-grid-cols: %v; %s" $cols $style -}}
+
+<div class="{{ $class }} hextra-feature-grid hx:grid hx:sm:max-lg:grid-cols-2 hx:max-sm:grid-cols-1 hx:gap-4 hx:w-full not-prose"
+    {{ with $css }}style="{{ . | safeCSS }}" {{end}}>
+    {{ .Inner | safeHTML }}
+</div>
