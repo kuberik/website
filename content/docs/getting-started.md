@@ -56,12 +56,6 @@ metadata:
 spec:
   releasesImagePolicy:
     name: hello-world-app
-  versionHistoryLimit: 5
-  bakeTime: 15s
-  healthCheckSelector:
-    selector:
-      matchLabels:
-        app: hello-world
 ```
 
 ```bash
