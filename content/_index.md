@@ -8,19 +8,19 @@ layout: "hextra-home"
 <div class="hx:w-full">
   {{< hextra/hero-badge >}}
     <div class="pulse-dot"></div>
-    <span>GitOps-native Continuous Delivery</span>
+    <span>Kubernetes-native Continuous Delivery</span>
   {{< /hextra/hero-badge >}}
 
   <div class="hx:mt-6 hx:mb-6">
   {{< hextra/hero-headline >}}
-    <span class="text-gradient">GitOps Continuous Delivery</span><br/>
+    <span class="text-gradient">Safe, Hands-Off Deployments</span><br/>
     for Kubernetes.
   {{< /hextra/hero-headline >}}
   </div>
 
   <div class="hx:mt-8 hx:mb-24">
   {{< hextra/hero-subtitle >}}
-    Orchestrate complex rollouts with <strong>automated verification</strong>, <strong>safe promotions</strong>, and <strong>progressive delivery strategies</strong>.
+    Declaratively define multi-stage progressive delivery pipelines with <strong>gates</strong>, <strong>health checks</strong>, and <strong>automated verification</strong>.
   {{< /hextra/hero-subtitle >}}
   </div>
 
