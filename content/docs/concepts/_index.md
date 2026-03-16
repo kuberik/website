@@ -2,7 +2,7 @@
 title: "Concepts"
 weight: 4
 sidebar:
-  open: true
+  open: false
 ---
 
 Understand the core building blocks of Kuberik.
