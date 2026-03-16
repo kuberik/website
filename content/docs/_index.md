@@ -3,16 +3,16 @@ title: "Documentation"
 weight: 1
 ---
 
-Welcome to **Kuberik** — a GitOps-native continuous delivery orchestrator for Kubernetes.
+Welcome to **Kuberik** — a Kubernetes-native delivery orchestrator.
 
-Kuberik extends the Kubernetes controller pattern to handle complex, multi-stage deployment lifecycles with automated verification, safe promotions, and progressive delivery strategies.
+You release, Kuberik delivers. It handles rollout, verification, and promotion of your container images across environments.
 
 ## Start Here
 
 {{< cards >}}
+  {{< card title="What is Kuberik" link="what-is-kuberik/" icon="light-bulb" subtitle="How Kuberik fits into your workflow" >}}
   {{< card title="Installation" link="installation/" icon="download" subtitle="Install the Kuberik controller" >}}
   {{< card title="Getting Started" link="getting-started/" icon="academic-cap" subtitle="Deploy your first application" >}}
-  {{< card title="Core Concepts" link="concepts/" icon="book-open" subtitle="Understand how Kuberik works" >}}
 {{< /cards >}}
 
 ## Learn More

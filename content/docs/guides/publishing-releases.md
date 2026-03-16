@@ -1,18 +1,20 @@
 ---
-title: "Building Images"
+title: "Publishing Releases"
 weight: 5
 ---
 
-Automate the publishing of tagged container images using GitHub Actions.
+Kuberik orchestrates the delivery of your releases — but **you** decide when and how to release. A release is triggered when a new container image tag appears in the registry. Your CI pipeline controls that.
+
+This guide shows how to publish tagged container images that Kuberik can pick up automatically.
 
 ## GitHub Workflow
 
-This workflow builds your Dockerfile, tags it, and pushes it to a registry (e.g., GHCR). It includes OpenContainers annotations to link the image back to the source code.
+Build your Dockerfile, tag it, and push it to a registry (e.g., GHCR).
 
 ### Strategy 1: Timestamp (Recommended)
 
-This strategy triggers on every commit to `main`, triggering immediate rollouts for continuous delivery.
-It uses an `alphabetical` (ascending) policy in Flux.
+Triggers on every commit to `main`, producing a new image tag that Kuberik rolls out immediately.
+Uses an `alphabetical` (ascending) policy in Flux.
 
 ```yaml {filename=".github/workflows/build-main.yaml"}
 name: Build
@@ -70,7 +72,7 @@ jobs:
 
 ### Strategy 2: Semantic Versioning
 
-Use this if you prefer to trigger rollouts via **git tags** (e.g., `v1.0.0`).
+Triggers rollouts via **git tags** (e.g., `v1.0.0`). You control the release cadence explicitly.
 
 ```yaml {filename=".github/workflows/release.yaml"}
 name: Release

@@ -7,6 +7,12 @@ sidebar:
 
 Step-by-step guides for common Kuberik workflows.
 
+## Getting Started
+
+{{< cards >}}
+  {{< card title="Publishing Releases" link="publishing-releases/" icon="upload" subtitle="Build and tag images for Kuberik to pick up" >}}
+{{< /cards >}}
+
 ## Deployment Safety
 
 {{< cards >}}

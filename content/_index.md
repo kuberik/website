@@ -40,7 +40,7 @@ layout: "hextra-home"
 {{< hextra/feature-grid >}}
   {{< hextra/feature-card
     title="Multi-Stage Pipelines"
-    subtitle="Define complex multi-stage rollouts with fine-grained control over promotions."
+    subtitle="Promote releases across environments with dependencies between stages."
     class="hx:aspect-auto hx:md:aspect-[1.1/1] hx:max-md:min-h-[340px]"
     icon="pipelines"
     link="/docs/guides/cross-environment-rollout/"
@@ -51,14 +51,15 @@ layout: "hextra-home"
   >}}
   {{< hextra/feature-card
     title="Deployment Gates"
-    subtitle="Safety first: use manual gates to protect your production environments."
+    subtitle="Control when and which releases deploy — with schedules, manual approvals, or custom conditions."
+    class="hx:aspect-auto hx:md:aspect-[1.1/1] hx:max-md:min-h-[340px]"
     icon="gates"
     link="/docs/guides/manual-approvals/"
     style="background: radial-gradient(ellipse at 50% 80%,rgba(194,97,254,0.15),hsla(0,0%,100%,0));"
   >}}
   {{< hextra/feature-card
-    title="Canary Strategies"
-    subtitle="Native support for OpenKruise progressive rollout strategies."
+    title="Canary Rollouts"
+    subtitle="Gradually roll out changes to a subset of users before full promotion."
     class="hx:aspect-auto hx:md:aspect-[1.1/1] hx:max-md:min-h-[340px]"
     icon="strategies"
     link="/docs/guides/canary-rollouts/"
@@ -68,20 +69,26 @@ layout: "hextra-home"
     style="background: radial-gradient(ellipse at 50% 80%,rgba(97,254,194,0.15),hsla(0,0%,100%,0));"
   >}}
   {{< hextra/feature-card
-    title="Health Verification"
-    subtitle="Automated health checks ensure your services are running as expected at every step."
+    title="Automated Testing"
+    subtitle="Run smoke tests, integration tests, or any verification Job as part of your rollout pipeline."
     class="hx:aspect-auto hx:md:aspect-[1.1/1] hx:max-md:min-h-[340px]"
-    icon="health"
-    link="/docs/guides/health-checks/"
-    image="images/health_verification-shadow.png"
-    imageDark="images/health_verification_dark-shadow.png"
-    imageClass="hx:top-[40%] hx:left-[24px] hx:w-[110%] hx:rounded-lg"
+    icon="testing"
+    link="/docs/guides/canary-rollouts/"
     style="background: radial-gradient(ellipse at 50% 80%,rgba(221,210,59,0.15),hsla(0,0%,100%,0));"
   >}}
   {{< hextra/feature-card
-    title="GitOps Automation"
-    subtitle="Seamlessly integrate with FluxCD for image discovery and Kustomize patching."
-    icon="rollbacks"
+    title="Monitoring Integration"
+    subtitle="Connect Datadog, Prometheus, or custom metrics to continuously validate deployments."
+    class="hx:aspect-auto hx:md:aspect-[1.1/1] hx:max-md:min-h-[340px]"
+    icon="monitoring"
+    link="/docs/guides/health-checks/"
+    style="background: radial-gradient(ellipse at 50% 80%,rgba(254,142,97,0.15),hsla(0,0%,100%,0));"
+  >}}
+  {{< hextra/feature-card
+    title="GitOps Native"
+    subtitle="Define and control your entire delivery process through Git."
+    class="hx:aspect-auto hx:md:aspect-[1.1/1] hx:max-md:min-h-[340px]"
+    icon="gitops"
     link="/docs/integrations/fluxcd/"
     style="background: radial-gradient(ellipse at 50% 80%,rgba(142,53,74,0.15),hsla(0,0%,100%,0));"
   >}}
