@@ -20,7 +20,7 @@ layout: "hextra-home"
 
   <div class="hx:mt-8 hx:mb-24">
   {{< hextra/hero-subtitle >}}
-    Declaratively define multi-stage progressive delivery pipelines with <strong>gates</strong>, <strong>health checks</strong>, and <strong>automated verification</strong>.
+    Declarative multi-stage progressive delivery from commit to production — with <strong>automated testing</strong>, <strong>health checks</strong>, and <strong>safe promotion</strong>.
   {{< /hextra/hero-subtitle >}}
   </div>
 
