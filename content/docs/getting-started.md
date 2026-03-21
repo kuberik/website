@@ -20,7 +20,7 @@ metadata:
   name: hello-world-app
   namespace: flux-system
 spec:
-  image: ghcr.io/littlechimera/hello-world/app
+  image: ghcr.io/kuberik/hello-world/app
   interval: 60s
 ---
 apiVersion: image.toolkit.fluxcd.io/v1beta2
@@ -100,7 +100,7 @@ spec:
     spec:
       containers:
         - name: app
-          image: ghcr.io/littlechimera/hello-world/app:${HELLO_WORLD_VERSION}
+          image: ghcr.io/kuberik/hello-world/app:${HELLO_WORLD_VERSION}
 ```
 {{< /callout >}}
 
