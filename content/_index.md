@@ -44,9 +44,6 @@ layout: "hextra-home"
     class="hx:aspect-auto hx:md:aspect-[1.1/1] hx:max-md:min-h-[340px]"
     icon="pipelines"
     link="/docs/guides/cross-environment-rollout/"
-    image="images/rollouts_overview-shadow.png"
-    imageDark="images/rollouts_overview_dark-shadow.png"
-    imageClass="hx:top-[40%] hx:left-[24px] hx:w-[110%] hx:rounded-lg"
     style="background: radial-gradient(ellipse at 50% 80%,rgba(142,211,219,0.15),hsla(0,0%,100%,0));"
   >}}
   {{< hextra/feature-card
@@ -63,9 +60,6 @@ layout: "hextra-home"
     class="hx:aspect-auto hx:md:aspect-[1.1/1] hx:max-md:min-h-[340px]"
     icon="strategies"
     link="/docs/guides/canary-rollouts/"
-    image="images/canary_strategies-shadow.png"
-    imageDark="images/canary_strategies_dark-shadow.png"
-    imageClass="hx:top-[40%] hx:left-[24px] hx:w-[110%] hx:rounded-lg"
     style="background: radial-gradient(ellipse at 50% 80%,rgba(97,254,194,0.15),hsla(0,0%,100%,0));"
   >}}
   {{< hextra/feature-card
