@@ -1,4 +1,9 @@
 {
+  "scripts": {
+    "generate": "scripts/genref/build.sh",
+    "build": "npm run generate && hugo",
+    "serve": "hugo server"
+  },
   "devDependencies": {
     "hugo-bin": "^0.149.2"
   }
