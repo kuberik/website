@@ -14,13 +14,13 @@ layout: "hextra-home"
   <div class="hx:mt-6 hx:mb-6">
   {{< hextra/hero-headline >}}
     <span class="text-gradient">Safe, Hands-Off Deployments</span><br/>
-    for Kubernetes.
+    for Kubernetes
   {{< /hextra/hero-headline >}}
   </div>
 
   <div class="hx:mt-8 hx:mb-24">
   {{< hextra/hero-subtitle >}}
-    Declarative multi-stage progressive delivery from commit to production — with <strong>automated testing</strong>, <strong>health checks</strong>, and <strong>safe promotion</strong>.
+    Declarative multi-stage progressive delivery from commit to production — batteries included
   {{< /hextra/hero-subtitle >}}
   </div>
 
