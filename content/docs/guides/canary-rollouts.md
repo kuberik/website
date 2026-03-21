@@ -5,11 +5,27 @@ weight: 4
 
 Shift traffic progressively using [OpenKruise Rollout](https://openkruise.io/docs/rollouts/introduction). Kuberik adds bake time between steps and automated testing at each stage.
 
-Use canary rollouts when you need to validate changes with real traffic before full deployment. This is useful for user-facing services where issues might only surface under production load, or when you want to limit blast radius during risky changes.
+{{< callout type="info" >}}
+**When to Use Canary Rollouts**
 
-## Install OpenKruise
+Use canary deployments when you need to validate changes with real traffic before full deployment. This is ideal for user-facing services where issues might only surface under production load, or when you want to limit blast radius during risky changes.
+{{< /callout >}}
 
-See the [OpenKruise installation guide](https://openkruise.io/docs/installation).
+{{< callout type="warning" >}}
+**Prerequisite**
+
+Canary rollouts require the [OpenKruise Controller](/docs/installation/#openkruise-controller) to be installed in your cluster.
+{{< /callout >}}
+
+{{% details title="Installing OpenKruise" %}}
+
+Follow the [OpenKruise installation guide](https://openkruise.io/docs/installation) or use the Kuberik-managed installation:
+
+```bash
+kubectl apply -f https://github.com/kuberik/openkruise-controller/releases/download/v0.3.3/install.yaml
+```
+
+{{% /details %}}
 
 ## Define the Rollout
 
@@ -40,9 +56,11 @@ spec:
             httpRouteName: my-app
 ```
 
+{{< callout type="default" >}}
 Kuberik watches the rollout and enforces bake time at each step before allowing progression. If health checks fail during bake, the rollout is paused.
 
 See the [OpenKruise Rollout documentation](https://openkruise.io/docs/rollouts/user-manuals/strategy-canary-update) for full canary strategy options.
+{{< /callout >}}
 
 ## Run Tests at Steps
 
@@ -73,5 +91,5 @@ The `stepIndex` is 1-based and corresponds to the steps defined in the OpenKruis
 
 | Annotation | Purpose |
 |------------|---------|
-| `rollout.kuberik.io/step-<N>-ready-timeout` | Max wait time for pod readiness at step N |
-| `rollout.kuberik.io/step-<N>-bake-time` | Stabilization time after readiness at step N |
+| `rollout.kuberik.io/step-<N>-ready-timeout` | {{< badge content="Timeout" color="orange" >}} Max wait time for pod readiness at step N |
+| `rollout.kuberik.io/step-<N>-bake-time` | {{< badge content="Bake" color="blue" >}} Stabilization time after readiness at step N |

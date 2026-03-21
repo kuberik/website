@@ -24,8 +24,9 @@ layout: "hextra-home"
   {{< /hextra/hero-subtitle >}}
   </div>
 
-  <div class="hx:mt-12 hx:mb-6">
+  <div class="hx:mt-12 hx:mb-6 hx:flex hx:gap-4 hx:flex-wrap">
     {{< hextra/hero-button text="Get Started" link="/docs/getting-started/" >}}
+    <a href="https://github.com/kuberik/rollout-controller" target="_blank" rel="noreferrer" class="not-prose hx:font-medium hx:cursor-pointer hx:px-6 hx:py-3 hx:rounded-full hx:text-center hx:inline-block hx:border hx:border-gray-300 hx:dark:border-neutral-600 hx:text-gray-700 hx:dark:text-gray-300 hx:hover:bg-gray-100 hx:dark:hover:bg-neutral-800 hx:transition-all hx:ease-in hx:duration-200">View on GitHub</a>
   </div>
 </div>
 <div class="hx:mx-auto hx:flex hx:justify-center hx:items-center" style="max-width: 300px;">
@@ -88,6 +89,43 @@ layout: "hextra-home"
   >}}
 {{< /hextra/feature-grid >}}
 <!-- prettier-ignore-end -->
+
+<div class="hx:py-24 hx:mx-auto hx:mt-4">
+  <div class="hx:max-w-screen-xl hx:mx-auto hx:px-6">
+    <h2 class="hx:text-2xl hx:font-black hx:text-gray-900 hx:dark:text-white hx:uppercase hx:tracking-widest hx:text-center hx:mb-16">How It Works</h2>
+    <div class="hx:grid hx:grid-cols-1 hx:md:grid-cols-4 hx:gap-0 hx:relative">
+      <div class="hx:hidden hx:md:block hx:absolute hx:top-8 hx:left-[12.5%] hx:right-[12.5%] hx:h-px hx:bg-gradient-to-r hx:from-transparent hx:via-gray-300 hx:dark:via-neutral-600 hx:to-transparent"></div>
+      <div class="hx:flex hx:flex-col hx:items-center hx:text-center hx:px-4 hx:pb-8 hx:md:pb-0 hx:relative">
+        <div class="hx:w-16 hx:h-16 hx:rounded-full hx:bg-primary-100 hx:dark:bg-primary-900/30 hx:flex hx:items-center hx:justify-center hx:mb-4 hx:z-10">
+          <span class="hx:text-2xl hx:font-black hx:text-primary-600 hx:dark:text-primary-400">1</span>
+        </div>
+        <h3 class="hx:font-bold hx:text-gray-900 hx:dark:text-white hx:mb-2">You Ship</h3>
+        <p class="hx:text-sm hx:text-gray-500 hx:dark:text-gray-400">Tag a new image in your CI pipeline. Kuberik takes it from there.</p>
+      </div>
+      <div class="hx:flex hx:flex-col hx:items-center hx:text-center hx:px-4 hx:pb-8 hx:md:pb-0 hx:relative">
+        <div class="hx:w-16 hx:h-16 hx:rounded-full hx:bg-primary-100 hx:dark:bg-primary-900/30 hx:flex hx:items-center hx:justify-center hx:mb-4 hx:z-10">
+          <span class="hx:text-2xl hx:font-black hx:text-primary-600 hx:dark:text-primary-400">2</span>
+        </div>
+        <h3 class="hx:font-bold hx:text-gray-900 hx:dark:text-white hx:mb-2">Release Created</h3>
+        <p class="hx:text-sm hx:text-gray-500 hx:dark:text-gray-400">Kuberik detects the new tag, creates a release candidate, and evaluates gates.</p>
+      </div>
+      <div class="hx:flex hx:flex-col hx:items-center hx:text-center hx:px-4 hx:pb-8 hx:md:pb-0 hx:relative">
+        <div class="hx:w-16 hx:h-16 hx:rounded-full hx:bg-primary-100 hx:dark:bg-primary-900/30 hx:flex hx:items-center hx:justify-center hx:mb-4 hx:z-10">
+          <span class="hx:text-2xl hx:font-black hx:text-primary-600 hx:dark:text-primary-400">3</span>
+        </div>
+        <h3 class="hx:font-bold hx:text-gray-900 hx:dark:text-white hx:mb-2">Deploy & Verify</h3>
+        <p class="hx:text-sm hx:text-gray-500 hx:dark:text-gray-400">Canary rollout runs, health checks monitor, bake time enforces stability.</p>
+      </div>
+      <div class="hx:flex hx:flex-col hx:items-center hx:text-center hx:px-4 hx:relative">
+        <div class="hx:w-16 hx:h-16 hx:rounded-full hx:bg-primary-100 hx:dark:bg-primary-900/30 hx:flex hx:items-center hx:justify-center hx:mb-4 hx:z-10">
+          <span class="hx:text-2xl hx:font-black hx:text-primary-600 hx:dark:text-primary-400">4</span>
+        </div>
+        <h3 class="hx:font-bold hx:text-gray-900 hx:dark:text-white hx:mb-2">Production</h3>
+        <p class="hx:text-sm hx:text-gray-500 hx:dark:text-gray-400">Version promotes automatically after all environments succeed.</p>
+      </div>
+    </div>
+  </div>
+</div>
 
 <div class="hx:bg-gray-50/50 dark:hx:bg-gray-900/50 hx:py-32 hx:mx-auto hx:mt-12 hx:mb-12">
   <div class="hx:max-w-screen-xl hx:mx-auto hx:px-6 hx:flex hx:flex-col hx:items-center">

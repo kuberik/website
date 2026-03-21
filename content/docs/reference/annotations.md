@@ -9,6 +9,8 @@ Complete reference for all Kuberik annotations.
 
 ### Kustomization Substitution
 
+{{< badge content="FluxCD" >}} {{< badge content="Core" >}}
+
 Used on Flux `Kustomization` resources to link version substitution.
 
 ```yaml {filename="kustomization-annotation.yaml"}
@@ -43,6 +45,8 @@ spec:
 
 ### Kustomization Target
 
+{{< badge content="Health Checks" >}}
+
 Specifies which Flux Kustomization to monitor.
 
 ```yaml {filename="healthcheck-annotation.yaml"}
@@ -56,6 +60,8 @@ metadata:
 ## RolloutGate Annotations
 
 ### Display Metadata
+
+{{< badge content="Dashboard" >}} {{< badge content="UI" >}}
 
 Provides human-readable information for the Dashboard UI.
 
@@ -71,6 +77,8 @@ metadata:
 ## OpenKruise Rollout Annotations
 
 ### Step Configuration
+
+{{< badge content="OpenKruise" >}} {{< badge content="Canary" >}}
 
 Used on OpenKruise `Rollout` resources to configure Kuberik's step handling.
 
@@ -106,6 +114,8 @@ metadata:
 ## DatadogMonitor Annotations
 
 ### Health Check Integration
+
+{{< badge content="Datadog" >}} {{< badge content="Monitoring" >}}
 
 Enable Kuberik to use a DatadogMonitor as a health check source.
 

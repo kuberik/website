@@ -154,14 +154,45 @@ spec:
       APP_VERSION: "1.0.0"  # Default, overwritten by Kuberik
 ```
 
-Your manifests use the variable:
+{{< callout type="info" >}}
+**Repository Structure**
 
-```yaml
-# deployment.yaml
+Your Git repository should be organized with Kustomize overlays for different environments:
+{{< /callout >}}
+
+{{< filetree/container >}}
+  {{< filetree/folder name="k8s" >}}
+    {{< filetree/folder name="base" >}}
+      {{< filetree/file name="deployment.yaml" >}}
+      {{< filetree/file name="service.yaml" >}}
+      {{< filetree/file name="kustomization.yaml" >}}
+    {{< /filetree/folder >}}
+    {{< filetree/folder name="overlays" >}}
+      {{< filetree/folder name="staging" >}}
+        {{< filetree/file name="kustomization.yaml" >}}
+        {{< filetree/file name="patches.yaml" >}}
+      {{< /filetree/folder >}}
+      {{< filetree/folder name="production" >}}
+        {{< filetree/file name="kustomization.yaml" >}}
+        {{< filetree/file name="patches.yaml" >}}
+      {{< /filetree/folder >}}
+    {{< /filetree/folder >}}
+  {{< /filetree/folder >}}
+{{< /filetree/container >}}
+
+Your base deployment uses the substitution variable:
+
+```yaml {filename="k8s/base/deployment.yaml"}
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: my-app
 spec:
-  containers:
-    - name: app
-      image: ghcr.io/my-org/my-app:${APP_VERSION}
+  template:
+    spec:
+      containers:
+        - name: app
+          image: ghcr.io/my-org/my-app:${APP_VERSION}
 ```
 
 ---
@@ -185,7 +216,7 @@ This checks if the Kustomization's `Ready` condition is true.
 
 ---
 
-## Troubleshooting
+{{% details title="Troubleshooting" %}}
 
 ### ImagePolicy not finding versions
 
@@ -207,6 +238,22 @@ This checks if the Kustomization's `Ready` condition is true.
    ```bash
    kubectl describe rollout my-app
    ```
+
+### Common Issues
+
+{{< callout type="warning" >}}
+**ImageRepository showing "Failed"**
+
+Usually indicates authentication issues or invalid image path. Check the repository name matches your container registry exactly.
+{{< /callout >}}
+
+{{< callout type="info" >}}
+**Kustomization stuck on old version**
+
+Ensure the annotation `rollout.kuberik.com/substitute.VAR_NAME.from` exactly matches your Rollout name.
+{{< /callout >}}
+
+{{% /details %}}
 
 ---
 

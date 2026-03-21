@@ -5,14 +5,11 @@ sidebar:
   open: true
 ---
 
-
-
 Deploy your first application with Kuberik. This guide assumes you have a cluster with [FluxCD](https://fluxcd.io) and [Kuberik](/docs/installation/) installed.
 
+{{% steps %}}
 
-
-
-## Configure Image Automation
+### Configure Image Automation
 
 Tell Flux where to find your container images.
 
@@ -43,7 +40,7 @@ spec:
 kubectl apply -f image-automation.yaml
 ```
 
-## Create the Rollout
+### Create the Rollout
 
 Define how Kuberik should manage versions.
 
@@ -62,9 +59,7 @@ spec:
 kubectl apply -f rollout.yaml
 ```
 
-
-
-## Deploy & Verify
+### Deploy with Kuberik
 
 Apply the Flux Kustomization that uses Kuberik's substitution.
 
@@ -92,9 +87,8 @@ spec:
 kubectl apply -f kustomization.yaml
 ```
 
-**Your Deployment Manifest:**
-
-Ensure your Deployment in `./deployments/prod` uses the variable:
+{{< callout type="info" >}}
+Ensure your Deployment in `./deployments/prod` uses the substitution variable:
 
 ```yaml {filename="deployment.yaml"}
 apiVersion: apps/v1
@@ -106,15 +100,19 @@ spec:
     spec:
       containers:
         - name: app
-          # The variable is substituted by Flux+Kuberik
           image: ghcr.io/littlechimera/hello-world/app:${HELLO_WORLD_VERSION}
 ```
+{{< /callout >}}
 
-**Check Status:**
+### Verify the Rollout
+
+Check that Kuberik detected the new image and created a release.
 
 ```bash
 kubectl describe rollout hello-world-app
 ```
+
+{{% /steps %}}
 
 
 

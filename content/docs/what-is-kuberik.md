@@ -18,12 +18,33 @@ Kuberik does not build images, decide when to release, or replace your GitOps to
 
 ## How It Works
 
-1. Your CI publishes a tagged image to a container registry
-2. FluxCD detects the new tag via `ImagePolicy`
-3. Kuberik creates a release candidate and evaluates gates
-4. Kuberik updates the Kustomization to deploy the new version
-5. Health checks verify the deployment during bake time
-6. The release is marked as succeeded or failed
+{{% steps %}}
+
+### Publish
+
+Your CI publishes a tagged image to a container registry.
+
+### Detect
+
+FluxCD detects the new tag via `ImagePolicy`.
+
+### Gate
+
+Kuberik creates a release candidate and evaluates gates.
+
+### Deploy
+
+Kuberik updates the Kustomization to deploy the new version.
+
+### Verify
+
+Health checks verify the deployment during bake time.
+
+### Complete
+
+The release is marked as succeeded or failed.
+
+{{% /steps %}}
 
 For a detailed component breakdown, see [Architecture](/docs/concepts/architecture/).
 

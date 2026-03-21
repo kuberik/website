@@ -45,7 +45,7 @@ spec:
 
 Kuberik continuously evaluates all matching health checks. Bake time starts once all checks become healthy.
 
-## Cross-Namespace Selection
+{{% details title="Advanced: Cross-Namespace Selection" %}}
 
 Select health checks from other namespaces using `namespaceSelector`.
 
@@ -63,6 +63,15 @@ spec:
       matchLabels:
         monitoring: enabled
 ```
+
+{{< callout type="info" >}}
+**Use Cases:**
+- Shared monitoring infrastructure
+- Multi-tenant clusters with namespace isolation
+- Health checks managed by platform teams
+{{< /callout >}}
+
+{{% /details %}}
 
 ## Datadog Monitors
 

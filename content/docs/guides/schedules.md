@@ -83,8 +83,8 @@ spec:
 
 | Action | When Active | When Inactive |
 |--------|------------|---------------|
-| `Allow` | Deployments proceed | Deployments blocked |
-| `Deny` | Deployments blocked | Deployments proceed |
+| {{< badge content="Allow" color="green" >}} | Deployments proceed | Deployments blocked |
+| {{< badge content="Deny" color="red" >}} | Deployments blocked | Deployments proceed |
 
 ## Annotations
 

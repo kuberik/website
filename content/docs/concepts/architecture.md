@@ -62,10 +62,29 @@ flowchart TB
 
 ## The Release Lifecycle
 
-1.  **Discovery**: Flux detects a new image tag. Kuberik creates a pending `Release`.
-2.  **Gating**: `RolloutGates` are evaluated. If any gate fails or is pending, the release waits.
-3.  **Execution**: Kuberik updates the `Kustomization` variables. Flux applies the changes.
-4.  **Bake Time**: Kuberik waits for a defined stabilization period.
-5.  **Verification**: `HealthChecks` run continuously.
-    - **Success**: Release is marked "Available".
-    - **Failure**: Release is marked "Failed".
+{{% steps %}}
+
+### Discovery
+
+Flux detects a new image tag. Kuberik creates a pending `Release`.
+
+### Gating
+
+`RolloutGates` are evaluated. If any gate fails or is pending, the release waits.
+
+### Execution
+
+Kuberik updates the `Kustomization` variables. Flux applies the changes.
+
+### Bake Time
+
+Kuberik waits for a defined stabilization period.
+
+### Verification
+
+`HealthChecks` run continuously.
+
+- {{< badge content="Available" color="green" >}} All health checks pass — release is promoted.
+- {{< badge content="Failed" color="red" >}} A health check fails — release is halted.
+
+{{% /steps %}}

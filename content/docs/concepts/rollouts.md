@@ -9,11 +9,24 @@ A **Rollout** is the central resource in Kuberik. It tracks container image vers
 
 A Rollout watches a FluxCD `ImagePolicy` for new container image tags. When a new version is detected, the Rollout:
 
-1. Creates a **release candidate**
-2. Evaluates any **gates** (see [Gating Process](#gating-process))
-3. Updates the deployment via Flux **Kustomization substitution**
-4. Monitors **health checks** during the bake period (see [Verification Cycle](#verification-cycle))
-5. **Marks** the version as succeeded or failed
+{{% steps %}}
+
+### Creates a Release Candidate
+The new version becomes a pending release waiting for evaluation.
+
+### Evaluates Gates
+All [gating conditions](#gating-process) must pass before deployment begins.
+
+### Updates Deployment
+Updates the deployment via Flux **Kustomization substitution**.
+
+### Monitors Health
+Continuously [monitors health checks](#verification-cycle) during the bake period.
+
+### Marks Status
+The version is marked as succeeded or failed based on health results.
+
+{{% /steps %}}
 
 ## Rollout Resource
 
@@ -112,6 +125,9 @@ sequenceDiagram
 
 ## Sequential Processing
 
+{{< callout type="important" >}}
+**One Version at a Time**
+
 Kuberik processes **one version at a time**. If version `v1.2.0` is baking and `v1.3.0` is detected:
 
 1. `v1.3.0` becomes a pending release
@@ -119,6 +135,7 @@ Kuberik processes **one version at a time**. If version `v1.2.0` is baking and `
 3. Then `v1.3.0` begins its own lifecycle
 
 This prevents deployment storms and ensures each version gets proper verification.
+{{< /callout >}}
 
 ## Related Guides
 
