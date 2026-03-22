@@ -26,7 +26,7 @@ layout: "hextra-home"
 
   <div class="hx:mt-12 hx:mb-6 hx:flex hx:gap-4 hx:flex-wrap">
     {{< hextra/hero-button text="Get Started" link="/docs/getting-started/" >}}
-    <a href="https://github.com/kuberik/rollout-controller" target="_blank" rel="noreferrer" class="not-prose hx:font-medium hx:cursor-pointer hx:px-6 hx:py-3 hx:rounded-full hx:text-center hx:inline-block hx:border hx:border-gray-300 hx:dark:border-neutral-600 hx:text-gray-700 hx:dark:text-gray-300 hx:hover:bg-gray-100 hx:dark:hover:bg-neutral-800 hx:transition-all hx:ease-in hx:duration-200">View on GitHub</a>
+    <a href="https://github.com/kuberik" target="_blank" rel="noreferrer" class="not-prose hx:font-medium hx:cursor-pointer hx:px-6 hx:py-3 hx:rounded-full hx:text-center hx:inline-block hx:border hx:border-gray-300 hx:dark:border-neutral-600 hx:text-gray-700 hx:dark:text-gray-300 hx:hover:bg-gray-100 hx:dark:hover:bg-neutral-800 hx:transition-all hx:ease-in hx:duration-200">View on GitHub</a>
   </div>
 </div>
 <div class="hx:mx-auto hx:flex hx:justify-center hx:items-center" style="max-width: 300px;">
