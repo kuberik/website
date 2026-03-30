@@ -79,14 +79,6 @@ layout: "hextra-home"
     link="/docs/guides/health-checks/"
     style="background: radial-gradient(ellipse at 50% 80%,rgba(254,142,97,0.15),hsla(0,0%,100%,0));"
   >}}
-  {{< hextra/feature-card
-    title="GitOps Native"
-    subtitle="Define and control your entire delivery process through Git."
-    class="hx:aspect-auto"
-    icon="gitops"
-    link="/docs/integrations/fluxcd/"
-    style="background: radial-gradient(ellipse at 50% 80%,rgba(142,53,74,0.15),hsla(0,0%,100%,0));"
-  >}}
 {{< /hextra/feature-grid >}}
 <!-- prettier-ignore-end -->
 
