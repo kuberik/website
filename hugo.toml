@@ -29,6 +29,15 @@ theme = 'hextra'
     autoCollapseState = false
     collapsible = false
 
+  [params.blog]
+    [params.blog.list]
+      displayTags = true
+      sortBy = "date"
+      sortOrder = "desc"
+      pagerSize = 10
+    [params.blog.article]
+      displayPagination = true
+
 [markup]
   [markup.goldmark]
     [markup.goldmark.renderer]
@@ -44,14 +53,20 @@ theme = 'hextra'
     weight = 1
 
   [[menu.main]]
-    name = "Search"
+    identifier = "blog"
+    name = "Blog"
+    url = "/blog/"
     weight = 2
+
+  [[menu.main]]
+    name = "Search"
+    weight = 3
     [menu.main.params]
       type = "search"
 
   [[menu.main]]
     name = "GitHub"
     url = "https://github.com/kuberik"
-    weight = 3
+    weight = 4
     [menu.main.params]
       icon = "github"
