@@ -13,6 +13,12 @@ Environments represent deployment targets like `staging`, `production`, or `eu-w
 2. Sync state to an external **backend** for coordination
 3. Define **relationships** for cross-environment promotion
 
+{{< callout type="info" >}}
+**Environments Act Independently**
+
+Rollout and rollback are local operations managed by the controller on each cluster. There is no central pipeline coordinating environments from above. One cluster can roll back or hotfix without depending on the state of any other.
+{{< /callout >}}
+
 ## Environment Resource
 
 ```yaml {filename="environment.yaml"}

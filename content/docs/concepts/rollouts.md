@@ -98,6 +98,12 @@ flowchart TD
     Rejected --> Stop(Stop Rollout):::failure
 ```
 
+{{< callout type="important" >}}
+**Healthy Environment Required**
+
+A rollout will not start if existing health checks are failing. The release waits until the environment recovers. New deployments never land on top of an active incident.
+{{< /callout >}}
+
 ## Verification Cycle
 
 During the **bake time**, Kuberik continuously verifies health:
@@ -135,6 +141,22 @@ Kuberik processes **one version at a time**. If version `v1.2.0` is baking and `
 3. Then `v1.3.0` begins its own lifecycle
 
 This prevents deployment storms and ensures each version gets proper verification.
+{{< /callout >}}
+
+## Manual Deployments
+
+Deploy a specific version manually during an incident or for targeted recovery. Kuberik distinguishes these from automated rollouts.
+
+{{< callout type="important" >}}
+**Manual Deploys Are Not Auto-Reverted**
+
+Kuberik does not automatically roll back a manually initiated deployment. An operator deploying by hand has made a deliberate decision — the controller does not override it.
+{{< /callout >}}
+
+{{< callout type="important" >}}
+**Rollback Suppressed in Unhealthy Environments**
+
+When a manual rollout lands in an already unhealthy environment, automatic rollback is disabled for that release. This avoids a feedback loop where a rollback triggers further instability, compounding the incident.
 {{< /callout >}}
 
 ## Related Guides

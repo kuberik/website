@@ -155,6 +155,12 @@ spec:
 ```
 
 {{< callout type="info" >}}
+**Multiple Rollouts per Kustomization**
+
+A single Kustomization can be driven by multiple Rollouts. Declare one annotation per substitution variable, each pointing to its own Rollout — for example, a frontend and backend version managed by independent rollouts targeting the same Kustomization.
+{{< /callout >}}
+
+{{< callout type="info" >}}
 **Repository Structure**
 
 Your Git repository should be organized with Kustomize overlays for different environments:
