@@ -78,9 +78,6 @@ spec:
     kind: GitRepository
     name: hello-world
   targetNamespace: hello-world
-  postBuild:
-    substitute:
-      HELLO_WORLD_VERSION: "0.1.0" # Placeholder
 ```
 
 ```bash
