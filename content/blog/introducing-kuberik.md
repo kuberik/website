@@ -13,13 +13,13 @@ After almost ten years of watching CD tooling change without the underlying mode
 
 <!--more-->
 
-## The problem with pipeline scripts
+## The state so far
 
-Jenkins, GitLab CI, Drone, GitHub Actions. Every few years the tooling changed, the interfaces got better, the integrations got tighter. But the way teams implement continuous delivery stayed exactly the same: you write the steps yourself. The canary, the health checks, the rollback trigger, the promotion conditions. Each of those is bespoke code that lives in your pipeline, is tested by nobody, and fails in production in ways that are hard to trace.
+I have used Jenkins, GitLab CI, Drone, GitHub Actions over the years. Each generation brought better interfaces and tighter integrations. But the way teams implement continuous delivery stayed exactly the same: you write the steps yourself. The canary, the health checks, the rollback trigger, the promotion conditions. Each of those is bespoke code that lives in your pipeline, is tested by nobody, and fails in production in ways that are hard to trace.
 
-The second problem is that a pipeline only models the happy path. When something goes wrong or you need to act outside the normal sequence, the pipeline has nothing for you. You need to roll back a single environment without touching others. You need to pin a version while an incident is in progress. You need to force a deploy and skip the gates. You need per-environment deployment windows and health checks that block promotions automatically. None of this is exceptional, it is routine. And because the pipeline has no model for it, it all ends up as more bespoke code on top, harder to test than the pipeline itself.
+Pipelines also model only the happy path. When something goes wrong or you need to act outside the normal sequence, the pipeline has nothing for you. Roll back a single environment without touching others. Pin a version during an incident. Force a deploy past the gates. None of this is exceptional, it is routine, and it ends up as more bespoke code on top.
 
-The existing Kubernetes-native tools do not close this gap. GitOps tools like Flux and ArgoCD stop at the boundary of the rollout. Argo Rollouts and Flagger handle single-environment rollout mechanics but nothing beyond. Teams end up stitching these together with CI pipeline glue, and the glue becomes the thing nobody wants to touch. There are more complete solutions, but they come with centralized infrastructure, external dependencies, and operational overhead that most teams would rather avoid.
+GitOps with Flux or ArgoCD addresses part of this. They reconcile a desired state from git, but they do not orchestrate how that state gets there. A change merged to main syncs to every cluster at once. There is no built-in way to roll changes out progressively across environments. Argo Rollouts and Flagger handle the mechanics of a single rollout but nothing beyond. Teams end up stitching all of these together with CI pipeline glue, and the glue becomes the thing nobody wants to touch. There are more complete solutions, but they come with centralized infrastructure, external dependencies, and operational overhead that most teams would rather avoid.
 
 ## How Kuberik works
 
@@ -28,3 +28,5 @@ Kuberik watches your container registry for new image releases. When a new versi
 The design encodes a set of behaviours that are easy to get wrong when you reimplement them in a script. Each environment is autonomous, so rollback is always a local operation. Kuberik will not roll out into an unhealthy environment. It will not undo a manual deployment made during an incident. It processes versions sequentially so every version gets properly verified. You can attach test hooks at any stage of the rollout. You can force deploy a specific version when you need to bypass the gates entirely. You can define deployment windows and Kuberik enforces them. Getting all of this right in a CI pipeline means writing and maintaining the logic yourself, in every pipeline, across every team.
 
 Deploying to production should just work. Check out [how Kuberik works](/docs/what-is-kuberik/#you-release-kuberik-delivers) and the [getting started guide](/docs/getting-started/).
+
+For the story behind Kuberik, see [Building Kuberik](https://littlechimera.com/posts/building-kuberik/) on my personal blog.
