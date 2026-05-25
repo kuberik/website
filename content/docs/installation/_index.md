@@ -5,7 +5,7 @@ sidebar:
   open: true
 ---
 
-Install Kuberik in your Kubernetes cluster.
+Install Kuberik in your Kubernetes cluster. The recommended path is the [Helm chart](helm/) — one release installs the controller, integrations, dashboard, and the OIDC auth gate. The steps below cover the manual `kubectl apply` route.
 
 {{< callout type="info" >}}
 **Prerequisites:** You'll need a Kubernetes cluster and `kubectl` access. Kuberik requires a GitOps tool like FluxCD to function.
@@ -108,6 +108,7 @@ See [GitHub Integration](/docs/integrations/github/) for setup.
 ## Going Further
 
 {{< cards >}}
+  {{< card title="Install with Helm" link="helm/" icon="cube" subtitle="One-release install of controller, integrations, dashboard, auth" >}}
   {{< card title="Dashboard Authentication" link="dashboard-auth/" icon="lock-closed" subtitle="Put the Rollout Dashboard behind your OIDC provider" >}}
 {{< /cards >}}
 
