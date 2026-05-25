@@ -102,3 +102,12 @@ kubectl apply -f https://github.com/kuberik/environment-controller/releases/down
 See [GitHub Integration](/docs/integrations/github/) for setup.
 
 {{% /details %}}
+
+---
+
+## Going Further
+
+{{< cards >}}
+  {{< card title="Dashboard Authentication" link="dashboard-auth/" icon="lock-closed" subtitle="Put the Rollout Dashboard behind your OIDC provider" >}}
+{{< /cards >}}
+
