@@ -5,6 +5,10 @@ weight: 2
 
 Put the Rollout Dashboard behind your OIDC provider. A single [oauth2-proxy](https://oauth2-proxy.github.io/oauth2-proxy/) deployment in `auth-system` gates the dashboard via [Envoy Gateway](https://gateway.envoyproxy.io) extAuth.
 
+{{< callout type="info" >}}
+Installing via the [Helm chart](helm/)? Set `auth.enabled: true` and `dashboard.gateway.auth: true` — every manifest below is templated for you. The steps here are the manual path for non-Helm installs.
+{{< /callout >}}
+
 ## Register One OIDC Client
 
 At your OIDC provider:
