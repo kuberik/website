@@ -33,3 +33,9 @@ Step-by-step guides for common Kuberik workflows.
 {{< cards >}}
   {{< card title="Monitoring Rollouts" link="monitoring/" icon="chart-bar" subtitle="Track history with kube-state-metrics" >}}
 {{< /cards >}}
+
+## Operations
+
+{{< cards >}}
+  {{< card title="Cluster Auth Gate" link="cluster-auth-gate/" icon="lock-closed" subtitle="OIDC SSO for the dashboard (and anything else) via oauth2-proxy" >}}
+{{< /cards >}}

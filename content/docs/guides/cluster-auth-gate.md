@@ -1,6 +1,6 @@
 ---
-title: "Dashboard Authentication"
-weight: 4
+title: "Cluster Auth Gate"
+weight: 7
 ---
 
 Run a single cluster-level OIDC auth gate that any service can opt into. [oauth2-proxy](https://oauth2-proxy.github.io/oauth2-proxy/) lives in its own `auth-system` namespace as shared infrastructure — it never sees upstream backends. Each application namespace attaches a small `SecurityPolicy` to its own `HTTPRoute`, and [Envoy Gateway](https://gateway.envoyproxy.io)'s extAuth does the rest.
@@ -35,9 +35,9 @@ oauth2-proxy runs in **auth-only mode** (`--upstream=static://200`): it validate
 
 ## Register the OIDC Client
 
-Create one OAuth2 client at your provider — not per-app, but per-cluster:
+Create **one** OAuth2 client at your provider — not per-app, but per-cluster:
 
-- **Client ID**: `kuberik-cluster` (or anything cluster-scoped you like)
+- **Client ID**: `kuberik-cluster` (or anything cluster-scoped you like). The same id is reused by kube-apiserver, so the id_token authenticates against both verifiers without any cross-audience trickery.
 - **Redirect URI**: `https://<canonical-host>/oauth2/callback` — pick one host that owns the callback; the session cookie applies to all subdomains under `--cookie-domain`
 - **Scopes**: `openid email profile groups`
 
@@ -191,43 +191,17 @@ That's the entire per-app integration. `headersToBackend` copies oauth2-proxy's 
 
 ## Make the Token Work as a Kubernetes Credential
 
-For "every action runs as the logged-in user" to hold, the same id_token has to be acceptable to two verifiers: oauth2-proxy (audience = `kuberik-cluster`) **and** the Kubernetes API server (audience = `kubernetes`). One token, two audiences.
+For "every action runs as the logged-in user" to hold, the id_token has to be acceptable to two verifiers: oauth2-proxy **and** the Kubernetes API server. The simplest way — and the only way that works against providers like Okta, Auth0, or Google that don't expose Dex-style cross-client trust — is to point both verifiers at the same audience.
 
-Configure the OIDC provider to mint multi-audience tokens. With Dex, request the cross-client scope:
-
-```yaml {filename="auth-system.yaml"}
-args:
-  # ...existing args...
-  - --scope=openid email profile groups audience:server:client_id:kubernetes
-```
-
-…and declare `kuberik-cluster` a trusted peer of the `kubernetes` client in Dex:
-
-```yaml {filename="dex.yaml"}
-staticClients:
-  - id: kubernetes
-    name: kubernetes
-    secret: kubernetes-client-secret
-    redirectURIs:
-      - http://localhost:8000
-    trustedPeers:
-      - kuberik-cluster
-  - id: kuberik-cluster
-    name: Kuberik Cluster
-    secret: <client-secret>
-    redirectURIs:
-      - https://<canonical-host>/oauth2/callback
-```
-
-Configure kube-apiserver to trust the same issuer:
+Configure kube-apiserver to trust the same issuer and the same client id you gave oauth2-proxy:
 
 ```text {filename="kube-apiserver flags"}
 --oidc-issuer-url=https://<your-oidc-issuer>
---oidc-client-id=kubernetes
+--oidc-client-id=kuberik-cluster
 --oidc-username-claim=email
 ```
 
-Now the id_token has `aud: [kubernetes, kuberik-cluster]`. oauth2-proxy verifies its slot, the dashboard forwards the same token to kube-apiserver, which verifies its slot. RBAC binds on the email claim.
+The id_token has `aud: "kuberik-cluster"`. oauth2-proxy accepts it because it matches `--client-id`; kube-apiserver accepts it because it matches `--oidc-client-id`. RBAC binds on the email claim. One token, one audience, two verifiers — no provider-specific tricks.
 
 ## Why Bearer Tokens Bypass the Cookie Check
 
