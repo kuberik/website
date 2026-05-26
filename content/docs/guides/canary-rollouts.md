@@ -87,6 +87,10 @@ spec:
 
 The `stepIndex` is 1-based and corresponds to the steps defined in the OpenKruise Rollout. You can create multiple `RolloutTest` resources targeting different steps.
 
+{{< callout type="warning" >}}
+Tests configured on the last step won't run. OpenKruise Rollouts completes without pausing at the final step, so the controller never gets a chance to execute them. Only configure `RolloutTest` for steps that aren't the last one.
+{{< /callout >}}
+
 ## Kuberik Annotations
 
 | Annotation | Purpose |

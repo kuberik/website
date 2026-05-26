@@ -151,6 +151,41 @@ a { color: inherit; }
   opacity: 0.85;
 }
 
+/* ---------- announcement bar ---------- */
+.announce {
+  background: color-mix(in oklab, var(--mint) 8%, var(--bg));
+  border-bottom: 1px solid var(--mint-line);
+  padding: 8px 0;
+  text-align: center;
+}
+.announce a {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 13px;
+  color: var(--text-soft);
+  text-decoration: none;
+  white-space: nowrap;
+  flex-wrap: wrap;
+  justify-content: center;
+}
+.announce a:hover { color: var(--text); }
+.announce-badge {
+  font-size: 11px;
+  font-weight: 600;
+  padding: 2px 8px;
+  border-radius: 999px;
+  background: var(--mint-soft);
+  color: var(--mint);
+  border: 1px solid var(--mint-line);
+  letter-spacing: 0.02em;
+  font-family: var(--font-mono);
+}
+.announce-arrow {
+  color: var(--mint);
+  opacity: 0.7;
+}
+
 /* ---------- nav chrome ---------- */
 .nav {
   position: sticky;
