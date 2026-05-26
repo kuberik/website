@@ -185,6 +185,7 @@ a { color: inherit; }
   color: var(--mint);
   opacity: 0.7;
 }
+.announce-short { display: none; }
 
 /* ---------- nav chrome ---------- */
 .nav {
@@ -370,6 +371,11 @@ a { color: inherit; }
 /* ---------- responsive helpers ---------- */
 @media (max-width: 720px) {
   .hide-sm { display: none !important; }
+  .announce a { flex-wrap: nowrap; padding: 0 20px; }
+  .announce-desc { display: none; }
+  .announce-short { display: inline; }
+  .nav-inner { padding: 14px 24px; }
+  .nav-cta { padding: 7px 12px; font-size: 12px; }
 }
 
 /* scrollbar */
