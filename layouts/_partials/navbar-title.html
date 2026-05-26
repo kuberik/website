@@ -13,6 +13,6 @@
         alt="{{ cond $displayTitle `Dark Logo` .Site.Title }}" height="{{ $logoHeight }}" width="{{ $logoWidth }}" />
     {{- end }}
     {{- if $displayTitle }}
-    <span class="hx:mr-2 hx:font-light hx:inline hx:select-none" title="{{ .Site.Title }}">{{- .Site.Title -}}</span>
+    <span class="brand-title hx:mr-2 hx:inline hx:select-none" title="{{ .Site.Title }}">{{- .Site.Title -}}</span>
     {{- end }}
 </a>

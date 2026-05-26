@@ -1,3 +1,11 @@
+/* Navbar brand title — Montserrat, matches landing + dashboard. */
+.brand-title {
+  font-family: 'Montserrat', system-ui, -apple-system, 'Segoe UI', sans-serif;
+  font-weight: 300;
+  letter-spacing: -0.005em;
+  font-size: 17px;
+}
+
 /* Pulsing dot with wave effect for hero badge */
 .pulse-dot {
   position: relative;

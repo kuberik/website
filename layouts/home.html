@@ -1,0 +1,371 @@
+{{- $css := resources.Get "css/landing.css" | minify | fingerprint -}}
+{{- $js  := resources.Get "js/landing.js"  | minify | fingerprint -}}
+<!DOCTYPE html>
+<html lang="en" data-theme="dark">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Kuberik · Continuous delivery that finally went declarative.</title>
+  <meta name="description" content="Kuberik is a Kubernetes-native delivery controller. Declare when a version may deploy and when it counts as healthy. The controller runs the rollout, promotes across environments, rolls back. In your cluster." />
+
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Montserrat:wght@200;300;400;500;600&family=Inter:wght@300;400;500;600&family=JetBrains+Mono:wght@400;500;600&display=swap">
+
+  <link rel="stylesheet" href="{{ $css.RelPermalink }}" integrity="{{ $css.Data.Integrity }}">
+  <link rel="icon" type="image/svg+xml" href="/favicon.svg">
+  <link rel="alternate icon" href="/favicon.ico">
+
+  <style>
+    html, body { background: #07090c; }
+  </style>
+</head>
+<body>
+
+<nav class="nav">
+  <div class="wrap nav-inner">
+    <a class="brand" href="/">
+      <span class="brand-mark" aria-hidden="true"><img src="/logo.svg" alt="" /></span>
+      <span class="brand-name">kuberik</span>
+    </a>
+    <div class="nav-links hide-sm">
+      <a class="nav-link" href="/docs/">Docs</a>
+      <a class="nav-link" href="/blog/">Blog</a>
+      <a class="nav-link" href="https://github.com/kuberik/kuberik">
+        <svg viewBox="0 0 16 16" width="16" height="16" fill="currentColor"><path d="M8 0C3.58 0 0 3.58 0 8a8 8 0 005.47 7.59c.4.07.55-.17.55-.38v-1.34c-2.23.48-2.7-1.07-2.7-1.07-.36-.92-.89-1.16-.89-1.16-.73-.5.05-.49.05-.49.81.06 1.23.83 1.23.83.72 1.23 1.88.88 2.34.67.07-.52.28-.88.5-1.08-1.78-.2-3.64-.89-3.64-3.95 0-.87.31-1.59.82-2.15-.08-.2-.36-1.02.08-2.12 0 0 .67-.21 2.2.82a7.6 7.6 0 014 0c1.53-1.04 2.2-.82 2.2-.82.44 1.1.16 1.92.08 2.12.51.56.82 1.27.82 2.15 0 3.07-1.87 3.75-3.65 3.95.29.25.54.73.54 1.48v2.2c0 .21.15.46.55.38A8 8 0 0016 8c0-4.42-3.58-8-8-8z"/></svg>
+        GitHub
+      </a>
+    </div>
+    <a class="nav-cta" href="/docs/getting-started/">
+      Get started
+      <svg viewBox="0 0 16 16" width="14" height="14" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M3 8h10M9 4l4 4-4 4" stroke-linecap="round" stroke-linejoin="round"/></svg>
+    </a>
+  </div>
+</nav>
+
+<main>
+
+  {{/* ========== HERO ========== */}}
+  <section class="section hero">
+    <div class="bg-grid"></div>
+    <div class="bg-glow"></div>
+    <div class="wrap">
+      <div class="hero-inner">
+        <span class="eyebrow">
+          <span class="sdot sdot-mint pulse" style="width:6px;height:6px"></span>
+          Kubernetes-native continuous delivery
+        </span>
+        <h1 class="h-display">End-to-end delivery, without the pipeline.</h1>
+        <p class="body sub">Schedule windows, manual approvals, canaries, environment promotion, alert checks, smoke tests. Everyone can describe the pipeline they want; no tool has ever made it easy to build. Kuberik does, one piece at a time.</p>
+        <div class="hero-actions">
+          <a class="btn btn-primary" href="/docs/getting-started/">
+            Get started
+            <svg viewBox="0 0 16 16" width="14" height="14" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M3 8h10M9 4l4 4-4 4" stroke-linecap="round" stroke-linejoin="round"/></svg>
+          </a>
+          <a class="btn btn-ghost" href="https://github.com/kuberik/kuberik">
+            <svg viewBox="0 0 16 16" width="16" height="16" fill="currentColor"><path d="M8 0C3.58 0 0 3.58 0 8a8 8 0 005.47 7.59c.4.07.55-.17.55-.38v-1.34c-2.23.48-2.7-1.07-2.7-1.07-.36-.92-.89-1.16-.89-1.16-.73-.5.05-.49.05-.49.81.06 1.23.83 1.23.83.72 1.23 1.88.88 2.34.67.07-.52.28-.88.5-1.08-1.78-.2-3.64-.89-3.64-3.95 0-.87.31-1.59.82-2.15-.08-.2-.36-1.02.08-2.12 0 0 .67-.21 2.2.82a7.6 7.6 0 014 0c1.53-1.04 2.2-.82 2.2-.82.44 1.1.16 1.92.08 2.12.51.56.82 1.27.82 2.15 0 3.07-1.87 3.75-3.65 3.95.29.25.54.73.54 1.48v2.2c0 .21.15.46.55.38A8 8 0 0016 8c0-4.42-3.58-8-8-8z"/></svg>
+            Star on GitHub
+          </a>
+        </div>
+        <div class="hero-meta">
+          <span><span class="sdot sdot-mint" style="width:6px;height:6px"></span> Apache 2.0</span>
+          <span class="sep">·</span>
+          <span>composes with Flux, OpenKruise, Prometheus, Datadog</span>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  {{/* ========== MODEL ========== */}}
+  <section class="section section-model">
+    <div class="wrap">
+      <div class="section-head section-head-center">
+        <span class="eyebrow">How it works</span>
+        <h2 class="h-section">A reactive loop with <span class="mint">five clear phases</span>.</h2>
+        <p class="body" style="color: var(--text-mid); max-width: 580px;">
+          Each phase is a Kubernetes resource. Two are yours to compose; three are built in. Nothing else is hidden behind the curtain.
+        </p>
+      </div>
+
+      <div class="m6-wrap" data-component="model">
+        <div class="m6-grid">
+
+          {{/* LEFT: loop */}}
+          <div class="m6-stage">
+            <svg class="m6-svg" viewBox="0 0 540 540" preserveAspectRatio="xMidYMid meet">
+              <path class="m6-seg" d="M 167.44 98.32 A 200 200 0 0 1 372.56 98.32" fill="none" stroke="#00c9b5" stroke-opacity="1" stroke-width="7" vector-effect="non-scaling-stroke" stroke-linecap="round" />
+              <path class="m6-seg" d="M 401.64 119.44 A 200 200 0 0 1 465.00 314.44" fill="none" stroke="#00c9b5" stroke-opacity="0.18" stroke-width="2" vector-effect="non-scaling-stroke" stroke-linecap="round" />
+              <path class="m6-seg" d="M 453.84 348.78 A 200 200 0 0 1 288.06 469.18" fill="none" stroke="#00c9b5" stroke-opacity="0.18" stroke-width="2" vector-effect="non-scaling-stroke" stroke-linecap="round" />
+              <path class="m6-seg" d="M 251.94 469.18 A 200 200 0 0 1 86.16 348.78"  fill="none" stroke="#00c9b5" stroke-opacity="0.18" stroke-width="2" vector-effect="non-scaling-stroke" stroke-linecap="round" />
+              <path class="m6-seg" d="M 75.00 314.44 A 200 200 0 0 1 138.36 119.44" fill="none" stroke="#00c9b5" stroke-opacity="0.18" stroke-width="2" vector-effect="non-scaling-stroke" stroke-linecap="round" />
+
+              <text class="m6-segnum" x="270" y="50"      text-anchor="middle">01</text>
+              <text class="m6-segnum" x="484.85" y="206.17" text-anchor="middle">02</text>
+              <text class="m6-segnum" x="402.81" y="458.74" text-anchor="middle">03</text>
+              <text class="m6-segnum" x="137.19" y="458.74" text-anchor="middle">04</text>
+              <text class="m6-segnum" x="55.15"  y="206.17" text-anchor="middle">05</text>
+            </svg>
+
+            <div class="m6-center">
+              <span class="lbl">phase 01</span>
+              <span class="name">release</span>
+            </div>
+
+            <div class="m6-pill" data-active="true" style="left:50%;top:8.52%"><span class="nd"></span> release</div>
+            <div class="m6-pill" style="left:89.45%;top:37.18%"><span class="nd"></span> guard</div>
+            <div class="m6-pill" style="left:74.38%;top:83.56%"><span class="nd"></span> gates</div>
+            <div class="m6-pill" style="left:25.62%;top:83.56%"><span class="nd"></span> update</div>
+            <div class="m6-pill" style="left:10.55%;top:37.18%"><span class="nd"></span> health</div>
+          </div>
+
+          {{/* RIGHT: cards */}}
+          <div class="m6-cards">
+            <div class="m6-card" data-active="true">
+              <div class="m6-card-head">
+                <span class="num">01</span>
+                <span class="ph">release</span>
+              </div>
+              <div class="q">Which versions are available?</div>
+              <div class="chips"><span>Flux ImagePolicy</span><span>OCI pull</span><span>cosign-verified</span></div>
+            </div>
+            <div class="m6-card">
+              <div class="m6-card-head">
+                <span class="num">02</span>
+                <span class="ph">guard</span>
+                <span class="note">built-in · no config</span>
+              </div>
+              <div class="q">Is this environment safe to deploy to?</div>
+              <div class="chips"><span>healthy</span><span>not paused</span><span>idle</span><span>no override</span></div>
+            </div>
+            <div class="m6-card">
+              <div class="m6-card-head">
+                <span class="num">03</span>
+                <span class="ph">gates</span>
+                <span class="note">open class · you own this</span>
+              </div>
+              <div class="q">Which version can we deploy right now?</div>
+              <div class="chips"><span>schedule</span><span>manual</span><span>after(env)</span><span>custom CRD</span></div>
+            </div>
+            <div class="m6-card">
+              <div class="m6-card-head">
+                <span class="num">04</span>
+                <span class="ph">update</span>
+              </div>
+              <div class="q">Roll out the new version.</div>
+              <div class="chips"><span>Flux Kustomization</span><span>OpenKruise</span><span>canary 0→100%</span></div>
+            </div>
+            <div class="m6-card">
+              <div class="m6-card-head">
+                <span class="num">05</span>
+                <span class="ph">health</span>
+                <span class="note">open class · you own this</span>
+              </div>
+              <div class="q">Did it deploy successfully?</div>
+              <div class="chips"><span>kstatus</span><span>metrics</span><span>alerts</span><span>smoke test</span><span>custom CRD</span></div>
+            </div>
+          </div>
+        </div>
+
+        <div class="m6-strip">
+          <button type="button" class="m6-spill" data-active="true"><span class="nd"></span> release</button>
+          <button type="button" class="m6-spill"><span class="nd"></span> guard</button>
+          <button type="button" class="m6-spill"><span class="nd"></span> gates</button>
+          <button type="button" class="m6-spill"><span class="nd"></span> update</button>
+          <button type="button" class="m6-spill"><span class="nd"></span> health</button>
+        </div>
+
+        <div class="m6-controls">
+          <button type="button" data-action="play">pause</button>
+          <button type="button" data-action="prev">prev</button>
+          <button type="button" data-action="next">next</button>
+          <div class="m6-progress">
+            <span data-state="active"></span><span></span><span></span><span></span><span></span>
+          </div>
+        </div>
+
+        <div class="m6-compose m6-cx-section">
+          <div class="hd">
+            <span class="lbl">composing environments</span>
+            <h3>Each environment is a loop. Compose them with gates.</h3>
+            <p>No central pipeline orchestrates anything. Each environment runs its own loop and opens its gate when conditions are met — including <span class="mc">after(env)</span>.</p>
+          </div>
+          <div class="m6-cx-bigchain">
+            <div class="m6-cx-bigenv">
+              <span class="m6-cx-loop blp"></span>
+              <span class="bnm">dev</span>
+              <span class="bgate">on commit</span>
+            </div>
+            <div class="m6-cx-arrow">
+              <span class="gt">after(env)</span>
+              <svg width="44" height="10" viewBox="0 0 44 10" fill="none" aria-hidden="true">
+                <path d="M0 5 H38" stroke="currentColor" stroke-width="1" />
+                <path d="M34 1 L40 5 L34 9" stroke="currentColor" stroke-width="1" fill="none" stroke-linecap="round" stroke-linejoin="round" />
+              </svg>
+            </div>
+            <div class="m6-cx-bigenv">
+              <span class="m6-cx-loop blp"></span>
+              <span class="bnm">staging</span>
+              <span class="bgate">after <em>dev</em></span>
+            </div>
+            <div class="m6-cx-arrow">
+              <span class="gt">after(env)</span>
+              <svg width="44" height="10" viewBox="0 0 44 10" fill="none" aria-hidden="true">
+                <path d="M0 5 H38" stroke="currentColor" stroke-width="1" />
+                <path d="M34 1 L40 5 L34 9" stroke="currentColor" stroke-width="1" fill="none" stroke-linecap="round" stroke-linejoin="round" />
+              </svg>
+            </div>
+            <div class="m6-cx-bigenv">
+              <span class="m6-cx-loop blp"></span>
+              <span class="bnm">production</span>
+              <span class="bgate">after <em>staging</em> + schedule</span>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  {{/* ========== MANIFEST POSTER ========== */}}
+  <section class="section">
+    <div class="wrap">
+      <div class="section-head">
+        <span class="eyebrow">The spec</span>
+        <h2 class="h-section">This is <span class="mint">everything you write</span>.</h2>
+        <p class="body" style="color: var(--text-mid);">Three Flux resources, one Kuberik resource, one <span class="mono">$VERSION</span> placeholder.</p>
+      </div>
+
+      <div class="mp-grid">
+        <pre class="mp-card" data-file="image-automation.yaml"><span class="mp-tag">flux</span>apiVersion: image.toolkit.fluxcd.io/v1beta2
+kind: <span class="k">ImageRepository</span>
+metadata:
+  name: my-app
+spec:
+  image: <span class="s">ghcr.io/me/my-app</span>
+---
+kind: <span class="k">ImagePolicy</span>
+spec:
+  policy:
+    semver:
+      range: <span class="s">"&gt;=0.1.0"</span></pre>
+
+        <pre class="mp-card" data-kuberik="true" data-file="rollout.yaml"><span class="mp-tag">kuberik</span>apiVersion: kuberik.com/v1alpha1
+kind: <span class="a">Rollout</span>
+metadata:
+  name: my-app
+spec:
+  releasesImagePolicy:
+    name: my-app
+  bakeDuration: <span class="s">10m</span></pre>
+
+        <pre class="mp-card" data-file="kustomization.yaml"><span class="mp-tag">flux</span>apiVersion: kustomize.toolkit.fluxcd.io/v1
+kind: <span class="k">Kustomization</span>
+metadata:
+  name: my-app
+  annotations:
+    <span class="a">rollout.kuberik.com/</span>
+    <span class="a">  substitute.VERSION.from:</span> my-app
+spec:
+  sourceRef:
+    kind: GitRepository
+    name: my-app</pre>
+
+        <pre class="mp-card" data-file="deployment.yaml"><span class="mp-tag">yours</span>apiVersion: apps/v1
+kind: <span class="k">Deployment</span>
+metadata: { name: my-app }
+spec:
+  template:
+    spec:
+      containers:
+        - name: app
+          image: ghcr.io/me/my-app:<span class="var-pill">${VERSION}</span></pre>
+      </div>
+    </div>
+  </section>
+
+  {{/* ========== DASHBOARD SHOWCASE ========== */}}
+  <section class="section">
+    <div class="wrap">
+      <div class="section-head">
+        <span class="eyebrow">One dashboard</span>
+        <h2 class="h-section">Every rollout. <span class="mint">Every cluster.</span></h2>
+        <p class="body" style="color: var(--text-mid);">No hub cluster. No stored cross-cluster credentials. RBAC on your own OIDC.</p>
+      </div>
+
+      <div class="dash" data-component="dash">
+        <div class="dash-frame">
+          <picture class="dash-img" data-active="true">
+            <source media="(max-width: 720px)" srcset="/screenshots/dashboard/apps-mobile.png" />
+            <img loading="lazy" src="/screenshots/dashboard/apps.png" alt="Apps — multi-env spread, version timelines, failing apps surfaced" />
+          </picture>
+          <picture class="dash-img">
+            <source media="(max-width: 720px)" srcset="/screenshots/dashboard/overview-mobile.png" />
+            <img loading="lazy" src="/screenshots/dashboard/overview.png" alt="Rollout overview — deployment pipeline, health checks, resources" />
+          </picture>
+          <picture class="dash-img">
+            <source media="(max-width: 720px)" srcset="/screenshots/dashboard/activity-mobile.png" />
+            <img loading="lazy" src="/screenshots/dashboard/activity.png" alt="Activity — deployment timeline grouped by recency, failures highlighted" />
+          </picture>
+        </div>
+
+
+        <div class="dash-carouseldots">
+          <button type="button" data-active="true">01 · Apps</button>
+          <button type="button">02 · Overview</button>
+          <button type="button">03 · Activity</button>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  {{/* ========== FINAL CTA ========== */}}
+  <section class="section" id="install" style="position:relative;overflow:hidden">
+    <div class="bg-glow"></div>
+    <div class="wrap-narrow" style="text-align:center;position:relative">
+      <span class="eyebrow">
+        <span class="sdot sdot-mint pulse" style="width:6px;height:6px"></span>
+        Try it
+      </span>
+      <h2 class="h-section" style="margin-top:8px;font-size:clamp(32px, 4.4vw, 52px)">
+        Stop writing rollout glue.<br>
+        <span style="color:var(--text-mid)">Declare gates and health. Watch the loop run.</span>
+      </h2>
+      <div style="margin-top:24px;display:flex;gap:12px;justify-content:center;flex-wrap:wrap">
+        <a class="btn btn-primary" href="/docs/getting-started/">
+          Get started
+          <svg viewBox="0 0 16 16" width="14" height="14" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M3 8h10M9 4l4 4-4 4" stroke-linecap="round" stroke-linejoin="round"/></svg>
+        </a>
+        <a class="btn btn-ghost" href="https://github.com/kuberik/kuberik">
+          <svg viewBox="0 0 16 16" width="16" height="16" fill="currentColor"><path d="M8 0C3.58 0 0 3.58 0 8a8 8 0 005.47 7.59c.4.07.55-.17.55-.38v-1.34c-2.23.48-2.7-1.07-2.7-1.07-.36-.92-.89-1.16-.89-1.16-.73-.5.05-.49.05-.49.81.06 1.23.83 1.23.83.72 1.23 1.88.88 2.34.67.07-.52.28-.88.5-1.08-1.78-.2-3.64-.89-3.64-3.95 0-.87.31-1.59.82-2.15-.08-.2-.36-1.02.08-2.12 0 0 .67-.21 2.2.82a7.6 7.6 0 014 0c1.53-1.04 2.2-.82 2.2-.82.44 1.1.16 1.92.08 2.12.51.56.82 1.27.82 2.15 0 3.07-1.87 3.75-3.65 3.95.29.25.54.73.54 1.48v2.2c0 .21.15.46.55.38A8 8 0 0016 8c0-4.42-3.58-8-8-8z"/></svg>
+          Source
+        </a>
+      </div>
+
+      <div class="cta-block">
+<pre class="code">$ helm repo add kuberik https://charts.kuberik.com
+$ helm install kuberik kuberik/rollout-controller</pre>
+      </div>
+    </div>
+  </section>
+
+</main>
+
+<footer class="foot">
+  <div class="wrap foot-inner">
+    <span class="foot-left">
+      <span class="brand">
+        <span class="brand-mark" aria-hidden="true"><img src="/logo.svg" alt="" /></span>
+        <span class="brand-name">kuberik</span>
+      </span>
+      <span>© {{ now.Year }} · Apache 2.0</span>
+    </span>
+    <span class="foot-right">
+      <a href="/docs/">Docs</a>
+      <a href="/blog/">Blog</a>
+      <a href="https://github.com/kuberik/kuberik">GitHub</a>
+    </span>
+  </div>
+</footer>
+
+<script src="{{ $js.RelPermalink }}" integrity="{{ $js.Data.Integrity }}" defer></script>
+</body>
+</html>
