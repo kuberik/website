@@ -745,7 +745,16 @@ a { color: inherit; }
 }
 @media (max-width: 720px) {
   .m6-cx-bigchain { flex-direction: column; gap: 10px; }
-  .m6-cx-bigchain .m6-cx-arrow { transform: rotate(90deg); }
+  .m6-cx-bigchain .m6-cx-arrow { gap: 6px; }
+  .m6-cx-bigchain .m6-cx-arrow svg { display: none; }
+  .m6-cx-bigchain .m6-cx-arrow::after {
+    content: '';
+    display: block;
+    width: 8px; height: 8px;
+    border-right: 1.5px solid var(--text-dim);
+    border-bottom: 1.5px solid var(--text-dim);
+    transform: rotate(45deg);
+  }
 }
 
 /* ---------- manifest poster ---------- */
