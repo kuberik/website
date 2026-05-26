@@ -202,7 +202,7 @@ a { color: inherit; }
   align-items: center;
   justify-content: space-between;
   gap: 24px;
-  padding: 14px 0;
+  padding-block: 14px;
 }
 .brand {
   display: inline-flex;
@@ -371,10 +371,9 @@ a { color: inherit; }
 /* ---------- responsive helpers ---------- */
 @media (max-width: 720px) {
   .hide-sm { display: none !important; }
-  .announce a { flex-wrap: nowrap; padding: 0 20px; }
+  .announce a { flex-wrap: nowrap; }
   .announce-desc { display: none; }
   .announce-short { display: inline; }
-  .nav-inner { padding: 14px 24px; }
   .nav-cta { padding: 7px 12px; font-size: 12px; }
 }
 
