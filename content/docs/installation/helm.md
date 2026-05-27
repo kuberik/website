@@ -110,6 +110,35 @@ Configure kube-apiserver to trust the same client id so the id_token works as a 
 --oidc-username-claim=email
 ```
 
+## Configure Multi-cluster Fan-out
+
+The dashboard aggregates rollouts across clusters automatically when `Environment` objects carry `status.environmentInfos[].environmentUrl` entries pointing at other dashboards. No configuration is required for this zero-config discovery path.
+
+Set `dashboard.url` and `dashboard.clusterName` to help the dashboard identify itself behind reverse proxies that don't forward `Host` headers — used for self-exclusion during fan-out and for the cluster display name in the hub UI:
+
+```yaml {filename="values.yaml"}
+dashboard:
+  enabled: true
+  url: https://dashboard.prod.example.com
+  clusterName: prod
+```
+
+To run this instance as a spoke (serves only `/api/*`; redirects all UI traffic to the hub):
+
+```yaml {filename="values.yaml"}
+dashboard:
+  enabled: true
+  url: https://dashboard.staging.example.com
+  clusterName: staging
+  hubUrl: https://dashboard.prod.example.com
+```
+
+When any of these fields are set the chart creates a `kuberik-cluster-info` ConfigMap in `.Values.namespace`. The dashboard mounts it automatically via env vars.
+
+{{< callout type="info" >}}
+`insecureSkipTLSVerify: true` skips TLS verification for hub→spoke calls. Use only in development environments with self-signed certificates.
+{{< /callout >}}
+
 ## Production Overrides
 
 A complete opinionated `values-production.yaml` ships with the chart — 3-replica controller with PDB, restricted Pod Security Admission, ServiceMonitor + NetworkPolicy, Datadog and environment-controller integrations.
