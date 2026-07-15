@@ -146,6 +146,70 @@ spec:
 
 ---
 
+## Check Datadog Without the Operator
+
+Skip the Datadog Operator and `DatadogMonitor` CRD entirely. The `datadog-api` class polls the Datadog API directly for an existing monitor's status.
+
+Create a secret with your Datadog credentials:
+
+```bash
+kubectl create secret generic datadog-credentials \
+  --from-literal=api-key=YOUR_API_KEY \
+  --from-literal=app-key=YOUR_APP_KEY
+```
+
+Create the HealthCheck, pointing at the monitor by ID:
+
+```yaml {filename="healthcheck-datadog-api.yaml"}
+apiVersion: kuberik.com/v1alpha1
+kind: HealthCheck
+metadata:
+  name: my-app-error-rate
+  namespace: production
+  annotations:
+    healthcheck.kuberik.com/datadog-monitor-id: "12345678"
+    healthcheck.kuberik.com/datadog-credentials-secret: "datadog-credentials"
+    # healthcheck.kuberik.com/datadog-site: "datadoghq.eu"
+    # healthcheck.kuberik.com/requeue-interval: "60s"
+spec:
+  class: datadog-api
+```
+
+```bash
+kubectl apply -f healthcheck-datadog-api.yaml
+```
+
+`OK` maps to `Healthy`, `Alert` maps to `Unhealthy`, and `Warn`/`NoData`/`Skipped`/`Ignored` map to `Pending`.
+
+Supported `datadog-site` values: `datadoghq.com` (default), `datadoghq.eu`, `us3.datadoghq.com`, `us5.datadoghq.com`, `ap1.datadoghq.com`.
+
+---
+
+## Block Rollouts During Incidents
+
+The `datadog-incidents` class goes unhealthy while any open Datadog incident matches a set of labels - independent of any specific monitor. Use it to block rollouts during an active incident.
+
+```yaml {filename="healthcheck-datadog-incidents.yaml"}
+apiVersion: kuberik.com/v1alpha1
+kind: HealthCheck
+metadata:
+  name: payments-incidents-check
+  namespace: production
+  annotations:
+    healthcheck.kuberik.com/datadog-incident-labels: "team:payments,env:prod"
+    healthcheck.kuberik.com/datadog-credentials-secret: "datadog-credentials"
+spec:
+  class: datadog-incidents
+```
+
+```bash
+kubectl apply -f healthcheck-datadog-incidents.yaml
+```
+
+The controller searches for non-resolved incidents (`-state:resolved`) matching every given label. Any match flips the HealthCheck to `Unhealthy`.
+
+---
+
 ## Best Practices
 
 ### Use Bake-Specific Monitors
