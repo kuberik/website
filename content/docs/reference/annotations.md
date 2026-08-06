@@ -7,6 +7,8 @@ Complete reference for all Kuberik annotations.
 
 ## Rollout Annotations
 
+A Rollout drives one of two Flux sources. See [Propagation Modes](/docs/concepts/propagation/) for how to choose. Both resources must live in the Rollout's namespace.
+
 ### Kustomization Substitution
 
 {{< badge content="FluxCD" >}} {{< badge content="Core" >}}
@@ -37,6 +39,38 @@ spec:
   postBuild:
     substitute:
       APP_VERSION: "latest"  # Default, overwritten by Kuberik
+```
+
+### OCIRepository Tag
+
+{{< badge content="FluxCD" >}} {{< badge content="Core" >}}
+
+Used on Flux `OCIRepository` resources to hand tag ownership to a Rollout. Kuberik writes the selected version to `spec.ref.tag`.
+
+```yaml {filename="ocirepository-annotation.yaml"}
+metadata:
+  annotations:
+    rollout.kuberik.com/rollout: "<rollout-name>"
+```
+
+| Placeholder | Description |
+|-------------|-------------|
+| `<rollout-name>` | Name of the Rollout resource to read version from |
+
+**Example:**
+
+```yaml {filename="ocirepository-example.yaml"}
+apiVersion: source.toolkit.fluxcd.io/v1
+kind: OCIRepository
+metadata:
+  name: my-app
+  annotations:
+    rollout.kuberik.com/rollout: "my-app-rollout"
+spec:
+  interval: 60s
+  url: oci://ghcr.io/my-org/my-app/production/manifests
+  ref:
+    tag: "1.0.0"  # Default, overwritten by Kuberik
 ```
 
 ---
