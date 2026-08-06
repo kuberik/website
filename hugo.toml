@@ -68,7 +68,7 @@ theme = 'hextra'
 
   [[menu.main]]
     name = "GitHub"
-    url = "https://github.com/kuberik"
+    url = "https://github.com/kuberik/kuberik"
     weight = 4
     [menu.main.params]
       icon = "github"
