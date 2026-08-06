@@ -3,7 +3,7 @@ title: "What is Kuberik"
 weight: 3
 ---
 
-Kuberik is a Kubernetes-native delivery orchestrator. It takes over **after** you publish a new container image and handles everything that happens next: safe rollout, verification, and promotion.
+Kuberik is a Kubernetes-native delivery orchestrator. It takes over **after** your CI publishes a new version — a container image or rendered manifests — and handles everything that happens next: safe rollout, verification, and promotion.
 
 ## You Release, Kuberik Delivers
 
@@ -12,7 +12,7 @@ Kuberik is a Kubernetes-native delivery orchestrator. It takes over **after** yo
 | **When to release** | You (developer/CI) | Push a git tag, merge to main |
 | **How to deliver** | Kuberik | Rollout, verify health, promote across environments |
 
-Your CI pipeline builds and tags a container image. Kuberik detects the new tag and orchestrates the delivery — gating, deploying, verifying, and promoting — without any further input from you.
+Your CI pipeline publishes a tagged artifact: the application image itself, or the rendered manifests for an environment pushed as an OCI artifact. Kuberik detects the new tag and orchestrates the delivery — gating, deploying, verifying, and promoting — without any further input from you. See [Propagation Modes](/docs/concepts/propagation/) for how the two modes compare.
 
 Kuberik does not build images, decide when to release, or replace your GitOps tool. It works alongside FluxCD at the application delivery layer.
 
@@ -22,7 +22,7 @@ Kuberik does not build images, decide when to release, or replace your GitOps to
 
 ### Publish
 
-Your CI publishes a tagged image to a container registry.
+Your CI publishes a tagged image or manifest artifact to a container registry.
 
 ### Detect
 
@@ -34,7 +34,7 @@ Kuberik creates a release candidate and evaluates gates.
 
 ### Deploy
 
-Kuberik updates the Kustomization to deploy the new version.
+Kuberik writes the version into the Kustomization, or moves the OCIRepository tag to the new manifests.
 
 ### Verify
 
