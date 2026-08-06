@@ -49,6 +49,9 @@ jobs:
       - name: Extract metadata
         id: meta
         uses: docker/metadata-action@v5
+        env:
+          # Annotate the image index, not just the per-arch manifests
+          DOCKER_METADATA_ANNOTATIONS_LEVELS: index
         with:
           images: ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}
           tags: |
@@ -87,6 +90,9 @@ on:
       - name: Extract metadata (tags, labels)
         id: meta
         uses: docker/metadata-action@v5
+        env:
+          # Annotate the image index, not just the per-arch manifests
+          DOCKER_METADATA_ANNOTATIONS_LEVELS: index
         with:
           images: ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}
           tags: |
