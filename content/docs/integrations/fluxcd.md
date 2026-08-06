@@ -11,8 +11,17 @@ FluxCD provides two critical capabilities for Kuberik:
 
 | Component | Purpose |
 |-----------|---------|
-| **ImageRepository** + **ImagePolicy** | Detects new container image versions |
+| **ImageRepository** + **ImagePolicy** | Detects new tags on an image or manifest artifact |
 | **Kustomization** | Applies versioned manifests to the cluster |
+| **OCIRepository** | Pulls rendered manifests published as an OCI artifact |
+
+Kuberik drives one of two of these. Annotate a `Kustomization` and Kuberik substitutes the version into it; annotate an `OCIRepository` and Kuberik moves its tag. See [Propagation Modes](/docs/concepts/propagation/).
+
+{{< callout type="warning" >}}
+**Everything in the Rollout's Namespace**
+
+Kuberik resolves the `ImagePolicy` and lists `Kustomization` and `OCIRepository` resources in the Rollout's own namespace. Resources in `flux-system` are not seen by a Rollout in `my-app`.
+{{< /callout >}}
 
 ```mermaid
 flowchart LR
@@ -32,6 +41,7 @@ flowchart LR
         subgraph FluxCD ["FluxCD System"]
             IR[ImageRepository]:::flux
             IP[ImagePolicy]:::flux
+            OCIR[OCIRepository]:::flux
             KS[Kustomization]:::flux
         end
 
@@ -41,9 +51,12 @@ flowchart LR
     end
 
     REG --> IR
+    REG --> OCIR
     IR --> IP
     IP --> RO
+    OCIR --> KS
     RO -.->|Substitutes Version| KS
+    RO -.->|Moves Tag| OCIR
 
     class FluxCD,Kuberik boundary
 ```
@@ -56,14 +69,14 @@ flowchart LR
 
 ### Create ImageRepository
 
-Tell Flux where to scan for images:
+Tell Flux where to scan for new tags. Point it at your application image, or at the manifest artifact your CI publishes for this environment:
 
 ```yaml {filename="image-repo.yaml"}
 apiVersion: image.toolkit.fluxcd.io/v1beta2
 kind: ImageRepository
 metadata:
   name: my-app
-  namespace: flux-system
+  namespace: my-app
 spec:
   image: ghcr.io/my-org/my-app
   interval: 5m
@@ -85,7 +98,7 @@ Define which tags to consider:
   kind: ImagePolicy
   metadata:
     name: my-app
-    namespace: flux-system
+    namespace: my-app
   spec:
     imageRepositoryRef:
       name: my-app
@@ -105,7 +118,7 @@ Define which tags to consider:
   kind: ImagePolicy
   metadata:
     name: my-app
-    namespace: flux-system
+    namespace: my-app
   spec:
     imageRepositoryRef:
       name: my-app
@@ -121,7 +134,7 @@ Define which tags to consider:
 Check that Flux found your images:
 
 ```bash
-kubectl get imagepolicy -n flux-system my-app
+kubectl get imagepolicy -n my-app my-app
 ```
 
 Expected output shows the latest matching version.
@@ -139,7 +152,7 @@ apiVersion: kustomize.toolkit.fluxcd.io/v1
 kind: Kustomization
 metadata:
   name: my-app
-  namespace: flux-system
+  namespace: my-app
   annotations:
     # Kuberik reads the version from this Rollout
     rollout.kuberik.com/substitute.APP_VERSION.from: "my-app"
@@ -203,6 +216,53 @@ spec:
 
 ---
 
+## OCIRepository Integration
+
+### Tag Management
+
+Kuberik owns `spec.ref.tag` on the annotated OCIRepository. Each environment gets its own artifact path and its own OCIRepository, so a rollback in production moves one tag and leaves every other environment alone.
+
+```yaml {filename="ocirepository.yaml"}
+apiVersion: source.toolkit.fluxcd.io/v1
+kind: OCIRepository
+metadata:
+  name: my-app
+  namespace: my-app
+  annotations:
+    # Kuberik reads the version from this Rollout
+    rollout.kuberik.com/rollout: "my-app"
+spec:
+  interval: 60s
+  url: oci://ghcr.io/my-org/my-app/production/manifests
+  # For private registries
+  secretRef:
+    name: registry-credentials
+```
+
+Point a Kustomization at it and reconcile the artifact directly. No `path`, no substitution, no build tooling in the cluster:
+
+```yaml {filename="kustomization-oci.yaml"}
+apiVersion: kustomize.toolkit.fluxcd.io/v1
+kind: Kustomization
+metadata:
+  name: my-app
+  namespace: my-app
+spec:
+  interval: 10m
+  prune: true
+  sourceRef:
+    kind: OCIRepository
+    name: my-app
+```
+
+{{< callout type="info" >}}
+**Cosign Verification**
+
+`OCIRepository` supports `spec.verify` natively. The signature is checked before reconciliation, so an unsigned or tampered artifact is rejected before it reaches the API server.
+{{< /callout >}}
+
+---
+
 ## Health Check Integration
 
 Use Kustomization health status as a deployment gate:
@@ -228,12 +288,12 @@ This checks if the Kustomization's `Ready` condition is true.
 
 1. Check ImageRepository status:
    ```bash
-   kubectl describe imagerepository -n flux-system my-app
+   kubectl describe imagerepository -n my-app my-app
    ```
 
 2. Verify registry authentication:
    ```bash
-   kubectl get secret -n flux-system registry-credentials
+   kubectl get secret -n my-app registry-credentials
    ```
 
 ### Kustomization not updating

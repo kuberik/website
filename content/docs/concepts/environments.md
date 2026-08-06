@@ -1,6 +1,6 @@
 ---
 title: "Environments"
-weight: 3
+weight: 4
 ---
 
 An **Environment** connects a Rollout to an external deployment backend and enables multi-cluster coordination.

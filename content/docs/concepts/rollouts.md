@@ -3,11 +3,11 @@ title: "Rollouts"
 weight: 2
 ---
 
-A **Rollout** is the central resource in Kuberik. It tracks container image versions and orchestrates their deployment through a controlled lifecycle.
+A **Rollout** is the central resource in Kuberik. It tracks versions of an OCI artifact and orchestrates their deployment through a controlled lifecycle. That artifact is either your container image or the rendered manifests for an environment.
 
 ## What is a Rollout?
 
-A Rollout watches a FluxCD `ImagePolicy` for new container image tags. When a new version is detected, the Rollout:
+A Rollout watches a FluxCD `ImagePolicy` for new tags. When a new version is detected, the Rollout:
 
 {{% steps %}}
 
@@ -18,7 +18,7 @@ The new version becomes a pending release waiting for evaluation.
 All [gating conditions](#gating-process) must pass before deployment begins.
 
 ### Updates Deployment
-Updates the deployment via Flux **Kustomization substitution**.
+Writes the version to the Flux source it owns: a `Kustomization` substitution variable, or an `OCIRepository` tag.
 
 ### Monitors Health
 Continuously [monitors health checks](#verification-cycle) during the bake period.
@@ -58,7 +58,7 @@ spec:
 
 | Field | Purpose |
 |-------|---------|
-| `releasesImagePolicy` | Reference to the FluxCD ImagePolicy that provides new versions |
+| `releasesImagePolicy` | Reference to the FluxCD ImagePolicy that provides new versions. Resolved in the Rollout's namespace. |
 | `versionHistoryLimit` | How many past versions to retain in status |
 | `bakeTime` | Duration to wait and verify health after deployment (e.g., `5m`, `1h`) |
 | `healthCheckSelector` | Label selector to find HealthCheck resources to evaluate |
@@ -75,6 +75,12 @@ Key status fields:
 - `currentVersion` — The actively deployed version
 - `pendingVersion` — A version waiting for gates to pass
 - `history` — Timeline of past deployments with outcomes
+
+## What a Rollout Propagates
+
+A Rollout does not care what its versions point at. Annotate a `Kustomization` and Kuberik substitutes the version into it; annotate an `OCIRepository` and Kuberik moves its tag. Gating, health checks, bake time, and rollback are identical either way.
+
+See [Propagation Modes](/docs/concepts/propagation/) for the trade-offs and for running both at once.
 
 ## Gating Process
 
@@ -161,7 +167,8 @@ When a manual rollout lands in an already unhealthy environment, automatic rollb
 
 ## Related Guides
 
-- [Getting Started](/docs/getting-started/) — Set up your first Rollout
-- [Health Checks](/docs/guides/health-checks/) — Configure verification
-- [Manual Approvals](/docs/guides/manual-approvals/) — Add approval gates
-- [Deployment Schedules](/docs/guides/schedules/) — Control deployment time windows
+- [Getting Started](/docs/getting-started/): set up your first Rollout
+- [Propagation Modes](/docs/concepts/propagation/): image tag or rendered manifests
+- [Health Checks](/docs/guides/health-checks/): configure verification
+- [Manual Approvals](/docs/guides/manual-approvals/): add approval gates
+- [Deployment Schedules](/docs/guides/schedules/): control deployment time windows

@@ -22,6 +22,7 @@ flowchart TB
             direction TB
             IR[ImageRepository]:::flux
             IP[ImagePolicy]:::flux
+            OCIR[OCIRepository]:::flux
             KS[Kustomization]:::flux
         end
 
@@ -42,8 +43,10 @@ flowchart TB
     RO --> ENV
 
     %% Connections
+    OCIR --> KS
     KS --> DEP
     RO -.->|Substitutes Version| KS
+    RO -.->|Moves Tag| OCIR
     HC --> RO
     RG --> RO
 
@@ -55,7 +58,7 @@ flowchart TB
 
 | Component | Purpose |
 |-----------|---------|
-| **Rollout** | The core state machine. Watches `ImagePolicy` and orchestrates releases. |
+| **Rollout** | The core state machine. Watches `ImagePolicy` and orchestrates releases. Drives either a `Kustomization` substitution or an `OCIRepository` tag. |
 | **Environment** | Maps a Rollout to a logical target (e.g. "production") and syncs status to external backends (GitHub). |
 | **HealthCheck** | Probes system health during the bake period (HTTP, Datadog, Script). |
 | **RolloutGate** | Blocks a Rollout from proceeding until specific conditions (manual approval, API check) are met. |
@@ -74,7 +77,7 @@ Flux detects a new image tag. Kuberik creates a pending `Release`.
 
 ### Execution
 
-Kuberik updates the `Kustomization` variables. Flux applies the changes.
+Kuberik updates the Flux source it owns: a substitution variable on a `Kustomization`, or the tag on an `OCIRepository`. Flux applies the changes. See [Propagation Modes](/docs/concepts/propagation/).
 
 ### Bake Time
 
