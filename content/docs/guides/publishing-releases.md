@@ -55,8 +55,8 @@ jobs:
         with:
           images: ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}
           tags: |
-            # Tag with: main-<sha>-<timestamp>
-            type=raw,value=main-{{sha}}-{{date 'X'}}
+            # Tag with: main-<sha>-<commit timestamp>
+            type=raw,value=main-{{sha}}-{{commit_date 'X'}}
             type=raw,value=latest
           # Set OCI annotations on the manifest index
           annotations: |
@@ -138,8 +138,8 @@ jobs:
       - name: Resolve version
         id: v
         run: |
-          # Tag with: main-<sha>-<timestamp>
-          echo "version=main-${GITHUB_SHA::7}-$(date +%s)" >> "$GITHUB_OUTPUT"
+          # Tag with: main-<sha>-<commit timestamp>
+          echo "version=main-${GITHUB_SHA::7}-$(git log -1 --format=%ct)" >> "$GITHUB_OUTPUT"
 
       - name: Install flux CLI
         uses: fluxcd/flux2/action@main
