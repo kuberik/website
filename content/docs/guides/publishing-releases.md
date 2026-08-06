@@ -117,8 +117,8 @@ name: Manifests Release
 
 on:
   push:
-    tags:
-      - "manifests-v*"
+    branches:
+      - "main"
 
 env:
   REGISTRY: ghcr.io
@@ -138,8 +138,8 @@ jobs:
       - name: Resolve version
         id: v
         run: |
-          # manifests-v1.0.0 -> 1.0.0
-          echo "version=${GITHUB_REF_NAME#manifests-v}" >> "$GITHUB_OUTPUT"
+          # Tag with: main-<sha>-<timestamp>
+          echo "version=main-${GITHUB_SHA::7}-$(date +%s)" >> "$GITHUB_OUTPUT"
 
       - name: Install flux CLI
         uses: fluxcd/flux2/action@main
@@ -168,7 +168,7 @@ jobs:
           done
 ```
 
-Point a Flux `OCIRepository` at each environment's artifact and reuse the SemVer policy below to select versions.
+Point a Flux `OCIRepository` at each environment's artifact and reuse the timestamp policy below to select versions.
 
 ## Matching Policies
 
