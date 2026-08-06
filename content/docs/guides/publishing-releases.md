@@ -106,6 +106,70 @@ on:
 # ... (build step same as above) ...
 ```
 
+## Publish Rendered Manifests
+
+When your rollout delivers Kubernetes manifests instead of an application image, render each environment overlay and push it as an OCI artifact with the Flux CLI. Kuberik picks up new artifact tags the same way it picks up image tags.
+
+`flux push artifact` sets the `org.opencontainers.image.source` and `org.opencontainers.image.revision` annotations from `--source` and `--revision` — keep `--revision` set to the commit SHA so Kuberik can link the release back to your repository.
+
+```yaml {filename=".github/workflows/manifests-release.yaml"}
+name: Manifests Release
+
+on:
+  push:
+    tags:
+      - "manifests-v*"
+
+env:
+  REGISTRY: ghcr.io
+  IMAGE_NAME: ${{ github.repository }}
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      packages: write
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Resolve version
+        id: v
+        run: |
+          # manifests-v1.0.0 -> 1.0.0
+          echo "version=${GITHUB_REF_NAME#manifests-v}" >> "$GITHUB_OUTPUT"
+
+      - name: Install flux CLI
+        uses: fluxcd/flux2/action@main
+
+      - name: Log in to the Container registry
+        uses: docker/login-action@v3
+        with:
+          registry: ${{ env.REGISTRY }}
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Render and push manifests
+        env:
+          VERSION: ${{ steps.v.outputs.version }}
+        run: |
+          set -euo pipefail
+          image="${IMAGE_NAME,,}" # ghcr.io requires a lowercase path
+          for env in dev staging prod; do
+            out="$(mktemp -d)"
+            kustomize build "k8s/envs/${env}" -o "$out"
+            flux push artifact \
+              "oci://${REGISTRY}/${image}/${env}/manifests:${VERSION}" \
+              --path "$out" \
+              --source="${{ github.event.repository.html_url }}" \
+              --revision="${{ github.sha }}"
+          done
+```
+
+Point a Flux `OCIRepository` at each environment's artifact and reuse the SemVer policy below to select versions.
+
 ## Matching Policies
 
 Ensure your Flux `ImagePolicy` matches the tagging strategy used above.
