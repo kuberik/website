@@ -22,7 +22,7 @@ Pick a mode in the tabs below and it carries through the guide. Both modes use t
 
 ### Configure Image Automation
 
-Tell Flux which artifact to scan for new versions.
+Tell Flux which artifact to scan for new versions. Your CI publishes these artifacts with `main-<sha>-<timestamp>` tags — see [Publishing Releases](/docs/guides/publishing-releases/) for the workflows.
 
 {{< tabs >}}
   {{< tab name="Image tag" >}}
@@ -47,8 +47,11 @@ Tell Flux which artifact to scan for new versions.
     imageRepositoryRef:
       name: hello-world-app
     policy:
-      semver:
-        range: ">=0.1.0"
+      alphabetical:
+        order: asc # Kuberik picks the last one (highest timestamp)
+    filterTags:
+      pattern: '^main-[a-f0-9]+-(?P<ts>[0-9]+)'
+      extract: '$ts'
   ```
   {{< /tab >}}
 
@@ -74,8 +77,11 @@ Tell Flux which artifact to scan for new versions.
     imageRepositoryRef:
       name: hello-world-app
     policy:
-      semver:
-        range: ">=0.1.0"
+      alphabetical:
+        order: asc # Kuberik picks the last one (highest timestamp)
+    filterTags:
+      pattern: '^main-[a-f0-9]+-(?P<ts>[0-9]+)'
+      extract: '$ts'
   ```
   {{< /tab >}}
 {{< /tabs >}}
