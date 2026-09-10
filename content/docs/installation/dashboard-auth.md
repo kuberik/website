@@ -65,6 +65,16 @@ spec:
             - --pass-access-token=true
             - --set-xauthrequest=true
             - --skip-provider-button=true
+            # The dashboard is a polling SPA: it refreshes on a 5s interval and
+            # holds an SSE change stream open. Without this, every one of those
+            # background requests that arrives with a stale session starts a
+            # *full* OIDC flow at extAuth time - a 302 to your IdP plus a CSRF
+            # cookie holding a fresh PKCE verifier. The browser can't follow
+            # that redirect from an XHR (cross-origin, CORS-blocked), so the
+            # SPA can't recover and just keeps polling, starting a new flow
+            # every time. `--api-route` makes `/api/*` answer 401 instead:
+            # no redirect, no cookie, and a status the frontend can act on.
+            - --api-route=^/api/
             - --cookie-secure=true
             - --cookie-samesite=lax
             - --reverse-proxy=true
@@ -123,6 +133,46 @@ spec:
         - X-Auth-Request-Email
         - X-Auth-Request-Access-Token
 ```
+
+## Troubleshooting
+
+### The dashboard stops loading for one person, and clearing site data fixes it
+
+Symptom: one user's browser can't reach the dashboard host at all - Chrome
+shows `ERR_HTTP2_PROTOCOL_ERROR` or "this site can't be reached" - while
+everyone else is fine and `curl` from a terminal works. Clearing site data
+fixes it until it comes back.
+
+This is cookie bloat, not a network or browser fault. Proxies cap the total
+size of a request's header block (Envoy's default is 60 KiB, via
+`max_request_headers_kb`). Once the accumulated `Cookie` header crosses that,
+the proxy resets the stream before the route is ever reached. It fails
+identically on HTTP/1.1 - only the error page differs - so this is not an
+HTTP/2 problem and turning off HTTP/2 will not fix it.
+
+The usual cause is `--cookie-csrf-per-request=true`. That flag is widely
+recommended to fix `invalid_grant: PKCE verification failed` on concurrent
+logins ([oauth2-proxy#2155](https://github.com/oauth2-proxy/oauth2-proxy/issues/2155)),
+and it works by giving each in-flight flow a *uniquely named* CSRF cookie.
+Unique names mean the browser never overwrites the previous one - it keeps
+every one of them for the full `--cookie-csrf-expire` window (15m default)
+and replays them all on every subsequent request. Combined with a polling SPA
+whose session went stale, that is hundreds of ~380 byte cookies in minutes.
+
+Fixes, in order of preference:
+
+1. **Set `--api-route=^/api/`** (in the manifest above). This is the root fix:
+   the dashboard's polling and streaming requests stop starting OIDC flows
+   altogether, so there are no concurrent flows to race and no CSRF cookies
+   minted in the background. With it, `--cookie-csrf-per-request` is usually
+   unnecessary.
+2. **If you still need `--cookie-csrf-per-request`**, always pair it with
+   `--cookie-csrf-per-request-limit=3`, which evicts the oldest CSRF cookies
+   instead of letting them accumulate without bound.
+
+To confirm before clearing anything: DevTools -> Application -> Cookies ->
+your dashboard host, and count the `_oauth2_proxy*` entries; or check the
+failing request's `Cookie` header length. Several KB and climbing is this bug.
 
 Gate another service by applying the same `SecurityPolicy` shape in its namespace and extending the `ReferenceGrant` `from` list.
 
