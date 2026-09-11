@@ -5,7 +5,7 @@ theme = 'hextra'
 
 [params]
   rollout_controller_version = "v0.8.0"
-  rollout_dashboard_version = "v0.8.2"
+  rollout_dashboard_version = "v0.8.3"
   openkruise_controller_version = "v0.4.0"
   latest_release = "v0.8.0"
   datadog_controller_version = "v0.1.0"
