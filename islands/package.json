@@ -3,5 +3,5 @@
   "private": true,
   "type": "module",
   "description": "Real rollout-dashboard Svelte components, compiled to one ESM bundle + one stylesheet that Hugo pages mount into shadow roots. No dependencies of its own: build.sh points node_modules at the dashboard checkout's (same lockfile), so the toolchain is exactly the dashboard's (svelte 5, vite 6, tailwind 4).",
-  "scripts": { "build": "./build.sh", "test": "node_modules/.bin/vitest run --config vitest.config.ts" }
+  "scripts": { "build": "./build.sh", "test": "DASHBOARD_SRC=${DASHBOARD_SRC:-/home/luka/projects/kuberik/.work/landing-v5/dashboard-src/frontend} node_modules/.bin/vitest run --config vitest.config.ts" }
 }

@@ -13,8 +13,11 @@ const S = (p: string) => resolve(HERE, 'src/stubs', p);
 /** Dashboard modules that drag the app (fixtures, GitHub reader, query layer) into a component's import graph.
  *  Keyed by path relative to the dashboard's src/; replaced by a stub wherever any file imports them. Never edits the dashboard. */
 const STUBBED_MODULES: Record<string, string> = {
-	'lib/components/new/data.ts': 'new-data.ts',
-	'lib/components/atoms/atoms-live.svelte.ts': 'atoms-live.ts'
+	'lib/components/atoms/atoms-live.svelte.ts': 'atoms-live.ts',
+	'lib/view-models/home/fixture.ts': 'home-fixture.ts',
+	'lib/components/new/github-read.svelte.ts': 'github-read.svelte.ts',
+	'lib/view-models/home/fixtures/incident-input.json': 'incident-input.json',
+	'lib/demo/github-data.ts': 'demo-github-data.ts'
 };
 
 function stubModules(): Plugin {
@@ -23,7 +26,7 @@ function stubModules(): Plugin {
 		name: 'kuberik-island-stubs',
 		enforce: 'pre',
 		async resolveId(source, importer, opts) {
-			if (!importer || !(source.startsWith('.') || source.startsWith('$lib'))) return null;
+			if (!importer || !(source.startsWith('.') || source.startsWith('/') || source.startsWith('$lib'))) return null;
 			const r = await this.resolve(source, importer, { ...opts, skipSelf: true });
 			return r && byAbs.get(r.id.replace(/\?.*$/, '')) ? byAbs.get(r.id.replace(/\?.*$/, ''))! : null;
 		}
@@ -57,6 +60,11 @@ function moduleReport(): Plugin {
 		name: 'kuberik-island-module-report',
 		generateBundle(_o, bundle) {
 			const rows: string[] = [];
+			// who pulls the heavy fixtures in? (importers of every module the audit flags)
+			const why: string[] = [];
+			for (const id of this.getModuleIds()) if (/incident-input|demo\/mock-data|demo\/github-data/.test(id)) why.push(id.replace(D!, '$DASH') + ' <- ' + (this.getModuleInfo(id)?.importers ?? []).map((i) => i.replace(D!, '$DASH')).join(', '));
+			mkdirSync(resolve(HERE, '.gen'), { recursive: true });
+			writeFileSync(resolve(HERE, '.gen/why.txt'), why.join('\n') + '\n');
 			for (const f of Object.values(bundle)) if (f.type === 'chunk') for (const [id, m] of Object.entries(f.modules)) rows.push(`${String(m.renderedLength).padStart(8)}  ${id.replace(HERE, '').replace(D!, '$DASH')}`);
 			mkdirSync(resolve(HERE, '.gen'), { recursive: true });
 			writeFileSync(resolve(HERE, '.gen/modules.txt'), rows.sort((a, b) => +b.slice(0, 8) - +a.slice(0, 8)).join('\n') + '\n');
