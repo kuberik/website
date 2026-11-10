@@ -8,7 +8,7 @@ import type { CustomCtx } from '../../registry';
 import { Player } from '../shared/player';
 import { setPart } from '../shared/world';
 import { driveNow } from '../../stubs/time-store';
-import { LOOP, CHAPTERS, REST_T, upcoming } from './script';
+import { LOOP, CHAPTERS, REST_T, upcoming, surfAt } from './script';
 import { eventIndexAt, worldAt } from './scenario';
 import { installAnswers, installFetch, setDetail } from './detail-store.svelte';
 import { loadSurface } from './surfaces';
@@ -47,7 +47,7 @@ export function mountFilm(ctx: CustomCtx) {
 	props.ontoggle = () => { player!.gate('hover', true); player!.toggle(); props.playing = player!.playing; props.userPlaying = !player!.paused; };
 	/* the first frame is real once the surface, the shell and the fonts are in and painted: only then does the static poster leave (no blank gap, no shift) */
 	const shell = ctx.host.clientWidth < 600 ? import('$lib/MobileTabBar.svelte') : import('$lib/Sidebar.svelte'); // fetched in parallel with the first surface, same chunk Film asks for
-	void Promise.all([loadSurface('change'), shell]).then(async () => {
+	void Promise.all([loadSurface(surfAt(props.t)), shell]) /* the surface the story STARTS on (reduced motion rests on the Overview): the poster only leaves once it is in */.then(async () => {
 		mount(Film, { target: ctx.wrap, props });
 		await Promise.race([document.fonts.ready, new Promise((r) => setTimeout(r, 1500))]);
 		await new Promise<void>((r) => requestAnimationFrame(() => requestAnimationFrame(() => r())));
