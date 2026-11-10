@@ -1,0 +1,8 @@
+# The landing page's hero words (from landing v4's data/landing.yaml; its story/terminals
+# tables are retired with the still-capture story, the v5 hero window replaces them).
+# hero.h1 is THE swappable headline: <title>, og:title and the h1 read this one string.
+hero:
+  eyebrow: "Open source · Apache 2.0 · Works with Flux"
+  h1: "Kubernetes releases you don't have to watch."
+  sub: "Merge, and Kuberik walks each build through your environments, checks its health at every step, and only asks you when a person has to decide."
+  proof: "Runs in your cluster · no agent to install"
