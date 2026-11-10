@@ -36,6 +36,8 @@ export function installAnswers(fleetRollouts: () => unknown[], github: () => Rec
 			case 'health-checks': return { healthChecks: d.healthChecks };
 			case 'events': return { events: [] };
 			case 'rollout-commits': { const gh = github(); return gh ? commitsAnswer(gh, String(key[1]), String(key[2]), String(key[3]), String(key[4])) : undefined; }
+			/* one commit by sha (the rollback dialog's From/To tiles fall back to it when the build has no older sibling in the ladder): answered from the story's GitHub ledger */
+			case 'github-commit': { const hit = github()?.[`/api/github/repos/${String(key[1])}/${String(key[2])}/commits/${String(key[3])}`] as any; return hit ? { sha: String(key[3]), htmlUrl: '', containedIn: [], containedInAll: true, committedAt: '', ...hit } : undefined; }
 			case 'github-status': return { configured: true, connected: true, login: VIEWER };
 			case 'cluster-info': return { url: 'https://hub.example', name: CLUSTER };
 			case 'rollout-schedule-window': return d.schedules;
