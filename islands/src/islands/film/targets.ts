@@ -22,6 +22,8 @@ export function resolveTarget(name: string, root: ParentNode, phone: boolean): H
 		case 'approve-confirm': return q('[data-action="approve-confirm"]');
 		case 'attention': return q('[data-approve-open]')?.closest<HTMLElement>('[class*="rounded"]') ?? null;
 		case 'banner-rollback': return byText(root, 'button, a', /^Roll back$/);
+		case 'modal-reason': return q('.fm-panel textarea');
+		case 'modal-confirm': return q('.fm-panel #cvm-confirm-version');
 		case 'modal-cancel': return byText(root, 'button', /^Cancel$/);
 		case 'modal-continue': { const m = q('.fm-panel'); return m ? byText(m, 'button', /^Roll back$/) : null; } /* the dialog's own confirm (its label is the verb), not the banner's button behind it */
 		case 'where-it-runs': return cardOf(root, /^Where it runs/i);

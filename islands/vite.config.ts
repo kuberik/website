@@ -33,6 +33,19 @@ function stubModules(): Plugin {
 	};
 }
 
+/** NAMED STUB: the product's age formatters (utils.ts) default their `now` to `new Date()`, the REAL clock; on the landing the story has its own clock (the time-store stub), so
+ *  "Built 10 hours ago" printed a real-world 10 h gap for a build the story made 40 minutes ago. Their default is rewritten to the story's now (the real clock until a story drives it). */
+function storyNow(): Plugin {
+	return {
+		name: 'kuberik-island-story-now',
+		enforce: 'pre',
+		transform(code, id) {
+			if (!/\/src\/lib\/utils\.ts$/.test(id.replace(/\?.*$/, '')) || !code.includes('new Date()')) return null;
+			return { code: `import { storyDate } from ${JSON.stringify(S('time-store.ts'))};\n` + code.replace(/(=|\?\?) new Date\(\)/g, '$1 storyDate()'), map: null };
+		}
+	};
+}
+
 /** Post-process the compiled stylesheet for shadow-root use:
  *  - `:root` -> `:host` (the dashboard defines its --k-* tokens on :root; inside a shadow tree that is the host);
  *  - @font-face is dropped (a shadow-root stylesheet cannot register fonts) and the faces are declared in the DOCUMENT by
@@ -91,6 +104,7 @@ export default defineConfig({
 	},
 	plugins: [
 		stubModules(),
+		storyNow(),
 		tailwindcss(),
 		svelte({ configFile: false, preprocess: vitePreprocess(), compilerOptions: { runes: undefined, css: 'external' } }),
 		shadowCss(),

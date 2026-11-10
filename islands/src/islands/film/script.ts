@@ -14,8 +14,8 @@ export const CHAPTERS = [
 	{ key: 'approve', label: 'Approve', from: 6.5, to: 12.5, settled: 9.3 },
 	{ key: 'gates', label: 'Gates', from: 12.5, to: 18, settled: 17.0 },
 	{ key: 'canary', label: 'Canary', from: 18, to: 27, settled: 21.2 },
-	{ key: 'catch', label: 'Catch', from: 27, to: 36, settled: 30.5 },
-	{ key: 'rollback', label: 'Roll back', from: 36, to: 48, settled: 43.2 }
+	{ key: 'catch', label: 'Catch', from: 27, to: 33.8, settled: 30.5 },
+	{ key: 'rollback', label: 'Roll back', from: 33.8, to: 48, settled: 43.2 }
 ] as const;
 /** reduced motion rests on b15's settled frame: the rollout Overview, tests Passed, the final check failed, the banner and Roll back */
 export const REST_T = 28.4;
@@ -23,7 +23,7 @@ export const chapterAt = (t: number) => Math.max(0, CHAPTERS.findIndex((c) => t 
 export const chapterFill = (t: number) => { const c = CHAPTERS[chapterAt(t)]; return Math.min(1, Math.max(0, (t - c.from) / (c.to - c.from))); };
 
 /** which surface the window shows (the cut times are the storyboard's: N() sidebar steps and T() tab slides) */
-const SURF: [number, Surf][] = [[0, 'change'], [6.3, 'rollouts'], [12.5, 'gates'], [18, 'overview'], [31.4, 'envs'], [36, 'overview'], [42.6, 'history'], [44, 'envs']];
+const SURF: [number, Surf][] = [[0, 'change'], [6.3, 'rollouts'], [12.5, 'gates'], [18, 'overview'], [31.4, 'envs'], [33.8, 'overview'], [42.6, 'history'], [44, 'envs']];
 export const surfAt = (t: number): Surf => [...SURF].reverse().find(([at]) => t >= at)![1];
 /** surfaces whose cut comes within `ahead` story seconds (their chunks are fetched before the beat: STORYBOARD section 9) */
 export const upcoming = (t: number, ahead = 3): Surf[] => SURF.filter(([at]) => at > t && at - t <= ahead).map(([, s]) => s);
@@ -49,7 +49,7 @@ export const CAMERA: Move[] = [
 	{ at: 28.9, to: 'figure', s: 1.6, dur: 434, ease: EXPO, dim: 'both' },
 	{ at: 30.9, to: 'rest', s: 1, dur: 537, ease: EXPO },
 	{ at: 31.8, to: 'prod-card', s: 1, dur: 0, ease: EXPO, dim: 'page' },
-	{ at: 36.0, to: 'rest', s: 1, dur: 0, ease: EXPO },
+	{ at: 33.8, to: 'rest', s: 1, dur: 0, ease: EXPO },
 	{ at: 39.4, to: 'banners', s: 1.2, dur: 434, ease: EXPO, dim: 'both' },
 	{ at: 40.8, to: 'pipeline', s: 1.35, dur: 434, ease: EXPO, dim: 'both' },
 	{ at: 42.4, to: 'rest', s: 1, dur: 537, ease: EXPO },
@@ -64,13 +64,17 @@ export type Press = { id: 'approve' | 'confirm' | 'rollback' | 'continue'; targe
 export const PRESSES: Press[] = [
 	{ id: 'approve', target: 'approve', go: 7.9, press: 8.6, off: 8.9 },
 	{ id: 'confirm', target: 'approve-confirm', go: 9.5, press: 10.2, off: 10.4 },
-	{ id: 'rollback', target: 'banner-rollback', go: 36.1, press: 36.7, off: 36.95 },
+	{ id: 'rollback', target: 'banner-rollback', go: 33.9, press: 34.2, off: 34.45 },
 	{ id: 'continue', target: 'modal-continue', go: 38.0, press: 38.7, off: 39.0 }
 ];
 export const pressAt = (t: number): Press | null => PRESSES.find((p) => t >= p.go && t < p.off) ?? null;
 /** overlays: the approval confirm (ApprovalLayer) is open between the first press and the second; the rollback confirm between its two */
 export const confirmOpen = (t: number) => t >= 8.75 && t < 10.4;
-export const rollbackOpen = (t: number) => t >= 36.9 && t < 39.2;
+export const rollbackOpen = (t: number) => t >= 34.4 && t < 38.75;
+/** the real prod ceremony, typed on screen at Railway's speed (about 30 characters a second): the reason, then the version to confirm; the real Roll back is pressed at 38.7 */
+export const REASON = 'Error rate over budget, back to the last good build';
+export const TYPING = { reason: [35.0, 36.8], confirm: [37.1, 37.8] } as const;
+export const typedLen = (t: number, [a, b]: readonly [number, number], n: number) => Math.max(0, Math.min(n, Math.floor(((t - a) / (b - a)) * n)));
 
 /** the tally (STORYBOARD section 2): checks passed, failed, decided by a person. Each entry is the second its CR passes. */
 const PASSED = [3.8, 4.2, 6.5, 14.4, 16.6, 20.9, 24.8, 40.4, 41.8, 42.2];

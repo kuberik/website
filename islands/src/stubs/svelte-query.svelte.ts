@@ -13,13 +13,16 @@ const idle = (data: unknown) => ({ get data() { return data; }, isLoading: false
 let answers: ((key: readonly unknown[]) => unknown) | null = null;
 export const setQueryAnswers = (fn: ((key: readonly unknown[]) => unknown) | null) => { answers = fn; };
 export function createQuery(fn: () => Opts & { enabled?: boolean }) {
-	const o = fn();
-	if (answers && answers(o?.queryKey ?? []) !== undefined) {
-		const data = () => (fn().enabled === false ? undefined : answers!(fn().queryKey ?? []));
-		return { get data() { return data(); }, get isPending() { return data() === undefined; }, get isSuccess() { return data() !== undefined; }, get isLoading() { return false; }, isFetching: false, get isError() { return false; }, error: null, failureCount: 0, refetch: async () => ({}) };
-	}
-	const k = String(o?.queryKey?.[0] ?? '');
-	return { get data() { return k === 'rollouts' && o.queryKey?.[1] === 'all' ? listPayload() : undefined; }, isLoading: false, isFetching: false, isError: false, error: null, failureCount: 0, refetch: async () => ({}) };
+	/* decided on EVERY read, not once at creation: a query created with an empty key (the Roll back dialog's commit range, before a version is picked) answers once its key fills in */
+	const ans = () => { if (!answers) return undefined; const o = fn(); return o.enabled === false ? undefined : answers(o?.queryKey ?? []); };
+	const wired = () => !!answers && answers(fn()?.queryKey ?? []) !== undefined;
+	const idle = () => { const o = fn(); const k = String(o?.queryKey?.[0] ?? ''); return k === 'rollouts' && o.queryKey?.[1] === 'all' ? listPayload() : undefined; };
+	return {
+		get data() { return ans() ?? idle(); },
+		get isPending() { return wired() ? ans() === undefined : undefined; },
+		get isSuccess() { return wired() ? ans() !== undefined : undefined; },
+		isLoading: false, isFetching: false, isError: false, error: null, failureCount: 0, refetch: async () => ({})
+	};
 }
 export const createQueries = (_fn: () => unknown) => Object.assign([] as ReturnType<typeof idle>[], { items: [] as ReturnType<typeof idle>[] }); // `items`: the combine-style result the History tab reads
 export const queryOptions = <T>(x: T) => x;

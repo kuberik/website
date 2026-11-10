@@ -20,7 +20,7 @@
 	import { page } from '../../stubs/app-state';
 	import { page as pageStore } from '../../stubs/app-stores';
 	import { setDisplayTimeZone } from '$lib/timezone.svelte';
-	import { rollbackOpen } from './script';
+	import { rollbackOpen, REASON, TYPING, typedLen } from './script';
 	setDisplayTimeZone('utc'); // the chrome clock is UTC, and so is every absolute time the product prints
 
 	let { t, playing, reduced, onseek, ontoggle, eventIdx }: { t: number; playing: boolean; reduced: boolean; onseek: (chip: number) => void; ontoggle: () => void; eventIdx: number } = $props();
@@ -163,7 +163,8 @@
 	/** The two confirms are the product's REAL dialogs, opened by pressing the real buttons, and their open state is a pure function of `t` (so a seek lands on them too):
 	 *  the approval confirm between the two Approve presses (anchored in canvas px), the rollback dialog between the banner's Roll back and Continue.
 	 *  Neither dialog's own confirm is clicked: the story's CRs carry the outcome (grantApproval would write an optimistic "Deploying" row, TRUTH defect). */
-	let rbOpen = false;
+	let rbOpen = false, pressedGo = false, dlgTick = $state(0);
+	$effect(() => { if (t < 34) pressedGo = false; });
 	$effect(() => {
 		const want = confirmOpen(t), wantRb = rollbackOpen(t);
 		void shown; void eventIdx;
@@ -174,8 +175,25 @@
 				const el = resolveTarget('approve', canvas, phone) as HTMLElement | null;
 				if (el) { el.click(); const a = approvalUi.ask; if (a) { const c = canvas.getBoundingClientRect(), r = el.getBoundingClientRect(); a.anchor = { top: (r.top - c.top) / k, left: (r.left - c.left) / k, right: (r.right - c.left) / k, bottom: (r.bottom - c.top) / k }; } }
 			} else if (!want && approvalUi.ask) approvalUi.ask = null;
-			if (wantRb && !rbOpen && shown === 'overview') { const el = resolveTarget('banner-rollback', canvas, phone); if (el) { el.click(); rbOpen = true; } }
+			if (wantRb && !rbOpen && shown === 'overview') { const el = resolveTarget('banner-rollback', canvas, phone); if (el) { el.click(); rbOpen = true; void tick().then(() => requestAnimationFrame(() => (dlgTick += 1))); } }
+			else if (wantRb && rbOpen && t >= 38.7 && !pressedGo) { const go = resolveTarget('modal-continue', canvas, phone) as HTMLButtonElement | null; if (go && !go.disabled) { pressedGo = true; rbOpen = false; go.click(); } }
 			else if (!wantRb && rbOpen) { resolveTarget('modal-cancel', canvas, phone)?.click(); rbOpen = false; }
+		});
+	});
+
+	/* the prod ceremony's two fields are typed from `t` (a pure function: a seek lands on the right half-typed text): set the value and tell the product's binding */
+	function typeInto(el: HTMLInputElement | HTMLTextAreaElement | null, text: string) {
+		if (!el || el.value === text) return;
+		el.value = text; el.dispatchEvent(new Event('input', { bubbles: true }));
+	}
+	$effect(() => {
+		const tt = t, open = rollbackOpen(t);
+		void shown; void eventIdx; void dlgTick;
+		untrack(() => {
+			if (!canvas || !open || shown !== 'overview') return;
+			typeInto(resolveTarget('modal-reason', canvas, phone) as HTMLTextAreaElement | null, REASON.slice(0, typedLen(tt, TYPING.reason, REASON.length)));
+			const v = canvas.querySelector('.fm-panel')?.textContent?.match(/Type\s+(\S+)\s+to confirm/)?.[1] ?? '4.45.0-45';
+			typeInto(resolveTarget('modal-confirm', canvas, phone) as HTMLInputElement | null, v.slice(0, typedLen(tt, TYPING.confirm, v.length)));
 		});
 	});
 

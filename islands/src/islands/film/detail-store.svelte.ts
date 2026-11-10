@@ -16,7 +16,14 @@ const managedList = (d: Detail) => [
 				{ groupVersionKind: 'apps/v1/Deployment', name: APP, namespace: d.ns, status: 'Current', message: '', lastModified: d.kr.status.canaryStatus.lastUpdateTime, object: { apiVersion: 'apps/v1', kind: 'Deployment', metadata: { name: APP, namespace: d.ns }, spec: { replicas: 4 }, status: { readyReplicas: 4, replicas: 4 } } }];
 export const setDetail = (d: Detail) => { current = d; };
 
-export function installAnswers(fleetRollouts: () => unknown[]) {
+/** the commit range GitHub would answer (through the dashboard API), from the scenario's own GitHub map: a rollback range is the forward range swapped */
+function commitsAnswer(gh: Record<string, unknown>, ns: string, name: string, b: string, h: string) {
+	const key = (x: string, y: string) => `/api/rollouts/${ns}/${name}/commits?base=${x}&head=${y}`;
+	const fwd = gh[key(b, h)] as any, hit = fwd ?? (gh[key(h, b)] as any);
+	if (!hit) return undefined;
+	return { direction: fwd ? 'forward' : 'rollback', ahead: fwd ? hit.commits.length : 0, behind: fwd ? 0 : hit.commits.length, commits: hit.commits.map((c: any) => ({ url: '', authorUrl: '', avatarUrl: '', ...c })), additions: hit.additions ?? 0, deletions: hit.deletions ?? 0, changedFiles: hit.changedFiles ?? 0 };
+}
+export function installAnswers(fleetRollouts: () => unknown[], github: () => Record<string, unknown> | null = () => null) {
 	setQueryAnswers((key) => {
 		const d = current;
 		if (!d) return undefined;
@@ -28,6 +35,7 @@ export function installAnswers(fleetRollouts: () => unknown[]) {
 			case 'managed-resources': return { [KUST]: managedList(d) };
 			case 'health-checks': return { healthChecks: d.healthChecks };
 			case 'events': return { events: [] };
+			case 'rollout-commits': { const gh = github(); return gh ? commitsAnswer(gh, String(key[1]), String(key[2]), String(key[3]), String(key[4])) : undefined; }
 			case 'github-status': return { configured: true, connected: true, login: VIEWER };
 			case 'cluster-info': return { url: 'https://hub.example', name: CLUSTER };
 			case 'rollout-schedule-window': return d.schedules;
@@ -51,6 +59,8 @@ export function installFetch(list: () => { rollouts: unknown[]; environments: un
 		if (u.origin !== location.origin) return real(input, init); // only the product's own same-origin API is answered; third-party requests pass untouched
 		const mr = /^\/api\/(?:clusters\/[^/]+\/)?kustomizations\/[^/]+\/[^/]+\/managed-resources$/.exec(u.pathname);
 		if (mr && current) return Promise.resolve(new Response(JSON.stringify({ managedResources: managedList(current) }), { status: 200, headers: { 'content-type': 'application/json' } }));
+		/* the dialog's confirm POSTs the change of version: accepted (the story's own CRs carry the outcome; nothing is written here) */
+		if (init?.method === 'POST' && /^\/api\/(?:clusters\/[^/]+\/)?rollouts\/[^/]+\/[^/]+\/change-version$/.test(u.pathname)) return Promise.resolve(new Response('{}', { status: 200, headers: { 'content-type': 'application/json' } }));
 		const m = /^\/api\/(?:clusters\/[^/]+\/)?rollouts$/.exec(u.pathname);
 		const s = m ? list() : null;
 		if (!m || !s) return real(input, init);

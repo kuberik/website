@@ -18,7 +18,7 @@ import { containScroll } from './contain-scroll';
 export function mountFilm(ctx: CustomCtx) {
 	const props = reactive({ t: 0, playing: false, reduced: false, eventIdx: -1, onseek: (_: number) => {}, ontoggle: () => {} });
 	let world: ReturnType<typeof worldAt> | null = null;
-	installAnswers(() => (world?.fleet.rollouts as unknown[]) ?? []);
+	installAnswers(() => (world?.fleet.rollouts as unknown[]) ?? [], () => world?.github ?? null);
 	containScroll();
 	installFetch(() => (world?.fleet as any) ?? null);
 	let last = NaN;
