@@ -58,14 +58,62 @@
 		swapping = next;
 		const c = await loadSurface(next);
 		if (seq !== swapSeq) return;
-		if (!instant && shown) { swapOpacity = 0.4; /* the outgoing page dims, it never goes to empty ground: a slow incoming chunk must not leave a blank window */ await new Promise((r) => setTimeout(r, 120)); if (seq !== swapSeq) return; }
+		/* the cut: a still of the outgoing page covers the window while the incoming one lays itself out UNSEEN (visibility:hidden), then the still fades over the settled page: nothing visible reflows (CLS), and the window is never empty ground */
+		const copy = !instant && shown ? takeSnap() : null;
+		if (copy) coverWith(copy);
 		Object.assign(page, SURFACE_PATH[next]);
 		pageStore.update((p) => ({ ...p, ...SURFACE_PATH[next] })); // the History tab reads get(page) of $app/stores (not $app/state)
 		Comp = c; shown = next;
 		await tick();
 		swapOpacity = 1;
+		if (copy) void settleThenReveal(copy);
 		if (seq === swapSeq) swapping = null;
 	}
+	let main: HTMLElement | undefined = $state();
+	let group: HTMLElement | undefined = $state();
+	let camEl: HTMLElement | undefined = $state();
+	/* ---- reflow without a visible shift (CLS): the product re-lays itself out at a few moments (the Approve card collapsing, a banner opening, a dialog closing, a page arriving). A still of the page BEFORE the change covers the window, the real page lays out hidden, and the still fades once the layout has stopped moving. ---- */
+	let hid = $state(false);
+	let snapEl: HTMLElement | null = null;
+	function takeSnap(): HTMLElement | null {
+		if (!group || reduced) return null;
+		const c = group.cloneNode(true) as HTMLElement;
+		c.style.cssText = `position:absolute;left:0;top:0;width:${group.offsetWidth}px;height:${group.offsetHeight}px;overflow:hidden;pointer-events:none;z-index:3;opacity:1;visibility:visible`;
+		c.setAttribute('aria-hidden', 'true'); c.removeAttribute('inert'); c.classList.add('film-snap');
+		c.querySelectorAll('[id]').forEach((e) => e.removeAttribute('id'));
+		return c;
+	}
+	function coverWith(c: HTMLElement) {
+		snapEl?.remove(); snapEl = c; camEl!.insertBefore(c, group!.nextSibling); hid = true;
+	}
+	async function settleThenReveal(c: HTMLElement) {
+		const t0 = performance.now(); let last = group!.offsetHeight, since = t0;
+		while (performance.now() - t0 < 700) {
+			await new Promise((r) => requestAnimationFrame(r));
+			if (c !== snapEl || !group) return;
+			const h = group.offsetHeight; if (h !== last) { last = h; since = performance.now(); }
+			if (performance.now() - since > 110 && performance.now() - t0 > 180) break;
+		}
+		if (c !== snapEl) return;
+		hid = false; snapEl = null;
+		const done = () => c.remove();
+		c.animate([{ opacity: 1 }, { opacity: 0 }], { duration: 140, easing: "ease-out", fill: "forwards" }).finished.then(done, done);
+	}
+	let preEi = -2, preSnap: { el: HTMLElement | null; h: number } | null = null;
+	$effect.pre(() => {
+		const ei = eventIdx;
+		untrack(() => { if (ei === preEi) return; preEi = ei; preSnap = !group || swapping || hid || reduced || !shown ? null : { el: takeSnap(), h: group.offsetHeight }; });
+	});
+	$effect(() => {
+		void eventIdx;
+		untrack(() => {
+			const p = preSnap; preSnap = null; if (!p?.el || !group) return;
+			void tick().then(() => tick()).then(() => {
+				if (!group || swapping || hid || Math.abs(group.offsetHeight - p.h) < 3) return; /* nothing moved: no cover */
+				coverWith(p.el!); void settleThenReveal(p.el!);
+			});
+		});
+	});
 	let lastT = -1;
 	$effect(() => {
 		const s = surf, tt = t;
@@ -77,9 +125,6 @@
 	const props = $derived(shown ? surfaceProps(shown, eventIdx) : {});
 
 	/* ---- the camera: transform only, on the content group; the shell stays put and dims ---- */
-	let main: HTMLElement | undefined = $state();
-	let group: HTMLElement | undefined = $state();
-	let camEl: HTMLElement | undefined = $state();
 	let cam = $state({ x: 0, y: 0, s: 1, dur: 0, ease: 'ease', moving: false });
 	let hole = $state<{ x: number; y: number; w: number; h: number; r: number } | null>(null);
 	let holeOn = $state(false), shadeOn = $state(false);
@@ -250,7 +295,7 @@
 					<div class="film-top"><WindowBar crumbs={crumbs} narrow={phone} keep={2} /><i class="film-shade" class:film-shade-on={shellDim}></i></div>
 					<main class="film-main" bind:this={main}>
 						<div class="film-cam" bind:this={camEl} style={camStyle}>
-							<div class="film-group" bind:this={group} style="opacity:{swapOpacity}; transition: opacity {swapOpacity ? '.2s ease-out' : '.12s ease-in'}">
+							<div class="film-group" bind:this={group} style="opacity:{swapOpacity}; visibility:{hid ? 'hidden' : 'visible'}; transition: opacity {swapOpacity ? '.2s ease-out' : '.12s ease-in'}">
 								{#if Comp}<Comp {...props} />{/if}
 								{#if hole}<div class="film-hole" class:film-hole-on={holeOn} style="left:{hole.x}px;top:{hole.y}px;width:{hole.w}px;height:{hole.h}px;border-radius:{hole.r}px"></div>{/if}
 							</div>

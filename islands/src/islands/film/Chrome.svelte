@@ -74,8 +74,8 @@
 	/* phone: the SAME panel, still one 44 px line and the same 12 px inset: clock | tabs (the lit chapter keeps its label, the others are dots) + play | tally. The tabs scroll if the tally grows. */
 	.fc-narrow .fc-panel { grid-template-columns: auto minmax(0, 1fr) auto; gap: 6px; padding: 4px 4px 4px 10px; }
 	.fc-narrow .fc-clock { font-size: 13px; }
-	.fc-ic { margin-right: 3px; flex: none; }
-	.fc-bit { display: inline-flex; align-items: center; white-space: nowrap; }
+	.fc-ic { flex: none; }
+	.fc-bit { display: inline-flex; align-items: center; gap: 0.3em; white-space: nowrap; }
 	.fc-narrow .fc-tally { gap: 8px; }
 	.fc-narrow .fc-bit + .fc-bit::before { content: none; }
 	.fc-narrow .fc-tally { padding-right: 6px; font-size: 12px; }
