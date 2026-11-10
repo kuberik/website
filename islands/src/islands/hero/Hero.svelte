@@ -119,7 +119,7 @@
 					{/if}
 				</header>
 				<div class="px-4 pb-4 pt-4 sm:px-6 sm:pb-6">
-					<Slipway {row} nested compact={compactPipe} action={act} />
+					<Slipway {row} nested compact={false} action={act} />
 				</div>
 			{/if}
 		</div>

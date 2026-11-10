@@ -4,4 +4,4 @@
 {{- $name := .Get "name" -}}
 {{- $h := .Get "height" | default "300" -}}
 <div data-island="{{ $name }}" data-theme-sync style="min-height:{{ $h }}px"></div>
-<script type="module" src="{{ "islands/islands.js" | relURL }}?v={{ now.Unix }}"></script>
+<script type="module" src="{{ "islands/islands.js" | relURL }}"></script>
