@@ -28,19 +28,20 @@ const KUST = 'checkout-api-us-east-1';
 const iso = (msAgo: number) => new Date(CLOCK_MS - msAgo).toISOString();
 const MIN = 60_000;
 
-export type Variant = 'overview-pending' | 'overview-running' | 'overview-passed' | 'rollback' | 'gates' | 'history';
+export type Variant = 'overview-pending' | 'overview-running' | 'overview-passed' | 'rollback' | 'gates' | 'history' | 'bake' | 'stage2' | 'recovered-baking' | 'recovered' | 'replay';
+const isRecovered = (v: Variant) => v === 'recovered' || v === 'recovered-baking' || v === 'replay';
 type Any = any;
 
 /** the two-stage canary (25% -> 100%) with an integration-test RolloutTest after the first step (spec.stepIndex is 1-based: the card compares it with stage number) */
 function kruiseAndTest(v: Variant) {
-	const phase = v === 'overview-pending' ? 'Pending' : v === 'overview-running' ? 'Running' : 'Succeeded';
+	const phase = v === 'overview-pending' ? 'Pending' : v === 'overview-running' ? 'Running' : v === 'recovered' || v === 'recovered-baking' ? 'WaitingForStep' : 'Succeeded';
 	const stalled = v === 'rollback';
 	const kr = {
 		apiVersion: 'rollouts.kruise.io/v1beta1', kind: 'Rollout',
-		metadata: { name: KR, namespace: NS, annotations: { 'rollout-dashboard.kuberik.com/source-cluster': CLUSTER } },
+		metadata: { name: KR, namespace: NS, annotations: { 'rollout-dashboard.kuberik.com/source-cluster': CLUSTER, ...(v === 'bake' ? { 'rollout.kuberik.io/step-1-bake-time': '20s', 'internal.rollout.kuberik.io/step-1-ready-at': iso(8_000) } : {}) } },
 		spec: { strategy: { canary: { steps: [{ replicas: '25%' }, { replicas: '100%' }] } } },
 		status: {
-			canaryStatus: { currentStepIndex: v === 'gates' || v === 'history' ? 2 : v === 'rollback' ? 2 : 1, currentStepState: v === 'gates' || v === 'history' ? 'Completed' : 'StepPaused', lastUpdateTime: iso(1 * MIN) },
+			canaryStatus: { currentStepIndex: v === 'gates' || v === 'history' || v === 'recovered' || v === 'recovered-baking' ? 2 : v === 'rollback' || v === 'stage2' ? 2 : 1, currentStepState: v === 'gates' || v === 'history' || v === 'recovered' || v === 'recovered-baking' ? 'Completed' : v === 'stage2' ? 'StepInProgress' : 'StepPaused', lastUpdateTime: iso(v === 'replay' ? 5_000 : 1 * MIN) },
 			conditions: stalled ? [{ type: 'KuberikBakeHealthy', status: 'False', reason: 'BakeFailed', message: 'error-rate failed' }] : []
 		}
 	};
@@ -58,7 +59,7 @@ const OBS = [{ name: 'error rate', kind: 'Threshold', value: '3.2', limit: '1', 
 
 /** the one us-east-1 rollout, patched for the variant (everything else in the world is the surfaces fleet at the matching story second) */
 export function detailWorld(v: Variant) {
-	const t = v === 'gates' ? 8 : v === 'rollback' || v === 'history' ? 33 : 23;
+	const t = v === 'gates' ? 8 : v === 'rollback' || v === 'history' || isRecovered(v) ? 33 : 23;
 	const s = surfaceFleet(t);
 	const fleet = s.fleet as Any;
 	const idx = (fleet.rollouts as Any[]).findIndex((r) => r.metadata.namespace === NS && r.metadata.name === NAME);
@@ -67,12 +68,22 @@ export function detailWorld(v: Variant) {
 	const hist: Any[] = r.status.history;
 	r.status.gates = [...r.status.gates, { name: 'deploy-window', passing: true, allowedVersions: null, message: 'Gate is passing' }]; // the schedule's gate (RolloutSchedule business-hours), alphabetical like the controller's summary
 	r.status.gates.sort((a: Any, b: Any) => a.name.localeCompare(b.name));
-	if (v.startsWith('overview')) {
+	if (v.startsWith('overview') || v === 'bake' || v === 'stage2') {
 		hist[0] = { ...hist[0], bakeStatus: 'Deploying', timestamp: iso(4 * MIN), bakeStartTime: iso(4 * MIN), bakeEndTime: undefined };
 	}
 	if (v === 'rollback') {
 		hist[0] = { ...hist[0], bakeStatus: 'Failed', timestamp: iso(9 * MIN), bakeStartTime: iso(9 * MIN), bakeEndTime: iso(3 * MIN), message: 'Health check error-rate failed',
 			failedHealthChecks: [{ name: 'error-rate', message: FAIL_MSG, observations: OBS }] };
+	}
+	if (isRecovered(v)) {
+		const failed = { ...hist[0], id: 2, bakeStatus: 'Failed', timestamp: iso(14 * MIN), bakeStartTime: iso(14 * MIN), bakeEndTime: iso(6 * MIN), message: 'Health check error-rate failed',
+			failedHealthChecks: [{ name: 'error-rate', message: FAIL_MSG, observations: OBS }] };
+		const done = v === 'recovered';
+		const replay = v === 'replay';
+		const rolled = { id: 3, version: hist[1].version, timestamp: iso(done ? 3 * MIN : 40_000), bakeStatus: done ? 'Succeeded' : replay ? 'Deploying' : 'InProgress', bakeStartTime: iso(done ? 3 * MIN : 40_000), ...(done ? { bakeEndTime: iso(MIN) } : {}), triggeredBy: { kind: 'User', name: 'olivia-bennett' } };
+		r.status.history = [rolled, failed, ...hist.slice(1)];
+		r.spec.wantedVersion = rolled.version.tag; r.status.wantedVersion = rolled.version.tag; r.status.currentVersion = rolled.version.tag; r.status.previousVersion = 'b-46';
+		r.status.conditions = [{ type: 'BakeFailureDisabled', status: 'True', reason: 'PreviousBakeFailed', message: 'Previous deployment failed. Health check failures will not fail this deployment.', lastTransitionTime: iso(done ? 3 * MIN : 40_000) }];
 	}
 	if (v === 'history') {
 		const failed = { ...hist[0], id: 2, bakeStatus: 'Failed', timestamp: iso(40 * MIN), bakeStartTime: iso(40 * MIN), bakeEndTime: iso(31 * MIN), message: 'Health check error-rate failed',
@@ -131,8 +142,8 @@ const schedules = () => [{
 export function detailAnswers(v: Variant) {
 	const w = detailWorld(v);
 	const managed: Any[] = [
-		{ groupVersionKind: 'rollouts.kruise.io/v1beta1/Rollout', name: KR, namespace: NS, status: 'InProgress', message: '', lastModified: iso(MIN), object: w.kr },
-		{ groupVersionKind: 'rollout.kuberik.com/v1alpha1/RolloutTest', name: 'integration-test', namespace: NS, status: w.test.status.phase, message: '', lastModified: iso(MIN), object: w.test },
+		{ groupVersionKind: 'rollouts.kruise.io/v1beta1/Rollout', name: KR, namespace: NS, status: isRecovered(v) && v !== 'replay' ? 'Current' : 'InProgress', message: '', lastModified: iso(MIN), object: w.kr },
+		{ groupVersionKind: 'rollout.kuberik.com/v1alpha1/RolloutTest', name: 'integration-test', namespace: NS, status: isRecovered(v) && v !== 'replay' ? 'Current' : w.test.status.phase, message: '', lastModified: iso(MIN), object: w.test },
 		{ groupVersionKind: 'apps/v1/Deployment', name: NAME, namespace: NS, status: 'Current', message: '', lastModified: iso(MIN), object: { apiVersion: 'apps/v1', kind: 'Deployment', metadata: { name: NAME, namespace: NS }, spec: { replicas: 4 }, status: { readyReplicas: 4, replicas: 4 } } }
 	];
 	const detail = {
