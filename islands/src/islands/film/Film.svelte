@@ -88,6 +88,7 @@
 		const g = group!.getBoundingClientRect(), r = el.getBoundingClientRect(), u = unit();
 		return { x: (r.left - g.left) / u, y: (r.top - g.top) / u, w: r.width / u, h: r.height / u };
 	}
+	const padRect = (r: { x: number; y: number; w: number; h: number }, p: number) => ({ x: r.x - p, y: r.y - p, w: r.w + 2 * p, h: r.h + 2 * p });
 	let refineTimer: ReturnType<typeof setTimeout> | undefined;
 	function aim(m: Move, jump: boolean, refine = false) {
 		if (!group || !main) return;
@@ -101,7 +102,7 @@
 			if (phone) { s = 1; y = -Math.max(0, r.y - 10); }
 			else if (s === 1 && m.dim === 'page') { y = -Math.max(0, Math.min(r.y - 24, gh - vh)); }
 			else if (s === 1) { x = m.to === 'health-checks' ? -96 : 0; }
-			else { /* fit with a 14 px margin: the product's gap between cards is >= 12 px x scale, so a neighbour never peeks into the frame mid-word */ s = Math.max(1, Math.min(m.s, (vw - 28) / r.w, (vh - 28) / r.h)); x = vw / 2 - s * (r.x + r.w / 2); y = vh / 2 - s * (r.y + r.h / 2); }
+			else { /* fit with a 14 px margin: the product's gap between cards is >= 12 px x scale, so a neighbour never peeks into the frame mid-word */ s = Math.max(1, Math.min(m.s, (vw - 28) / r.w)); /* width-fit only: a target taller than the window may exceed it (centred), the zoom keeps the planned depth */ x = vw / 2 - s * (r.x + r.w / 2); y = vh / 2 - s * (r.y + r.h / 2); }
 		}
 		x = Math.min(0, Math.max(Math.min(0, vw - s * gw), x));
 		y = Math.min(0, Math.max(Math.min(0, vh - s * gh), y));
@@ -111,7 +112,7 @@
 		clearTimeout(moveTimer);
 		if (dur > 0) moveTimer = setTimeout(() => { cam = { ...cam, moving: false }; }, dur + 40);
 		/* the dim hole: everything but the target at 35% (an opacity layer, never a filter) */
-		dimHole = el && (m.dim === 'page' || m.dim === 'both') ? relRect(el) : null;
+		dimHole = el && (m.dim === 'page' || m.dim === 'both') ? padRect(relRect(el), 10) : null;
 		/* the product's own enter animations (banners opening, cards collapsing) keep moving the target for ~0.5 s after a move starts: re-aim once they have settled */
 		clearTimeout(refineTimer);
 		if (!refine && el && !reduced) refineTimer = setTimeout(() => aim(m, false, true), 650);
@@ -121,7 +122,7 @@
 		const m = mv, s = shown, ei = eventIdx, tt = t;
 		void s; void ei;
 		untrack(() => {
-			const kk = `${CAMERA_INDEX(m)}|${s}|${ei}|${phone}`;
+			const kk = `${CAMERA_INDEX(m)}|${s}|${phone}`; /* the camera is LOCKED for the length of a move: a CR change inside a hold re-lays the page but never re-aims (it drifted 5x on the pipeline) */
 			if (kk === moveKey) return;
 			const first = !moveKey.startsWith(`${CAMERA_INDEX(m)}|`);
 			moveKey = kk;
@@ -186,7 +187,7 @@
 
 <div class="film" bind:this={host} bind:clientWidth={W} bind:clientHeight={H}>
 	<div class="film-frame">
-		<div class="film-canvas" bind:this={canvas} style="width:{CW}px;height:{CH}px;transform:scale({k})">
+		<div class="film-canvas" bind:this={canvas} style="width:{CW}px;height:{CH}px;zoom:{k}">
 			<div class="film-app">
 				{#if !phone}<div class="film-side" class:film-dim={shellDim}>{#if Side}<Side />{/if}</div>{/if}
 				<div class="film-col">
@@ -212,7 +213,7 @@
 	.film-frame { position: relative; height: 100%; overflow: hidden; border-radius: inherit; background: var(--k-ground); transition: opacity 0.4s ease-in; }
 	.film-fade { opacity: 0; }
 	/* the canvas is a real dashboard viewport: its width answers the compiled `sm:`/`lg:` queries (container "kc"), `fixed` children (confirm, sheet, bottom nav) anchor to it */
-	.film-canvas { position: relative; transform-origin: 0 0; container-type: inline-size; container-name: kc; overflow: hidden; background: var(--k-ground); contain: layout paint; }
+	.film-canvas { position: relative; container-type: inline-size; container-name: kc; overflow: hidden; background: var(--k-ground); contain: layout paint; }
 	.film-app { display: flex; height: 100%; flex-direction: row; background: var(--k-ground); }
 	.film-side { display: flex; flex-shrink: 0; width: 14.5rem; transition: opacity 0.434s ease; }
 	.film-col { display: flex; flex-direction: column; min-width: 0; flex: 1 1 0; }
@@ -225,7 +226,14 @@
 	.film-tabs :global(nav > *) { transition: opacity 0.434s ease; }
 	.film-dimmer { position: absolute; inset: 0; background: var(--k-ground); opacity: 0; pointer-events: none; transition: opacity 0.2s ease-out; z-index: 4; }
 	.film-dimmer-on { opacity: 0.65; }
+	/* light: neighbours fall toward a dark ink, not toward white (white washed the page out); dark keeps the ground colour */
+	.film-dimmer { --dim-ink: rgb(12 20 26); }
+	:global(.dark) .film-dimmer { --dim-ink: var(--k-ground); }
+	.film-dimmer { background: var(--dim-ink); }
+	.film-dimmer-on { opacity: 0.5; }
 	/* zoomed: a neighbour that peeks into the frame is nearly gone rather than cut mid-word */
-	.film-dimmer-on.film-dimmer-zoom { opacity: 0.86; }
+	.film-dimmer-on.film-dimmer-zoom { opacity: 0.8; }
+	:global(.dark) .film-dimmer-on { opacity: 0.65; }
+	:global(.dark) .film-dimmer-on.film-dimmer-zoom { opacity: 0.86; }
 	.film-tabs { position: absolute; left: 0; right: 0; bottom: 0; z-index: 5; }
 </style>

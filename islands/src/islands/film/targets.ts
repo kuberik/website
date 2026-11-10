@@ -26,9 +26,9 @@ export function resolveTarget(name: string, root: ParentNode, phone: boolean): H
 		case 'modal-continue': { const m = q('.fm-panel'); return m ? byText(m, 'button', /^Roll back$/) : null; } /* the dialog's own confirm (its label is the verb), not the banner's button behind it */
 		case 'where-it-runs': return cardOf(root, /^Where it runs/i);
 		case 'gate-column': {
-			/* the gates column and the node they feed, as one frame (a synthetic box: only its rect is read) */
-			const col = byText(root, 'div,section', /^GATED BY/i), node = byText(root, 'div,section', /^THIS ROLLOUT/i);
-			return col && node ? union([col.parentElement ?? col, node.parentElement ?? node]) : null;
+			/* the gates column (every gate that feeds it) with the node, as one frame: whole cards only, so the dim hole never cuts a card mid-word; narrow enough for a true 1.5x */
+			const gates = [...root.querySelectorAll<HTMLElement>('[data-hood-link="upstream"]')], node = q('[data-hood-focus]');
+			return gates.length && node ? union([...gates, node]) : null;
 		}
 		case 'pipeline': return cardOf(root, /Deployment pipeline/i);
 		case 'health-checks': return cardOf(root, /^Health checks/i);
@@ -43,7 +43,7 @@ export function resolveTarget(name: string, root: ParentNode, phone: boolean): H
 			return union([title, contentBox(blk), more].filter(Boolean) as HTMLElement[]);
 		}
 		/* both recovery-mode banners (Recovery mode, Rolled back) as one frame */
-		case 'banners': { const bs = [...root.querySelectorAll<HTMLElement>('.ap-cq')].slice(0, 2); return bs.length ? union(bs) : null; }
+		case 'banners': { const bs = [...root.querySelectorAll<HTMLElement>('.ap-cq')].slice(0, 2); return bs.length ? union(bs.map(contentBox)) : null; } /* their text, not their full-width bars: the zoom can land on the words */
 		case 'prod-card': return cardOf(root, /Production/i);
 		/* the History cadence strip (bar, hour ticks, the "shown wider" note): the nearest ancestor of the note that also holds the ticks */
 		case 'timeline': { let e: HTMLElement | null = byText(root, 'span,div,p', /shown wider than its real time/i); for (let i = 0; e && i < 5; i++, e = e.parentElement) if (/07:00|08:00/.test(text(e)) && /\d\.\d+\.\d+-\d+/.test(text(e))) return e; return null; }
@@ -62,6 +62,6 @@ function contentBox(el: HTMLElement): HTMLElement {
 	if (first && last) { r.setStart(first, 0); r.setEnd(last, last.length); } else r.selectNodeContents(el);
 	return { getBoundingClientRect: () => r.getBoundingClientRect() } as unknown as HTMLElement;
 }
-function union(els: Element[]): HTMLElement {
+function union(els: { getBoundingClientRect(): DOMRect }[]): HTMLElement {
 	return { getBoundingClientRect() { const rs = els.map((e) => e.getBoundingClientRect()); const l = Math.min(...rs.map((r) => r.left)), t = Math.min(...rs.map((r) => r.top)), r = Math.max(...rs.map((x) => x.right)), b = Math.max(...rs.map((x) => x.bottom)); return new DOMRect(l, t, r - l, b - t); } } as unknown as HTMLElement;
 }

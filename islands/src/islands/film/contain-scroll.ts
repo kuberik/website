@@ -10,6 +10,21 @@ export function containScroll() {
 	/* NAMED STUB: `focus()` for the product inside the film. The product focuses its confirm button when a dialog opens; in a decorative film that (a) paused the
 	 * story on its own focus-pause gate, freezing it at the Approve confirm, and (b) smooth-scrolled the landing page by hundreds of px at 390. Calls made on
 	 * elements inside an island's shadow root are no-ops; a reader's own focus (Tab, click, tap) is native and never goes through here. */
+	/* NAMED STUB: `currentCSSZoom`. The product converts client rects to local CSS px by dividing by it (the gate graph's wires, RolloutNeighbourhood.measure). The film scales
+	 * its canvas with CSS zoom (so that is covered natively) and moves its camera with a transform, which the product cannot know about: inside the camera group the
+	 * getter also reports the group's current transform scale, so a graph measured (or re-measured on a data change) mid-zoom still draws its wires on its nodes. */
+	const zd = Object.getOwnPropertyDescriptor(Element.prototype, 'currentCSSZoom');
+	if (zd?.get) {
+		const zget = zd.get;
+		Object.defineProperty(Element.prototype, 'currentCSSZoom', { configurable: true, enumerable: zd.enumerable, get(this: Element) {
+			const z = zget.call(this) as number;
+			const g = this.getRootNode() instanceof ShadowRoot ? this.closest('.film-group') : null;
+			if (!g) return z;
+			const tf = getComputedStyle(g).transform;
+			const sc = tf && tf !== 'none' ? new DOMMatrix(tf).a : 1;
+			return z * (sc || 1);
+		} });
+	}
 	const nativeFocus = HTMLElement.prototype.focus;
 	HTMLElement.prototype.focus = function (this: HTMLElement, o?: FocusOptions) {
 		const root = this.getRootNode();
