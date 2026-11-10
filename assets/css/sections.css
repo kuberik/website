@@ -155,10 +155,10 @@ html.dark .vendor-mark{background-image:var(--logo-dark);opacity:.72}
 .fig-tags li{height:24px;padding:0 8px;border-radius:6px;border:1px solid var(--line);background:color-mix(in oklab,var(--page) 70%,transparent);font:500 12px/22px var(--mono);color:var(--ink-muted)}
 @media(max-width:1199px){
   .figs{grid-template-columns:repeat(6,minmax(0,1fr));row-gap:48px}
-  .fig-cell{grid-column:span 2}
-  .fig-cell:nth-child(n+4){grid-column:span 3}
-  .fig-cell:nth-child(n+4) .fig-art{max-width:300px}
-  .fig-cell:nth-child(4){border-left-color:transparent}
+  .figs .fig-cell{grid-column:span 2}
+  .figs .fig-cell:nth-child(n+4){grid-column:span 3}
+  .figs .fig-cell:nth-child(n+4) .fig-art{max-width:300px}
+  .figs .fig-cell:nth-child(4){border-left-color:transparent}
 }
 @media(max-width:1023px){
   .figs{grid-template-columns:minmax(0,1fr);row-gap:0;margin:32px 0 0}
@@ -170,7 +170,7 @@ html.dark .vendor-mark{background-image:var(--logo-dark);opacity:.72}
      (tiles, plate ring) and queue one build, not two */
   .figs .fig-tile,.figs .fig-ring,.fig-release .m-rel-g2,.fig-release .m-rel-g3{display:none}
 }
-@media(min-width:1024px) and (max-width:1199px){.fig-cell{padding-top:8px}} /* A14: the upper plate's ring clears the frame edge */
+@media(min-width:1024px) and (max-width:1199px){.figs .fig-cell{padding-top:8px}} /* A14: the upper plate's ring clears the frame edge */
 
 /* dependencies */
 .deps-inner{display:grid;grid-template-columns:minmax(0,1fr);gap:40px;align-items:center}
@@ -179,15 +179,21 @@ html.dark .vendor-mark{background-image:var(--logo-dark);opacity:.72}
 .deps-copy .title-body{margin:0;max-width:46ch}
 .deps-art{display:block;padding:0;border:0}
 .deps-art.fig-cell{border-left:0;padding:0}
-.deps .fig-sub,.fig-sub{fill:var(--fig-label);font:500 11px/1 var(--mono)}
+.deps .fig-sub,.fig-sub{fill:var(--fig-label);font:500 12.5px/1 var(--mono)}
 .fig-sub.is-waiting{fill:var(--mint-ink)}
-.fig-env{fill:var(--ink);font-size:13px}
+.fig-env{fill:var(--ink);font-size:14px}
+/* RULE: a rendered label is >= 12px. The graph scales 0.8 (1200) to 1.4 (2560), so the user-unit size steps by breakpoint (measure: figs-design/scripts/measure2.mjs) */
+@media(min-width:1200px) and (max-width:1439px){.deps-wide .fig-env{font-size:16px}.deps-wide .fig-sub{font-size:15.5px}}
+@media(min-width:1920px){.deps-wide .fig-env{font-size:13px}.deps-wide .fig-sub{font-size:12px}}
+@media(min-width:2400px){.deps-wide .fig-env{font-size:10px}.deps-wide .fig-sub{font-size:9px}}
 .deps-compact{display:none}
-@media(min-width:1024px){.deps-inner{grid-template-columns:minmax(0,5fr) minmax(0,7fr);column-gap:64px}}
+/* copy beside art from 1200; stacked below, with the art capped so it never renders under 0.45 scale (A11) */
+@media(min-width:1200px){.deps-inner{grid-template-columns:minmax(0,5fr) minmax(0,7fr);column-gap:64px}}
+@media(min-width:641px) and (max-width:1199px){.deps-wide{max-width:720px}}
 @media(max-width:640px){
   .deps-wide{display:none}
   .deps-compact{display:block;max-width:340px;margin-inline:auto}
-  .deps-compact .fig-env{font-size:14px}.deps-compact .fig-sub{font-size:12px}
+  .deps-compact .fig-env{font-size:15px}.deps-compact .fig-sub{font-size:14px}
 }
 
 /* everything you write: four file windows */
@@ -226,11 +232,12 @@ html.dark .vendor-mark{background-image:var(--logo-dark);opacity:.72}
 .closing-art.fig-cell{border-left:0;padding:0}
 .closing-art .fig-label{font-size:24px}
 .closing-compact{display:none}
-@media(min-width:1024px){
+@media(min-width:1200px){
   .closing-inner{grid-template-columns:minmax(0,1.5fr) minmax(0,1fr);column-gap:48px}
   .closing-art{order:2;padding-right:32px}
   .closing-art .fig{max-height:460px}
 }
+@media(min-width:1024px) and (max-width:1199px){.closing-wide{max-width:560px}.closing-art .fig-label{font-size:20px}}
 @media(max-width:1023px){.closing-wide{display:none}.closing-compact{display:block;width:220px}}
 @media(max-width:640px){
   .sec,.statement{margin-top:80px}
@@ -246,3 +253,6 @@ html.dark .vendor-mark{background-image:var(--logo-dark);opacity:.72}
 @media(min-width:1680px){
   .sec-inner{padding-inline:max(var(--stage-pad),calc((100% - var(--cont) + 2*var(--stage-pad)) / 2))}
 }
+/* closing labels: >= 12px rendered at every width (scale 0.47 at 1200 to 0.82 at 2560) */
+@media(min-width:1200px) and (max-width:1439px){.closing-art .fig-label{font-size:27px}}
+@media(min-width:2400px){.closing-art .fig-label{font-size:18px}}

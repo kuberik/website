@@ -319,7 +319,7 @@ function depsGraph(name, { compact = false } = {}) {
 		const [lx, ly] = P(n.px + w, n.py, 0);
 		const ox = 16, oy = 2;
 		// compact: 16 / 15 units at 0.82 scale = 13 / 12.3 px (A10); wide: 15 / 14 units (see sections.css)
-		const cw = compact ? 9.6 : 9;
+		const cw = 9.6; // reserve for 16-unit labels (the widest step, see sections.css)
 		b += label(lx + ox, ly + oy, n.label, 'fig-env', cw);
 		b += label(lx + ox, ly + oy + (compact ? 22 : 21), n.v, /waiting/.test(n.v) ? 'fig-sub is-waiting' : 'fig-sub', cw * .94);
 	}
