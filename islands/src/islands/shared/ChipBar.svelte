@@ -45,4 +45,5 @@
 	.hw-narrow .hw-chip { height: 44px; padding: 0 12px; font-size: 13px; }
 	.hw-narrow .hw-chip-dot { display: none; }
 	.hw-narrow .hw-play { width: 44px; height: 44px; flex: none; }
+	.hw-narrow .hw-scroll { -webkit-mask-image: linear-gradient(90deg, transparent 0, #000 12px, #000 calc(100% - 12px), transparent 100%); mask-image: linear-gradient(90deg, transparent 0, #000 12px, #000 calc(100% - 12px), transparent 100%); }
 </style>
