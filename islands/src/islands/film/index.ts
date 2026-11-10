@@ -7,6 +7,7 @@ import { reactive } from '../../reactive.svelte';
 import type { CustomCtx } from '../../registry';
 import { Player } from '../shared/player';
 import { setPart } from '../shared/world';
+import { driveNow } from '../../stubs/time-store';
 import { LOOP, CHAPTERS, REST_T, upcoming } from './script';
 import { eventIndexAt, worldAt } from './scenario';
 import { installAnswers, installFetch, setDetail } from './detail-store.svelte';
@@ -21,6 +22,7 @@ export function mountFilm(ctx: CustomCtx) {
 	containScroll();
 	installFetch(() => (world?.fleet as any) ?? null);
 	let last = NaN;
+	let evT = 0, tickAt = -9;
 	let player: Player | undefined;
 	const apply = (t: number) => {
 		if (t === last) return;
@@ -30,8 +32,10 @@ export function mountFilm(ctx: CustomCtx) {
 			world = worldAt(t);
 			setPart('film', world.fleet, world.github);
 			setDetail(world.detail);
-			props.eventIdx = ei;
+			props.eventIdx = ei; evT = t; tickAt = t;
 		}
+		/* the product's `now` is the snapshot's instant plus the REAL seconds since the last CR change (the story clock is a time-lapse, a bake countdown is not): "12s remaining" ticks 11, 10 ... between CR events, once per story second */
+		else if (world && t - tickAt >= 1) { tickAt = t; driveNow(new Date(world.fleet.now.getTime() + (t - evT) * 1000)); }
 		last = t;
 		props.t = t;
 		for (const s of upcoming(t)) void loadSurface(s);
