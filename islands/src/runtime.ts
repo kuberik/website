@@ -25,7 +25,11 @@ function declareFonts(BASE: string) {
 }
 
 let sheet: Promise<CSSStyleSheet> | null = null;
-const sharedSheet = (BASE: string) => (sheet ??= fetch(new URL('islands.css', BASE)).then((r) => r.text()).then((css) => { const s = new CSSStyleSheet(); s.replaceSync(css); return s; }));
+const sharedSheet = (BASE: string) => (sheet ??= fetch(new URL('islands.css', BASE)).then((r) => r.text()).then((css) => { const s = new CSSStyleSheet(); s.replaceSync(css);
+	/* Tailwind v4 declares its `--tw-*` defaults with @property, and @property is IGNORED inside a shadow tree: `border-2` then computed to border-style:none (no spinner arc, no ring). Register them on the document, where they apply inside the shadow root too. */
+	const props = css.match(/@property\s+--[\w-]+\s*\{[^}]*\}/g);
+	if (props) { const d = new CSSStyleSheet(); d.replaceSync(props.join('\n')); document.adoptedStyleSheets = [...document.adoptedStyleSheets, d]; }
+	return s; }));
 
 const dark = () => document.documentElement.classList.contains('dark');
 const reduced = matchMedia('(prefers-reduced-motion: reduce)');

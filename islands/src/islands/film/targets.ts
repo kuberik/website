@@ -34,7 +34,12 @@ export function resolveTarget(name: string, root: ParentNode, phone: boolean): H
 		case 'health-checks': return cardOf(root, /^Health checks/i);
 		case 'banner': return q('.ap-cq');
 		/* the observed figure ("3.2 % error rate") inside the failure banner: the zoom lands on the number, not the whole-width banner */
-		case 'figure': { const row = byText(root, 'div,p,span', /^3\.2\s*%\s*error rate/i); return row ? contentBox(row) : q('.ap-cq'); }
+		case 'figure': {
+			/* the banner's text block (title, the figure, its budget line, Details) without the Retry / Roll back buttons on the right: climb from the figure to the lowest box that also holds the title */
+			const row = byText(root, 'div,p,span', /^3\.2\s*%\s*error rate/i); if (!row) return q('.ap-cq');
+			let e: HTMLElement | null = row; while (e && !/Deployment failed/i.test(text(e))) e = e.parentElement;
+			return contentBox(e ?? row);
+		}
 		/* both recovery-mode banners (Recovery mode, Rolled back) as one frame */
 		case 'banners': { const bs = [...root.querySelectorAll<HTMLElement>('.ap-cq')].slice(0, 2); return bs.length ? union(bs) : null; }
 		case 'prod-card': return cardOf(root, /Production/i);

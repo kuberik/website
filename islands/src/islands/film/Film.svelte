@@ -93,7 +93,7 @@
 			if (phone) { s = 1; y = -Math.max(0, r.y - 10); }
 			else if (s === 1 && m.dim === 'page') { y = -Math.max(0, Math.min(r.y - 24, gh - vh)); }
 			else if (s === 1) { x = m.to === 'health-checks' ? -96 : 0; }
-			else { s = Math.max(1, Math.min(m.s, (vw * 0.94) / r.w, (vh * 0.94) / r.h)); x = vw / 2 - s * (r.x + r.w / 2); y = vh / 2 - s * (r.y + r.h / 2); }
+			else { /* fit with a 14 px margin: the product's gap between cards is >= 12 px x scale, so a neighbour never peeks into the frame mid-word */ s = Math.max(1, Math.min(m.s, (vw - 28) / r.w, (vh - 28) / r.h)); x = vw / 2 - s * (r.x + r.w / 2); y = vh / 2 - s * (r.y + r.h / 2); }
 		}
 		x = Math.min(0, Math.max(Math.min(0, vw - s * gw), x));
 		y = Math.min(0, Math.max(Math.min(0, vh - s * gh), y));
