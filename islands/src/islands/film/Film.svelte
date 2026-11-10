@@ -250,8 +250,8 @@
 	.film-dimmer { background: var(--dim-ink); }
 	.film-dimmer-on { opacity: 0.5; }
 	/* zoomed: a neighbour that peeks into the frame is nearly gone rather than cut mid-word */
-	.film-dimmer-on.film-dimmer-zoom { opacity: 0.8; }
+	.film-dimmer-on.film-dimmer-zoom { opacity: 0.93; }
 	:global(.dark) .film-dimmer-on { opacity: 0.65; }
-	:global(.dark) .film-dimmer-on.film-dimmer-zoom { opacity: 0.86; }
+	:global(.dark) .film-dimmer-on.film-dimmer-zoom { opacity: 0.94; }
 	.film-tabs { position: absolute; left: 0; right: 0; bottom: 0; z-index: 5; }
 </style>
