@@ -1,7 +1,9 @@
 export { default as Tooltip } from './flowbite-tooltip.svelte';
-export { default as Modal } from './flowbite-inert.svelte';
+export { default as Modal } from './flowbite-modal.svelte';
 export { default as Popover } from './flowbite-inert.svelte';
 export { default as Toggle } from './flowbite-inert.svelte';
 export { default as Spinner } from './flowbite-inert.svelte';
 export { default as Dropdown } from './flowbite-inert.svelte';
 export { default as DropdownItem } from './flowbite-inert.svelte';
+export { default as Tabs } from './flowbite-inert.svelte';
+export { default as TabItem } from './flowbite-inert.svelte';

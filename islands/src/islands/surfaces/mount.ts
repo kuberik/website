@@ -28,3 +28,26 @@ export const mountSurface = (kind: string) => (ctx: CustomCtx) => {
 	setPart('surface', s.fleet, s.github);
 	void Promise.all([load[kind](), PROPS[kind]?.() ?? Promise.resolve({ state: 'incident' })]).then(([m, props]) => mount(m.default, { target: ctx.wrap, props })).catch((e) => { console.error('surface', kind, e); ctx.wrap.textContent = 'ERR ' + e; });
 };
+
+/** SPIKE rollout-detail: `surface-rollout-<variant>` mounts the real layout + tab route for checkout-api / prod us-east-1 (see rollout-detail.ts). */
+export const mountRollout = (variant: string) => (ctx: CustomCtx) => {
+	void (async () => {
+		const { detailAnswers, NS, NAME, CLUSTER } = await import('./rollout-detail');
+		detailAnswers(variant as never);
+		const tab = variant === 'gates' ? 'gates' : variant === 'history' ? 'history' : '';
+		const { page } = await import('../../stubs/app-state');
+		const base = `/rollouts/${CLUSTER}/${NS}/${NAME}`;
+		Object.assign(page, { params: { cluster: CLUSTER, namespace: NS, name: NAME }, route: { id: '/rollouts/[cluster]/[namespace]/[name]' + (tab ? '/' + tab : '') },
+			url: new URL(`https://kuberik.com${base}${tab ? '/' + tab : ''}${variant === 'rollback' ? '?action=rollback' : ''}`) });
+		const { page: storePage } = await import('../../stubs/app-stores');
+		storePage.set({ ...page } as never);
+		const T: Record<string, () => Promise<{ default: Component<any> }>> = {
+			'': () => import('$lib/../routes/rollouts/[cluster]/[namespace]/[name]/+page.svelte'),
+			gates: () => import('$lib/../routes/rollouts/[cluster]/[namespace]/[name]/gates/+page.svelte'),
+			history: () => import('$lib/../routes/rollouts/[cluster]/[namespace]/[name]/history/+page.svelte')
+		};
+		const [Tab, Shell] = await Promise.all([T[tab](), import('./RolloutShell.svelte')]);
+		ctx.wrap.style.position = 'relative';
+		mount(Shell.default, { target: ctx.wrap, props: { Tab: Tab.default } });
+	})().catch((e) => { console.error('rollout', variant, e); ctx.wrap.textContent = 'ERR ' + e; });
+};

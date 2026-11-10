@@ -21,6 +21,7 @@ export type IslandModule = IslandDef<any> | CustomIsland;
 export const registry: Record<string, () => Promise<IslandModule>> = {
 	hero: () => import('./islands/hero').then((m) => ({ custom: m.mountHero })),
 	...Object.fromEntries(['home', 'rollouts', 'apps', 'environments', 'changes', 'app-detail', 'env-detail', 'change-detail', 'activity', 'dependencies'].map((k) => [`surface-${k}`, () => import('./islands/surfaces/mount').then((m) => ({ custom: m.mountSurface(k) }))])),
+	...Object.fromEntries(['overview-pending', 'overview-running', 'overview-passed', 'rollback', 'gates', 'history'].map((k) => [`surface-rollout-${k}`, () => import('./islands/surfaces/mount').then((m) => ({ custom: m.mountRollout(k) }))])),
 	'rollouts-list': async () => {
 		const [c, s] = await Promise.all([import('./islands/rollouts-list/RolloutsList.svelte'), import('./islands/rollouts-list/story')]);
 		return { component: c.default, initial: s.initial, beats: s.beats, representative: s.representative, restMs: 3200 };
