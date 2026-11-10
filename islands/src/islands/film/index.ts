@@ -12,11 +12,13 @@ import { eventIndexAt, worldAt } from './scenario';
 import { installAnswers, installFetch, setDetail } from './detail-store.svelte';
 import { loadSurface } from './surfaces';
 import Film from './Film.svelte';
+import { containScroll } from './contain-scroll';
 
 export function mountFilm(ctx: CustomCtx) {
 	const props = reactive({ t: 0, playing: false, reduced: false, eventIdx: -1, onseek: (_: number) => {}, ontoggle: () => {} });
 	let world: ReturnType<typeof worldAt> | null = null;
 	installAnswers(() => (world?.fleet.rollouts as unknown[]) ?? []);
+	containScroll();
 	installFetch(() => (world?.fleet as any) ?? null);
 	let last = NaN;
 	let player: Player | undefined;

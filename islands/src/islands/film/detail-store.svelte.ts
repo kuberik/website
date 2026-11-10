@@ -9,6 +9,11 @@ import { APP, VIEWER, type Detail } from './scenario';
 
 export const CLUSTER = 'prod';
 let current = $state.raw<Detail | null>(null);
+/** the kustomization's managed resources (both Current: the Resources card must not say "2 not ready"), as the API serves them */
+const managedList = (d: Detail) => [
+				{ groupVersionKind: 'rollouts.kruise.io/v1beta1/Rollout', name: d.kr.metadata.name, namespace: d.ns, status: 'Current', message: '', lastModified: d.kr.status.canaryStatus.lastUpdateTime, object: d.kr },
+				{ groupVersionKind: 'rollout.kuberik.com/v1alpha1/RolloutTest', name: 'integration-test', namespace: d.ns, status: 'Current', message: '', lastModified: d.kr.status.canaryStatus.lastUpdateTime, object: d.test },
+				{ groupVersionKind: 'apps/v1/Deployment', name: APP, namespace: d.ns, status: 'Current', message: '', lastModified: d.kr.status.canaryStatus.lastUpdateTime, object: { apiVersion: 'apps/v1', kind: 'Deployment', metadata: { name: APP, namespace: d.ns }, spec: { replicas: 4 }, status: { readyReplicas: 4, replicas: 4 } } }];
 export const setDetail = (d: Detail) => { current = d; };
 
 export function installAnswers(fleetRollouts: () => unknown[]) {
@@ -20,10 +25,7 @@ export function installAnswers(fleetRollouts: () => unknown[]) {
 			case 'rollout': return key[1] === d.ns && key[2] === APP ? { rollout: d.rollout, kustomizations: { items: [d.kustomization] }, ociRepositories: { items: [] }, rolloutGates: { items: d.gates }, environment: d.environment, kruiseRollout: d.kr, rolloutTests: { items: [d.test] } } : undefined;
 			case 'rollout-permissions': return { permissions: { update: true, patch: true }, resource: { apiGroup: 'kuberik.com', kind: 'Rollout', name: APP, namespace: d.ns } };
 			/* both resources Current: the Resources card must not say "2 not ready" (probe nit) */
-			case 'managed-resources': return { [KUST]: [
-				{ groupVersionKind: 'rollouts.kruise.io/v1beta1/Rollout', name: d.kr.metadata.name, namespace: d.ns, status: 'Current', message: '', lastModified: d.kr.status.canaryStatus.lastUpdateTime, object: d.kr },
-				{ groupVersionKind: 'rollout.kuberik.com/v1alpha1/RolloutTest', name: 'integration-test', namespace: d.ns, status: 'Current', message: '', lastModified: d.kr.status.canaryStatus.lastUpdateTime, object: d.test },
-				{ groupVersionKind: 'apps/v1/Deployment', name: APP, namespace: d.ns, status: 'Current', message: '', lastModified: d.kr.status.canaryStatus.lastUpdateTime, object: { apiVersion: 'apps/v1', kind: 'Deployment', metadata: { name: APP, namespace: d.ns }, spec: { replicas: 4 }, status: { readyReplicas: 4, replicas: 4 } } }] };
+			case 'managed-resources': return { [KUST]: managedList(d) };
 			case 'health-checks': return { healthChecks: d.healthChecks };
 			case 'events': return { events: [] };
 			case 'github-status': return { configured: true, connected: true, login: VIEWER };
@@ -45,6 +47,8 @@ export function installFetch(list: () => { rollouts: unknown[]; environments: un
 	if ((window.fetch as any).__film) return;
 	const wrapped = (input: RequestInfo | URL, init?: RequestInit) => {
 		const u = new URL(typeof input === 'string' ? input : input instanceof URL ? input.href : input.url, location.href);
+		const mr = /^\/api\/(?:clusters\/[^/]+\/)?kustomizations\/[^/]+\/[^/]+\/managed-resources$/.exec(u.pathname);
+		if (mr && current) return Promise.resolve(new Response(JSON.stringify({ managedResources: managedList(current) }), { status: 200, headers: { 'content-type': 'application/json' } }));
 		const m = /^\/api\/(?:clusters\/[^/]+\/)?rollouts$/.exec(u.pathname);
 		const s = m ? list() : null;
 		if (!m || !s) return real(input, init);

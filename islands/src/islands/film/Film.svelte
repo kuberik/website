@@ -18,6 +18,7 @@
 	import { loadSurface, surfaceProps, SURFACE_PATH } from './surfaces';
 	import { resolveTarget } from './targets';
 	import { page } from '../../stubs/app-state';
+	import { page as pageStore } from '../../stubs/app-stores';
 	import { setDisplayTimeZone } from '$lib/timezone.svelte';
 	import { rollbackOpen } from './script';
 	setDisplayTimeZone('utc'); // the chrome clock is UTC, and so is every absolute time the product prints
@@ -56,6 +57,7 @@
 		if (seq !== swapSeq) return;
 		if (!instant && shown) { swapOpacity = 0; await new Promise((r) => setTimeout(r, 120)); if (seq !== swapSeq) return; }
 		Object.assign(page, SURFACE_PATH[next]);
+		pageStore.update((p) => ({ ...p, ...SURFACE_PATH[next] })); // the History tab reads get(page) of $app/stores (not $app/state)
 		Comp = c; shown = next;
 		await tick();
 		swapOpacity = 1;
@@ -138,6 +140,12 @@
 			ptr.on = tt < p.off - 0.1;
 			ptr.press = tt >= p.press;
 		});
+		/* the target can still move while the cursor is up (rows entering, the camera, async data): follow it frame by frame until the press ends */
+		if (!p || !canvas) return;
+		let raf = 0;
+		const follow = () => { const el = resolveTarget(p.target, canvas!, phone); if (el) { const pt = canvasPoint(el); if (Math.abs(pt.x - ptr.x) > 0.5 || Math.abs(pt.y - ptr.y) > 0.5) { ptr.x = pt.x; ptr.y = pt.y; } } raf = requestAnimationFrame(follow); };
+		raf = requestAnimationFrame(follow);
+		return () => cancelAnimationFrame(raf);
 	});
 	/** The two confirms are the product's REAL dialogs, opened by pressing the real buttons, and their open state is a pure function of `t` (so a seek lands on them too):
 	 *  the approval confirm between the two Approve presses (anchored in canvas px), the rollback dialog between the banner's Roll back and Continue.
