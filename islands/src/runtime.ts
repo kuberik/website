@@ -1,8 +1,7 @@
 /**
- * Island runtime. Hugo page: <script type="module" src="/islands/islands.js"></script> and, anywhere,
- *   <div data-island="rollouts-list" data-theme-sync style="min-height:260px"></div>
- * Each host gets a shadow root; one shared constructable stylesheet (islands.css, the dashboard's own compiled CSS) is
- * adopted into all of them. `data-theme-sync` mirrors <html class="dark"> onto the island wrapper.
+ * Island runtime (shared chunk, loaded by loader.ts on the first island that needs it): shadow root, the one shared constructable
+ * stylesheet (islands.css, the dashboard's own compiled CSS), fonts, theme sync, and the three play gates.
+ * `data-theme-sync` mirrors <html class="dark"> onto the island wrapper.
  */
 import '../.gen/island.css';
 import './island-base.css';
@@ -11,11 +10,9 @@ import { registry } from './registry';
 import { Timeline } from './timeline';
 import { reactive as makeProps } from './reactive.svelte';
 
-const BASE = new URL('.', /* @vite-ignore */ import.meta.url);
-
 /** @font-face must live in the DOCUMENT (shadow-root stylesheets cannot register fonts). Private family names, so a host
  *  page's own 'Inter' is never touched; compiled CSS uses the same names (vite.config.ts shadowCss). */
-function declareFonts() {
+function declareFonts(BASE: string) {
 	if (document.getElementById('kuberik-islands-fonts')) return;
 	const f = (n: string) => new URL(`fonts/${n}`, BASE).href;
 	const s = document.createElement('style');
@@ -28,17 +25,19 @@ function declareFonts() {
 }
 
 let sheet: Promise<CSSStyleSheet> | null = null;
-const sharedSheet = () => (sheet ??= fetch(new URL('islands.css', BASE), { cache: 'no-cache' }).then((r) => r.text()).then((css) => { const s = new CSSStyleSheet(); s.replaceSync(css); return s; }));
+const sharedSheet = (BASE: string) => (sheet ??= fetch(new URL('islands.css', BASE)).then((r) => r.text()).then((css) => { const s = new CSSStyleSheet(); s.replaceSync(css); return s; }));
 
 const dark = () => document.documentElement.classList.contains('dark');
 const reduced = matchMedia('(prefers-reduced-motion: reduce)');
 
-async function mountIsland(host: HTMLElement) {
+export async function mountIsland(host: HTMLElement, BASE: string) {
 	const name = host.dataset.island!;
-	const def = registry[name];
-	if (!def) { console.warn(`island "${name}" is not registered`); return; }
+	const load = registry[name];
+	if (!load) { console.warn(`island "${name}" is not registered`); return; }
+	declareFonts(BASE);
+	const [def, css] = await Promise.all([load(), sharedSheet(BASE)]);
 	const root = host.shadowRoot ?? host.attachShadow({ mode: 'open' });
-	root.adoptedStyleSheets = [await sharedSheet()];
+	root.adoptedStyleSheets = [css];
 	const wrap = document.createElement('div');
 	wrap.className = 'k-island';
 	root.appendChild(wrap);
@@ -84,11 +83,3 @@ async function mountIsland(host: HTMLElement) {
 	renderControls();
 	(host as any).__timeline = tl;
 }
-
-
-export function mountAll(scope: ParentNode = document) {
-	declareFonts();
-	scope.querySelectorAll<HTMLElement>('[data-island]:not([data-island-mounted])').forEach((h) => { h.setAttribute('data-island-mounted', ''); void mountIsland(h); });
-}
-if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', () => mountAll()); else mountAll();
-(window as any).kuberikIslands = { mountAll, registry };

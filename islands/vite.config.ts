@@ -64,7 +64,7 @@ function moduleReport(): Plugin {
 			for (const id of this.getModuleIds()) if (/incident-input|demo\/mock-data|demo\/github-data/.test(id)) why.push(id.replace(D!, '$DASH') + ' <- ' + (this.getModuleInfo(id)?.importers ?? []).map((i) => i.replace(D!, '$DASH')).join(', '));
 			mkdirSync(resolve(HERE, '.gen'), { recursive: true });
 			writeFileSync(resolve(HERE, '.gen/why.txt'), why.join('\n') + '\n');
-			for (const f of Object.values(bundle)) if (f.type === 'chunk') for (const [id, m] of Object.entries(f.modules)) rows.push(`${String(m.renderedLength).padStart(8)}  ${id.replace(HERE, '').replace(D!, '$DASH')}`);
+			for (const f of Object.values(bundle)) if (f.type === 'chunk') for (const [id, m] of Object.entries(f.modules)) rows.push(`${String(m.renderedLength).padStart(8)}  ${f.fileName.replace(/-[A-Za-z0-9_-]{8}\.js$/, "")}  ${id.replace(HERE, '').replace(D!, '$DASH')}`);
 			mkdirSync(resolve(HERE, '.gen'), { recursive: true });
 			writeFileSync(resolve(HERE, '.gen/modules.txt'), rows.sort((a, b) => +b.slice(0, 8) - +a.slice(0, 8)).join('\n') + '\n');
 		}
@@ -90,12 +90,23 @@ export default defineConfig({
 		shadowCss(),
 		moduleReport()
 	],
+	base: './',
 	build: {
 		outDir: resolve(HERE, '../static/islands'),
 		emptyOutDir: true,
 		target: 'es2022',
 		cssCodeSplit: false,
-		lib: { entry: resolve(HERE, 'src/main.ts'), formats: ['es'], fileName: () => 'islands.js' },
-		rollupOptions: { output: { inlineDynamicImports: true, assetFileNames: (a) => (a.names?.[0]?.endsWith('.css') ? 'islands.css' : 'assets/[name][extname]') } }
+		modulePreload: false,
+		rollupOptions: {
+			input: resolve(HERE, 'src/loader.ts'),
+			preserveEntrySignatures: false,
+			output: {
+				entryFileNames: 'islands.js',
+				chunkFileNames: 'chunks/[name]-[hash].js',
+				assetFileNames: (a) => (a.names?.[0]?.endsWith('.css') ? 'islands.css' : 'assets/[name][extname]'),
+				/* svelte's runtime is its own chunk (cached across deploys of the dashboard code); the rest splits by who imports it */
+				manualChunks: (id) => (/node_modules\/\.pnpm\/svelte@|node_modules\/svelte\//.test(id) ? 'svelte' : undefined)
+			}
+		}
 	}
 });

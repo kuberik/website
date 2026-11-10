@@ -3,5 +3,5 @@
        runs a module script with the same URL once per document, and a Scratch "loaded once" flag goes stale under hugo's fast re-render. */ -}}
 {{- $name := .Get "name" -}}
 {{- $h := .Get "height" | default "300" -}}
-<div data-island="{{ $name }}" data-theme-sync style="min-height:{{ $h }}px"></div>
+<div data-island="{{ $name }}" data-theme-sync{{ if .Get "eager" }} data-eager{{ end }} style="min-height:{{ $h }}px"></div>
 <script type="module" src="{{ "islands/islands.js" | relURL }}"></script>
