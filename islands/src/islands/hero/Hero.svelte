@@ -1,21 +1,24 @@
 <svelte:options runes={true} />
 <script lang="ts">
 	/**
-	 * HERO WINDOW (SPEC 2.2). ROLE: the front page's one product frame: the app page's header and its opened place, with the confirm that
-	 * asks a person. REFERENCE REGIONS: /apps/checkout-api (`components/new/app/AppDetail.svelte` header: glyph, 24 name, 20 mono build, the
-	 * tab's pill, commit line, PromotionLane strip) over `Slipway` (the opened place row), `ApprovalLayer` (the one approve confirm and toast).
-	 * Every drawn part is the dashboard's component, fed by `installLiveSource()` with the CRs of scenario.ts; this file only places them.
+	 * HERO WINDOW (SPEC 2.2). ROLE: the front page's one product frame: /apps/checkout-api as the product draws it while a build walks the places.
+	 * REFERENCE REGION: `components/new/app/AppDetail.svelte`, composed from what it draws for these states (shared/app-page.ts re-runs its derivations):
+	 * the header (glyph, 24 name, 20 mono build, the tab's pill, commit line, PromotionLane strip: PRODUCTION's, by pillOf), the StatementBanner when a place waits
+	 * on a person or is checking (AA4: Approve lives there, `approveAct` opens ApprovalLayer's confirm), and the Builds ledger (`AppBuilds`) with the lead place opened
+	 * as its Slipway. A place at rest opens nothing. NO standalone "Deployment pipeline" card: the product draws the pipeline only inside a place row.
+	 * Left out: the rail (Holding / pulse / activity), the star, the deploy dialog: a window is not the page.
 	 * NEW BY DESIGN: (1) the window top bar (the dashboard's Navbar is a route chrome tied to its router and queries, so the bar is drawn from
 	 * the same classes), (2) the pointer, (3) the chip bar: the Railway tab bar, the story's seek and pause control (WCAG 2.2.2).
 	 */
-	import Slipway from '$lib/components/new/Slipway.svelte';
+	import StatementBanner from '$lib/components/StatementBanner.svelte';
+	import { CheckOutline } from 'flowbite-svelte-icons';
+	import { appPageOf } from '../shared/app-page';
 	import AppBuilds from '$lib/components/new/app/AppBuilds.svelte';
 	import ApprovalLayer from '$lib/components/new/ApprovalLayer.svelte';
 	import { approvalUi } from '$lib/components/new/approvals.svelte';
-	import type { TRow } from '$lib/components/new/data';
-	import { tick, untrack } from 'svelte';
+		import { tick, untrack } from 'svelte';
 	import { APP } from './scenario';
-	import { CHIPS, chipAt, focusRow, appIdentityOf, laneFor, ledgerFor, actionOf, targetOf, LOOP } from './model';
+	import { CHIPS, chipAt, appIdentityOf, laneFor, LOOP } from './model';
 	import { choreoAt } from './choreo';
 	import WindowBar from '../shared/WindowBar.svelte';
 	import AppHeader from '../shared/AppHeader.svelte';
@@ -30,12 +33,13 @@
 	const compactPipe = $derived(width < 560);
 
 	/* what the dashboard's own view-model says at this instant (the source was installed before `t` changed) */
-	const row = $derived(t >= 0 ? (focusRow(t) as TRow | null) : null);
-	const who = $derived(row ? appIdentityOf(APP) : null);
+	const page = $derived(t >= 0 ? appPageOf(APP, CheckOutline) : null);
+	const who = $derived(page ? appIdentityOf(APP) : null);
 	const lane = $derived(t >= 0 ? laneFor() : null);
 	const cur = $derived.by(() => { const h = (who?.href ?? '').split('/').filter(Boolean); return h[0] === 'rollouts' ? { ns: h[2], name: h[3] } : null; });
-	const act = $derived(row ? actionOf(row) : null);
 	const hrefFor = (n: { card: unknown }) => (n.card as { href?: string }).href ?? '';
+	const stmt = $derived(page?.statement?.kind === 'wait' ? page.statement : null);
+	const target = $derived(stmt?.target ?? null);
 
 	/* the two presses (pure function of t) */
 	const ch = $derived(reduced ? { target: null, visible: false, press: false, ask: false, done: false } : choreoAt(t));
@@ -49,8 +53,8 @@
 	$effect(() => {
 		const { target, ask, visible, done } = ch;
 		untrack(() => {
-			if (ask && !approvalUi.ask && row) {
-				const tg = targetOf(row);
+			if (ask && !approvalUi.ask && target) {
+				const tg = target;
 				const a = rel(box?.querySelector('[data-approve-open]') ?? null);
 				if (tg && a) {
 					/* ApprovalLayer measures the viewport, not this frame: with no room below the button inside the frame, hand it an anchor
@@ -61,7 +65,7 @@
 				}
 			}
 			if (!ask && approvalUi.ask) approvalUi.ask = null;
-			if (done && !approvalUi.done && row) { const tg = targetOf(row) ?? lastTarget; if (tg) approvalUi.done = { target: tg, error: null }; }
+			if (done && !approvalUi.done) { const tg = target ?? lastTarget; if (tg) approvalUi.done = { target: tg, error: null }; }
 			if (!done && approvalUi.done) approvalUi.done = null;
 		});
 		(async () => {
@@ -73,8 +77,8 @@
 			if (!visible) ptrShown = false;
 		})();
 	});
-	let lastTarget: ReturnType<typeof targetOf> | null = null;
-	$effect(() => { if (row?.group === 'approval') lastTarget = targetOf(row); });
+	let lastTarget: NonNullable<typeof target> | null = null;
+	$effect(() => { if (target) lastTarget = target; });
 
 	const lit = $derived(chipAt(t));
 	const spanFill = $derived(lit < 0 ? 0 : Math.min(1, Math.max(0, (t - CHIPS[lit].from) / (CHIPS[lit].to - CHIPS[lit].from))));
@@ -87,16 +91,14 @@
 		<WindowBar crumbs={['Apps', APP]} {narrow} keep={1} />
 
 		<div class="hw-body" inert>
-			{#if row && who}
-				<AppHeader app={APP} {who} {lane} {cur} yours={!!row.needsYou} {hrefFor} />
-				<div class="px-4 pb-4 pt-4 sm:px-6 sm:pb-6">
-					{#if row.group === 'rest'}
-						<!-- nothing is moving: the product opens no pipeline for a settled place, it draws the Builds ledger of collapsed place rows -->
-						{@const L = ledgerFor()}
-						<div class="ad-places"><AppBuilds stops={L.stops} places={L.places} view={L.view} phone={narrow} nested onDeploy={() => {}} /></div>
-					{:else}
-						<Slipway {row} nested compact={false} action={act} />
+			{#if page && who}
+				<AppHeader app={APP} {who} {lane} {cur} yours={!!stmt?.approve} {hrefFor} />
+				<div class="flex flex-col gap-4 px-4 pb-4 pt-6 sm:px-6 sm:pb-6">
+					{#if stmt}
+						<!-- AppDetail AA4: the wait is a statement in the tab's own box: the gate sentence, the one Approve, Open rollout -->
+						<div data-ad-statement data-ad-wait><StatementBanner severity={stmt.severity} title={stmt.title} message={stmt.message} primary={stmt.approve as never} secondary={stmt.openHref ? [{ label: 'Open rollout', href: stmt.openHref, key: 'open-rollout' }] : []} /></div>
 					{/if}
+					<div class="ad-places"><AppBuilds stops={page.stops} places={page.places} view={(p) => page.view(p, page.leadKey, narrow)} phone={narrow} nested hs="incident" onDeploy={() => {}} /></div>
 				</div>
 			{/if}
 		</div>
@@ -113,4 +115,8 @@
 	.hw-frame { position: relative; height: 100%; overflow: hidden; border-radius: inherit; background: var(--k-ground); transition: opacity 0.4s ease; }
 	.hw-fade { opacity: 0.0; }
 	.hw-body { height: calc(100% - 44px); overflow: hidden; }
+	/* AppDetail's own rule: a wide pane lays the opened place's two fact lists side by side (container >= 1000px) */
+	@container (min-width: 1000px) {
+		.ad-places :global(.sw-compact .sw-pane) { grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); grid-template-areas: 'info info' 'b1 b2' 'act act'; column-gap: 32px; align-content: start; }
+	}
 </style>

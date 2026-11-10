@@ -76,18 +76,23 @@ function rollout(p: Place, t: number, failed: boolean) {
 		});
 	}
 	hist.push({ id: 1, version: R45(), timestamp: new Date(BASE - 3 * H).toISOString(), bakeStatus: 'Succeeded', bakeStartTime: new Date(BASE - 3 * H).toISOString(), bakeEndTime: new Date(BASE - 3 * H + 600_000).toISOString(), triggeredBy: { kind: 'System', name: 'System' } });
-	/* gates (SPEC 2.3): staging waits on dev (promotion gate), prod on staging then on a person (release-approval), the other regions on wave 1 */
+	/* GATES, as environment-controller writes RolloutGate.spec.allowedVersions (internal/wave/wave.go Decide; tags newest first, mapped through the
+	   rollout's releaseCandidates + the release it runs now). NOT a hand-set "allow the new build at second N":
+	   - dev: wave-1 leader without upstream => unrestricted, no promotion gate at all.
+	   - wave-1 leader (staging, prod us-east-1): the revisions its UPSTREAM environment fully baked (Succeeded by every member of the upstream's last wave):
+	     the old build until upstream has baked the new one, then [new, old].
+	   - wave-N leader (prod ap-southeast-2, N=2): the revisions EVERY member of wave N-1 baked: old until us-east-1's bake of the new build ends, then [new, old].
+	   - follower (prod us-east-2, eu-west-1, eu-central-1): exactly its wave's current selection = what the wave leader last deployed: old until the leader
+	     starts the new build, then [new] ("followers do not wait for the leader's bake"). */
 	const gates: unknown[] = [];
 	const newTag = merged ? ['b-46'] : [];
-	if (p.env === 'staging') gates.push(gate('promotion-staging', t >= STEPS.dev.done ? newTag : []));
+	const up = allowedTags(p, t);
+	if (p.env === 'staging') gates.push(gate('promotion-staging', up));
 	if (p.env === 'prod') {
 		const approved = t >= APPROVE_AT;
-		const staged = t >= ASKS_AT;
-		/* a follower region waits for its wave's leader: its promotion gate lets the build through once us-east-1 has settled */
-		const waveOk = p.wave === 1 || t >= STEPS['us-east-1'].done;
-		gates.push(gate(`promotion-prod-${p.site}`, staged && waveOk ? newTag : []));
-		/* the approval gate is raised once staging is healthy: until then prod is simply behind, waiting on its promotion gate */
-		if (staged) gates.push(gate('release-approval', approved ? ['b-44', 'b-45', ...newTag] : ['b-44', 'b-45']));
+		gates.push(gate(`promotion-prod-${p.site}`, up));
+		/* the approval gate (a person) is raised once staging is healthy: until then prod is simply behind, waiting on its promotion gate */
+		if (t >= ASKS_AT) gates.push(gate('release-approval', approved ? ['b-44', 'b-45', ...newTag] : ['b-44', 'b-45']));
 	}
 	/* prod only learns of the build once staging has proven it (an Environment's promotion gate lists it from then on) */
 	const candidates = onNew || !merged || (p.env === 'prod' && t < ASKS_AT) ? [] : [R46()];
@@ -99,11 +104,55 @@ function rollout(p: Place, t: number, failed: boolean) {
 	};
 }
 
+/** the wave leader of a place's (environment, wave): wave.go "lexicographically lowest registered site of the wave" (sticky only while a selection is in flight, and here it never changes) */
+const leaderOf = (p: Place): Place => PLACES.filter((q) => q.env === p.env && (q.wave ?? 1) === (p.wave ?? 1)).sort((a, b) => (a.site ?? 'default').localeCompare(b.site ?? 'default'))[0];
+const isMerged = (t: number) => t >= MERGE;
+/** the build tag the gate admits, newest first (see the gate comment above) */
+function allowedTags(p: Place, t: number): string[] {
+	if (p.env === 'dev') return [];
+	const lead = leaderOf(p);
+	const w = p.wave ?? 1;
+	const newer = isMerged(t) ? ['b-46'] : [];
+	if (lead !== p) return phaseAt(lead, t) === 'old' ? ['b-45'] : newer; // follower: the wave's current selection
+	/* leader: wait for the previous wave of its environment, else for the upstream environment's last wave */
+	const prev = w > 1 ? PLACES.filter((q) => q.env === p.env && (q.wave ?? 1) === w - 1) : PLACES.filter((q) => q.env === (p.env === 'prod' ? 'staging' : 'dev'));
+	return prev.every((q) => phaseAt(q, t) === 'done') ? [...newer, 'b-45'] : ['b-45'];
+}
+const short = (sha: string) => sha.slice(0, 7);
+
+/**
+ * ENVIRONMENT CR, as environment-controller writes it (api/v1alpha1/environment_types.go, internal/controller/waves.go applyWaveStatus):
+ *   spec.site / spec.wave          : set on every prod region (us-east-1 wave 1; the other four wave 2); dev and staging name neither (site "default", wave 1).
+ *   spec.lockstep                  : not set (false).
+ *   status.wave.{site,wave}        : the effective site and wave.
+ *   status.wave.role / leader      : Leader for the lexicographically lowest site of (environment, wave) (us-east-1 alone in wave 1, ap-southeast-2 in wave 2),
+ *                                    Follower for the rest, whose `leader` is that site (NOT us-east-1: followers follow their own wave's leader).
+ *   status.wave.selectedRevision   : the revision the wave's leader selected (its newest deployment of the wave); the new build once the leader started it.
+ *   status.wave.members            : "the registered sites of this environment and of its upstream environment" (prod + staging; staging + dev; dev alone), canonical tier
+ *                                    names, each with the revision / bakeStatus of its newest deployment, sorted by (environment, wave, site).
+ *   status.wave.blocker + WaveReady: only a LEADER that is up to date while its previous wave / upstream still has a newer selection in flight is "WaitingFor <tier>/<site>
+ *                                    bake on <short revision>" (wave.go Decide). A follower is never blocked by the leader's bake.
+ *   status.conditions              : WaveReady True "site may deploy the allowed versions" (or False with the blocker), LockstepConsistent True.
+ */
 function environment(p: Place, t: number) {
 	const ph = phaseAt(p, t);
-	const rev = ph === 'old' ? SHA[45] : SHA[46];
-	const members = PLACES.map((q) => ({ environment: q.env, site: q.site ?? 'default', wave: q.wave ?? 1, revision: phaseAt(q, t) === 'old' ? SHA[45] : SHA[46], bakeStatus: phaseAt(q, t) === 'done' || phaseAt(q, t) === 'old' ? 'Succeeded' : phaseAt(q, t) === 'checking' ? 'InProgress' : 'Deploying' }));
-	const cond = (type: string, reason: string, message: string) => ({ type, status: 'True', reason, message, lastTransitionTime: iso(0) });
+	const lead = leaderOf(p);
+	const w = p.wave ?? 1;
+	const rev = (q: Place) => (phaseAt(q, t) === 'old' ? SHA[45] : SHA[46]);
+	const bake = (q: Place) => (phaseAt(q, t) === 'done' || phaseAt(q, t) === 'old' ? 'Succeeded' : phaseAt(q, t) === 'checking' ? 'InProgress' : 'Deploying');
+	const upEnv = p.env === 'prod' ? 'staging' : p.env === 'staging' ? 'dev' : null;
+	const members = PLACES.filter((q) => q.env === p.env || q.env === upEnv)
+		.map((q) => ({ environment: q.env, site: q.site ?? 'default', wave: q.wave ?? 1, revision: rev(q), bakeStatus: bake(q) }))
+		.sort((a, b) => a.environment.localeCompare(b.environment) || a.wave - b.wave || a.site.localeCompare(b.site));
+	/* the leader's blocker: up to date (still on the old build) while the wave before it (or the upstream environment) has a NEWER selection in flight */
+	let blocker: { reason: string; environment: string; site: string; waitingOn: string; revision: string } | null = null;
+	if (lead === p && ph === 'old' && isMerged(t)) {
+		const prevWave = w > 1 ? PLACES.filter((q) => q.env === p.env && (q.wave ?? 1) === w - 1) : upEnv ? PLACES.filter((q) => q.env === upEnv) : [];
+		const inFlight = prevWave.filter((q) => phaseAt(leaderOf(q), t) !== 'old' && phaseAt(q, t) !== 'done').sort((a, b) => (a.site ?? '').localeCompare(b.site ?? ''))[0];
+		if (inFlight) blocker = { reason: 'WaitingFor', environment: inFlight.env, site: inFlight.site ?? 'default', waitingOn: 'Bake', revision: SHA[46] };
+	}
+	const cond = (type: string, status: string, reason: string, message: string) => ({ type, status, reason, message, lastTransitionTime: iso(0) });
+	const ready = blocker ? cond('WaveReady', 'False', blocker.reason, `${blocker.environment}/${blocker.site} bake on ${short(blocker.revision)}`) : cond('WaveReady', 'True', 'Ready', 'site may deploy the allowed versions');
 	return {
 		apiVersion: 'environments.kuberik.com/v1alpha1', kind: 'Environment',
 		metadata: { name: APP, namespace: p.ns, annotations: { 'rollout-dashboard.kuberik.com/source-cluster': p.env } },
@@ -111,8 +160,12 @@ function environment(p: Place, t: number) {
 		status: {
 			...(p.env === 'dev' ? {} : { rolloutGateRef: { name: p.env === 'staging' ? 'promotion-staging' : `promotion-prod-${p.site}` } }),
 			currentVersion: ph === 'old' ? 'b-45' : 'b-46', lastStatusChangeTime: ph === 'old' ? new Date(BASE - 3 * H).toISOString() : iso(p.step.start),
-			wave: { site: p.site ?? 'default', environment: p.env, name: 'kuberik-checkout-api-service', wave: p.wave ?? 1, role: p.wave === 1 || !p.site ? 'Leader' : 'Follower', leader: p.site ? 'us-east-1' : 'default', selectedRevision: rev, members },
-			conditions: [cond('WaveReady', 'Ready', 'site may deploy the allowed versions'), cond('LockstepConsistent', 'Consistent', 'all members agree on lockstep')]
+			wave: {
+				site: p.site ?? 'default', environment: p.env, name: 'kuberik-checkout-api-service', wave: w, role: lead === p ? 'Leader' : 'Follower', leader: lead.site ?? 'default',
+				selectedRevision: rev(lead), members,
+				...(blocker ? { blocker: { reason: blocker.reason, environment: blocker.environment, site: blocker.site, waitingOn: blocker.waitingOn, revision: blocker.revision } } : {})
+			},
+			conditions: [ready, cond('LockstepConsistent', 'True', 'Consistent', 'all members agree on lockstep')]
 		}
 	};
 }
