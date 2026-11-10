@@ -182,7 +182,7 @@ html.dark .vendor-mark{background-image:var(--logo-dark);opacity:.72}
 .deps-copy .title-body{margin:0;max-width:46ch}
 .deps-art{display:block;padding:0;border:0}
 .deps-art.fig-cell{border-left:0;padding:0}
-.deps .fig-sub,.fig-sub{fill:var(--fig-label);font:500 12px/1 var(--mono)}
+.deps .fig-sub,.fig-sub{fill:var(--fig-label);font:500 12.5px/1 var(--mono)}
 .fig-sub.is-waiting{fill:var(--fig-wait)}
 .fig-env{fill:var(--ink);font-size:14px}
 /* RULE: a rendered label is >= 12px. The graph scales 0.8 (1200) to 1.4 (2560), so the user-unit size steps by breakpoint (measure: figs-design/scripts/measure2.mjs) */
