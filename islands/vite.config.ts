@@ -47,6 +47,9 @@ function shadowCss(): Plugin {
 				let css = String(f.source);
 				css = css.replace(/@font-face\s*\{[^}]*\}/g, '');
 				css = css.replace(/:root\b/g, ':host');
+				/* viewport queries -> the island's CANVAS (container "kc"): the product's `sm:`/`lg:` layouts answer the dashboard viewport it is drawn in
+				   (a real 1440 or 390 canvas inside the window), not the host page's. Width ranges in px/rem only; every other at-rule is untouched. */
+				css = css.replace(/@media\s*\(\s*(width\s*[<>]=?\s*[\d.]+(?:rem|px)|(?:min|max)-width\s*:\s*[\d.]+(?:rem|px))\s*\)/g, '@container kc ($1)');
 				css = css.replace(/'Inter'/g, "'Kuberik Inter'").replace(/"Inter"/g, "'Kuberik Inter'").replace(/'JetBrains Mono'/g, "'Kuberik JetBrains Mono'");
 				f.source = css;
 			}

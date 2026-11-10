@@ -29,3 +29,17 @@ lib/components/HealthChecksCard.svelte
 lib/components/Card.svelte
 lib/components/HeldGlyph.svelte
 lib/components/StatusSpinner.svelte
+islands:src/islands/film/Film.svelte
+islands:src/islands/film/Chrome.svelte
+islands:src/islands/film/Cursor.svelte
+lib/components/new/Rollouts.svelte
+lib/components/new/Home.svelte
+lib/components/new/Environments.svelte
+lib/components/new/change
+lib/components/new/env
+lib/components/new/home
+lib/components/new
+lib/components
+lib/Sidebar.svelte
+lib/MobileTabBar.svelte
+routes

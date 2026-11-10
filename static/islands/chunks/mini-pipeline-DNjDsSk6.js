@@ -1,0 +1,1 @@
+import{g as o}from"./rollout-view-B3hYG9Z6.js";const d={xs:{d:10,pitch:22,line:1},sm:{d:24,pitch:56,line:2}};function s(t,n,a=!1){return t.map(e=>({state:e.state==="done"?"done":e.state==="fail"?"failed":e.state==="hold"?"held":e.state==="todo"?"pending":o(e,n)==="checking"?"checking":"current",label:a?e.name:void 0,step:e.name,stepState:e.state}))}export{d as G,s as n};

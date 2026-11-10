@@ -9,12 +9,16 @@
  * `EV` is the event table: the story seconds at which a CR changes (also what the film's data snapshots key on, see eventIndexAt()).
  */
 import type { FleetSource } from '$lib/components/home/sketch/fleet-source.svelte';
-import { release, gate, prChange, CLOCK_MS } from '../shared/cr';
+import { release, gate, prChange } from '../shared/cr';
 import { extras } from '../surfaces/fleet';
 import { clockSeconds } from './clock';
 
 export const APP = 'checkout-api';
-export const VIEWER = 'olivia-bennett';
+/** the viewer: an approver on the platform team. The product offers Approve on OTHER people's changes (home-view `elsewhere`), so the author (olivia-bennett) is not who presses it. */
+export const VIEWER = 'noah-carter';
+/** 2026-11-10 00:00 UTC, a Tuesday (the deploy window is weekdays) */
+const DAY_MS = Date.parse('2026-11-10T00:00:00Z');
+export const AUTHOR = 'olivia-bennett';
 type Any = any;
 
 /** story seconds at which a CR changes (STORYBOARD beat table; TRUTH R3/R5/R11) */
@@ -64,12 +68,15 @@ const onNewBuild = (ph: Phase) => ph === 'deploying' || ph === 'checking' || ph 
 export type Detail = { ns: string; rollout: Any; kustomization: Any; environment: Any; kr: Any; test: Any; gates: Any[]; healthChecks: Any[]; schedules: Any[] };
 
 export function worldAt(t: number): { fleet: FleetSource; github: Record<string, unknown>; detail: Detail } {
-	const atMs = (tt: number) => CLOCK_MS + (clockSeconds(tt) - clockSeconds(t)) * 1000;
+	/* THE CLOCK: `now` is the story clock (a Tuesday, UTC), so every absolute time the product prints ("reopens 10:00 UTC", "closes 14:00 UTC") agrees with the chrome clock;
+	   each CR timestamp is placed on the same piecewise-linear map (clock.ts), and pre-story ages count back from the first frame. */
+	const atMs = (tt: number) => DAY_MS + clockSeconds(tt) * 1000;
 	const at = (tt: number) => new Date(atMs(tt)).toISOString();
-	const ago = (ms: number) => CLOCK_MS - ms;
+	const STORY0 = atMs(0);
+	const ago = (ms: number) => STORY0 - ms;
 	const rel = (n: number, sha: string, createdMs: number) => release(`b-${n}`, `4.${n}.0-${n}`, sha, createdMs);
 	const R44 = rel(44, SHA[44], ago(30 * H)), R45 = rel(45, SHA[45], ago(4 * H));
-	const R46 = { ...rel(46, SHA[46], atMs(-0.2)), requires: { payments: '^3.1.0' } };
+	const R46 = { ...rel(46, SHA[46], atMs(-0.01)), requires: { payments: '^3.1.0' } };
 	const deployed = (p: Place) => onNewBuild(phaseOf(p, t));
 
 	/* ---- history ---- */
@@ -170,7 +177,7 @@ export function worldAt(t: number): { fleet: FleetSource; github: Record<string,
 			testPhase = t < EV.rolled ? first : t < EV.testPending2 ? 'WaitingForStep' : t < EV.testRunning2 ? 'Pending' : t < EV.testPassed2 ? 'Running' : 'Succeeded';
 		}
 		/* TRUTH R11: no pause duration; the step-1 bake time (20 s) runs from the moment the tests passed (stepgate writes step-1-ready-at) */
-		const bake = isUS1(p) ? { 'rollout.kuberik.io/step-1-bake-time': '20s', ...(t >= EV.testPassed && t < EV.step2Go ? { 'internal.rollout.kuberik.io/step-1-ready-at': new Date(CLOCK_MS - 8_000).toISOString() } : {}) } : {};
+		const bake = isUS1(p) ? { 'rollout.kuberik.io/step-1-bake-time': '20s', ...(t >= EV.testPassed && t < EV.step2Go ? { 'internal.rollout.kuberik.io/step-1-ready-at': new Date(atMs(t) - 8_000).toISOString() } : {}) } : {};
 		const kr = { apiVersion: 'rollouts.kruise.io/v1beta1', kind: 'Rollout', metadata: { name: KR, namespace: p.ns, annotations: { 'rollout-dashboard.kuberik.com/source-cluster': p.env, ...bake } },
 			spec: { strategy: { canary: { steps: [{ replicas: '25%' }, { replicas: '100%' }] } } },
 			status: { canaryStatus: { currentStepIndex: idx, currentStepState: st, lastUpdateTime: upd }, conditions: isUS1(p) && t >= EV.caught && t < EV.rolled ? [{ type: 'KuberikBakeHealthy', status: 'False', reason: 'BakeFailed', message: 'error-rate failed' }] : [] } };
@@ -219,7 +226,7 @@ export function worldAt(t: number): { fleet: FleetSource; github: Record<string,
 	}
 
 	const rolloutsAll = PLACES.map(rollout), envsAll = PLACES.map(environment), krs = PLACES.map(kruise), hcs = PLACES.map(healthChecks);
-	const ex = extras({ failing: false, only: (a) => a.state === 'rest' });
+	const ex = extras({ failing: false, only: (a) => a.state === 'rest' || a.name === 'billing-api' });
 	const change = (n: number, title: string, author: string, mergedMs: number, sha: string, files: number) => prChange('exampleco', APP, n, title, author, mergedMs, sha, files);
 	const fleet = {
 		rollouts: [...rolloutsAll, ...ex.rollouts] as never,
@@ -227,10 +234,10 @@ export function worldAt(t: number): { fleet: FleetSource; github: Record<string,
 		rolloutDependencies: { items: dependencies() as never },
 		kustomizations: PLACES.map(kustomization) as never,
 		kruiseRollouts: krs.map((k) => ({ ...k.kr, apiVersion: 'rollouts.kruise.io/v1alpha1' })) as never,
-		changes: [change(101, 'Fix tax rounding on refunds', 'noah-carter', ago(30 * H), SHA[44], 2), change(108, 'Show saved cards first', 'liam-foster', ago(4 * H), SHA[45], 4), change(112, 'Add Apple Pay to checkout', VIEWER, atMs(-0.2), SHA[46], 6), ...ex.changes] as never,
+		changes: [change(101, 'Fix tax rounding on refunds', 'sophia-reed', ago(30 * H), SHA[44], 2), change(108, 'Show saved cards first', 'liam-foster', ago(4 * H), SHA[45], 4), change(112, 'Add Apple Pay to checkout', AUTHOR, atMs(-0.01), SHA[46], 6), ...ex.changes] as never,
 		changesState: 'ok',
 		healthChecks: [...hcs, ...ex.hcs] as never,
-		github: { configured: true, connected: true, login: VIEWER }, me: VIEWER, now: new Date(CLOCK_MS)
+		github: { configured: true, connected: true, login: VIEWER }, me: VIEWER, now: new Date(atMs(t))
 	} as unknown as FleetSource;
 
 	/* ---- GitHub's own answers (commit ranges and lookups) ---- */
@@ -239,12 +246,12 @@ export function worldAt(t: number): { fleet: FleetSource; github: Record<string,
 	for (const p of PLACES) {
 		const path = `/api/rollouts/${p.ns}/${APP}/commits`;
 		github[`${path}?base=${SHA[44]}&head=${SHA[45]}`] = { commits: [commit(SHA[45], '#108 Show saved cards first', 'liam-foster')], additions: 38, deletions: 11, changedFiles: 4 };
-		github[`${path}?base=&head=${SHA[44]}`] = { commits: [commit(SHA[44], '#101 Fix tax rounding on refunds', 'noah-carter')], additions: 21, deletions: 6, changedFiles: 2 };
-		github[`${path}?base=${SHA[45]}&head=${SHA[46]}`] = { commits: [commit(SHA[46], '#112 Add Apple Pay to checkout', VIEWER)], additions: 142, deletions: 9, changedFiles: 6 };
+		github[`${path}?base=&head=${SHA[44]}`] = { commits: [commit(SHA[44], '#101 Fix tax rounding on refunds', 'sophia-reed')], additions: 21, deletions: 6, changedFiles: 2 };
+		github[`${path}?base=${SHA[45]}&head=${SHA[46]}`] = { commits: [commit(SHA[46], '#112 Add Apple Pay to checkout', AUTHOR)], additions: 142, deletions: 9, changedFiles: 6 };
 	}
-	github[`/api/github/repos/exampleco/${APP}/commits/${SHA[46]}`] = { subject: '#112 Add Apple Pay to checkout', author: VIEWER };
+	github[`/api/github/repos/exampleco/${APP}/commits/${SHA[46]}`] = { subject: '#112 Add Apple Pay to checkout', author: AUTHOR };
 	github[`/api/github/repos/exampleco/${APP}/commits/${SHA[45]}`] = { subject: '#108 Show saved cards first', author: 'liam-foster' };
-	github[`/api/github/repos/exampleco/${APP}/commits/${SHA[44]}`] = { subject: '#101 Fix tax rounding on refunds', author: 'noah-carter' };
+	github[`/api/github/repos/exampleco/${APP}/commits/${SHA[44]}`] = { subject: '#101 Fix tax rounding on refunds', author: 'sophia-reed' };
 
 	/* ---- what the rollout page's queries are answered with: the prod us-east-1 place ---- */
 	const i1 = PLACES.findIndex(isUS1);
@@ -261,7 +268,7 @@ export function worldAt(t: number): { fleet: FleetSource; github: Record<string,
 		ns: NS, rollout: rolloutsAll[i1], kustomization: kustomization(PLACES[i1]), environment: envsAll[i1], kr: krs[i1].kr, test: krs[i1].test!, gates: rGates, healthChecks: hcs[i1].healthChecks,
 		schedules: [{ metadata: { name: 'business-hours', namespace: NS, annotations: { 'gate.kuberik.com/pretty-name': 'Business hours' } },
 			spec: { action: 'Allow', timezone: 'UTC', rolloutSelector: { matchLabels: { environment: 'prod' } }, rules: [{ name: 'weekdays', timeRange: { start: '10:00', end: '14:00' }, daysOfWeek: ['Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday'] }] },
-			status: { active: t >= EV.window, nextTransition: new Date(CLOCK_MS + (14 * 3600 - clockSeconds(t)) * 1000).toISOString(), managedGates: ['deploy-window'] } }]
+			status: { active: t >= EV.window, nextTransition: new Date(DAY_MS + (t >= EV.window ? 14 : 10) * 3600_000).toISOString(), managedGates: ['deploy-window'] } }]
 	};
 	return { fleet, github, detail };
 }

@@ -1,0 +1,1 @@
+import{r}from"./runtime-D5PcDZ4W.js";import"./svelte-zyT0he_e.js";import"../islands.js";const e=r({url:new URL("https://kuberik.com/"),params:{},route:{id:"/"},status:200,error:null,data:{},form:null,state:{}});export{e as page};

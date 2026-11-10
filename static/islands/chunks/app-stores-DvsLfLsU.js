@@ -1,0 +1,1 @@
+import{R as a,ax as r}from"./svelte-zyT0he_e.js";const s=a({url:new URL("https://kuberik.com/"),params:{},route:{id:"/"},status:200,error:null,data:{},form:null,state:{}});r(null);r(!1).subscribe;export{s as page};

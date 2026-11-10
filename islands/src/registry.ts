@@ -19,7 +19,7 @@ export type IslandModule = IslandDef<any> | CustomIsland;
 
 /** Every island is a dynamic import: its component graph is its own chunk, fetched only when the loader (loader.ts) decides it is near. */
 export const registry: Record<string, () => Promise<IslandModule>> = {
-	hero: () => import('./islands/hero').then((m) => ({ custom: m.mountHero })),
+	hero: () => import('./islands/film').then((m) => ({ custom: m.mountFilm })),
 	...Object.fromEntries(['home', 'rollouts', 'apps', 'environments', 'changes', 'app-detail', 'env-detail', 'change-detail', 'activity', 'dependencies'].map((k) => [`surface-${k}`, () => import('./islands/surfaces/mount').then((m) => ({ custom: m.mountSurface(k) }))])),
 	'surface-change-route': () => import('./islands/surfaces/mount').then((m) => ({ custom: m.mountChangeRoute() })),
 	...Object.fromEntries(['overview-pending', 'overview-running', 'overview-passed', 'rollback', 'gates', 'history', 'bake', 'stage2', 'recovered-baking', 'recovered', 'replay'].map((k) => [`surface-rollout-${k}`, () => import('./islands/surfaces/mount').then((m) => ({ custom: m.mountRollout(k) }))])),

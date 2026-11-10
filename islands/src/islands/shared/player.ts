@@ -40,6 +40,8 @@ export class Player {
 		if (name === 'onscreen' && v && !before && this.g.motion && this.g.user) this.jump(0); // a reader's pause survives scrolling away and back
 		this.sync(was);
 	}
+	/** a reader's pause, idempotent (QA hook) */
+	pause() { if (this.g.user) this.toggle(); }
 	toggle() { const was = this.playing; this.g.user = !this.g.user; this.sync(was); }
 	/** a chip: jump to second `s`; playing resumes unless motion is reduced */
 	seek(s: number) { const was = this.playing; if (this.g.motion) this.g.user = true; this.jump(s); this.sync(was); }

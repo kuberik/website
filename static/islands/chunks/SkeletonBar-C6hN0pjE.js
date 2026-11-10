@@ -1,0 +1,1 @@
+import{d as e,w as o,t as c,B as r,l as d}from"./svelte-zyT0he_e.js";var f=o('<span aria-hidden="true"></span>');function k(l,a){let s=e(a,"width",3,"w-24"),i=e(a,"height",3,"h-3.5"),n=e(a,"inline",3,!1),h=e(a,"class",3,"");var t=f();c(()=>r(t,1,`skel-block ${n()?"inline-block":"block"} ${i()??""} ${s()??""} ${h()??""}`)),d(l,t)}export{k as S};

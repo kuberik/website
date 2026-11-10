@@ -27,7 +27,7 @@ describe('film scenario', () => {
 	});
 	it('the rollback: a person adds b-45 to the history; recovery mode is on', () => {
 		const r = rolloutOf(45);
-		expect(r.status.history[0].triggeredBy.name).toBe('olivia-bennett');
+		expect(r.status.history[0].triggeredBy.name).toBe('noah-carter');
 		expect(r.status.currentVersion).toBe('b-45');
 		expect(r.status.conditions[0].type).toBe('BakeFailureDisabled');
 	});
