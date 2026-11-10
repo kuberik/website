@@ -2,7 +2,7 @@
 {{- $getStarted := "/docs/getting-started/" -}}
 {{- $github := "https://github.com/kuberik/kuberik" -}}
 {{- $hero := site.Data.landing.hero -}}
-{{- $css := slice (resources.Get "css/home.css") (resources.Get "css/sections.css") | resources.Concat "css/landing-all.css" | minify | fingerprint -}}
+{{- $css := slice (resources.Get "css/home.css") (resources.Get "css/sections.css") (resources.Get "css/landing-figs.gen.css") | resources.Concat "css/landing-all.css" | minify | fingerprint -}}
 {{- $js := resources.Get "js/sections.js" | minify | fingerprint -}}
 <!DOCTYPE html>
 <html lang="en">
@@ -97,7 +97,7 @@
           (dict "fig" "health"  "name" "health"  "own" "Yours"    "q" "Did it actually work?" "tags" (slice "kstatus" "metrics" "alerts" "smoke test" "custom CRD"))
         -}}
         {{ range $i, $p := $phases }}
-        <li class="fig-cell{{ if eq $p.own "Yours" }} is-yours{{ end }}">
+        <li class="fig-cell{{ if eq $p.own "Yours" }} is-yours{{ end }}" style="--i:{{ $i }}">
           <div class="fig-art" aria-hidden="true">{{ partial (printf "landing-figs/%s.html" $p.fig) $ }}</div>
           <p class="fig-cap"><span class="fig-no">Fig {{ add $i 1 }}</span><span class="fig-name">{{ $p.name }}</span><span class="fig-own">{{ $p.own }}</span></p>
           <h3 class="fig-q">{{ $p.q }}</h3>

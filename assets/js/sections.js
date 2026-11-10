@@ -17,7 +17,11 @@
   var cells = [].slice.call(document.querySelectorAll('.fig-cell'));
   if ('IntersectionObserver' in window) {
     var live = new IntersectionObserver(function (en) {
-      en.forEach(function (x) { x.target.classList.toggle('is-live', x.isIntersecting); });
+      en.forEach(function (x) {
+        // --clk keeps every fig on one page clock (6 s cycle): the row plays as one sequence however each cell entered
+        if (x.isIntersecting) x.target.style.setProperty('--clk', Math.round(performance.now() % 6000) + 'ms');
+        x.target.classList.toggle('is-live', x.isIntersecting);
+      });
     }, { rootMargin: '0px', threshold: 0.05 });
     cells.forEach(function (c) { live.observe(c); });
   }
