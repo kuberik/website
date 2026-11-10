@@ -106,13 +106,14 @@
 		}
 		x = Math.min(0, Math.max(Math.min(0, vw - s * gw), x));
 		y = Math.min(0, Math.max(Math.min(0, vh - s * gh), y));
+		/* the hole follows the target even when the camera need not move again (the target's box settles after its own enter animation) */
+		dimHole = el && (m.dim === 'page' || m.dim === 'both') ? padRect(relRect(el), 10) : null;
 		if (refine && Math.abs(x - cam.x) < 6 && Math.abs(y - cam.y) < 6 && Math.abs(s - cam.s) < 0.02) return;
 		const dur = jump || reduced ? 0 : refine ? 260 : phone ? (m.dur ? 320 : 0) : m.dur;
 		cam = { x, y, s, dur, ease: phone ? 'cubic-bezier(0.2, 0.8, 0.2, 1)' : m.ease, moving: dur > 0 };
 		clearTimeout(moveTimer);
 		if (dur > 0) moveTimer = setTimeout(() => { cam = { ...cam, moving: false }; }, dur + 40);
 		/* the dim hole: everything but the target at 35% (an opacity layer, never a filter) */
-		dimHole = el && (m.dim === 'page' || m.dim === 'both') ? padRect(relRect(el), 10) : null;
 		/* the product's own enter animations (banners opening, cards collapsing) keep moving the target for ~0.5 s after a move starts: re-aim once they have settled */
 		clearTimeout(refineTimer);
 		if (!refine && el && !reduced) refineTimer = setTimeout(() => aim(m, false, true), 650);

@@ -46,6 +46,14 @@ export function resolveTarget(name: string, root: ParentNode, phone: boolean): H
 		}
 		/* both recovery-mode banners (Recovery mode, Rolled back) as one frame */
 		case 'banners': { const bs = [...root.querySelectorAll<HTMLElement>('.ap-cq')].slice(0, 2); return bs.length ? union(bs.map(contentBox)) : null; } /* their text, not their full-width bars: the zoom can land on the words */
+		case 'history': return cardOf(root, /^History$/);
+		/* the payoff: the Production card's summary line, its bar and the region chips (production waiting on its pin, N regions healthy); not the whole card */
+		case 'region-chips': {
+			const tile = byText(root, 'div,span', /^\d+ regions? healthy$/i); const row = tile?.parentElement; if (!tile || !row) return null;
+			const card = row.parentElement; const kids = card ? [...card.children] : [], i = kids.indexOf(row);
+			const summary = kids[Math.max(0, i - 2)] as HTMLElement;
+			return union([...summary.children, ...row.children] as HTMLElement[]); /* their words, not the full-width bar: the zoom lands on the chips */
+		}
 		case 'prod-card': return cardOf(root, /Production/i);
 		/* the History cadence strip (bar, hour ticks, the "shown wider" note): the nearest ancestor of the note that also holds the ticks */
 		case 'timeline': { let e: HTMLElement | null = byText(root, 'span,div,p', /shown wider than its real time/i); for (let i = 0; e && i < 5; i++, e = e.parentElement) if (/07:00|08:00/.test(text(e)) && /\d\.\d+\.\d+-\d+/.test(text(e))) return e; return null; }
