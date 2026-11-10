@@ -14,7 +14,7 @@
 	const face = $derived(clockFace(t));
 	/* the digit rolls (200 ms ease-out): a keyed span re-enters on every change */
 	const bits = $derived([
-		{ k: 'p', n: tally.passed, word: 'checks passed', show: true },
+		{ k: 'p', n: tally.passed, word: tally.passed === 1 ? 'check passed' : 'checks passed', show: tally.passed > 0 },
 		{ k: 'f', n: tally.failed, word: 'failed', show: tally.failed > 0 },
 		{ k: 'h', n: tally.people, word: narrow ? '' : 'by a person', show: tally.people > 0 && !narrow }
 	].filter((b) => b.show));
@@ -22,7 +22,7 @@
 	$effect(() => {
 		if (!narrow || !scroller) return;
 		const el = scroller.children[lit] as HTMLElement | undefined;
-		if (el) scroller.scrollTo({ left: el.offsetLeft - 8, behavior: reduced ? 'auto' : 'smooth' });
+		if (el) scroller.scrollTo({ left: el.offsetLeft - Math.max(0, (scroller.clientWidth - el.offsetWidth) / 2), behavior: reduced ? 'auto' : 'smooth' });
 	});
 </script>
 <div class="fc" class:fc-narrow={narrow}>
@@ -43,14 +43,16 @@
 				</button>
 			{/if}
 		</nav>
-		<span class="fc-tally t-meta" aria-live="off">
-			{#each bits as b (b.k)}<span class="fc-bit" class:fc-bad={b.k === 'f'}>{#key b.n}<b class="fc-n">{b.n}</b>{/key} {b.word}</span>{/each}
-		</span>
+		{#if bits.length}<span class="fc-tally t-meta" aria-live="off" aria-label={bits.map((b) => `${b.n} ${b.k === 'p' ? (b.n === 1 ? 'check passed' : 'checks passed') : b.word}`).join(', ')}>
+			{#each bits as b (b.k)}<span class="fc-bit" class:fc-bad={b.k === 'f'}>
+				{#if narrow}<svg class="fc-ic" width="12" height="12" viewBox="0 0 12 12" aria-hidden="true">{#if b.k === 'f'}<path d="M3 3l6 6M9 3l-6 6" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" />{:else}<path d="M2.5 6.4l2.4 2.4 4.6-5" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" />{/if}</svg>{/if}
+				{#key b.n}<b class="fc-n">{b.n}</b>{/key}{#if !narrow} {b.word}{/if}</span>{/each}
+		</span>{/if}
 	</div>
 </div>
 <style>
 	.fc { position: absolute; left: 0; right: 0; top: -56px; z-index: 6; height: 44px; display: flex; justify-content: center; pointer-events: none; }
-	.fc-panel { pointer-events: auto; width: min(calc(100% - 24px), 1096px); height: 44px; display: grid; grid-template-columns: minmax(0, 1fr) auto minmax(0, 1fr); align-items: center; gap: 12px; padding: 4px 4px 4px 14px; box-sizing: border-box; background: var(--k-surface, #fff); border: 1px solid var(--k-line); border-radius: 12px; box-shadow: 0 6px 20px rgba(14, 20, 24, 0.08); }
+	.fc-panel { pointer-events: auto; width: calc(100% - 24px); height: 44px; display: grid; grid-template-columns: minmax(0, 1fr) auto minmax(0, 1fr); align-items: center; gap: 12px; padding: 4px 4px 4px 14px; box-sizing: border-box; background: var(--k-surface, #fff); border: 1px solid var(--k-line); border-radius: 12px; box-shadow: 0 6px 20px rgba(14, 20, 24, 0.08); }
 	.fc-clock { justify-self: start; display: inline-flex; align-items: center; color: var(--ink-muted, var(--k-fg-muted)); font-variant-numeric: tabular-nums; font-size: 14px; }
 	.fc-tally { justify-self: end; display: inline-flex; align-items: center; gap: 0; padding-right: 6px; color: var(--k-fg-muted); font-size: 13px; white-space: nowrap; }
 	.fc-bit + .fc-bit::before { content: '\00b7'; margin: 0 8px; color: var(--k-fg-muted); }
@@ -60,7 +62,7 @@
 	.fc-bar { display: flex; align-items: center; gap: 2px; min-width: 0; max-width: 100%; }
 	.fc-scroll { display: flex; align-items: center; gap: 2px; min-width: 0; overflow-x: auto; scrollbar-width: none; }
 	.fc-scroll::-webkit-scrollbar { display: none; }
-	.fc-tab { position: relative; overflow: hidden; display: inline-flex; align-items: center; gap: 8px; height: 34px; padding: 0 9px; border-radius: 8px; color: var(--k-fg-muted); font-size: 14px; font-weight: 500; white-space: nowrap; background: transparent; border: 0; cursor: pointer; }
+	.fc-tab { flex: none; position: relative; overflow: hidden; display: inline-flex; align-items: center; gap: 8px; height: 34px; padding: 0 9px; border-radius: 8px; color: var(--k-fg-muted); font-size: 14px; font-weight: 500; white-space: nowrap; background: transparent; border: 0; cursor: pointer; }
 	.fc-tab > :not(.fc-fill) { position: relative; }
 	.fc-tab:hover, .fc-tab:focus-visible { color: var(--k-fg); background: var(--k-ground); outline-offset: -2px; }
 	.fc-on { color: var(--k-fg); background: color-mix(in srgb, var(--k-ground) 70%, transparent); }
@@ -69,16 +71,21 @@
 	.fc-fill { position: absolute; inset: 0; border-radius: 8px; background: color-mix(in srgb, #00c9b5 22%, transparent); transform-origin: left; }
 	.fc-play { margin-left: 2px; width: 34px; height: 34px; flex: none; display: inline-grid; place-items: center; color: var(--k-fg-muted); background: transparent; border: 0; border-left: 1px solid var(--k-line); border-radius: 0 8px 8px 0; cursor: pointer; }
 	.fc-play:hover { color: var(--k-fg); }
-	/* phone (STORYBOARD section 6): the same panel on two rows: clock and tally on one line, the tabs below; the lit chapter keeps its label, the others are dots */
-	.fc-narrow { top: -104px; height: 92px; }
-	.fc-narrow .fc-panel { height: 92px; width: calc(100% - 8px); grid-template-columns: minmax(0, 1fr) auto; grid-template-rows: 28px 44px; gap: 4px 8px; padding: 6px 4px 4px 10px; align-content: start; }
-	.fc-narrow .fc-tally { padding-right: 6px; }
-	.fc-narrow .fc-bar { grid-row: 2; grid-column: 1 / span 2; }
+	/* phone: the SAME panel, still one 44 px line and the same 12 px inset: clock | tabs (the lit chapter keeps its label, the others are dots) + play | tally. The tabs scroll if the tally grows. */
+	.fc-narrow .fc-panel { grid-template-columns: auto minmax(0, 1fr) auto; gap: 6px; padding: 4px 4px 4px 10px; }
+	.fc-narrow .fc-clock { font-size: 13px; }
+	.fc-ic { margin-right: 3px; flex: none; }
+	.fc-bit { display: inline-flex; align-items: center; white-space: nowrap; }
+	.fc-narrow .fc-tally { gap: 8px; }
+	.fc-narrow .fc-bit + .fc-bit::before { content: none; }
+	.fc-narrow .fc-tally { padding-right: 6px; font-size: 12px; }
+	.fc-narrow .fc-bar { justify-self: stretch; }
 	.fc-narrow .fc-scroll { flex: 1 1 auto; }
-	.fc-narrow .fc-tab { height: 36px; padding: 0 10px; }
+	.fc-narrow .fc-tab { height: 36px; padding: 0 6px; gap: 6px; }
+	.fc-narrow .fc-tab.fc-on { padding: 0 9px; }
 	.fc-narrow .fc-tab:not(.fc-on) .fc-lab { display: none; }
 	.fc-narrow .fc-tab:not(.fc-on) .fc-dot { display: inline-block; }
-	.fc-narrow .fc-play { width: 44px; height: 36px; }
+	.fc-narrow .fc-play { width: 40px; height: 36px; }
 	/* tablet widths: no room for three cells in a row */
 	@media (max-width: 1100px) { .fc:not(.fc-narrow) .fc-panel { grid-template-columns: auto minmax(0, 1fr) auto; } .fc:not(.fc-narrow) .fc-bar { justify-self: center; } }
 </style>

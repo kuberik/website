@@ -151,7 +151,7 @@ h1{font:600 64px/68px var(--sans);letter-spacing:-.035em;margin:18px auto 14px;m
   .sub{font-size:16px;line-height:26px}
   .ctas{gap:8px;padding:0 4px;margin-top:20px}
   .ctas .btn{flex:1 1 0;min-width:0;padding-inline:10px}
-  .hero-window{margin-top:134px}  /* the phone chrome (clock+tally over the bar) is 70px above the window: clear the proof line above it */
+
   .hero-chiproom{height:80px}
   .story,
   
