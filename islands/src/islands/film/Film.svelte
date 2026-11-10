@@ -80,7 +80,11 @@
 	let main: HTMLElement | undefined = $state();
 	let group: HTMLElement | undefined = $state();
 	let cam = $state({ x: 0, y: 0, s: 1, dur: 0, ease: 'ease', moving: false });
-	let dimHole = $state<{ x: number; y: number; w: number; h: number } | null>(null);
+	let hole = $state<{ x: number; y: number; w: number; h: number; r: number } | null>(null);
+	let holeOn = $state(false), shadeOn = $state(false);
+	let holeTimer: ReturnType<typeof setTimeout> | undefined;
+	/* the hole = the target's own box and corner radius (targets.ts: a synthetic target says its own) */
+	function holeOf(el: Element) { const r = relRect(el); const rad = (el as any).__r ?? (parseFloat(getComputedStyle(el).borderTopLeftRadius) || 0); return { ...r, r: rad }; }
 	let moveKey = '';
 	let moveTimer: ReturnType<typeof setTimeout> | undefined;
 	const unit = () => (group && group.offsetWidth ? group.getBoundingClientRect().width / group.offsetWidth : 1);
@@ -88,12 +92,11 @@
 		const g = group!.getBoundingClientRect(), r = el.getBoundingClientRect(), u = unit();
 		return { x: (r.left - g.left) / u, y: (r.top - g.top) / u, w: r.width / u, h: r.height / u };
 	}
-	const padRect = (r: { x: number; y: number; w: number; h: number }, p: number) => ({ x: r.x - p, y: r.y - p, w: r.w + 2 * p, h: r.h + 2 * p });
 	let refineTimer: ReturnType<typeof setTimeout> | undefined;
 	function aim(m: Move, jump: boolean, refine = false) {
 		if (!group || !main) return;
 		/* reduced motion: no camera at all (STORYBOARD section 9): every frame is the unzoomed, unscrolled page */
-		if (reduced) { cam = { x: 0, y: 0, s: 1, dur: 0, ease: 'ease', moving: false }; dimHole = null; return; }
+		if (reduced) { cam = { x: 0, y: 0, s: 1, dur: 0, ease: 'ease', moving: false }; holeOn = false; shadeOn = false; return; }
 		const vw = main.clientWidth, vh = main.clientHeight, gw = group.offsetWidth, gh = group.offsetHeight;
 		const el = m.to === 'rest' ? null : resolveTarget(m.to, group, phone);
 		let x = 0, y = 0, s = m.s;
@@ -106,14 +109,21 @@
 		}
 		x = Math.min(0, Math.max(Math.min(0, vw - s * gw), x));
 		y = Math.min(0, Math.max(Math.min(0, vh - s * gh), y));
-		/* the hole follows the target even when the camera need not move again (the target's box settles after its own enter animation) */
-		dimHole = el && (m.dim === 'page' || m.dim === 'both') ? padRect(relRect(el), 10) : null;
+		/* the ONE dim (L1/L2): the product's ink at 38% over everything but the target, shell included. The hole is the target's own rect and corner radius. */
+		const wantDim = !!el && !!m.dim && !reduced;
+		shadeOn = wantDim;
+		const next = wantDim ? holeOf(el!) : null;
+		clearTimeout(holeTimer);
+		if (!next) holeOn = false;
+		else if (refine || !holeOn || !hole) { hole = next; holeOn = true; }
+		else { /* a pan between two targets: the dim lets go while the camera travels (a hole that rides the old target would spotlight the wrong content), then closes on the new one */
+			holeOn = false; const dd = jump ? 0 : (phone ? 320 : m.dur); holeTimer = setTimeout(() => { hole = next; holeOn = true; }, dd * 0.7);
+		}
 		if (refine && Math.abs(x - cam.x) < 6 && Math.abs(y - cam.y) < 6 && Math.abs(s - cam.s) < 0.02) return;
 		const dur = jump || reduced ? 0 : refine ? 260 : phone ? (m.dur ? 320 : 0) : m.dur;
 		cam = { x, y, s, dur, ease: phone ? 'cubic-bezier(0.2, 0.8, 0.2, 1)' : m.ease, moving: dur > 0 };
 		clearTimeout(moveTimer);
 		if (dur > 0) moveTimer = setTimeout(() => { cam = { ...cam, moving: false }; }, dur + 40);
-		/* the dim hole: everything but the target at 35% (an opacity layer, never a filter) */
 		/* the product's own enter animations (banners opening, cards collapsing) keep moving the target for ~0.5 s after a move starts: re-aim once they have settled */
 		clearTimeout(refineTimer);
 		if (!refine && el && !reduced) refineTimer = setTimeout(() => aim(m, false, true), 650);
@@ -122,20 +132,20 @@
 	$effect(() => {
 		const m = mv, s = shown, ei = eventIdx, tt = t;
 		void s; void ei;
+		const seek = Math.abs(tt - prevT) > 0.4 && !(prevT > 40 && tt < 2); prevT = tt; /* a jump is a seek, never a move the story plays itself (it was a hard cut every time: no transition ran) */
 		untrack(() => {
 			const kk = `${CAMERA_INDEX(m)}|${s}|${phone}`; /* the camera is LOCKED for the length of a move: a CR change inside a hold re-lays the page but never re-aims (it drifted 5x on the pipeline) */
 			if (kk === moveKey) return;
 			const first = !moveKey.startsWith(`${CAMERA_INDEX(m)}|`);
 			moveKey = kk;
-			const jump = Math.abs(tt - lastAim) > 0.4;
-			lastAim = tt;
-			void tick().then(() => requestAnimationFrame(() => requestAnimationFrame(() => aim(m, jump || (!first && true && false)))));
+			void first;
+			void tick().then(() => requestAnimationFrame(() => requestAnimationFrame(() => aim(m, seek))));
 		});
 	});
-	let lastAim = -1;
+	let prevT = -1;
 	function CAMERA_INDEX(m: Move) { return m.at; }
 	const camStyle = $derived(cam.s === 1 && cam.x === 0 && cam.y === 0 && !cam.moving ? 'transform:none' : `transform: translate3d(${cam.x}px, ${cam.y}px, 0) scale(${cam.s}); transition: transform ${cam.dur}ms ${cam.ease}; will-change: ${cam.moving ? 'transform' : 'auto'}`);
-	const shellDim = $derived(!reduced && (mv.dim === 'shell' || mv.dim === 'both'));
+	const shellDim = $derived(shadeOn && !reduced);
 
 	/* ---- the cursor: canvas px; the real click is dispatched at `press` ---- */
 	let canvas: HTMLElement | undefined = $state();
@@ -208,17 +218,17 @@
 	<div class="film-frame">
 		<div class="film-canvas" bind:this={canvas} style="width:{CW}px;height:{CH}px;zoom:{k}">
 			<div class="film-app">
-				{#if !phone}<div class="film-side" class:film-dim={shellDim}>{#if Side}<Side />{/if}</div>{/if}
+				{#if !phone}<div class="film-side">{#if Side}<Side />{/if}<i class="film-shade" class:film-shade-on={shellDim}></i></div>{/if}
 				<div class="film-col">
-					<div class="film-top" class:film-dim={shellDim}><WindowBar crumbs={crumbs} narrow={phone} keep={2} /></div>
+					<div class="film-top"><WindowBar crumbs={crumbs} narrow={phone} keep={2} /><i class="film-shade" class:film-shade-on={shellDim}></i></div>
 					<main class="film-main" bind:this={main}>
 						<div class="film-group" bind:this={group} style="{camStyle}; opacity:{swapOpacity}; {swapOpacity ? 'transition: transform ' + cam.dur + 'ms ' + cam.ease + ', opacity .2s ease-out' : 'transition: opacity .12s ease-in'}">
 							{#if Comp}<Comp {...props} />{/if}
-							<div class="film-dimmer" class:film-dimmer-on={!reduced && (mv.dim === 'page' || mv.dim === 'both') && !!dimHole} class:film-dimmer-zoom={cam.s > 1.05} style={dimHole ? `clip-path: polygon(evenodd, 0 0, 100% 0, 100% 100%, 0 100%, 0 0, ${dimHole.x}px ${dimHole.y}px, ${dimHole.x}px ${dimHole.y + dimHole.h}px, ${dimHole.x + dimHole.w}px ${dimHole.y + dimHole.h}px, ${dimHole.x + dimHole.w}px ${dimHole.y}px, ${dimHole.x}px ${dimHole.y}px)` : ''}></div>
+							{#if hole}<div class="film-hole" class:film-hole-on={holeOn} style="left:{hole.x}px;top:{hole.y}px;width:{hole.w}px;height:{hole.h}px;border-radius:{hole.r}px"></div>{/if}
 						</div>
 					</main>
 				</div>
-				{#if phone}<div class="film-tabs" class:film-tabs-dim={shellDim}>{#if Tabs}<Tabs />{/if}</div>{/if}
+				{#if phone}<div class="film-tabs">{#if Tabs}<Tabs />{/if}<i class="film-shade" class:film-shade-on={shellDim}></i></div>{/if}
 			</div>
 			{#if Layer}<Layer />{/if}
 			<Cursor x={ptr.x} y={ptr.y} on={ptr.on} press={ptr.press} touch={phone} />
@@ -234,25 +244,17 @@
 	/* the canvas is a real dashboard viewport: its width answers the compiled `sm:`/`lg:` queries (container "kc"), `fixed` children (confirm, sheet, bottom nav) anchor to it */
 	.film-canvas { position: relative; container-type: inline-size; container-name: kc; overflow: hidden; background: var(--k-ground); contain: layout paint; }
 	.film-app { display: flex; height: 100%; flex-direction: row; background: var(--k-ground); }
-	.film-side { display: flex; flex-shrink: 0; width: 14.5rem; transition: opacity 0.434s ease; }
+	.film-side { display: flex; flex-shrink: 0; width: 14.5rem; }
 	.film-col { display: flex; flex-direction: column; min-width: 0; flex: 1 1 0; }
-	.film-top { flex: none; transition: opacity 0.434s ease; }
+	.film-top { flex: none; }
 	.film-main { position: relative; flex: 1 1 0; min-height: 0; overflow: hidden; }
 	.film-group { position: relative; transform-origin: 0 0; min-width: 0; }
-	.film-dim { opacity: 0.25; }
-	/* the phone's bottom nav is opaque and sits over the page: dim its contents, never the bar (a 25% bar lets the page show through) */
-	.film-tabs-dim :global(nav > *) { opacity: 0.25; }
-	.film-tabs :global(nav > *) { transition: opacity 0.434s ease; }
-	.film-dimmer { position: absolute; inset: 0; background: var(--k-ground); opacity: 0; pointer-events: none; transition: opacity 0.2s ease-out; z-index: 4; }
-	.film-dimmer-on { opacity: 0.65; }
-	/* light: neighbours fall toward a dark ink, not toward white (white washed the page out); dark keeps the ground colour */
-	.film-dimmer { --dim-ink: rgb(12 20 26); }
-	:global(.dark) .film-dimmer { --dim-ink: var(--k-ground); }
-	.film-dimmer { background: var(--dim-ink); }
-	.film-dimmer-on { opacity: 0.5; }
-	/* zoomed: a neighbour that peeks into the frame is nearly gone rather than cut mid-word */
-	.film-dimmer-on.film-dimmer-zoom { opacity: 0.93; }
-	:global(.dark) .film-dimmer-on { opacity: 0.65; }
-	:global(.dark) .film-dimmer-on.film-dimmer-zoom { opacity: 0.94; }
+	/* THE dim (one value in every theme and width): the product's ink at 38%. The hole (.film-hole) is a box whose spread shadow dims everything round it, so its own rect and corner radius are the target's; the shell is dimmed by a plain layer of the same colour. */
+	.film-frame { --film-dim: rgb(12 20 26 / 0.38); }
+	.film-hole { position: absolute; z-index: 4; pointer-events: none; box-shadow: 0 0 0 4000px var(--film-dim); opacity: 0; transition: opacity 0.2s ease-out; }
+	.film-hole-on { opacity: 1; }
+	.film-side, .film-top { position: relative; }
+	.film-shade { position: absolute; inset: 0; z-index: 6; pointer-events: none; background: var(--film-dim); opacity: 0; transition: opacity 0.2s ease-out; }
+	.film-shade-on { opacity: 1; }
 	.film-tabs { position: absolute; left: 0; right: 0; bottom: 0; z-index: 5; }
 </style>
