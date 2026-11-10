@@ -16,4 +16,6 @@
 .k-island-ctl { margin-top: 8px; display: flex; justify-content: flex-end; }
 /* the hero's chip bar overlaps the window's bottom edge, so its host must not clip (layout containment alone keeps position:fixed
    children, the approval confirm and toast, anchored to the window) */
-:host([data-island="hero"]) { contain: layout style; }
+:host([data-island="hero"]), :host([data-island="health"]) { contain: layout style; }
+/* the story windows are fixed-height frames: the island fills its host so the frame (not its content) decides the height */
+:host([data-island="hero"]) .k-island, :host([data-island="health"]) .k-island { height: 100%; }

@@ -78,6 +78,7 @@ export default defineConfig({
 	resolve: {
 		alias: [
 			{ find: /^tailwind-merge$/, replacement: S('tailwind-merge.ts') },
+			{ find: /^flowbite-svelte$/, replacement: S('flowbite-svelte.ts') },
 			{ find: /^\$lib\/?/, replacement: resolve(D, 'src/lib') + '/' },
 			// SvelteKit-only virtual modules: inert stand-ins, never the real router/env.
 			{ find: /^\$app\/(.*)$/, replacement: S('app-$1.ts') },

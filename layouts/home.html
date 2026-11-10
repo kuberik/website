@@ -60,7 +60,23 @@
   </div>
 </div>
 
-<section id="s1" data-slot="s1" class="slot" aria-label="Section 1 placeholder">S1 slot (health at every step), filled by another lane</section>
+{{- /* S1 health at every step (SPEC 3). The island is the product: the dashboard's own components driven by a scripted scenario. Below 1680 the title sits above a full-bleed stage; from 1680 the two sit side by side. */ -}}
+<section id="s1" class="s1" aria-labelledby="s1-title">
+  <div class="s1-grid">
+    <div class="cont s1-text">
+      <h2 class="title" id="s1-title">A failing check stops the build where it is.</h2>
+      <p class="title-body">Kuberik reads your metrics after every deploy. When one breaks its budget, the build goes no further, production keeps the last good build, and Roll back is one press away.</p>
+      <a class="s1-link" href="/docs/">How health checks work<span aria-hidden="true"> →</span></a>
+    </div>
+    <div class="stage stage-rose s1-stage">
+      <div class="bloom b1"></div><div class="bloom b2"></div>
+      <div class="s1-inner">
+        <div class="window s1-window" id="s1-window"><div data-island="health" data-theme-sync style="min-height:660px"></div></div>
+        <div class="s1-chiproom" aria-hidden="true"></div>
+      </div>
+    </div>
+  </div>
+</section>
 
 <div class="install" id="install">
   <div class="cont">

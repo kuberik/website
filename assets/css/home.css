@@ -103,6 +103,20 @@ h1{font:600 64px/68px var(--sans);letter-spacing:-.035em;margin:24px auto 20px;m
 .title-body{margin:16px 0 0;font:400 18px/28px var(--sans);color:var(--ink-muted);max-width:560px}
 .slot{margin-top:128px;display:grid;place-items:center;min-height:260px;border:1.5px dashed var(--line);border-radius:var(--stage-r);margin-inline:var(--stage-inset);font:500 13px/20px var(--mono);color:var(--ink-subtle);text-align:center;padding:24px}
 
+/* S1 health (SPEC 3.3): the title block above a full-bleed rose stage; side by side from 1680 */
+.s1{margin-top:128px}
+.s1-link{display:inline-block;margin-top:20px;font:500 15px/24px var(--sans);color:var(--mint-ink)}
+.s1-link:hover{text-decoration:underline;text-underline-offset:3px}
+.s1-stage{margin-top:32px}
+.s1-inner{padding:var(--stage-pad) var(--stage-pad) 8px}
+.s1-window{height:var(--s1-h,660px)}
+.s1-window>[data-island]{height:100%;min-height:0!important}
+.s1-chiproom{height:48px}
+@media(min-width:1680px){
+  .s1-grid{display:grid;grid-template-columns:440px minmax(0,1fr);gap:64px;align-items:center;width:min(var(--cont),100% - 2*var(--gut));margin-inline:auto}
+  .s1-text{width:auto;margin:0}
+  .s1-stage{margin:0}
+}
 /* S5 install band */
 .install{margin-top:160px;background:var(--page-alt);padding:96px 0}
 .install .cont{display:grid;grid-template-columns:1fr 1fr;gap:48px;align-items:center}
@@ -140,7 +154,10 @@ h1{font:600 64px/68px var(--sans);letter-spacing:-.035em;margin:24px auto 20px;m
   .ctas{flex-direction:column;gap:8px;padding:0 4px}
   .hero-window{margin-top:32px}
   .hero-chiproom{height:56px}
-  .story{margin-top:80px}
+  .story,.s1{margin-top:80px}
+  .s1-stage{margin-top:20px}
+  .s1-window{height:var(--s1-h,750px)}
+  .s1-chiproom{height:56px}
   .title,.final h2{font-size:26px;line-height:32px}
   .title-body{font-size:16px;line-height:24px;margin-top:12px}
   .slot{margin-top:80px;min-height:200px}

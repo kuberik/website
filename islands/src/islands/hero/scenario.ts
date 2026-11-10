@@ -11,6 +11,7 @@
  * App `checkout-api`: old build 4.45.0-45 (b-45), new build 4.46.0-46 (b-46), PR #112 by olivia-bennett.
  */
 import type { FleetSource } from '$lib/components/home/sketch/fleet-source.svelte';
+import { release, gate, prChange } from '../shared/cr';
 
 export const APP = 'checkout-api';
 export const VIEWER = 'danielreed';
@@ -36,8 +37,8 @@ const STEPS: Record<string, Step> = {
 /** the earliest second at which a prod place is ready for a person to approve (staging healthy) */
 export const ASKS_AT = 14;
 
-type Release = { tag: string; version: string; revision: string; created: string };
-const rel = (n: number, sha: string, createdMs: number): Release => ({ tag: `b-${n}`, version: `4.${n}.0-${n}`, revision: sha, created: new Date(createdMs).toISOString() });
+type Release = ReturnType<typeof rel>;
+const rel = (n: number, sha: string, createdMs: number) => release(`b-${n}`, `4.${n}.0-${n}`, sha, createdMs);
 const SHA = { 44: 'b44d3e19a0c7e5a1f2b8c9d04e6a7b1c2d3e4f50', 45: 'b45a7c2e9d1f03b4a5c6d7e8f9a0b1c2d3e4f561', 46: 'e1c7a04b8d2f19a3c5e7091b3d5f7a9c1e3b5d72' };
 const R44 = rel(44, SHA[44], BASE - 30 * H), R45 = rel(45, SHA[45], BASE - 4 * H), R46 = (): Release => rel(46, SHA[46], simMs(MERGE) + 90_000);
 
@@ -55,7 +56,6 @@ const PLACES: Place[] = [
 type Phase = 'old' | 'deploying' | 'checking' | 'done';
 export const phaseAt = (p: Place, t: number): Phase => (t < p.step.start ? 'old' : t < p.step.check ? 'deploying' : t < p.step.done ? 'checking' : 'done');
 
-const gate = (name: string, allowed: string[]) => ({ name, allowedVersions: allowed, message: allowed.length ? 'Gate is passing' : 'Gate does not allow any release candidate' });
 
 function rollout(p: Place, t: number, failed: boolean) {
 	const merged = t >= MERGE;
@@ -149,10 +149,7 @@ function healthChecks(t: number, failedCheck: string | null) {
 }
 
 const repo = 'checkout-api';
-const change = (n: number, title: string, author: string, mergedMs: number, sha: string, files: number) => ({
-	owner: 'exampleco', repo, kind: 'pr', number: n, title, htmlUrl: `https://github.com/exampleco/${repo}/pull/${n}`, author,
-	mergedAt: new Date(mergedMs).toISOString(), mergeCommitSha: sha, headSha: sha, base: 'main', changedFiles: files, containedIn: [sha], containedInAll: false
-});
+const change = (n: number, title: string, author: string, mergedMs: number, sha: string, files: number) => prChange('exampleco', repo, n, title, author, mergedMs, sha, files);
 
 /** the answers the dashboard's GitHub routes would give (range and commit lookups), keyed by route: see stubs/github-read.svelte.ts */
 export function githubAt(t: number): Record<string, unknown> {
