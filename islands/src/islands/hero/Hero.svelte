@@ -103,7 +103,14 @@
 			top = Math.min(top, r.top - bt); bottom = Math.max(bottom, r.bottom - bt);
 		}
 		if (!isFinite(top)) return 0;
-		return Math.min(max, Math.max(0, Math.min(bottom + 16 - vh, top - 48)));
+		const need = Math.max(0, bottom + 16 - vh), cap = Math.max(0, top - 48);
+		/* rest on a seam of the page (the Builds card, a build row, a place row), never mid-line: the smallest seam that shows everything needed */
+		const seams = [0];
+		const card = el.querySelector('.ad-places');
+		if (card) seams.push(card.getBoundingClientRect().top - bt - 12);
+		for (const li of el.querySelectorAll('li.stop-li, li[data-truth-group]')) seams.push(li.getBoundingClientRect().top - bt - 6);
+		const ok = seams.filter((y) => y >= need - 1 && y <= cap + 1).sort((a, b) => a - b)[0];
+		return Math.min(max, Math.max(0, ok ?? Math.min(need, cap)));
 	}
 	function signature(): string {
 		const el = scroller;
