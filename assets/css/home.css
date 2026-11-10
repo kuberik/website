@@ -144,7 +144,7 @@ h1{font:600 64px/68px var(--sans);letter-spacing:-.035em;margin:24px auto 20px;m
   .title,.final h2{font-size:26px;line-height:32px}
   .title-body{font-size:16px;line-height:24px;margin-top:12px}
   .slot{margin-top:80px;min-height:200px}
-  .code pre{white-space:pre-wrap;overflow-wrap:anywhere}
+  .code pre{font-size:12.5px;padding:16px}
   .install{margin-top:96px;padding:56px 0}
   .final{padding:80px 0 64px}
   .foot nav{margin-left:0}

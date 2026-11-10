@@ -72,8 +72,10 @@
     <div class="code">
       <div class="code-head"><span>Install</span><button class="copy" id="copy" type="button"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="9" y="9" width="12" height="12" rx="2"/><path d="M5 15V5a2 2 0 0 1 2-2h10"/></svg><span id="copy-l">Copy</span></button></div>
 <pre><code id="install-cmd"><span class="p">$ </span>flux check
-<span class="p">$ </span>helm install kuberik oci://ghcr.io/kuberik/charts/kuberik \
-    --namespace kuberik-system --create-namespace \
+<span class="p">$ </span>helm install kuberik \
+    oci://ghcr.io/kuberik/charts/kuberik \
+    --namespace kuberik-system \
+    --create-namespace \
     --set createNamespace=false</code></pre>
     </div>
   </div>
