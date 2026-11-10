@@ -83,8 +83,7 @@ function rollout(p: Place, t: number, failed: boolean) {
 	if (p.env === 'prod') {
 		const approved = t >= APPROVE_AT - 0.4;
 		const staged = t >= ASKS_AT;
-		const waveOk = p.wave === 1 || t >= STEPS['us-east-1'].done;
-		gates.push(gate(`promotion-prod-${p.site}`, staged && waveOk ? newTag : []));
+		gates.push(gate(`promotion-prod-${p.site}`, staged ? newTag : []));
 		/* the approval gate is raised once staging is healthy: until then prod is simply behind, waiting on its promotion gate */
 		if (staged) gates.push(gate('release-approval', approved ? ['b-44', 'b-45', ...newTag] : ['b-44', 'b-45']));
 	}
@@ -116,21 +115,22 @@ function environment(p: Place, t: number) {
 	};
 }
 
-/** prod places run a two-stage canary (Kruise Rollout), so a prod Slipway reads Started · Stage 1 · Stage 2 · Check as the tab does */
+/** every place runs a two-stage canary (Kruise Rollout), so a Slipway reads Started · Stage 1 · Stage 2 · Check as the tab does and the deploy is a visible step */
+const key = (p: Place) => p.site ?? p.env;
 function kruise(p: Place, t: number) {
 	const ph = phaseAt(p, t);
 	const idx = ph === 'deploying' ? Math.min(2, Math.floor(((t - p.step.start) / (p.step.check - p.step.start)) * 2) + 1) : 2;
 	return {
 		apiVersion: 'rollouts.kruise.io/v1alpha1', kind: 'Rollout',
-		metadata: { name: `checkout-api-canary-${p.site}`, namespace: p.ns, annotations: { 'rollout-dashboard.kuberik.com/source-cluster': 'prod' } },
+		metadata: { name: `checkout-api-canary-${key(p)}`, namespace: p.ns, annotations: { 'rollout-dashboard.kuberik.com/source-cluster': p.env } },
 		spec: { strategy: { canary: { steps: [{ replicas: '50%' }, { replicas: '100%' }] } } },
 		status: { canaryStatus: { currentStepIndex: ph === 'old' || ph === 'done' ? 2 : idx, currentStepState: ph === 'old' || ph === 'done' ? 'Completed' : 'StepInProgress' }, conditions: [] }
 	};
 }
 const kustomization = (p: Place) => ({
 	apiVersion: 'kustomize.toolkit.fluxcd.io/v1', kind: 'Kustomization',
-	metadata: { name: `checkout-api-${p.site}`, namespace: p.ns, annotations: { 'rollout.kuberik.com/substitute.CHECKOUT_API_VERSION.from': APP, 'rollout-dashboard.kuberik.com/source-cluster': 'prod' } },
-	spec: {}, status: { conditions: [], inventory: { entries: [{ id: `${p.ns}_checkout-api-canary-${p.site}_rollouts.kruise.io_Rollout` }] } }
+	metadata: { name: `checkout-api-${key(p)}`, namespace: p.ns, annotations: { 'rollout.kuberik.com/substitute.CHECKOUT_API_VERSION.from': APP, 'rollout-dashboard.kuberik.com/source-cluster': p.env } },
+	spec: {}, status: { conditions: [], inventory: { entries: [{ id: `${p.ns}_checkout-api-canary-${key(p)}_rollouts.kruise.io_Rollout` }] } }
 });
 
 /** two health checks per place (SPEC 2.3): healthy once the build has settled, pending while it deploys */
@@ -204,14 +204,13 @@ export function fleetAt(t: number): FleetSource {
 		change(108, 'Show saved cards first', 'liam-foster', BASE - 4 * H, SHA[45], 4),
 		...(merged ? [change(112, 'Add Apple Pay to checkout', 'olivia-bennett', simMs(MERGE), SHA[46], 6)] : [])
 	];
-	const prod = PLACES.filter((p) => p.env === 'prod');
 	const sc = scenery();
 	return {
 		rollouts: [...PLACES.map((p) => rollout(p, t, false)), sc.rollout] as never,
 		environments: [...PLACES.map((p) => environment(p, t)), sc.env] as never,
 		rolloutDependencies: { items: [] },
-		kustomizations: prod.map(kustomization) as never,
-		kruiseRollouts: prod.map((p) => kruise(p, t)) as never,
+		kustomizations: PLACES.map(kustomization) as never,
+		kruiseRollouts: PLACES.map((p) => kruise(p, t)) as never,
 		changes: changes as never,
 		changesState: 'ok',
 		healthChecks: healthChecks(t, null) as never,

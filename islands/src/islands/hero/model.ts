@@ -31,8 +31,17 @@ export const REST_T = 16.0;
 type Row = TRow;
 export const appRows = () => appRowsOf(APP);
 
+/**
+ * A place at rest has no row in the roster, so the app page draws it as a collapsed line and never opens its Slipway; the landing opens it, so it
+ * hands the Slipway the settled place the way the rollout tab's pipeline card reads one: every step of the place's own canary done, titled "Healthy"
+ * (the check line the Slipway prints for a settled place). View-model data fed to the component, no styling.
+ */
+const SETTLED_STEPS = ['Started', 'Stage 1', 'Stage 2', 'Check'].map((name) => ({ name, state: 'done' as const }));
+const settled = (r: Row | null): Row | null => (r && r.group === 'rest' ? ({ ...r, word: 'Healthy', steps: SETTLED_STEPS } as Row) : r);
+
 /** the row the Slipway opens at `t` */
-export function focusRow(t: number): Row | null {
+export const focusRow = (t: number): Row | null => settled(pickRow(t));
+function pickRow(t: number): Row | null {
 	const { rows, approval } = appRows();
 	const w = whereAt(t);
 	const pick = (f: (r: Row) => boolean) => rows.find(f) ?? null;
