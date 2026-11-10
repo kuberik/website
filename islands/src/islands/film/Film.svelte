@@ -58,7 +58,7 @@
 		swapping = next;
 		const c = await loadSurface(next);
 		if (seq !== swapSeq) return;
-		if (!instant && shown) { swapOpacity = 0; await new Promise((r) => setTimeout(r, 120)); if (seq !== swapSeq) return; }
+		if (!instant && shown) { swapOpacity = 0.4; /* the outgoing page dims, it never goes to empty ground: a slow incoming chunk must not leave a blank window */ await new Promise((r) => setTimeout(r, 120)); if (seq !== swapSeq) return; }
 		Object.assign(page, SURFACE_PATH[next]);
 		pageStore.update((p) => ({ ...p, ...SURFACE_PATH[next] })); // the History tab reads get(page) of $app/stores (not $app/state)
 		Comp = c; shown = next;
