@@ -51,8 +51,11 @@
 	let Comp = $state<Component<any> | null>(null);
 	let swapOpacity = $state(0);
 	let swapSeq = 0;
+	/* the surface a swap is already under way for: the effect below re-runs on every story tick, and a re-entered show() used to bump swapSeq and abort the swap in flight, forever (window stuck at opacity 0: the black screen) */
+	let swapping: Surf | null = null;
 	async function show(next: Surf, instant: boolean) {
 		const seq = ++swapSeq;
+		swapping = next;
 		const c = await loadSurface(next);
 		if (seq !== swapSeq) return;
 		if (!instant && shown) { swapOpacity = 0; await new Promise((r) => setTimeout(r, 120)); if (seq !== swapSeq) return; }
@@ -61,13 +64,14 @@
 		Comp = c; shown = next;
 		await tick();
 		swapOpacity = 1;
+		if (seq === swapSeq) swapping = null;
 	}
 	let lastT = -1;
 	$effect(() => {
 		const s = surf, tt = t;
 		const jumped = Math.abs(tt - lastT) > 0.4 || lastT < 0;
 		lastT = tt;
-		untrack(() => { if (s !== shown) void show(s, jumped || reduced); });
+		untrack(() => { if (s !== shown && s !== swapping) void show(s, jumped || reduced); });
 	});
 	const props = $derived(shown ? surfaceProps(shown, eventIdx) : {});
 
