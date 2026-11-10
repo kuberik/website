@@ -9,7 +9,7 @@ import { resolve } from 'node:path';
 import { fileURLToPath } from 'node:url';
 const D = process.env.DASHBOARD_SRC;
 const app = readFileSync(resolve(D, 'src/app.css'), 'utf8');
-const sources = readFileSync(new URL('../sources.txt', import.meta.url), 'utf8').split('\n').map((s) => s.trim()).filter((s) => s && !s.startsWith('#'));
+const sources = readFileSync(process.env.SOURCES ? resolve(process.env.SOURCES) : new URL('../sources.txt', import.meta.url), 'utf8').split('\n').map((s) => s.trim()).filter((s) => s && !s.startsWith('#'));
 let css = app
 	.replace(/@import 'tailwindcss';/, "@import 'tailwindcss' source(none);")
 	.replace(/@import '\.\/styles\/language\.css';/, `@import '${resolve(D, 'src/styles/language.css')}';`)

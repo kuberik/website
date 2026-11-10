@@ -77,6 +77,7 @@ export default defineConfig({
 	publicDir: false,
 	resolve: {
 		alias: [
+			{ find: /^@tanstack\/svelte-query$/, replacement: S('svelte-query.svelte.ts') },
 			{ find: /^tailwind-merge$/, replacement: S('tailwind-merge.ts') },
 			{ find: /^flowbite-svelte$/, replacement: S('flowbite-svelte.ts') },
 			{ find: /^\$lib\/?/, replacement: resolve(D, 'src/lib') + '/' },
@@ -94,7 +95,7 @@ export default defineConfig({
 	],
 	base: './',
 	build: {
-		outDir: resolve(HERE, '../static/islands'),
+		outDir: process.env.ISLANDS_OUT ? resolve(process.env.ISLANDS_OUT) : resolve(HERE, '../static/islands'),
 		emptyOutDir: true,
 		target: 'es2022',
 		cssCodeSplit: false,
