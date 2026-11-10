@@ -93,7 +93,7 @@
 			if (phone) { s = 1; y = -Math.max(0, r.y - 10); }
 			else if (s === 1 && m.dim === 'page') { y = -Math.max(0, Math.min(r.y - 24, gh - vh)); }
 			else if (s === 1) { x = m.to === 'health-checks' ? -96 : 0; }
-			else { s = Math.min(m.s, (vw * 0.94) / r.w, (vh * 0.94) / r.h); x = vw / 2 - s * (r.x + r.w / 2); y = vh / 2 - s * (r.y + r.h / 2); }
+			else { s = Math.max(1, Math.min(m.s, (vw * 0.94) / r.w, (vh * 0.94) / r.h)); x = vw / 2 - s * (r.x + r.w / 2); y = vh / 2 - s * (r.y + r.h / 2); }
 		}
 		x = Math.min(0, Math.max(Math.min(0, vw - s * gw), x));
 		y = Math.min(0, Math.max(Math.min(0, vh - s * gh), y));
@@ -102,7 +102,7 @@
 		clearTimeout(moveTimer);
 		if (dur > 0) moveTimer = setTimeout(() => { cam = { ...cam, moving: false }; }, dur + 40);
 		/* the dim hole: everything but the target at 35% (an opacity layer, never a filter) */
-		dimHole = el && m.dim === 'page' ? relRect(el) : null;
+		dimHole = el && (m.dim === 'page' || m.dim === 'both') ? relRect(el) : null;
 	}
 	/* a move starts when the story reaches its keyframe, or the surface under it changed (re-aim once its layout has settled) */
 	$effect(() => {
@@ -121,7 +121,7 @@
 	let lastAim = -1;
 	function CAMERA_INDEX(m: Move) { return m.at; }
 	const camStyle = $derived(cam.s === 1 && cam.x === 0 && cam.y === 0 && !cam.moving ? 'transform:none' : `transform: translate3d(${cam.x}px, ${cam.y}px, 0) scale(${cam.s}); transition: transform ${cam.dur}ms ${cam.ease}; will-change: ${cam.moving ? 'transform' : 'auto'}`);
-	const shellDim = $derived(!reduced && mv.dim === 'shell');
+	const shellDim = $derived(!reduced && (mv.dim === 'shell' || mv.dim === 'both'));
 
 	/* ---- the cursor: canvas px; the real click is dispatched at `press` ---- */
 	let canvas: HTMLElement | undefined = $state();
@@ -182,7 +182,7 @@
 					<main class="film-main" bind:this={main}>
 						<div class="film-group" bind:this={group} style="{camStyle}; opacity:{swapOpacity}; {swapOpacity ? 'transition: transform ' + cam.dur + 'ms ' + cam.ease + ', opacity .2s ease-out' : 'transition: opacity .12s ease-in'}">
 							{#if Comp}<Comp {...props} />{/if}
-							<div class="film-dimmer" class:film-dimmer-on={!reduced && mv.dim === 'page' && !!dimHole} style={dimHole ? `clip-path: polygon(evenodd, 0 0, 100% 0, 100% 100%, 0 100%, 0 0, ${dimHole.x}px ${dimHole.y}px, ${dimHole.x}px ${dimHole.y + dimHole.h}px, ${dimHole.x + dimHole.w}px ${dimHole.y + dimHole.h}px, ${dimHole.x + dimHole.w}px ${dimHole.y}px, ${dimHole.x}px ${dimHole.y}px)` : ''}></div>
+							<div class="film-dimmer" class:film-dimmer-on={!reduced && (mv.dim === 'page' || mv.dim === 'both') && !!dimHole} style={dimHole ? `clip-path: polygon(evenodd, 0 0, 100% 0, 100% 100%, 0 100%, 0 0, ${dimHole.x}px ${dimHole.y}px, ${dimHole.x}px ${dimHole.y + dimHole.h}px, ${dimHole.x + dimHole.w}px ${dimHole.y + dimHole.h}px, ${dimHole.x + dimHole.w}px ${dimHole.y}px, ${dimHole.x}px ${dimHole.y}px)` : ''}></div>
 						</div>
 					</main>
 				</div>
