@@ -2,8 +2,12 @@
  * THE WORLD. The dashboard's data layer reads ONE installed source (`installLiveSource`), and so does its clock. Several islands live on
  * one page, each with its own story time, so none of them may install its own snapshot (the last writer would blank the others).
  * Each island hands its part to `setPart`; the world installs the union (different apps, different namespaces) and answers
- * the dashboard's GitHub routes from the union table. The clock (`now`) is the most recently ticking island's: only an island that is
- * on screen ticks, and an island that re-enters view restarts at 0, so a stale reading is never on screen for more than a beat.
+ * the dashboard's GitHub routes from the union table.
+ *
+ * CLOCK: the dashboard's source and its `now` are module singletons (installLiveSource, one $state.raw), so per-island isolation is not possible.
+ * Instead `now` NEVER moves (cr.ts CLOCK_MS), and each story expresses its own time by placing its timestamps relative to that fixed instant
+ * (scenario `rebase(t)`). An age is `now - timestamp`, so it is right for whichever island installed last, even with both on screen ticking at once:
+ * no island can corrupt the other's ages, and nothing has to freeze.
  */
 import { installLiveSource, type FleetSource } from '$lib/components/home/sketch/fleet-source.svelte';
 import { githubTable } from '../../github-table.svelte';
