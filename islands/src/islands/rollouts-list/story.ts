@@ -40,13 +40,13 @@ const S = (r: StrandRow, extra: RestRow[] = []): State => ({ moving: [r, checkou
 
 export const beats: Beat<State>[] = [
 	{ at: 0, state: S(pay(DEV, steps('active', 'todo', 'todo', 'todo'), 'deploying', 'Deploying', `${v} · dev`, '12s')) },
-	{ at: 1400, state: S(pay(DEV, steps('done', 'done', 'done', 'active'), 'checking', 'Checking', `${v} · health checks, 1 min left`, '1m')) },
+	{ at: 1400, state: S(pay(DEV, steps('done', 'done', 'done', 'active'), 'checking', 'Checking', `${v} · 1 min left`, '1m')) },
 	{ at: 3000, state: S(pay(STG, steps('active', 'todo', 'todo', 'todo'), 'deploying', 'Deploying', `${v} · staging`, '4m')) },
-	{ at: 4400, state: S(pay(STG, steps('done', 'done', 'done', 'active'), 'checking', 'Checking', `${v} · health checks, 2 min left`, '9m')) },
-	{ at: 6000, state: S(pay(PRD, steps('done', 'active', 'todo', 'todo'), 'deploying', 'Deploying', `${v} · 1 of 3 prod steps`, '14m')) },
-	{ at: 7600, state: S(pay(PRD, steps('done', 'done', 'fail', 'todo'), 'failed', 'Failing', `${v} · p95 latency over limit`, '2m')) },
-	{ at: 9400, state: S(pay(PRD, steps('done', 'done', 'active', 'todo'), 'deploying', 'Deploying', 'v2.14.1 · fix, 2 of 3 prod steps', '40s')) },
-	{ at: 11000, state: S(pay(PRD, steps('done', 'done', 'done', 'active'), 'checking', 'Checking', 'v2.14.1 · health checks, 1 min left', '3m')) },
+	{ at: 4400, state: S(pay(STG, steps('done', 'done', 'done', 'active'), 'checking', 'Checking', `${v} · 2 min left`, '9m')) },
+	{ at: 6000, state: S(pay(PRD, steps('done', 'active', 'todo', 'todo'), 'deploying', 'Deploying', `${v} · step 2 of 4`, '14m')) },
+	{ at: 7600, state: S(pay(PRD, steps('done', 'done', 'fail', 'todo'), 'failed', 'Failing', `${v} · latency over limit`, '2m')) },
+	{ at: 9400, state: S(pay(PRD, steps('done', 'done', 'active', 'todo'), 'deploying', 'Deploying', 'v2.14.1 · fix, step 3 of 4', '40s')) },
+	{ at: 11000, state: S(pay(PRD, steps('done', 'done', 'done', 'active'), 'checking', 'Checking', 'v2.14.1 · 1 min left', '3m')) },
 	{ at: 12600, state: { moving: [checkout], rest: [{ ...rest('payments-api', 'prod · eu-west', 'v2.14.1', 'now'), key: 'payments-api-rest' }, ...quiet] } }
 ];
 export const initial = beats[0].state;

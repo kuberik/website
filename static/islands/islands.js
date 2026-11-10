@@ -4587,13 +4587,13 @@ const si = {
   row: { group: "moving" }
 }, sn = (e, t, n, r, i = !1) => ({ key: e + t, app: e, href: "#", place: t, rep: i, sentence: "On the newest", code: n, age: r, tier: t }), li = [sn("billing-worker", "prod · eu-west", "v1.19.0", "2d"), sn("billing-worker", "prod · us-east", "v1.19.0", "2d", !0), sn("search-api", "prod", "v7.4.1", "5d")], Et = "v2.14.0", tt = (e, t = []) => ({ moving: [e, si], rest: [...t, ...li] }), oi = [
   { at: 0, state: tt(et(ar, Ve("active", "todo", "todo", "todo"), "deploying", "Deploying", `${Et} · dev`, "12s")) },
-  { at: 1400, state: tt(et(ar, Ve("done", "done", "done", "active"), "checking", "Checking", `${Et} · health checks, 1 min left`, "1m")) },
+  { at: 1400, state: tt(et(ar, Ve("done", "done", "done", "active"), "checking", "Checking", `${Et} · 1 min left`, "1m")) },
   { at: 3e3, state: tt(et(sr, Ve("active", "todo", "todo", "todo"), "deploying", "Deploying", `${Et} · staging`, "4m")) },
-  { at: 4400, state: tt(et(sr, Ve("done", "done", "done", "active"), "checking", "Checking", `${Et} · health checks, 2 min left`, "9m")) },
-  { at: 6e3, state: tt(et(rn, Ve("done", "active", "todo", "todo"), "deploying", "Deploying", `${Et} · 1 of 3 prod steps`, "14m")) },
-  { at: 7600, state: tt(et(rn, Ve("done", "done", "fail", "todo"), "failed", "Failing", `${Et} · p95 latency over limit`, "2m")) },
-  { at: 9400, state: tt(et(rn, Ve("done", "done", "active", "todo"), "deploying", "Deploying", "v2.14.1 · fix, 2 of 3 prod steps", "40s")) },
-  { at: 11e3, state: tt(et(rn, Ve("done", "done", "done", "active"), "checking", "Checking", "v2.14.1 · health checks, 1 min left", "3m")) },
+  { at: 4400, state: tt(et(sr, Ve("done", "done", "done", "active"), "checking", "Checking", `${Et} · 2 min left`, "9m")) },
+  { at: 6e3, state: tt(et(rn, Ve("done", "active", "todo", "todo"), "deploying", "Deploying", `${Et} · step 2 of 4`, "14m")) },
+  { at: 7600, state: tt(et(rn, Ve("done", "done", "fail", "todo"), "failed", "Failing", `${Et} · latency over limit`, "2m")) },
+  { at: 9400, state: tt(et(rn, Ve("done", "done", "active", "todo"), "deploying", "Deploying", "v2.14.1 · fix, step 3 of 4", "40s")) },
+  { at: 11e3, state: tt(et(rn, Ve("done", "done", "done", "active"), "checking", "Checking", "v2.14.1 · 1 min left", "3m")) },
   { at: 12600, state: { moving: [si], rest: [{ ...sn("payments-api", "prod · eu-west", "v2.14.1", "now"), key: "payments-api-rest" }, ...li] } }
 ], Kl = oi[0].state, Wl = 5, fi = {
   "rollouts-list": { component: Hl, initial: Kl, beats: oi, representative: Wl, restMs: 3200 }
