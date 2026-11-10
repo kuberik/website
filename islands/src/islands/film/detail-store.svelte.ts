@@ -46,7 +46,9 @@ export function installFetch(list: () => { rollouts: unknown[]; environments: un
 	const real = window.fetch.bind(window);
 	if ((window.fetch as any).__film) return;
 	const wrapped = (input: RequestInfo | URL, init?: RequestInit) => {
-		const u = new URL(typeof input === 'string' ? input : input instanceof URL ? input.href : input.url, location.href);
+		let u: URL;
+		try { u = new URL(typeof input === 'string' ? input : input instanceof URL ? input.href : input.url, location.href); } catch { return real(input, init); }
+		if (u.origin !== location.origin) return real(input, init); // only the product's own same-origin API is answered; third-party requests pass untouched
 		const mr = /^\/api\/(?:clusters\/[^/]+\/)?kustomizations\/[^/]+\/[^/]+\/managed-resources$/.exec(u.pathname);
 		if (mr && current) return Promise.resolve(new Response(JSON.stringify({ managedResources: managedList(current) }), { status: 200, headers: { 'content-type': 'application/json' } }));
 		const m = /^\/api\/(?:clusters\/[^/]+\/)?rollouts$/.exec(u.pathname);

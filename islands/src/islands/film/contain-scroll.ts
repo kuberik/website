@@ -7,6 +7,15 @@ let installed = false;
 export function containScroll() {
 	if (installed) return;
 	installed = true;
+	/* NAMED STUB: `focus()` for the product inside the film. The product focuses its confirm button when a dialog opens; in a decorative film that (a) paused the
+	 * story on its own focus-pause gate, freezing it at the Approve confirm, and (b) smooth-scrolled the landing page by hundreds of px at 390. Calls made on
+	 * elements inside an island's shadow root are no-ops; a reader's own focus (Tab, click, tap) is native and never goes through here. */
+	const nativeFocus = HTMLElement.prototype.focus;
+	HTMLElement.prototype.focus = function (this: HTMLElement, o?: FocusOptions) {
+		const root = this.getRootNode();
+		if (root instanceof ShadowRoot && (root.host as HTMLElement).dataset?.island) return;
+		return nativeFocus.call(this, o);
+	};
 	const native = Element.prototype.scrollIntoView;
 	Element.prototype.scrollIntoView = function (this: Element, arg?: boolean | ScrollIntoViewOptions) {
 		const root = this.getRootNode();

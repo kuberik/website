@@ -143,7 +143,7 @@
 		return { x: (r.left - c.left + r.width * 0.6) / k, y: (r.top - c.top + r.height * 0.6) / k };
 	}
 	$effect(() => {
-		const p = press, tt = t;
+		const p = press, tt = t, live = playing;
 		void shown; void swapOpacity; void eventIdx; void Comp; /* re-aim once the surface under the cursor has been shown and laid out (a seek lands before it) */
 		untrack(() => {
 			if (!p || !canvas) { ptr.on = false; ptr.press = false; return; }
@@ -153,7 +153,7 @@
 			ptr.press = tt >= p.press;
 		});
 		/* the target can still move while the cursor is up (rows entering, the camera, async data): follow it frame by frame until the press ends */
-		if (!p || !canvas) return;
+		if (!p || !canvas || !live) return; /* frame-by-frame only while the story plays (a paused or offscreen film does no per-frame work) */
 		let raf = 0;
 		const follow = () => { const el = resolveTarget(p.target, canvas!, phone); if (el) { const pt = canvasPoint(el); if (Math.abs(pt.x - ptr.x) > 0.5 || Math.abs(pt.y - ptr.y) > 0.5) { ptr.x = pt.x; ptr.y = pt.y; } } raf = requestAnimationFrame(follow); };
 		raf = requestAnimationFrame(follow);
