@@ -52,6 +52,7 @@
 	/** one step of the choreography per change of target / ask: measure the real buttons, then point at them */
 	$effect(() => {
 		const { target, ask, visible, done } = ch;
+		void settled; // a scroll move ended: the buttons are where they will stay
 		untrack(() => {
 			if (ask && !approvalUi.ask && askTarget) {
 				const tg = askTarget;
@@ -77,6 +78,68 @@
 			if (!visible) ptrShown = false;
 		})();
 	});
+	/* THE PAGE SCROLLS INSIDE THE WINDOW. The window is a fixed-size viewport onto the real AppDetail page: each beat moves the page, as a person's hand
+	   would, to what the beat is about: the statement (Approve) while a place waits on a person, the places that are moving (the open place's pipeline on a
+	   desktop, the moving rows on a phone) while a build deploys, the top for merge and done. The move starts after the beat's own text change has settled
+	   (SETTLE_MS) and eases for 600-900ms; reduced motion jumps. The chip bar and the window's top bar are outside the scroller and never move. */
+	let scroller: HTMLElement | undefined = $state();
+	let settled = $state(0); // bumped when a scroll move ends: the pointer re-measures the real buttons
+	const SETTLE_MS = 380;
+	let lastSig = '';
+	let timer: ReturnType<typeof setTimeout> | undefined;
+	let raf = 0;
+	/** where the page should rest now, from the rendered rows (the product's own `data-truth-group` / `data-open`) */
+	function targetTop(): number {
+		const el = scroller;
+		if (!el) return 0;
+		const bt = el.getBoundingClientRect().top - el.scrollTop; // the content's origin
+		const vh = el.clientHeight, max = Math.max(0, el.scrollHeight - vh);
+		const ask = el.querySelector('[data-ad-statement]');
+		if (ask) return Math.min(max, Math.max(0, ask.getBoundingClientRect().top - bt - 12));
+		let top = Infinity, bottom = -Infinity;
+		for (const li of el.querySelectorAll('li[data-truth-group]')) {
+			if (li.getAttribute('data-truth-group') === 'rest' && !li.hasAttribute('data-open')) continue;
+			const r = li.getBoundingClientRect();
+			top = Math.min(top, r.top - bt); bottom = Math.max(bottom, r.bottom - bt);
+		}
+		if (!isFinite(top)) return 0;
+		return Math.min(max, Math.max(0, Math.min(bottom + 16 - vh, top - 48)));
+	}
+	function signature(): string {
+		const el = scroller;
+		if (!el) return '';
+		return (el.querySelector('[data-ad-statement]') ? 'S' : '-') + [...el.querySelectorAll('li[data-truth-group]')].map((li) => (li.hasAttribute('data-open') ? 'O' : li.getAttribute('data-truth-group') === 'rest' ? '.' : 'm')).join('');
+	}
+	function moveTo(y: number, jump: boolean) {
+		const el = scroller;
+		if (!el) return;
+		cancelAnimationFrame(raf);
+		const from = el.scrollTop;
+		if (jump || Math.abs(from - y) < 6) { el.scrollTop = y; settled++; return; }
+		const dur = Math.min(900, Math.max(600, 500 + Math.abs(y - from) * 1.2)), t0 = performance.now();
+		const ease = (u: number) => (u < 0.5 ? 4 * u * u * u : 1 - Math.pow(-2 * u + 2, 3) / 2);
+		const step = (now: number) => {
+			const u = Math.min(1, (now - t0) / dur);
+			el.scrollTop = from + (y - from) * ease(u);
+			if (u < 1) raf = requestAnimationFrame(step); else settled++;
+		};
+		raf = requestAnimationFrame(step);
+	}
+	$effect(() => {
+		void t; void page; void narrow;
+		const jump = reduced;
+		untrack(() => {
+			(async () => {
+				await tick();
+				const sig = signature();
+				if (sig === lastSig) return;
+				lastSig = sig;
+				clearTimeout(timer);
+				timer = setTimeout(() => moveTo(targetTop(), jump), jump ? 0 : SETTLE_MS);
+			})();
+		});
+	});
+	$effect(() => () => { clearTimeout(timer); cancelAnimationFrame(raf); });
 	let lastTarget: NonNullable<typeof askTarget> | null = null;
 	$effect(() => { if (askTarget) lastTarget = askTarget; });
 
@@ -90,7 +153,7 @@
 		<!-- the window's own top bar: the product's header row (mark, breadcrumb, the viewer) -->
 		<WindowBar crumbs={['Apps', APP]} {narrow} keep={1} />
 
-		<div class="hw-body" inert>
+		<div class="hw-body" inert bind:this={scroller}>
 			{#if page && who}
 				<AppHeader app={APP} {who} {lane} {cur} yours={!!stmt?.approve} {hrefFor} />
 				<div class="flex flex-col gap-4 px-4 pb-4 pt-6 sm:px-6 sm:pb-6">
