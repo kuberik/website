@@ -24,9 +24,10 @@ const APPS: { name: string; owner: string; state: State; n: number; title: strin
 const sha = (i: number, k: number) => `${(i + 10).toString(16)}${k}c4e91a07b3d5f2860c1e3a5b7d9f10234${k}${i.toString(16)}`.padEnd(40, '0').slice(0, 40);
 const iso = (ms: number) => new Date(ms).toISOString();
 
-export function extras(opt: { failing: boolean }) {
+export function extras(opt: { failing: boolean; only?: (a: (typeof APPS)[number]) => boolean }) {
 	const rollouts: unknown[] = [], environments: unknown[] = [], changes: unknown[] = [], hcs: unknown[] = [], gh: Record<string, unknown> = {};
 	APPS.forEach((a, i) => {
+		if (opt.only && !opt.only(a)) return;
 		const oldR = release(`b-${a.n - 1}`, `${a.n - 1}.0.0`, sha(i, 1), CLOCK_MS - 20 * H);
 		const newR = release(`b-${a.n}`, `${a.n}.0.0`, sha(i, 2), CLOCK_MS - (3 + i) * H);
 		const place = (env: 'staging' | 'prod') => {
