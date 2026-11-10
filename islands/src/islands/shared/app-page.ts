@@ -10,7 +10,7 @@ import { approvalOf } from '$lib/components/new/Footprint.svelte';
 import { rowAction, actionHref } from '$lib/components/new/rollout-view';
 import { approvalWord } from '$lib/components/new/state-words';
 import { approveAct } from '$lib/components/new/approvals.svelte';
-import { waitingSentence, pillOf, ledgerOf, pinnedPlaces, tierRank } from '$lib/components/new/app/app-model';
+import { approvalMessage, pillOf, ledgerOf, pinnedPlaces, tierRank } from '$lib/components/new/app/app-model';
 import type { PlaceView } from '$lib/components/new/app/AppBuilds.svelte';
 
 const SCENARIO = 'incident' as const;
@@ -79,7 +79,7 @@ export function appPageOf(name: string, CheckOutline: unknown): AppPage | null {
 	const checkingNow = waitsOnApproval && !!stateRow && tabPill({ href: stateRow.href }).word === 'CHECKING';
 	const checkLeft = checkingNow && stateRow ? checkClock({ href: stateRow.href, state: 'checking', group: 'rest' } as never) : null;
 	const heldN = stateRow ? (heldHere(stateRow.href)?.count ?? null) : null;
-	const waitMessage = checkingNow ? (checkLeft ?? 'The health checks are running.') : waitsOnApproval ? waitingSentence(heldN) : cause;
+	const waitMessage = checkingNow ? (checkLeft ?? 'The health checks are running.') : waitsOnApproval ? approvalMessage(heldN, places.find((p) => p.href === stateRow?.href) ?? null, places) : cause;
 	let statement: Statement | null = null;
 	if (failRow) statement = { kind: 'fail' };
 	else if (item.group !== 'quiet' && parts[0] && (waitsOnApproval || /^(Waits|Pinned|Held)/.test(parts[0]))) {

@@ -20,7 +20,6 @@ export type IslandModule = IslandDef<any> | CustomIsland;
 /** Every island is a dynamic import: its component graph is its own chunk, fetched only when the loader (loader.ts) decides it is near. */
 export const registry: Record<string, () => Promise<IslandModule>> = {
 	hero: () => import('./islands/hero').then((m) => ({ custom: m.mountHero })),
-	health: () => import('./islands/health').then((m) => ({ custom: m.mountHealth })),
 	'rollouts-list': async () => {
 		const [c, s] = await Promise.all([import('./islands/rollouts-list/RolloutsList.svelte'), import('./islands/rollouts-list/story')]);
 		return { component: c.default, initial: s.initial, beats: s.beats, representative: s.representative, restMs: 3200 };

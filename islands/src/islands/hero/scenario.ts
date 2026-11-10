@@ -1,5 +1,6 @@
 /**
- * HERO SCENARIO: the 36 s story of SPEC 2.3 as raw custom resources.
+ * HERO SCENARIO (story v2, 40 s): staging rolls out fine, then production step by step, as raw custom resources.
+ * Two environments only (staging, prod x5 regions in two waves). See .work/landing-v5/story-v2/BEATS.md for the beat table.
  *
  * `fleetAt(t)` returns what the dashboard's own API would answer at story time `t` (seconds): Rollout / Environment /
  * KruiseRollout / Kustomization / HealthCheck CRs plus the merged changes, in the same shape as the dashboard's pinned fixtures
@@ -24,30 +25,30 @@ export const simMs = (t: number): number => BASE + t * SIM * 1000;
 const iso = (t: number) => new Date(simMs(t)).toISOString();
 const H = 3600_000;
 
-/* story seconds at which each place's NEW build starts deploying, starts its bake, and finishes (SPEC 2.3 beats 1-15) */
+/* story seconds. Staging is one short beat; every other beat is a production step. A gate opens at the second its CR flips; a place deploys
+   the second the LAST gate holding it opens (rollout-controller: gates are ANDed). */
 export const MERGE = 2;
-export const APPROVE_AT = 19.4;
+export const ASKS_AT = 6.4; // staging healthy: prod's promotion gate admits the build, the person gate is what refuses it now
+export const APPROVE_AT = 11.0; // the Approve press lands (release-approval allows the build)
+export const DEP_OPEN = 16; // payments-svc ships the contract version the build requires (the dependency gate admits it)
+export const TESTS_OPEN = 21.5; // the integration run reports (the CI gate passes)
 type Step = { start: number; check: number; done: number };
 const STEPS: Record<string, Step> = {
-	dev: { start: 2, check: 5, done: 8 },
-	staging: { start: 8, check: 11, done: 14 },
-	'us-east-1': { start: 19.4, check: 22, done: 24.5 },
-	'us-east-2': { start: 24.5, check: 27, done: 30 },
-	'eu-west-1': { start: 24.5, check: 27, done: 30 },
-	'eu-central-1': { start: 24.5, check: 27, done: 30 },
-	'ap-southeast-2': { start: 24.5, check: 27, done: 30 }
+	staging: { start: 2.4, check: 4.4, done: 6.4 },
+	'us-east-1': { start: TESTS_OPEN, check: 25, done: 28 },
+	'us-east-2': { start: 28, check: 30.5, done: 33 },
+	'eu-west-1': { start: 28, check: 30.5, done: 33 },
+	'eu-central-1': { start: 28, check: 30.5, done: 33 },
+	'ap-southeast-2': { start: 28, check: 30.5, done: 33 }
 };
-/** the earliest second at which a prod place is ready for a person to approve (staging healthy) */
-export const ASKS_AT = 14;
 
 type Release = ReturnType<typeof rel>;
 const rel = (n: number, sha: string, createdMs: number) => release(`b-${n}`, `4.${n}.0-${n}`, sha, createdMs);
 const SHA = { 44: 'b44d3e19a0c7e5a1f2b8c9d04e6a7b1c2d3e4f50', 45: 'b45a7c2e9d1f03b4a5c6d7e8f9a0b1c2d3e4f561', 46: 'e1c7a04b8d2f19a3c5e7091b3d5f7a9c1e3b5d72' };
-const R44 = (): Release => rel(44, SHA[44], BASE - 30 * H), R45 = (): Release => rel(45, SHA[45], BASE - 4 * H), R46 = (): Release => rel(46, SHA[46], simMs(MERGE) + 90_000);
+const R44 = (): Release => rel(44, SHA[44], BASE - 30 * H), R45 = (): Release => rel(45, SHA[45], BASE - 4 * H), R46 = (): Release => ({ ...rel(46, SHA[46], simMs(MERGE) + 90_000), requires: { payments: '^3.1.0' } });
 
-type Place = { ns: string; env: 'dev' | 'staging' | 'prod'; site?: string; wave?: number; step: Step; bake: string; theme: string };
+type Place = { ns: string; env: 'staging' | 'prod'; site?: string; wave?: number; step: Step; bake: string; theme: string };
 const PLACES: Place[] = [
-	{ ns: 'checkout-api-dev', env: 'dev', step: STEPS.dev, bake: '1m', theme: 'dev' },
 	{ ns: 'checkout-api-staging', env: 'staging', step: STEPS.staging, bake: '1m', theme: 'staging' },
 	{ ns: 'checkout-api-prod-us-east-1', env: 'prod', site: 'us-east-1', wave: 1, step: STEPS['us-east-1'], bake: '50s', theme: 'prod' },
 	{ ns: 'checkout-api-prod-us-east-2', env: 'prod', site: 'us-east-2', wave: 2, step: STEPS['us-east-2'], bake: '1m', theme: 'prod' },
@@ -85,17 +86,18 @@ function rollout(p: Place, t: number, failed: boolean) {
 	   - follower (prod us-east-2, eu-west-1, eu-central-1): exactly its wave's current selection = what the wave leader last deployed: old until the leader
 	     starts the new build, then [new] ("followers do not wait for the leader's bake"). */
 	const gates: unknown[] = [];
-	const newTag = merged ? ['b-46'] : [];
-	const up = allowedTags(p, t);
-	if (p.env === 'staging') gates.push(gate('promotion-staging', up));
 	if (p.env === 'prod') {
-		const approved = t >= APPROVE_AT;
-		gates.push(gate(`promotion-prod-${p.site}`, up));
-		/* the approval gate (a person) is raised once staging is healthy: until then prod is simply behind, waiting on its promotion gate */
-		if (t >= ASKS_AT) gates.push(gate('release-approval', approved ? ['b-44', 'b-45', ...newTag] : ['b-44', 'b-45']));
+		const up = allowedTags(p, t);
+		const old = ['b-44', 'b-45'], withNew = merged ? ['b-44', 'b-45', 'b-46'] : old;
+		/* the controller sorts a rollout's gates by name (rollout_controller.go evaluateGateSummaries) */
+		gates.push(
+			gate(`dependency-${DEP_NAME}`, t >= DEP_OPEN ? withNew : old),
+			testsGate(t >= TESTS_OPEN),
+			gate(`promotion-prod-${p.site}`, up),
+			gate('release-approval', t >= APPROVE_AT ? withNew : old)
+		);
 	}
-	/* prod only learns of the build once staging has proven it (an Environment's promotion gate lists it from then on) */
-	const candidates = onNew || !merged || (p.env === 'prod' && t < ASKS_AT) ? [] : [R46()];
+	const candidates = onNew || !merged ? [] : [R46()];
 	return {
 		apiVersion: 'kuberik.com/v1alpha1', kind: 'Rollout',
 		metadata: { name: APP, namespace: p.ns, labels: { environment: p.site ? `${p.env}-${p.site}` : p.env }, annotations: { 'rollout-dashboard.kuberik.com/source-cluster': p.env } },
@@ -109,14 +111,38 @@ const leaderOf = (p: Place): Place => PLACES.filter((q) => q.env === p.env && (q
 const isMerged = (t: number) => t >= MERGE;
 /** the build tag the gate admits, newest first (see the gate comment above) */
 function allowedTags(p: Place, t: number): string[] {
-	if (p.env === 'dev') return [];
+	if (p.env === 'staging') return []; // staging is the first environment: no promotion gate (wave-1 leader without an upstream)
 	const lead = leaderOf(p);
 	const w = p.wave ?? 1;
 	const newer = isMerged(t) ? ['b-46'] : [];
 	if (lead !== p) return phaseAt(lead, t) === 'old' ? ['b-45'] : newer; // follower: the wave's current selection
 	/* leader: wait for the previous wave of its environment, else for the upstream environment's last wave */
-	const prev = w > 1 ? PLACES.filter((q) => q.env === p.env && (q.wave ?? 1) === w - 1) : PLACES.filter((q) => q.env === (p.env === 'prod' ? 'staging' : 'dev'));
+	const prev = w > 1 ? PLACES.filter((q) => q.env === p.env && (q.wave ?? 1) === w - 1) : PLACES.filter((q) => q.env === 'staging');
 	return prev.every((q) => phaseAt(q, t) === 'done') ? [...newer, 'b-45'] : ['b-45'];
+}
+/** the dependency this app declares on payments-svc's `payments` contract (RolloutDependency `checkout-api-needs-payments`, one per prod namespace) and the gate it owns */
+const DEP_NAME = 'checkout-api-needs-payments';
+/** a gate an external controller flips (RolloutGate.spec.passing: CI reports the build's integration run in the prod namespaces); passes at `open` */
+const testsGate = (open: boolean) => ({ name: 'integration-tests', passing: open, allowedVersions: null, message: open ? 'Gate is passing' : 'Gate is not passing' });
+function dependencies(t: number) {
+	const open = t >= DEP_OPEN;
+	return PLACES.filter((p) => p.env === 'prod').map((p) => ({
+		apiVersion: 'kuberik.com/v1alpha1', kind: 'RolloutDependency',
+		metadata: { name: DEP_NAME, namespace: p.ns, annotations: { 'rollout-dashboard.kuberik.com/source-cluster': p.env } },
+		spec: { contract: 'payments', providerRef: { name: 'payments-svc', namespace: 'platform-prod' }, rolloutRef: { name: APP } },
+		status: {
+			providedVersion: open ? '3.1.0' : '3.0.2', providedTag: open ? 'pay-310' : 'pay-302',
+			admittedVersions: open || t < MERGE ? ['b-44', 'b-45', ...(open ? ['b-46'] : [])] : ['b-44', 'b-45'],
+			blockedReleases: open || t < MERGE ? [] : [{ tag: 'b-46', requiredVersion: '^3.1.0', reason: 'ConstraintNotSatisfied' }],
+			gateName: `dependency-${DEP_NAME}`,
+			conditions: [
+				{ type: 'Ready', status: 'True', lastTransitionTime: iso(0), reason: 'GateSynced', message: `Gate dependency-${DEP_NAME} allows ${open ? 3 : 2} release(s)` },
+				open || t < MERGE
+					? { type: 'Satisfied', status: 'True', lastTransitionTime: iso(open ? DEP_OPEN : 0), reason: 'DependencySatisfied', message: 'No release is waiting on contract "payments"' }
+					: { type: 'Satisfied', status: 'False', lastTransitionTime: iso(MERGE), reason: 'WaitingForProvider', message: 'Waiting for platform-prod/payments-svc to serve contract "payments" at a version satisfying release(s) [b-46] (deployed: 3.0.2)' }
+			]
+		}
+	}));
 }
 const short = (sha: string) => sha.slice(0, 7);
 
@@ -140,7 +166,7 @@ function environment(p: Place, t: number) {
 	const w = p.wave ?? 1;
 	const rev = (q: Place) => (phaseAt(q, t) === 'old' ? SHA[45] : SHA[46]);
 	const bake = (q: Place) => (phaseAt(q, t) === 'done' || phaseAt(q, t) === 'old' ? 'Succeeded' : phaseAt(q, t) === 'checking' ? 'InProgress' : 'Deploying');
-	const upEnv = p.env === 'prod' ? 'staging' : p.env === 'staging' ? 'dev' : null;
+	const upEnv = p.env === 'prod' ? 'staging' : null;
 	const members = PLACES.filter((q) => q.env === p.env || q.env === upEnv)
 		.map((q) => ({ environment: q.env, site: q.site ?? 'default', wave: q.wave ?? 1, revision: rev(q), bakeStatus: bake(q) }))
 		.sort((a, b) => a.environment.localeCompare(b.environment) || a.wave - b.wave || a.site.localeCompare(b.site));
@@ -158,7 +184,7 @@ function environment(p: Place, t: number) {
 		metadata: { name: APP, namespace: p.ns, annotations: { 'rollout-dashboard.kuberik.com/source-cluster': p.env } },
 		spec: { environment: p.env, name: 'checkout-api-service', rolloutRef: { name: APP }, ...(p.site ? { site: p.site, wave: p.wave } : {}) },
 		status: {
-			...(p.env === 'dev' ? {} : { rolloutGateRef: { name: p.env === 'staging' ? 'promotion-staging' : `promotion-prod-${p.site}` } }),
+			...(p.env === 'staging' ? {} : { rolloutGateRef: { name: `promotion-prod-${p.site}` } }),
 			currentVersion: ph === 'old' ? 'b-45' : 'b-46', lastStatusChangeTime: ph === 'old' ? new Date(BASE - 3 * H).toISOString() : iso(p.step.start),
 			wave: {
 				site: p.site ?? 'default', environment: p.env, name: 'kuberik-checkout-api-service', wave: w, role: lead === p ? 'Leader' : 'Follower', leader: lead.site ?? 'default',
@@ -194,12 +220,14 @@ function healthChecks(t: number, failedCheck: string | null) {
 		const ph = phaseAt(p, t);
 		const mk = (name: string) => {
 			const failing = failedCheck === name && ph !== 'old';
-			const status = failing ? 'Unhealthy' : ph === 'deploying' ? 'Pending' : 'Healthy';
+			/* the slower check (p99 needs a window of traffic on the new build) reports a little after the fast one */
+			const late = name === 'latency-p99' && ph === 'checking' && t < p.step.check + 0.55 * (p.step.done - p.step.check);
+			const status = failing ? 'Unhealthy' : ph === 'deploying' || late ? 'Pending' : 'Healthy';
 			return {
 				apiVersion: 'kuberik.com/v1alpha1', kind: 'HealthCheck',
 				metadata: { name: `${APP}-${name}`, namespace: p.ns, labels: { app: APP }, annotations: { 'kuberik.com/display-name': name } },
 				spec: { class: 'prometheus-alert' },
-				status: { status, message: failing ? '4.2% of requests failed, over a 1% budget' : 'No alerts firing', lastChangeTime: iso(ph === 'old' ? -60 : p.step.start) }
+				status: { status, message: failing ? '4.2% of requests failed, over a 1% budget' : `No alerts firing for labels map[alertname:${name === 'error-rate' ? 'HighErrorRate' : 'HighLatencyP99'} app:${APP}]`, lastChangeTime: iso(ph === 'old' ? -60 : p.step.start) }
 			};
 		};
 		return { metadata: { namespace: p.ns, name: APP, annotations: { 'rollout-dashboard.kuberik.com/source-cluster': p.env } }, healthChecks: [mk('error-rate'), mk('latency-p99')] };
@@ -263,7 +291,7 @@ export function fleetAt(t: number): FleetSource {
 	return {
 		rollouts: [...PLACES.map((p) => rollout(p, t, false)), sc.rollout] as never,
 		environments: [...PLACES.map((p) => environment(p, t)), sc.env] as never,
-		rolloutDependencies: { items: [] },
+		rolloutDependencies: { items: dependencies(t) as never },
 		kustomizations: PLACES.map(kustomization) as never,
 		kruiseRollouts: PLACES.map((p) => kruise(p, t)) as never,
 		changes: changes as never,

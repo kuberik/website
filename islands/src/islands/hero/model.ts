@@ -8,25 +8,27 @@
 import { approvalTarget, type TRow } from '$lib/components/new/data';
 import { rowAction } from '$lib/components/new/rollout-view';
 import { appRowsOf, appIdentityOf, identityOf, laneOfApp, ledgerOfApp } from '../shared/app-model';
-import { APP, APPROVE_AT, ASKS_AT, MERGE } from './scenario';
+import { APP, APPROVE_AT, ASKS_AT, DEP_OPEN, MERGE, TESTS_OPEN } from './scenario';
 
-/** the place the build is "in", by story time (SPEC 2.3 `current`) */
-export type Where = 'dev' | 'staging' | 'ask' | 'wave1' | 'wave2' | 'done';
-export const whereAt = (t: number): Where => (t < 8 ? 'dev' : t < ASKS_AT ? 'staging' : t < APPROVE_AT ? 'ask' : t < 24.5 ? 'wave1' : t < 30 ? 'wave2' : 'done');
+/** the step the build is at, by story time (BEATS.md): staging is one beat, every other one is a production step */
+export type Where = 'staging' | 'approval' | 'contract' | 'tests' | 'canary' | 'checks' | 'waves' | 'done';
+export const whereAt = (t: number): Where => (t < ASKS_AT ? 'staging' : t < APPROVE_AT ? 'approval' : t < DEP_OPEN ? 'contract' : t < TESTS_OPEN ? 'tests' : t < 25 ? 'canary' : t < 28 ? 'checks' : t < 33 ? 'waves' : 'done');
 
-/** the seek chips of SPEC 2.3 and the beat each one starts at / settles on (reduced motion shows the settled one) */
+/** the seek chips (short nouns: the production steps) and the beat each one starts at / settles on (reduced motion shows the settled one) */
 export const CHIPS = [
-	{ key: 'merged', label: 'Merged', from: 2.0, to: 4.9, settled: 2.2 },
-	{ key: 'dev', label: 'Dev', from: 5.0, to: 7.9, settled: 7.7 },
-	{ key: 'staging', label: 'Staging', from: 8.0, to: 13.9, settled: 13.7 },
-	{ key: 'approval', label: 'Approval', from: 14.0, to: 19.3, settled: 16.0 },
-	{ key: 'production', label: 'Production', from: 19.4, to: 34.4, settled: 33.0 }
+	{ key: 'staging', label: 'Staging', from: 2.0, to: 6.3, settled: 4.9 },
+	{ key: 'approval', label: 'Approval', from: 6.4, to: 10.9, settled: 8.4 },
+	{ key: 'contract', label: 'Contract', from: 11.0, to: 15.9, settled: 14.2 },
+	{ key: 'tests', label: 'Tests', from: 16.0, to: 21.4, settled: 19.5 },
+	{ key: 'canary', label: 'Canary', from: 21.5, to: 24.9, settled: 23.6 },
+	{ key: 'checks', label: 'Checks', from: 25.0, to: 27.9, settled: 26.6 },
+	{ key: 'waves', label: 'Waves', from: 28.0, to: 38.4, settled: 36.0 }
 ] as const;
-export const LOOP = 36;
-/** which chip is lit at `t`: the one whose span holds it; the first beats before the merge light none (SPEC beat 0 and 17) */
+export const LOOP = 40;
+/** which chip is lit at `t`: the one whose span holds it; the first beats before the merge light none */
 export const chipAt = (t: number): number => CHIPS.findIndex((c) => t >= c.from && t <= c.to);
-/** `t` at which reduced motion rests (beat 8) */
-export const REST_T = 16.0;
+/** `t` at which reduced motion rests */
+export const REST_T = 8.4;
 
 type Row = TRow;
 export const appRows = () => appRowsOf(APP);
@@ -36,13 +38,14 @@ export function focusRow(t: number): Row | null {
 	const { rows, approval } = appRows();
 	const w = whereAt(t);
 	const pick = (f: (r: Row) => boolean) => rows.find(f) ?? null;
+	const lead = () => pick((r) => r.tier === 'prod' && r.where === 'us-east-1') ?? pick((r) => r.tier === 'prod');
 	switch (w) {
-		case 'dev': return pick((r) => r.tier === 'dev');
 		case 'staging': return pick((r) => r.tier === 'staging');
-		case 'ask': return approval ?? pick((r) => r.tier === 'prod');
-		case 'wave1': return pick((r) => r.tier === 'prod' && r.where === 'us-east-1') ?? pick((r) => r.tier === 'prod');
-		case 'wave2': return pick((r) => r.tier === 'prod' && r.regions.length > 1 && r.group !== 'held') ?? pick((r) => r.tier === 'prod' && r.group === 'moving') ?? pick((r) => r.tier === 'prod');
-		default: return pick((r) => r.tier === 'prod' && r.where === 'us-east-1') ?? pick((r) => r.tier === 'prod');
+		case 'approval': return approval ?? lead();
+		case 'contract': case 'tests': return pick((r) => r.tier === 'prod' && r.group === 'held') ?? lead();
+		case 'canary': case 'checks': return lead();
+		case 'waves': return pick((r) => r.tier === 'prod' && r.regions.length > 1 && r.group !== 'held') ?? pick((r) => r.tier === 'prod' && r.group === 'moving') ?? lead();
+		default: return lead();
 	}
 }
 

@@ -42,7 +42,7 @@
 	const askTarget = $derived(stmt?.target ?? null);
 
 	/* the two presses (pure function of t) */
-	const ch = $derived(reduced ? { target: null, visible: false, press: false, ask: false, done: false } : choreoAt(t));
+	const ch = $derived(reduced ? { target: null, visible: false, press: false, ask: false } : choreoAt(t));
 	let ptr = $state({ x: 0, y: 0 });
 	let ptrShown = $state(false);
 	function rel(el: Element | null) {
@@ -51,7 +51,7 @@
 	}
 	/** one step of the choreography per change of target / ask: measure the real buttons, then point at them */
 	$effect(() => {
-		const { target, ask, visible, done } = ch;
+		const { target, ask, visible } = ch;
 		void settled; // a scroll move ended: the buttons are where they will stay
 		untrack(() => {
 			if (ask && !approvalUi.ask && askTarget) {
@@ -66,8 +66,6 @@
 				}
 			}
 			if (!ask && approvalUi.ask) approvalUi.ask = null;
-			if (done && !approvalUi.done) { const tg = askTarget ?? lastTarget; if (tg) approvalUi.done = { target: tg, error: null }; }
-			if (!done && approvalUi.done) approvalUi.done = null;
 		});
 		(async () => {
 			await tick();
@@ -147,8 +145,6 @@
 		});
 	});
 	$effect(() => () => { clearTimeout(timer); cancelAnimationFrame(raf); });
-	let lastTarget: NonNullable<typeof askTarget> | null = null;
-	$effect(() => { if (askTarget) lastTarget = askTarget; });
 
 	const lit = $derived(chipAt(t));
 	const spanFill = $derived(lit < 0 ? 0 : Math.min(1, Math.max(0, (t - CHIPS[lit].from) / (CHIPS[lit].to - CHIPS[lit].from))));
