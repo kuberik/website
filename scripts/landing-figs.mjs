@@ -199,8 +199,8 @@ function twoPlates(rampCls) {
 	const g1 = P(TW / 2 - gw, 4, 0), g2 = P(TW / 2 + gw, 4, 0);
 	b += `<path class="fig-gate" ${NS} d="M${g1[0]} ${g1[1]}v-36M${g2[0]} ${g2[1]}v-36"/>`;
 	b += `<g class="m m-gate-bar"><path class="fig-gate fig-dash" ${NS} d="M${g1[0]} ${f(g1[1] - 28)}L${g2[0]} ${f(g2[1] - 28)}"/></g>`;
-	const wait = P(TW / 2, 26, 0), foot = P(TW / 2, -2, 0), mid = P(TW / 2, -TG / 2, TZ / 2);
-	b += `<g class="m m-gate-cube">${cube({ px: TW / 2, py: 26, e: 14 })}</g>`;
+	const wait = P(TW / 2, 38, 0), foot = P(TW / 2, -2, 0), mid = P(TW / 2, -TG / 2, TZ / 2);
+	b += `<g class="m m-gate-cube">${cube({ px: TW / 2, py: 38, e: 12 })}</g>`;
 	const pass = d(wait, foot), up = d(wait, mid);
 	track('gate-bar', CYCLE, [{ t: 0, o: 1 }, { t: 0, x: 0, y: 0 }, { t: 240, x: 0, y: -8, o: 0 }, { t: 1900, x: 0, y: -8, o: 0 }, { t: 2140, x: 0, y: 0, o: 1 }, { t: 6000, o: 1 }]);
 	track('gate-cube', CYCLE, [{ t: 0, o: 1 }, { t: 160, o: 1 }, { t: 160, dur: 700, pts: [[0, 0], pass, up], o: [1, 1] }, { t: 1500, x: up[0], y: up[1], o: 1 }, { t: 1700, x: up[0], y: up[1], o: 0 }, { t: 2200, o: 0 }, { t: 2400, o: 1 }, { t: 6000, o: 1 }]);
