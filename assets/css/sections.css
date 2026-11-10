@@ -162,10 +162,11 @@ html.dark .vendor-mark{background-image:var(--logo-dark);opacity:.72}
 }
 @media(max-width:1023px){
   .figs{grid-template-columns:minmax(0,1fr);row-gap:0;margin:32px 0 0}
-  .fig-cell,.fig-cell:first-child,.fig-cell:nth-child(4){grid-column:auto!important;display:grid;grid-template-columns:136px minmax(0,1fr);column-gap:16px;align-items:start;padding:24px 0;border-left:0;border-top:1px solid var(--fig-sep)}
-  .fig-cell:first-child{border-top:0;padding-top:0}
-  .fig-art,.fig-cell:nth-child(n+4) .fig-art{grid-row:1/span 3;margin:0;max-width:none}
+  .figs .fig-cell,.figs .fig-cell:first-child,.figs .fig-cell:nth-child(4){grid-column:auto!important;display:grid;grid-template-columns:136px minmax(0,1fr);column-gap:16px;align-items:start;padding:24px 0;border-left:0;border-top:1px solid var(--fig-sep)}
+  .figs .fig-cell:first-child{border-top:0;padding-top:0}
+  .figs .fig-art,.figs .fig-cell:nth-child(n+4) .fig-art{grid-row:1/span 3;margin:0;max-width:none}
   .fig-q{margin-top:8px;font-size:16px;line-height:22px}
+  .fig-cap{gap:8px;white-space:nowrap}.fig-no{letter-spacing:0}.fig-own{padding:0 6px}
   /* below 1024 no fig renders under 0.45 scale (A11): drop the small marks that clot at that size
      (tiles, plate ring) and queue one build, not two */
   .figs .fig-tile,.figs .fig-ring,.fig-release .m-rel-g2,.fig-release .m-rel-g3{display:none}
@@ -238,7 +239,7 @@ html.dark .vendor-mark{background-image:var(--logo-dark);opacity:.72}
   .closing-art .fig{max-height:460px}
 }
 @media(min-width:1024px) and (max-width:1199px){.closing-wide{max-width:560px}.closing-art .fig-label{font-size:20px}}
-@media(max-width:1023px){.closing-wide{display:none}.closing-compact{display:block;width:220px}}
+@media(max-width:1023px){.closing-wide{display:none}.closing-compact{display:block;width:300px;max-width:100%;margin-top:8px}}
 @media(max-width:640px){
   .sec,.statement{margin-top:80px}
   .head .title-body{margin-top:12px}
