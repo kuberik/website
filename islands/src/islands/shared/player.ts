@@ -1,7 +1,7 @@
 /**
  * The hero's clock. Story time `t` (seconds, 0..LOOP) advances only while every gate is open: on screen, tab visible, motion allowed,
- * and the reader has not pressed pause. Leaving the screen closes a gate; coming back restarts at 0 (SPEC section 6) so a reader always
- * sees the story from its start. `seek` jumps and keeps playing; reduced motion never advances, it only jumps.
+ * and the reader has not pressed pause. Leaving the screen closes a gate; coming back RESUMES where the story was (lane 23; it restarted at 0 before), so a reader never
+ * loses their place. `seek` jumps and keeps playing; reduced motion never advances, it only jumps.
  * Framework-free and clock-injectable (see player.test.ts). It owns WHEN; model.ts / scenario.ts own WHAT.
  */
 export type PlayerOptions = {
@@ -37,7 +37,7 @@ export class Player {
 		const before = this.g[name];
 		this.g[name] = v;
 		if (name === 'motion') { if (!v) this.jump(this.o.rest); else this.jump(0); }
-		if (name === 'onscreen' && v && !before && this.g.motion && this.g.user) this.jump(0); // a reader's pause survives scrolling away and back
+		void before; // scrolling away and back RESUMES where the story was (L14); a reader's pause survives too
 		this.sync(was);
 	}
 	/** a reader's pause, idempotent (QA hook) */

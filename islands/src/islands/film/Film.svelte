@@ -174,6 +174,7 @@
 	/** The two confirms are the product's REAL dialogs, opened by pressing the real buttons, and their open state is a pure function of `t` (so a seek lands on them too):
 	 *  the approval confirm between the two Approve presses (anchored in canvas px), the rollback dialog between the banner's Roll back and Continue.
 	 *  Neither dialog's own confirm is clicked: the story's CRs carry the outcome (grantApproval would write an optimistic "Deploying" row, TRUTH defect). */
+	let lastGoal: HTMLElement | null = null;
 	let rbOpen = false, pressedGo = false, dlgTick = $state(0);
 	$effect(() => { if (t < 34) pressedGo = false; });
 	$effect(() => {
@@ -188,7 +189,7 @@
 			} else if (!want && approvalUi.ask) approvalUi.ask = null;
 			if (wantRb && !rbOpen && shown === 'overview') { const el = resolveTarget('banner-rollback', canvas, phone); if (el) { el.click(); rbOpen = true; void tick().then(() => requestAnimationFrame(() => (dlgTick += 1))); } }
 			else if (wantRb && rbOpen && t >= 38.7 && !pressedGo) { const go = resolveTarget('modal-continue', canvas, phone) as HTMLButtonElement | null; if (go && !go.disabled) { pressedGo = true; rbOpen = false; go.click(); } }
-			else if (!wantRb && rbOpen) { resolveTarget('modal-cancel', canvas, phone)?.click(); rbOpen = false; }
+			else if (!wantRb && rbOpen) { lastGoal = null; resolveTarget('modal-cancel', canvas, phone)?.click(); rbOpen = false; }
 		});
 	});
 
@@ -204,6 +205,13 @@
 			if (!canvas || !open || shown !== 'overview') return;
 			typeInto(resolveTarget('modal-reason', canvas, phone) as HTMLTextAreaElement | null, REASON.slice(0, typedLen(tt, TYPING.reason, REASON.length)));
 			const v = canvas.querySelector('.fm-panel')?.textContent?.match(/Type\s+(\S+)\s+to confirm/)?.[1] ?? '4.45.0-45';
+			/* phone: the sheet's body is taller than the sheet; a person scrolls to the fields before typing (the reason first, then down to the confirmation). Pure function of t, so a seek lands scrolled. */
+			if (phone) {
+				const rEl = resolveTarget('modal-reason', canvas, phone), cEl = resolveTarget('modal-confirm', canvas, phone);
+				let sc: HTMLElement | null = rEl?.parentElement ?? null; while (sc && !(sc.scrollHeight > sc.clientHeight + 4 && /auto|scroll/.test(getComputedStyle(sc).overflowY))) sc = sc.parentElement;
+				const goal = tt >= 36.8 ? cEl : tt >= 34.7 ? rEl : null;
+				if (sc && goal) { const a = sc.getBoundingClientRect(), g = goal.getBoundingClientRect(), u = a.height / sc.clientHeight || 1; const want = Math.max(0, sc.scrollTop + (g.top - a.top) / u - (sc.clientHeight - g.height / u) * (goal === cEl ? 0.6 : 0.35)); if (goal !== lastGoal) { lastGoal = goal; sc.scrollTo({ top: want, behavior: 'smooth' }); } }
+			}
 			typeInto(resolveTarget('modal-confirm', canvas, phone) as HTMLInputElement | null, v.slice(0, typedLen(tt, TYPING.confirm, v.length)));
 		});
 	});

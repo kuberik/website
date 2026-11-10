@@ -70,7 +70,7 @@
 	.fc-play { margin-left: 2px; width: 34px; height: 34px; flex: none; display: inline-grid; place-items: center; color: var(--k-fg-muted); background: transparent; border: 0; border-left: 1px solid var(--k-line); border-radius: 0 8px 8px 0; cursor: pointer; }
 	.fc-play:hover { color: var(--k-fg); }
 	/* phone (STORYBOARD section 6): the same panel on two rows: clock and tally on one line, the tabs below; the lit chapter keeps its label, the others are dots */
-	.fc-narrow { top: -70px; height: 92px; }
+	.fc-narrow { top: -104px; height: 92px; }
 	.fc-narrow .fc-panel { height: 92px; width: calc(100% - 8px); grid-template-columns: minmax(0, 1fr) auto; grid-template-rows: 28px 44px; gap: 4px 8px; padding: 6px 4px 4px 10px; align-content: start; }
 	.fc-narrow .fc-tally { padding-right: 6px; }
 	.fc-narrow .fc-bar { grid-row: 2; grid-column: 1 / span 2; }

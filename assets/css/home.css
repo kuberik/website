@@ -52,7 +52,7 @@ html.dark{
   --st-slate:linear-gradient(180deg,#111b1f,#0f181b);    /* oklch(.215 .016 222) -> oklch(.200 .014 222) */
   color-scheme:dark}
 @media(min-width:1920px){:root{--cont:1440px;--gut:48px;--win-w:1200px}}
-@media(min-width:2400px){:root{--cont:1920px;--gut:64px;--win-w:1280px}}
+@media(min-width:2400px){:root{--cont:1920px;--gut:64px;--win-w:1600px;--win-h:914px}}
 /* hero window = a fixed viewport onto the page (640 desktop/tablet, 600 phone): the page scrolls INSIDE it per beat (Hero.svelte). Story window S1 = the tallest beat (its content fits), measured by .work/landing-v5/build/r4/measure.mjs */
 @media(max-width:1023px){:root{--win-h:640px;--win-w:696px;--stage-r:20px;--stage-inset:12px;--stage-pad:24px;--gut:24px}}
 @media(max-width:640px){:root{--win-w:350px;--win-h:620px;--stage-r:16px;--stage-inset:8px;--stage-pad:12px;--gut:16px}}
@@ -72,7 +72,7 @@ a{color:inherit;text-decoration:none}
 .logo{display:flex;align-items:center;gap:8px;font:700 20px/24px var(--sans);letter-spacing:-.02em}
 .logo img{height:24px;width:auto;display:block}
 .logo .ld{display:none}html.dark .logo .ll{display:none}html.dark .logo .ld{display:block}
-.links{display:flex;gap:28px;font:500 15px/20px var(--sans);color:var(--ink-muted)}
+.links{display:flex;gap:28px;font:500 14px/20px var(--sans);color:var(--ink-muted)}
 .links a:hover{color:var(--ink)}
 .navr{margin-left:auto;display:flex;gap:8px;align-items:center}
 .pill{height:36px;min-width:36px;padding:0 12px;border:1px solid var(--line);border-radius:8px;display:inline-flex;align-items:center;justify-content:center;gap:8px;font:500 14px/20px var(--sans);color:var(--ink);background:transparent;cursor:pointer}
@@ -82,7 +82,7 @@ a{color:inherit;text-decoration:none}
 .theme .moon{display:none}html.dark .theme .sun{display:none}html.dark .theme .moon{display:block}
 .burger{display:none}
 .menu{display:none}
-.btn{height:44px;padding:0 18px;border-radius:8px;font:500 15px/20px var(--sans);display:inline-flex;align-items:center;justify-content:center;gap:8px;border:1px solid transparent;cursor:pointer;white-space:nowrap}
+.btn{height:44px;padding:0 18px;border-radius:8px;font:500 14px/20px var(--sans);display:inline-flex;align-items:center;justify-content:center;gap:8px;border:1px solid transparent;cursor:pointer;white-space:nowrap}
 .btn svg{width:18px;height:18px;flex:none}
 .btn-ink{background:var(--ink);color:var(--page)}
 .btn-ink:hover{opacity:.88}
@@ -148,10 +148,11 @@ h1{font:600 64px/68px var(--sans);letter-spacing:-.035em;margin:18px auto 14px;m
   .menu .btn{width:100%;margin-top:8px}
   .hero{padding:32px var(--stage-pad) 12px}
   h1{font-size:40px;line-height:44px;margin:14px auto 12px}
-  .sub{font-size:17px;line-height:26px}
+  .sub{font-size:16px;line-height:26px}
   .ctas{gap:8px;padding:0 4px;margin-top:20px}
   .ctas .btn{flex:1 1 0;min-width:0;padding-inline:10px}
-  .hero-window{margin-top:100px}  /* the phone chrome (clock+tally over the bar) is 70px above the window: clear the proof line above it */
+  .ctas-left{flex-direction:row;padding:0}  /* the closing CTAs sit side by side like the hero's: a column here crushed them to 22 px (flex:1 1 0 on the height axis) */
+  .hero-window{margin-top:134px}  /* the phone chrome (clock+tally over the bar) is 70px above the window: clear the proof line above it */
   .hero-chiproom{height:80px}
   .story,
   
@@ -160,7 +161,7 @@ h1{font:600 64px/68px var(--sans);letter-spacing:-.035em;margin:18px auto 14px;m
   .title{font-size:26px;line-height:32px}
   .title-body{font-size:16px;line-height:24px;margin-top:12px}
   .slot{margin-top:80px;min-height:200px}
-  .code pre{font-size:12.5px;padding:16px}
+  .code pre{font-size:12px;padding:16px}
   .foot nav{margin-left:0}
 }
 @media(prefers-reduced-motion:reduce){html{scroll-behavior:auto}}

@@ -47,12 +47,12 @@ html.dark{
 .sec-inner{padding:var(--stage-pad)}
 .head{display:flex;flex-direction:column}
 .head .title{max-width:none}
-.title-body code{font:500 .9em var(--mono);padding:1px 6px;border-radius:6px;background:color-mix(in oklab,var(--page) 70%,transparent);border:1px solid var(--line);color:var(--ink)}
+.title-body code{font:500 14px var(--mono);padding:1px 6px;border-radius:6px;background:color-mix(in oklab,var(--page) 70%,transparent);border:1px solid var(--line);color:var(--ink)}
 @media(min-width:1024px){
   .head{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1fr);column-gap:48px;align-items:end}
   .head .title-body{margin:0;justify-self:end}
 }
-.link-arrow{display:inline-flex;align-items:center;gap:6px;font:500 15px/20px var(--sans);color:var(--ink)}
+.link-arrow{display:inline-flex;align-items:center;gap:6px;font:500 14px/20px var(--sans);color:var(--ink)}
 .link-arrow svg{transition:transform .15s}
 .link-arrow:hover svg{transform:translateX(3px)}
 
@@ -69,7 +69,7 @@ html.js .reveal.is-in{opacity:1;transform:none}
 .vendor-mark{width:28px;height:28px;flex:none;background:var(--logo-light) center/contain no-repeat;filter:grayscale(1);opacity:.62;transition:filter .2s,opacity .2s}
 html.dark .vendor-mark{background-image:var(--logo-dark);opacity:.72}
 .proof-cell:hover .vendor-mark{filter:none;opacity:1}
-.proof-name{font:600 15px/20px var(--sans);color:var(--ink)}
+.proof-name{font:600 14px/20px var(--sans);color:var(--ink)}
 .proof-job{font:400 13px/20px var(--mono);color:var(--ink-subtle)}
 
 /* statement */
@@ -180,7 +180,7 @@ html.dark .vendor-mark{background-image:var(--logo-dark);opacity:.72}
 .deps-copy .title-body{margin:0;max-width:46ch}
 .deps-art{display:block;padding:0;border:0}
 .deps-art.fig-cell{border-left:0;padding:0}
-.deps .fig-sub,.fig-sub{fill:var(--fig-label);font:500 12.5px/1 var(--mono)}
+.deps .fig-sub,.fig-sub{fill:var(--fig-label);font:500 12px/1 var(--mono)}
 .fig-sub.is-waiting{fill:var(--mint-ink)}
 .fig-env{fill:var(--ink);font-size:14px}
 /* RULE: a rendered label is >= 12px. The graph scales 0.8 (1200) to 1.4 (2560), so the user-unit size steps by breakpoint (measure: figs-design/scripts/measure2.mjs) */
@@ -194,7 +194,7 @@ html.dark .vendor-mark{background-image:var(--logo-dark);opacity:.72}
 @media(max-width:640px){
   .deps-wide{display:none}
   .deps-compact{display:block;max-width:340px;margin-inline:auto}
-  .deps-compact .fig-env{font-size:15px}.deps-compact .fig-sub{font-size:14px}
+  .deps-compact .fig-env{font-size:14px}.deps-compact .fig-sub{font-size:14px}
 }
 
 /* everything you write: four file windows */
