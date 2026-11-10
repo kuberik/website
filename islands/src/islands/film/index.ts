@@ -50,6 +50,13 @@ export function mountFilm(ctx: CustomCtx) {
 		ctx.ready();
 	});
 	ctx.onGate((g, v) => { player!.gate(g, v); props.playing = player!.playing; props.reduced = player!.reduced; });
+	/* STORYBOARD section 9: hovering the window, or focusing inside it, pauses the story (a reader is looking); leaving resumes. Mouse only: a tap on a phone is not a hover. */
+	const inside = () => ctx.host.matches(':hover') || !!ctx.host.shadowRoot?.activeElement;
+	const hover = () => { player!.gate('hover', !inside()); props.playing = player!.playing; };
+	ctx.host.addEventListener('pointerenter', (e) => { if ((e as PointerEvent).pointerType === 'mouse') hover(); });
+	ctx.host.addEventListener('pointerleave', hover);
+	ctx.host.addEventListener('focusin', hover);
+	ctx.host.addEventListener('focusout', () => setTimeout(hover));
 	/* QA hook: freeze the story on second `t` (screenshot harness; harmless in the page) */
 	(ctx.host as any).__story = { at: (t: number) => { player!.seek(t); player!.pause(); props.playing = player!.playing; }, player };
 	return () => player!.destroy();

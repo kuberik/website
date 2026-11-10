@@ -18,7 +18,7 @@ export type PlayerOptions = {
 };
 export class Player {
 	private o: Required<Omit<PlayerOptions, 'rest'>> & { rest: number };
-	private g = { onscreen: false, visible: true, motion: true, user: true };
+	private g = { onscreen: false, visible: true, motion: true, user: true, hover: true };
 	private t = 0;
 	private last = 0;
 	private timer: unknown = null;
@@ -28,11 +28,11 @@ export class Player {
 		this.emit();
 	}
 	get time() { return this.t; }
-	get playing() { return this.g.onscreen && this.g.visible && this.g.motion && this.g.user; }
+	get playing() { return this.g.onscreen && this.g.visible && this.g.motion && this.g.user && this.g.hover; }
 	get paused() { return !this.g.user; }
 	get reduced() { return !this.g.motion; }
 	/** open or close one gate; 'onscreen' opening restarts the story, 'motion' closing parks it on the rest frame */
-	gate(name: 'onscreen' | 'visible' | 'motion', v: boolean) {
+	gate(name: 'onscreen' | 'visible' | 'motion' | 'hover', v: boolean) {
 		const was = this.playing;
 		const before = this.g[name];
 		this.g[name] = v;

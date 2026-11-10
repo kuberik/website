@@ -36,7 +36,7 @@
 	const surf = $derived<Surf>(surfAt(t));
 	const lit = $derived(chapterAt(t));
 	const mv = $derived<Move>(moveAt(t));
-	const fading = $derived(!reduced && t >= FADE_AT);
+	/* the loop wrap is a cross-fade from the last frame into b1 (the outgoing page dims, the incoming one fades in): no empty-ground beat, which in dark was a black window */
 	const press = $derived(reduced ? null : pressAt(t));
 	void tallyShown;
 
@@ -69,7 +69,8 @@
 	let lastT = -1;
 	$effect(() => {
 		const s = surf, tt = t;
-		const jumped = Math.abs(tt - lastT) > 0.4 || lastT < 0;
+		const wrap = lastT > 40 && tt < 2; /* the loop's end into its start: animated, not a seek */
+		const jumped = (Math.abs(tt - lastT) > 0.4 && !wrap) || lastT < 0;
 		lastT = tt;
 		untrack(() => { if (s !== shown && s !== swapping) void show(s, jumped || reduced); });
 	});
@@ -90,6 +91,8 @@
 	let refineTimer: ReturnType<typeof setTimeout> | undefined;
 	function aim(m: Move, jump: boolean, refine = false) {
 		if (!group || !main) return;
+		/* reduced motion: no camera at all (STORYBOARD section 9): every frame is the unzoomed, unscrolled page */
+		if (reduced) { cam = { x: 0, y: 0, s: 1, dur: 0, ease: 'ease', moving: false }; dimHole = null; return; }
 		const vw = main.clientWidth, vh = main.clientHeight, gw = group.offsetWidth, gh = group.offsetHeight;
 		const el = m.to === 'rest' ? null : resolveTarget(m.to, group, phone);
 		let x = 0, y = 0, s = m.s;
@@ -182,7 +185,7 @@
 </script>
 
 <div class="film" bind:this={host} bind:clientWidth={W} bind:clientHeight={H}>
-	<div class="film-frame" class:film-fade={fading}>
+	<div class="film-frame">
 		<div class="film-canvas" bind:this={canvas} style="width:{CW}px;height:{CH}px;transform:scale({k})">
 			<div class="film-app">
 				{#if !phone}<div class="film-side" class:film-dim={shellDim}>{#if Side}<Side />{/if}</div>{/if}

@@ -31,3 +31,9 @@ test('a reader pause survives scrolling away and back', () => {
 	p.gate('onscreen', true); run(3000); p.toggle(); const t = p.time; p.gate('onscreen', false); p.gate('onscreen', true); run(2000);
 	expect(p.paused).toBe(true); expect(p.time).toBeCloseTo(t, 1);
 });
+test('hover / focus gate pauses and resumes without moving the story', () => {
+	const { p, run } = rig();
+	p.gate('onscreen', true); run(2000);
+	p.gate('hover', false); run(5000); expect(p.time).toBeCloseTo(2, 1); expect(p.playing).toBe(false);
+	p.gate('hover', true); run(1000); expect(p.time).toBeCloseTo(3, 1);
+});

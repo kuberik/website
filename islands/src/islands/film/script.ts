@@ -27,7 +27,7 @@ const SURF: [number, Surf][] = [[0, 'change'], [6.3, 'rollouts'], [12.5, 'gates'
 export const surfAt = (t: number): Surf => [...SURF].reverse().find(([at]) => t >= at)![1];
 /** surfaces whose cut comes within `ahead` story seconds (their chunks are fetched before the beat: STORYBOARD section 9) */
 export const upcoming = (t: number, ahead = 3): Surf[] => SURF.filter(([at]) => at > t && at - t <= ahead).map(([, s]) => s);
-/** the loop's end: the page fades at 47.0 over 400 ms, empty ground from 47.4 */
+/** (retired) the loop end no longer fades to empty ground: the wrap cross-fades into b1 */
 export const FADE_AT = 47.0;
 
 /** camera: a keyframe is a move that STARTS at `at`. `to` names a target the film resolves in the surface's DOM ('rest' = scale 1, origin). `dur` in ms. */
@@ -78,4 +78,4 @@ const PEOPLE = [10.2, 38.7];
 const FAILED = [27.0];
 export const tallyAt = (t: number) => ({ passed: PASSED.filter((x) => t >= x).length, failed: FAILED.filter((x) => t >= x).length, people: PEOPLE.filter((x) => t >= x).length });
 /** the page fades with the loop's end, so the tally clears with it */
-export const tallyShown = (t: number) => (t >= FADE_AT ? { passed: 0, failed: 0, people: 0 } : tallyAt(t));
+export const tallyShown = (t: number) => tallyAt(t);
