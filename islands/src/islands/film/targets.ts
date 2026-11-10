@@ -19,6 +19,12 @@ export function resolveTarget(name: string, root: ParentNode, phone: boolean): H
 	const q = <T extends Element = HTMLElement>(s: string) => root.querySelector<T>(s);
 	switch (name) {
 		case 'approve': return q('[data-approve-open]');
+		/* the Approve card and, once it is open, its confirm popover under it: one frame */
+		case 'approve-pair': { const c = q('[data-approve-open]')?.closest<HTMLElement>('[class*="rounded"]') ?? null, pop = phone ? null : q('[data-approve-confirm]'); return c && pop ? union([c, pop]) : c; }
+		/* the rollback dialog's fields: the reason, the typed confirmation and the dialog's own Roll back, with their labels (inflated above) */
+		case 'modal-fields': { const a = q('.fm-panel textarea'), b = q('.fm-panel #cvm-confirm-version'), m = q('.fm-panel'), c = m ? byText(m, 'button', /^Roll back$/) : null; if (!a || !b) return null; const u = union([a, b, ...(c ? [c] : [])]); return { __r: 8, getBoundingClientRect() { const r = u.getBoundingClientRect(); return new DOMRect(r.left - 14, r.top - 40, r.width + 28, r.height + 54); } } as unknown as HTMLElement; }
+		/* the finale's frame: the Production card's regions (the four untouched ones) and its Last deploy record ("rolled back"), clipped to the card's left 660 px so the zoom lands on them */
+		case 'final-prod': { const c = cardOf(root, /^Production/i); if (!c) return null; return { __r: 8, getBoundingClientRect() { const r = c.getBoundingClientRect(), sc = r.width / (c.offsetWidth || r.width); return new DOMRect(r.left, r.top, Math.min(r.width, 660 * sc), r.height); } } as unknown as HTMLElement; }
 		case 'approve-confirm': return q('[data-action="approve-confirm"]');
 		case 'attention': return q('[data-approve-open]')?.closest<HTMLElement>('[class*="rounded"]') ?? null;
 		case 'banner-rollback': return byText(root, 'button, a', /^Roll back$/);

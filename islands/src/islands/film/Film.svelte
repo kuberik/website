@@ -58,32 +58,13 @@
 		swapping = next;
 		const c = await loadSurface(next);
 		if (seq !== swapSeq) return;
-		const src = !instant && shown === 'rollouts' && next === 'gates' ? rowRect() : null; /* b8: the In-flight row is about to grow into the rollout's title row */
 		if (!instant && shown) { swapOpacity = 0.4; /* the outgoing page dims, it never goes to empty ground: a slow incoming chunk must not leave a blank window */ await new Promise((r) => setTimeout(r, 120)); if (seq !== swapSeq) return; }
 		Object.assign(page, SURFACE_PATH[next]);
 		pageStore.update((p) => ({ ...p, ...SURFACE_PATH[next] })); // the History tab reads get(page) of $app/stores (not $app/state)
 		Comp = c; shown = next;
 		await tick();
 		swapOpacity = 1;
-		if (src) void tick().then(() => requestAnimationFrame(() => morph(src)));
 		if (seq === swapSeq) swapping = null;
-	}
-	/* ---- b8 shared-element morph (STORYBOARD section 4: FLIP 360 ms, cubic-bezier(.2,.8,.2,1)): a ghost of the row's box (surface, hairline, 8 px corners: the product's row) travels onto the title row's box and
-	   fades as the page under it arrives. NEW BY DESIGN: no product component animates between pages. Boxes only, never text (a scaled heading would be a smear). ---- */
-	let ghostEl: HTMLElement | undefined = $state();
-	const inCanvas = (r: DOMRect) => { const c = canvas!.getBoundingClientRect(); return { x: (r.left - c.left) / k, y: (r.top - c.top) / k, w: r.width / k, h: r.height / k }; };
-	function rowRect() {
-		if (!canvas || !group) return null;
-		const a = [...group.querySelectorAll<HTMLElement>('a')].find((e) => e.textContent?.trim() === 'checkout-api'); if (!a) return null;
-		let e: HTMLElement = a; while (e.parentElement && e.parentElement !== group && e.parentElement.getBoundingClientRect().height < 90 && e.parentElement.getBoundingClientRect().width > e.getBoundingClientRect().width) e = e.parentElement;
-		const r = e.getBoundingClientRect(); return r.width > 300 ? inCanvas(r) : null;
-	}
-	function morph(from: { x: number; y: number; w: number; h: number }) {
-		if (!canvas || !group || !ghostEl || reduced) return;
-		const h1 = [...group.querySelectorAll<HTMLElement>('h1')].find((e) => /checkout-api/.test(e.textContent ?? '')); const row = h1?.parentElement; if (!row) return;
-		const to = inCanvas(row.getBoundingClientRect()); if (to.y < -50 || to.y > CH) return;
-		const px = (r: { x: number; y: number; w: number; h: number }, o: number) => ({ left: r.x + 'px', top: r.y + 'px', width: r.w + 'px', height: r.h + 'px', opacity: o });
-		ghostEl.animate([px(from, 1), { ...px(to, 0.9), offset: 0.8 }, px(to, 0)], { duration: 360, easing: 'cubic-bezier(.2,.8,.2,1)', fill: 'none' });
 	}
 	let lastT = -1;
 	$effect(() => {
@@ -98,6 +79,7 @@
 	/* ---- the camera: transform only, on the content group; the shell stays put and dims ---- */
 	let main: HTMLElement | undefined = $state();
 	let group: HTMLElement | undefined = $state();
+	let camEl: HTMLElement | undefined = $state();
 	let cam = $state({ x: 0, y: 0, s: 1, dur: 0, ease: 'ease', moving: false });
 	let hole = $state<{ x: number; y: number; w: number; h: number; r: number } | null>(null);
 	let holeOn = $state(false), shadeOn = $state(false);
@@ -111,27 +93,44 @@
 		const g = group!.getBoundingClientRect(), r = el.getBoundingClientRect(), u = unit();
 		return { x: (r.left - g.left) / u, y: (r.top - g.top) / u, w: r.width / u, h: r.height / u };
 	}
+	/** the smallest font (canvas px) of the text whose box centre lies inside `r` (group space): what a zoom has to lift to a readable size */
+	function minFont(r: { x: number; y: number; w: number; h: number }) {
+		let min = 99;
+		const w = document.createTreeWalker(camEl!, NodeFilter.SHOW_TEXT);
+		for (let n = w.nextNode(); n; n = w.nextNode()) {
+			if (!n.textContent?.trim()) continue;
+			const p = n.parentElement!; if (p.closest('svg,style,script')) continue;
+			const b = relRect(p), cx = b.x + b.w / 2, cy = b.y + b.h / 2;
+			if (b.w < 2 || cx < r.x || cx > r.x + r.w || cy < r.y || cy > r.y + r.h) continue;
+			const fs = parseFloat(getComputedStyle(p).fontSize); if (fs && fs < min) min = fs;
+		}
+		return min === 99 ? 13 : min;
+	}
 	let refineTimer: ReturnType<typeof setTimeout> | undefined;
 	function aim(m: Move, jump: boolean, refine = false) {
 		if (!group || !main) return;
 		/* reduced motion: no camera at all (STORYBOARD section 9): every frame is the unzoomed, unscrolled page */
 		if (reduced) { cam = { x: 0, y: 0, s: 1, dur: 0, ease: 'ease', moving: false }; holeOn = false; shadeOn = false; return; }
 		const vw = main.clientWidth, vh = main.clientHeight, gw = group.offsetWidth, gh = group.offsetHeight;
-		const el = m.to === 'rest' ? null : resolveTarget(m.to, group, phone);
+		const el = m.to === 'rest' || (phone && m.to === 'modal-fields') ? null : resolveTarget(m.to, camEl!, phone); /* phone: the rollback dialog is a full-screen sheet, there is nothing to zoom */
 		let x = 0, y = 0, s = m.s;
 		if (el) {
 			const r = relRect(el);
 			if (phone) { s = 1; y = -Math.max(0, r.y - 10); }
-			else if (s === 1 && m.dim === 'page') { y = -Math.max(0, Math.min(r.y - 24, gh - vh)); }
-			else if (s === 1) { x = m.to === 'health-checks' ? -96 : 0; }
-			else { /* fit with a 14 px margin: the product's gap between cards is >= 12 px x scale, so a neighbour never peeks into the frame mid-word */ s = Math.max(1, Math.min(m.s, (vw - 28) / r.w)); /* width-fit only: a target taller than the window may exceed it (centred), the zoom keeps the planned depth */ x = vw / 2 - s * (r.x + r.w / 2); y = vh / 2 - s * (r.y + r.h / 2); }
+			else if (s === 1) { y = -Math.max(0, Math.min(r.y - 24, gh - vh)); }
+			else {
+				/* fit with a 14 px margin: the product's gap between cards is >= 12 px x scale, so a neighbour never peeks into the frame mid-word. The PERSON beats (m.min) zoom until their smallest text renders at m.min px, bounded by the window (both axes) and 2.4x. */
+				const need = m.min ? m.min / (minFont(r) * k) : 0;
+				s = Math.max(1, Math.min(Math.max(m.s, need), (vw - 28) / r.w, m.min ? (vh - 28) / r.h : Infinity, 2.4));
+				x = vw / 2 - s * (r.x + r.w / 2); y = vh / 2 - s * (r.y + r.h / 2);
+			}
 		}
 		x = Math.min(0, Math.max(Math.min(0, vw - s * gw), x));
 		y = Math.min(0, Math.max(Math.min(0, vh - s * gh), y));
 		/* the ONE dim (L1/L2): the product's ink at 38% over everything but the target, shell included. The hole is the target's own rect and corner radius. */
 		const wantDim = !!el && !!m.dim && !reduced;
-		shadeOn = wantDim;
-		const next = wantDim ? holeOf(el!) : null;
+		shadeOn = wantDim; /* 'shade' = the shell only (the dialog's own scrim dims the page) */
+		const next = wantDim && m.dim !== 'shade' ? holeOf(el!) : null;
 		clearTimeout(holeTimer);
 		if (!next) holeOn = false;
 		else if (refine || !holeOn || !hole) { hole = next; holeOn = true; }
@@ -163,7 +162,8 @@
 	});
 	let prevT = -1;
 	function CAMERA_INDEX(m: Move) { return m.at; }
-	const camStyle = $derived(cam.s === 1 && cam.x === 0 && cam.y === 0 && !cam.moving ? 'transform:none' : `transform: translate3d(${cam.x}px, ${cam.y}px, 0) scale(${cam.s}); transition: transform ${cam.dur}ms ${cam.ease}; will-change: ${cam.moving ? 'transform' : 'auto'}`);
+	/* the transform sits on the CAMERA wrapper (group + overlays): a fixed child (the approve popover, the rollback dialog) anchors to the wrapper and zooms with the page. On desktop the wrapper always carries a transform so the dialog's containing block never changes mid-move. */
+	const camStyle = $derived(phone && cam.s === 1 && cam.x === 0 && cam.y === 0 && !cam.moving ? 'transform:none' : cam.s === 1 && cam.x === 0 && cam.y === 0 && !cam.moving ? 'transform: translate(0, 0)' : `transform: translate3d(${cam.x}px, ${cam.y}px, 0) scale(${cam.s}); transition: transform ${cam.dur}ms ${cam.ease}; will-change: ${cam.moving ? 'transform' : 'auto'}`);
 	const shellDim = $derived(shadeOn && !reduced);
 
 	/* ---- the cursor: canvas px; the real click is dispatched at `press` ---- */
@@ -204,7 +204,7 @@
 			/* only on the surface that owns the button: a seek lands here before the new surface is shown, and the old page may carry a link with the same words (a real navigation of the host page) */
 			if (want && !approvalUi.ask && shown === 'rollouts') {
 				const el = resolveTarget('approve', canvas, phone) as HTMLElement | null;
-				if (el) { el.click(); const a = approvalUi.ask; if (a) { const c = canvas.getBoundingClientRect(), r = el.getBoundingClientRect(); a.anchor = { top: (r.top - c.top) / k, left: (r.left - c.left) / k, right: (r.right - c.left) / k, bottom: (r.bottom - c.top) / k }; } }
+				if (el) { el.click(); const a = approvalUi.ask; if (a) { if (phone) { const c = canvas.getBoundingClientRect(), r = el.getBoundingClientRect(); a.anchor = { top: (r.top - c.top) / k, left: (r.left - c.left) / k, right: (r.right - c.left) / k, bottom: (r.bottom - c.top) / k }; } else { const r = relRect(el); /* the layer lives in the camera wrapper: group space, so it sits under ITS button at any zoom; the 320 px panel is left-aligned to the button (right = left + 320) */ a.anchor = { top: r.y, left: r.x, right: r.x + 320, bottom: r.y + r.h }; } } }
 			} else if (!want && approvalUi.ask) approvalUi.ask = null;
 			if (wantRb && !rbOpen && shown === 'overview') { const el = resolveTarget('banner-rollback', canvas, phone); if (el) { el.click(); rbOpen = true; void tick().then(() => requestAnimationFrame(() => (dlgTick += 1))); } }
 			else if (wantRb && rbOpen && t >= 38.7 && !pressedGo) { const go = resolveTarget('modal-continue', canvas, phone) as HTMLButtonElement | null; if (go && !go.disabled) { pressedGo = true; rbOpen = false; go.click(); } }
@@ -249,16 +249,18 @@
 				<div class="film-col">
 					<div class="film-top"><WindowBar crumbs={crumbs} narrow={phone} keep={2} /><i class="film-shade" class:film-shade-on={shellDim}></i></div>
 					<main class="film-main" bind:this={main}>
-						<div class="film-group" bind:this={group} style="{camStyle}; opacity:{swapOpacity}; {swapOpacity ? 'transition: transform ' + cam.dur + 'ms ' + cam.ease + ', opacity .2s ease-out' : 'transition: opacity .12s ease-in'}">
-							{#if Comp}<Comp {...props} />{/if}
-							{#if hole}<div class="film-hole" class:film-hole-on={holeOn} style="left:{hole.x}px;top:{hole.y}px;width:{hole.w}px;height:{hole.h}px;border-radius:{hole.r}px"></div>{/if}
+						<div class="film-cam" bind:this={camEl} style={camStyle}>
+							<div class="film-group" bind:this={group} style="opacity:{swapOpacity}; transition: opacity {swapOpacity ? '.2s ease-out' : '.12s ease-in'}">
+								{#if Comp}<Comp {...props} />{/if}
+								{#if hole}<div class="film-hole" class:film-hole-on={holeOn} style="left:{hole.x}px;top:{hole.y}px;width:{hole.w}px;height:{hole.h}px;border-radius:{hole.r}px"></div>{/if}
+							</div>
+							{#if Layer && !phone}<Layer />{/if}
 						</div>
 					</main>
 				</div>
 				{#if phone}<div class="film-tabs">{#if Tabs}<Tabs />{/if}<i class="film-shade" class:film-shade-on={shellDim}></i></div>{/if}
 			</div>
-			<i class="film-ghost" bind:this={ghostEl} aria-hidden="true"></i>
-			{#if Layer}<Layer />{/if}
+			{#if Layer && phone}<Layer />{/if}
 			<Cursor x={ptr.x} y={ptr.y} on={ptr.on} press={ptr.press} touch={phone} />
 		</div>
 	</div>
@@ -276,7 +278,8 @@
 	.film-col { display: flex; flex-direction: column; min-width: 0; flex: 1 1 0; }
 	.film-top { flex: none; }
 	.film-main { position: relative; flex: 1 1 0; min-height: 0; overflow: hidden; }
-	.film-group { position: relative; transform-origin: 0 0; min-width: 0; }
+	.film-cam { position: absolute; left: 0; top: 0; width: 100%; height: 100%; transform-origin: 0 0; }
+	.film-group { position: relative; min-width: 0; }
 	/* THE dim (one value in every theme and width): the product's ink at 38%. The hole (.film-hole) is a box whose spread shadow dims everything round it, so its own rect and corner radius are the target's; the shell is dimmed by a plain layer of the same colour. */
 	.film-frame { --film-dim: rgb(12 20 26 / 0.38); }
 	.film-hole { position: absolute; z-index: 4; pointer-events: none; box-shadow: 0 0 0 4000px var(--film-dim); opacity: 0; transition: opacity 0.2s ease-out; }
@@ -284,6 +287,5 @@
 	.film-side, .film-top { position: relative; }
 	.film-shade { position: absolute; inset: 0; z-index: 6; pointer-events: none; background: var(--film-dim); opacity: 0; transition: opacity 0.2s ease-out; }
 	.film-shade-on { opacity: 1; }
-	.film-ghost { position: absolute; z-index: 7; pointer-events: none; opacity: 0; background: var(--k-surface, #fff); border: 1px solid var(--k-line-strong, #cad4d7); border-radius: 8px; box-sizing: border-box; }
 	.film-tabs { position: absolute; left: 0; right: 0; bottom: 0; z-index: 5; }
 </style>
