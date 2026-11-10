@@ -15,7 +15,7 @@
 	import type { TRow } from '$lib/components/new/data';
 	import { tick, untrack } from 'svelte';
 	import { APP } from './scenario';
-	import { CHIPS, chipAt, focusRow, identityOf, laneFor, ledgerFor, actionOf, targetOf, LOOP } from './model';
+	import { CHIPS, chipAt, focusRow, appIdentityOf, laneFor, ledgerFor, actionOf, targetOf, LOOP } from './model';
 	import { choreoAt } from './choreo';
 	import WindowBar from '../shared/WindowBar.svelte';
 	import AppHeader from '../shared/AppHeader.svelte';
@@ -31,9 +31,9 @@
 
 	/* what the dashboard's own view-model says at this instant (the source was installed before `t` changed) */
 	const row = $derived(t >= 0 ? (focusRow(t) as TRow | null) : null);
-	const who = $derived(row ? identityOf(row) : null);
+	const who = $derived(row ? appIdentityOf(APP) : null);
 	const lane = $derived(t >= 0 ? laneFor() : null);
-	const cur = $derived.by(() => { const h = (row?.href ?? '').split('/').filter(Boolean); return h[0] === 'rollouts' ? { ns: h[2], name: h[3] } : null; });
+	const cur = $derived.by(() => { const h = (who?.href ?? '').split('/').filter(Boolean); return h[0] === 'rollouts' ? { ns: h[2], name: h[3] } : null; });
 	const act = $derived(row ? actionOf(row) : null);
 	const hrefFor = (n: { card: unknown }) => (n.card as { href?: string }).href ?? '';
 

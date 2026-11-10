@@ -7,7 +7,7 @@
  */
 import { approvalTarget, type TRow } from '$lib/components/new/data';
 import { rowAction } from '$lib/components/new/rollout-view';
-import { appRowsOf, identityOf, laneOfApp, ledgerOfApp } from '../shared/app-model';
+import { appRowsOf, appIdentityOf, identityOf, laneOfApp, ledgerOfApp } from '../shared/app-model';
 import { APP, APPROVE_AT, ASKS_AT, MERGE } from './scenario';
 
 /** the place the build is "in", by story time (SPEC 2.3 `current`) */
@@ -46,7 +46,7 @@ export function focusRow(t: number): Row | null {
 	}
 }
 
-export { identityOf };
+export { identityOf, appIdentityOf };
 /** the app page's env strip (PromotionLane) for the live source */
 export const laneFor = () => laneOfApp(APP);
 

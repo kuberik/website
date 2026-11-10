@@ -5,7 +5,9 @@
  */
 import { apps, placeHolds, rowsOf, stepsOf, deployedBuild, waitingBuild, tabPill, ago, type TRow, type PlaceHold } from '$lib/components/new/data';
 import { laneOf } from '$lib/components/new/Footprint.svelte';
-import { ledgerOf } from '$lib/components/new/app/app-model';
+import { ledgerOf, pillOf, placesInPillState } from '$lib/components/new/app/app-model';
+import { siteCount, regionsPhrase } from '$lib/view-models/regions';
+import { tabEnv, envTheme, VIEWER } from '$lib/components/new/rollout-view';
 
 type Row = TRow;
 /** AppDetail's `rowFor`, for one place: the model's row where the place has one, else a closed healthy place */
@@ -54,3 +56,32 @@ export function ledgerOfApp(app: string) {
 	const view = (p: PlaceHold) => ({ row: rowFor(app, p), pinned: false, approve: null, slipAction: null, toggle: null, open: false });
 	return { places, stops: ledgerOf(places), view };
 }
+
+export type AppIdentity = ReturnType<typeof identityOf> & { newer: number; href: string; runs: { label: string; theme: ReturnType<typeof envTheme> }[] };
+/**
+ * AppDetail's header facts, for the page's header subject: ONE subject in every scenario (AP5), what PRODUCTION runs (`pillOf`'s headline place), never the
+ * dev place a routine deploy is moving through. Same derivations as AppDetail (build, tab pill, "deployed <age> ago", "N newer builds", the "in [PROD | 5 regions]" badges).
+ */
+export function appIdentityOf(app: string): AppIdentity | null {
+	const places = placeHolds(app, 'incident') as PlaceHold[];
+	const hp = pillOf(places, 'incident');
+	const focus = hp?.place ?? places.find((p) => p.tier === 'prod') ?? places[0];
+	if (!focus) return null;
+	const dep = deployedBuild({ app, href: focus.href, version: focus.runs } as never);
+	const build = dep?.build || focus.runs || '';
+	const runsAt = build ? placesInPillState(places, build, hp?.word ?? '') : [];
+	const runs: AppIdentity['runs'] = [];
+	const prod = runsAt.filter((x) => x.tier === 'prod');
+	const prodRegions = regionsPhrase(siteCount(prod.map((x) => x.label)), 'prod');
+	if (prodRegions) runs.push({ label: prodRegions, theme: envTheme('prod') });
+	const seen = new Set<string>();
+	for (const x of runsAt) {
+		if (x.tier === 'prod' && prodRegions) continue;
+		const lab = tabEnv({ tier: x.tier, label: x.label }).replace(/^production$/, 'prod');
+		if (seen.has(lab)) continue;
+		seen.add(lab);
+		runs.push({ label: lab, theme: envTheme(x.tier) });
+	}
+	return { build, pill: hp ? { word: hp.word, role: hp.role } : null, commit: dep?.title ? { title: dep.title, who: dep.author } : null, age: ago(dep?.at), newer: focus.heldBuilds.length, href: focus.href, runs };
+}
+void VIEWER;
