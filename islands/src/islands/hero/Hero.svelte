@@ -5,7 +5,7 @@
 	 * REFERENCE REGION: `components/new/app/AppDetail.svelte`, composed from what it draws for these states (shared/app-page.ts re-runs its derivations):
 	 * the header (glyph, 24 name, 20 mono build, the tab's pill, commit line, PromotionLane strip: PRODUCTION's, by pillOf), the StatementBanner when a place waits
 	 * on a person or is checking (AA4: Approve lives there, `approveAct` opens ApprovalLayer's confirm), and the Builds ledger (`AppBuilds`) with the lead place opened
-	 * as its Slipway. A place at rest opens nothing. NO standalone "Deployment pipeline" card: the product draws the pipeline only inside a place row.
+	 * as its Slipway. A place at rest opens nothing; on a phone the lead stays closed behind its chevron, as AppDetail has it (`phone ? null : leadKey`). NO standalone "Deployment pipeline" card: the product draws the pipeline only inside a place row.
 	 * Left out: the rail (Holding / pulse / activity), the star, the deploy dialog: a window is not the page.
 	 * NEW BY DESIGN: (1) the window top bar (the dashboard's Navbar is a route chrome tied to its router and queries, so the bar is drawn from
 	 * the same classes), (2) the pointer, (3) the chip bar: the Railway tab bar, the story's seek and pause control (WCAG 2.2.2).
@@ -39,7 +39,7 @@
 	const cur = $derived.by(() => { const h = (who?.href ?? '').split('/').filter(Boolean); return h[0] === 'rollouts' ? { ns: h[2], name: h[3] } : null; });
 	const hrefFor = (n: { card: unknown }) => (n.card as { href?: string }).href ?? '';
 	const stmt = $derived(page?.statement?.kind === 'wait' ? page.statement : null);
-	const target = $derived(stmt?.target ?? null);
+	const askTarget = $derived(stmt?.target ?? null);
 
 	/* the two presses (pure function of t) */
 	const ch = $derived(reduced ? { target: null, visible: false, press: false, ask: false, done: false } : choreoAt(t));
@@ -53,8 +53,8 @@
 	$effect(() => {
 		const { target, ask, visible, done } = ch;
 		untrack(() => {
-			if (ask && !approvalUi.ask && target) {
-				const tg = target;
+			if (ask && !approvalUi.ask && askTarget) {
+				const tg = askTarget;
 				const a = rel(box?.querySelector('[data-approve-open]') ?? null);
 				if (tg && a) {
 					/* ApprovalLayer measures the viewport, not this frame: with no room below the button inside the frame, hand it an anchor
@@ -65,7 +65,7 @@
 				}
 			}
 			if (!ask && approvalUi.ask) approvalUi.ask = null;
-			if (done && !approvalUi.done) { const tg = target ?? lastTarget; if (tg) approvalUi.done = { target: tg, error: null }; }
+			if (done && !approvalUi.done) { const tg = askTarget ?? lastTarget; if (tg) approvalUi.done = { target: tg, error: null }; }
 			if (!done && approvalUi.done) approvalUi.done = null;
 		});
 		(async () => {
@@ -77,8 +77,8 @@
 			if (!visible) ptrShown = false;
 		})();
 	});
-	let lastTarget: NonNullable<typeof target> | null = null;
-	$effect(() => { if (target) lastTarget = target; });
+	let lastTarget: NonNullable<typeof askTarget> | null = null;
+	$effect(() => { if (askTarget) lastTarget = askTarget; });
 
 	const lit = $derived(chipAt(t));
 	const spanFill = $derived(lit < 0 ? 0 : Math.min(1, Math.max(0, (t - CHIPS[lit].from) / (CHIPS[lit].to - CHIPS[lit].from))));
@@ -98,7 +98,7 @@
 						<!-- AppDetail AA4: the wait is a statement in the tab's own box: the gate sentence, the one Approve, Open rollout -->
 						<div data-ad-statement data-ad-wait><StatementBanner severity={stmt.severity} title={stmt.title} message={stmt.message} primary={stmt.approve as never} secondary={stmt.openHref ? [{ label: 'Open rollout', href: stmt.openHref, key: 'open-rollout' }] : []} /></div>
 					{/if}
-					<div class="ad-places"><AppBuilds stops={page.stops} places={page.places} view={(p) => page.view(p, page.leadKey, narrow)} phone={narrow} nested hs="incident" onDeploy={() => {}} /></div>
+					<div class="ad-places"><AppBuilds stops={page.stops} places={page.places} view={(p) => page.view(p, narrow ? null : page.leadKey, narrow)} phone={narrow} nested hs="incident" onDeploy={() => {}} /></div>
 				</div>
 			{/if}
 		</div>

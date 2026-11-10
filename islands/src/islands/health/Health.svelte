@@ -19,7 +19,7 @@
 	import AppHeader from '../shared/AppHeader.svelte';
 	import Pointer from '../shared/Pointer.svelte';
 	import ChipBar from '../shared/ChipBar.svelte';
-	import { identityOf, laneOfApp } from '../shared/app-model';
+	import { identityOf, laneOfApp, appIdentityOf } from '../shared/app-model';
 	import { APP, LOOP, stagingChecks, windowStartAt, phaseAt } from './scenario';
 	import { CHIPS, chipAt, stagingRow, rollbackOf, choreoAt } from './model';
 
@@ -32,9 +32,10 @@
 
 	/* what the dashboard's own view-model says at this instant (the world installed the source before `t` changed) */
 	const row = $derived(t >= 0 ? (stagingRow() as TRow | null) : null);
-	const who = $derived(row ? identityOf(row) : null);
+	/* the header's ONE subject is what PRODUCTION runs (AppDetail AP5: pillOf's headline place), never the staging place the story is about: the failing staging place is the statement's, below */
+	const who = $derived(row ? appIdentityOf(APP) : null);
 	const lane = $derived(t >= 0 ? laneOfApp(APP) : null);
-	const cur = $derived.by(() => { const h = (row?.href ?? '').split('/').filter(Boolean); return h[0] === 'rollouts' ? { ns: h[2], name: h[3] } : null; });
+	const cur = $derived.by(() => { const h = (who?.href ?? '').split('/').filter(Boolean); return h[0] === 'rollouts' ? { ns: h[2], name: h[3] } : null; });
 	const hrefFor = (n: { card: unknown }) => (n.card as { href?: string }).href ?? '';
 	const checks = $derived(stagingChecks(t));
 	const windowStart = $derived(windowStartAt(t));

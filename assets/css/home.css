@@ -18,7 +18,7 @@
   --st-rose:linear-gradient(180deg,#f8f0f8 0%,#f2f1fc 100%);--rose-a:#f6d2ec;--rose-b:#dcd6ff;
   --st-violet:linear-gradient(180deg,#f2efff 0%,#eef6fb 100%);--violet-a:#d9cfff;--violet-b:#c6ecf5;
   --st-sky:linear-gradient(180deg,#ebf4ff 0%,#effaf6 100%);--sky-a:#c3dcff;--sky-b:#bff0df;
-  --gut:32px;--cont:1200px;--win-w:1120px;--win-h:640px;--stage-inset:16px;--stage-r:24px;--stage-pad:56px;
+  --gut:32px;--cont:1200px;--win-w:1120px;--win-h:1110px;--s1-h:720px;--stage-inset:16px;--stage-r:24px;--stage-pad:56px;
   --sans:'Kuberik Page Inter',system-ui,-apple-system,'Segoe UI',sans-serif;
   --mono:'Kuberik Page Mono',ui-monospace,'SF Mono',Menlo,monospace;
   color-scheme:light}
@@ -31,8 +31,10 @@ html.dark{
   color-scheme:dark}
 @media(min-width:1920px){:root{--cont:1440px;--gut:48px;--win-w:1200px}}
 @media(min-width:2400px){:root{--cont:1920px;--gut:64px;--win-w:1280px}}
-@media(max-width:1023px){:root{--win-w:696px;--stage-r:20px;--stage-inset:12px;--stage-pad:24px;--gut:24px}}
-@media(max-width:640px){:root{--win-w:350px;--win-h:700px;--stage-r:16px;--stage-inset:8px;--stage-pad:12px;--gut:16px}}
+@media(min-width:1680px) and (max-width:2399px){:root{--s1-h:960px}}
+/* window heights = the tallest beat at that width (natural content + bar), measured by .work/landing-v5/build/r4/measure.mjs */
+@media(max-width:1023px){:root{--win-h:1130px;--s1-h:980px;--win-w:696px;--stage-r:20px;--stage-inset:12px;--stage-pad:24px;--gut:24px}}
+@media(max-width:640px){:root{--win-w:350px;--win-h:970px;--s1-h:725px;--stage-r:16px;--stage-inset:8px;--stage-pad:12px;--gut:16px}}
 
 *{box-sizing:border-box}
 html{background:var(--page);scroll-behavior:smooth}
