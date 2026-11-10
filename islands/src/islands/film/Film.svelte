@@ -23,7 +23,7 @@
 	import { rollbackOpen, REASON, TYPING, typedLen } from './script';
 	setDisplayTimeZone('utc'); // the chrome clock is UTC, and so is every absolute time the product prints
 
-	let { t, playing, reduced, onseek, ontoggle, eventIdx }: { t: number; playing: boolean; reduced: boolean; onseek: (chip: number) => void; ontoggle: () => void; eventIdx: number } = $props();
+	let { t, playing, userPlaying, reduced, onseek, ontoggle, eventIdx }: { t: number; playing: boolean; reduced: boolean; onseek: (chip: number) => void; ontoggle: () => void; eventIdx: number; userPlaying: boolean } = $props();
 
 	let host: HTMLElement | undefined = $state();
 	let W = $state(1120), H = $state(640);
@@ -216,7 +216,7 @@
 
 <div class="film" bind:this={host} bind:clientWidth={W} bind:clientHeight={H}>
 	<div class="film-frame">
-		<div class="film-canvas" bind:this={canvas} style="width:{CW}px;height:{CH}px;zoom:{k}">
+		<div class="film-canvas" inert aria-hidden="true" bind:this={canvas} style="width:{CW}px;height:{CH}px;zoom:{k}">
 			<div class="film-app">
 				{#if !phone}<div class="film-side">{#if Side}<Side />{/if}<i class="film-shade" class:film-shade-on={shellDim}></i></div>{/if}
 				<div class="film-col">
@@ -234,7 +234,7 @@
 			<Cursor x={ptr.x} y={ptr.y} on={ptr.on} press={ptr.press} touch={phone} />
 		</div>
 	</div>
-	<Chrome {t} {lit} {fill} {reduced} {playing} narrow={phone} {tally} {onseek} {ontoggle} />
+	<Chrome {t} {lit} {fill} {reduced} playing={userPlaying} narrow={phone} {tally} {onseek} {ontoggle} />
 </div>
 
 <style>

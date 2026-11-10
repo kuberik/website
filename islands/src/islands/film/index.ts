@@ -16,7 +16,7 @@ import Film from './Film.svelte';
 import { containScroll } from './contain-scroll';
 
 export function mountFilm(ctx: CustomCtx) {
-	const props = reactive({ t: 0, playing: false, reduced: false, eventIdx: -1, onseek: (_: number) => {}, ontoggle: () => {} });
+	const props = reactive({ t: 0, playing: false, userPlaying: true, reduced: false, eventIdx: -1, onseek: (_: number) => {}, ontoggle: () => {} });
 	let world: ReturnType<typeof worldAt> | null = null;
 	installAnswers(() => (world?.fleet.rollouts as unknown[]) ?? [], () => world?.github ?? null);
 	containScroll();
@@ -39,12 +39,12 @@ export function mountFilm(ctx: CustomCtx) {
 		last = t;
 		props.t = t;
 		for (const s of upcoming(t)) void loadSurface(s);
-		if (player) { props.playing = player.playing; props.reduced = player.reduced; }
+		if (player) { props.playing = player.playing; props.userPlaying = !player.paused; props.reduced = player.reduced; }
 	};
 	player = new Player({ loop: LOOP, rest: REST_T, quantum: 0.05, onTime: apply });
 	apply(0);
-	props.onseek = (i) => { player!.seek(player!.reduced ? CHAPTERS[i].settled : CHAPTERS[i].from); props.playing = player!.playing; };
-	props.ontoggle = () => { player!.toggle(); props.playing = player!.playing; };
+	props.onseek = (i) => { player!.gate('hover', true); player!.seek(player!.reduced ? CHAPTERS[i].settled : CHAPTERS[i].from); props.playing = player!.playing; props.userPlaying = !player!.paused; };
+	props.ontoggle = () => { player!.gate('hover', true); player!.toggle(); props.playing = player!.playing; props.userPlaying = !player!.paused; };
 	/* the first frame is real once the surface, the shell and the fonts are in and painted: only then does the static poster leave (no blank gap, no shift) */
 	const shell = ctx.host.clientWidth < 600 ? import('$lib/MobileTabBar.svelte') : import('$lib/Sidebar.svelte'); // fetched in parallel with the first surface, same chunk Film asks for
 	void Promise.all([loadSurface('change'), shell]).then(async () => {
@@ -54,13 +54,11 @@ export function mountFilm(ctx: CustomCtx) {
 		ctx.ready();
 	});
 	ctx.onGate((g, v) => { player!.gate(g, v); props.playing = player!.playing; props.reduced = player!.reduced; });
-	/* STORYBOARD section 9: hovering the window, or focusing inside it, pauses the story (a reader is looking); leaving resumes. Mouse only: a tap on a phone is not a hover. */
-	const inside = () => ctx.host.matches(':hover') || !!ctx.host.shadowRoot?.activeElement;
-	const hover = () => { player!.gate('hover', !inside()); props.playing = player!.playing; };
-	ctx.host.addEventListener('pointerenter', (e) => { if ((e as PointerEvent).pointerType === 'mouse') hover(); });
-	ctx.host.addEventListener('pointerleave', hover);
-	ctx.host.addEventListener('focusin', hover);
-	ctx.host.addEventListener('focusout', () => setTimeout(hover));
+	/* STORYBOARD section 9: hovering the film pauses the story (a reader is looking); leaving resumes. The CANVAS only: the chrome (chapters, play) sits outside the gate, or pressing it would close the gate it opens. Mouse only: a tap on a phone is not a hover. The canvas is inert (no focus, no tab stops), so there is no focus gate. */
+	let inFrame = false;
+	const setHover = (v: boolean) => { if (v === inFrame) return; inFrame = v; player!.gate('hover', !v); props.playing = player!.playing; };
+	ctx.host.addEventListener('pointermove', (e) => { if ((e as PointerEvent).pointerType === 'mouse') setHover((e.composedPath() as Element[]).some((n) => n.classList?.contains('film-frame'))); });
+	ctx.host.addEventListener('pointerleave', () => setHover(false));
 	/* QA hook: freeze the story on second `t` (screenshot harness; harmless in the page) */
 	(ctx.host as any).__story = { at: (t: number) => { player!.seek(t); player!.pause(); props.playing = player!.playing; }, player };
 	return () => player!.destroy();
