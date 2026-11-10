@@ -5,6 +5,7 @@
  */
 import { apps, placeHolds, rowsOf, stepsOf, deployedBuild, waitingBuild, tabPill, ago, type TRow, type PlaceHold } from '$lib/components/new/data';
 import { laneOf } from '$lib/components/new/Footprint.svelte';
+import { ledgerOf } from '$lib/components/new/app/app-model';
 
 type Row = TRow;
 /** AppDetail's `rowFor`, for one place: the model's row where the place has one, else a closed healthy place */
@@ -42,4 +43,14 @@ export function laneOfApp(app: string) {
 	const A = apps('incident');
 	const item = A.items.find((a) => a.app === app);
 	return item ? laneOf(item, A.R.c.m as never, A.R.c.events as never).lane : null;
+}
+
+/**
+ * The app page's Builds ledger for the live source, as AppDetail feeds AppBuilds: every place once under the build it runs. A place at rest has
+ * no pipeline to open (the page gives it no toggle), so this is what the product draws when nothing is moving: the ledger of collapsed place rows.
+ */
+export function ledgerOfApp(app: string) {
+	const places = placeHolds(app, 'incident') as PlaceHold[];
+	const view = (p: PlaceHold) => ({ row: rowFor(app, p), pinned: false, approve: null, slipAction: null, toggle: null, open: false });
+	return { places, stops: ledgerOf(places), view };
 }

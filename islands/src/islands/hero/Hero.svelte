@@ -9,12 +9,13 @@
 	 * the same classes), (2) the pointer, (3) the chip bar: the Railway tab bar, the story's seek and pause control (WCAG 2.2.2).
 	 */
 	import Slipway from '$lib/components/new/Slipway.svelte';
+	import AppBuilds from '$lib/components/new/app/AppBuilds.svelte';
 	import ApprovalLayer from '$lib/components/new/ApprovalLayer.svelte';
 	import { approvalUi } from '$lib/components/new/approvals.svelte';
 	import type { TRow } from '$lib/components/new/data';
 	import { tick, untrack } from 'svelte';
 	import { APP } from './scenario';
-	import { CHIPS, chipAt, focusRow, identityOf, laneFor, actionOf, targetOf, LOOP } from './model';
+	import { CHIPS, chipAt, focusRow, identityOf, laneFor, ledgerFor, actionOf, targetOf, LOOP } from './model';
 	import { choreoAt } from './choreo';
 	import WindowBar from '../shared/WindowBar.svelte';
 	import AppHeader from '../shared/AppHeader.svelte';
@@ -89,7 +90,13 @@
 			{#if row && who}
 				<AppHeader app={APP} {who} {lane} {cur} yours={!!row.needsYou} {hrefFor} />
 				<div class="px-4 pb-4 pt-4 sm:px-6 sm:pb-6">
-					<Slipway {row} nested compact={false} action={act} />
+					{#if row.group === 'rest'}
+						<!-- nothing is moving: the product opens no pipeline for a settled place, it draws the Builds ledger of collapsed place rows -->
+						{@const L = ledgerFor()}
+						<div class="ad-places"><AppBuilds stops={L.stops} places={L.places} view={L.view} nested onDeploy={() => {}} /></div>
+					{:else}
+						<Slipway {row} nested compact={false} action={act} />
+					{/if}
 				</div>
 			{/if}
 		</div>

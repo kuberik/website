@@ -81,9 +81,11 @@ function rollout(p: Place, t: number, failed: boolean) {
 	const newTag = merged ? ['b-46'] : [];
 	if (p.env === 'staging') gates.push(gate('promotion-staging', t >= STEPS.dev.done ? newTag : []));
 	if (p.env === 'prod') {
-		const approved = t >= APPROVE_AT - 0.4;
+		const approved = t >= APPROVE_AT;
 		const staged = t >= ASKS_AT;
-		gates.push(gate(`promotion-prod-${p.site}`, staged ? newTag : []));
+		/* a follower region waits for its wave's leader: its promotion gate lets the build through once us-east-1 has settled */
+		const waveOk = p.wave === 1 || t >= STEPS['us-east-1'].done;
+		gates.push(gate(`promotion-prod-${p.site}`, staged && waveOk ? newTag : []));
 		/* the approval gate is raised once staging is healthy: until then prod is simply behind, waiting on its promotion gate */
 		if (staged) gates.push(gate('release-approval', approved ? ['b-44', 'b-45', ...newTag] : ['b-44', 'b-45']));
 	}
