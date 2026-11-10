@@ -7,16 +7,39 @@
    (copy beside one large drawing, Railway's section split). */
 
 :root{
-  --fig-ground:#fff;--fig-top-line:#8b98a3;--fig-side:#e8edf1;--fig-side-line:#cdd6dd;--fig-ring:#e3e9ed;
-  --fig-tile:#f1f5f7;--fig-tile-line:#cdd6dd;--fig-ghost:#8b98a3;--fig-label:#5f6d78;
-  /* cube = the page's identity teal (a build); see DIFF.md flag on its clash with the healthy hue */
-  --fig-teal:#14b8a6;--fig-cube-t:#5eead4;--fig-cube-l:#14b8a6;--fig-cube-r:#0d9488;
-  --statement-rest:#8b98a3;--fig-sep:rgba(18,26,32,.10)}
+  /* FIG TOKENS (PALETTE.md s4). Neutrals = dashboard --k-iso-* / --k-*; the only colour in a drawing is the
+     brand mint (the build, the active path, the answers). Cube = the logo's two teals. */
+  --fig-ground:#ffffff;       /* --k-iso-top */
+  --fig-top-line:#97a4a9;     /* --k-fg-disabled */
+  --fig-side:#d4dcdf;         /* --k-iso-side-l */
+  --fig-side-line:#c3ccd0;    /* --k-iso-side-r */
+  --fig-ring:#dee5e8;         /* --k-line */
+  --fig-tile:#ecf1f3;         /* --k-iso-top-lo */
+  --fig-tile-line:#cad4d7;    /* --k-line-strong */
+  --fig-ghost:#97a4a9;        /* --k-fg-disabled */
+  --fig-label:#47555a;        /* --k-fg-muted */
+  --fig-teal:#009689;         /* dev tier colour */
+  --fig-cube-t:#77ecdb;       /* logo mint, L+: oklch(.87 .11 183) */
+  --fig-cube-l:#00c9b5;       /* logo stop 1 */
+  --fig-cube-r:#009689;       /* dev tier colour (also the silhouette underlay) */
+  --statement-rest:#97a4a9;   /* --k-fg-disabled: large text only */
+  --fig-sep:oklch(.195 .014 222/.10)}
 html.dark{
-  --fig-ground:#1a252b;--fig-top-line:#56656f;--fig-side:#0c1215;--fig-side-line:#33424b;--fig-ring:#2a3841;
-  --fig-tile:#222f36;--fig-tile-line:#4a5a65;--fig-ghost:#6f7f8a;--fig-label:#9aa8b2;
-  --fig-teal:#2dd4bf;--fig-cube-t:#7ff0e2;--fig-cube-l:#2dd4bf;--fig-cube-r:#12857a;
-  --statement-rest:#6f7f8a;--fig-sep:rgba(255,255,255,.08)}
+  --fig-ground:#222d31;       /* --k-iso-top */
+  --fig-top-line:#566367;     /* --k-iso-outline */
+  --fig-side:#091113;         /* --k-iso-side-r (darkest: the slab separates from the new dark ground) */
+  --fig-side-line:#38454a;    /* --k-line-strong */
+  --fig-ring:#202c31;         /* --k-line */
+  --fig-tile:#192327;         /* --k-iso-top-lo */
+  --fig-tile-line:#38454a;    /* --k-line-strong */
+  --fig-ghost:#889599;        /* --k-fg-subtle */
+  --fig-label:#b6c0c3;        /* --k-fg-muted */
+  --fig-teal:#3ad9c6;         /* logo mint lifted for dark: oklch(.80 .13 183) */
+  --fig-cube-t:#8cf4e4;       /* oklch(.90 .10 183) */
+  --fig-cube-l:#3ad9c6;
+  --fig-cube-r:#14867b;       /* oklch(.56 .095 184) */
+  --statement-rest:#889599;   /* --k-fg-subtle */
+  --fig-sep:oklch(1 0 0/.08)}
 
 .hero-proof{margin:20px 0 0;font:500 14px/20px var(--sans);color:var(--ink-subtle)}
 .btn svg[viewBox="0 0 16 16"]{width:14px;height:14px}
@@ -54,7 +77,6 @@ html.dark .vendor-mark{background-image:var(--logo-dark);opacity:.72}
 .statement-text{margin:0;max-width:1180px;font:500 clamp(24px,2.8vw,40px)/1.2 var(--sans);letter-spacing:-.022em;text-wrap:balance}
 .statement-claim{color:var(--ink)}
 .statement-rest{color:var(--statement-rest)}
-html.dark .statement-rest{color:#7d8b96}
 
 /* the drawings */
 .fig{display:block;width:100%;height:auto;overflow:visible}

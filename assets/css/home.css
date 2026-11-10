@@ -9,25 +9,47 @@
   src:url('/islands/fonts/jetbrains-mono-latin.woff2') format('woff2-variations')}
 
 :root{
-  --page:#fff;--page-alt:#f5f8fa;--ink:#121a20;--ink-muted:#55626c;--ink-subtle:#6b7882;--line:#e3e9ed;
-  --mint:#00c9b5;--mint-ink:#00796d;
-  --win-ground:#f5f8fa;--win-border:rgba(18,26,32,.10);
-  --win-shadow:0 1px 2px rgba(18,26,32,.06),0 24px 48px -16px rgba(18,26,32,.18);
-  --dots:rgba(18,26,32,.07);--nav:rgba(255,255,255,.8);--bloom:1;
-  --st-mint:linear-gradient(180deg,#e6faf6 0%,#eef5fb 100%);--mint-a:#9ff0e4;--mint-b:#c9d8ff;
-  --st-rose:linear-gradient(180deg,#f8f0f8 0%,#f2f1fc 100%);--rose-a:#f6d2ec;--rose-b:#dcd6ff;
-  --st-violet:linear-gradient(180deg,#f2efff 0%,#eef6fb 100%);--violet-a:#d9cfff;--violet-b:#c6ecf5;
-  --st-sky:linear-gradient(180deg,#ebf4ff 0%,#effaf6 100%);--sky-a:#c3dcff;--sky-b:#bff0df;
+  /* PALETTE (landing v5, .work/landing-v5/PALETTE.md). Three hues only: neutral slate h222 (the product's
+     ground/ink/line, dashboard styles/language.css --k-*), logo mint h182 (#00c9b5, logo stop 1) and logo
+     lagoon h206 (#00b2c2, logo stop 2). No violet, rose, periwinkle or blue washes. Washes are identity,
+     C <= .02 light / .03 dark. Source of each token is noted beside it. */
+  --page:#ffffff;            /* --k-surface */
+  --page-alt:#f4f7f9;        /* --k-ground */
+  --ink:#0e1619;             /* --k-fg */
+  --ink-muted:#47555a;       /* --k-fg-muted */
+  --ink-subtle:#616e73;      /* --k-fg-subtle */
+  --line:#dee5e8;            /* --k-line */
+  --mint:#00c9b5;            /* logo stop 1; focus ring stays mint (PALETTE s3 open question) */
+  --mint-ink:#00786f;        /* dev tier textColor */
+  --win-ground:#f4f7f9;      /* --k-ground */
+  --win-border:oklch(.195 .014 222/.10);
+  --win-shadow:0 1px 2px oklch(.195 .014 222/.06),0 24px 48px -16px oklch(.195 .014 222/.18);
+  --dots:oklch(.195 .014 222/.07);   /* --k-fg at 7% */
+  --nav:rgba(255,255,255,.8);--bloom:1;
+  /* stage washes: mint = hero + closing, slate = loop + spec, lagoon = dependencies */
+  --st-mint:linear-gradient(180deg,#e8fbf7 0%,#f4f7f9 100%);     /* oklch(.972 .020 182) -> --k-ground */
+  --mint-a:#a1f0e3;--mint-b:#c3eef3;                              /* oklch(.90 .08 183) / oklch(.92 .045 206) */
+  --st-lagoon:linear-gradient(180deg,#e8f9fb 0%,#f4f7f9 100%);   /* oklch(.970 .018 206) -> --k-ground */
+  --lagoon-a:#c3eef3;--lagoon-b:#caf1f0;                          /* h206 / oklch(.93 .04 195) */
+  --st-slate:linear-gradient(180deg,#f0f6f9 0%,#eef3f5 100%);    /* oklch(.970 .008 222) -> --k-subtle */
+  --slate-a:#d9ecf3;--slate-b:#caf1f0;                            /* oklch(.93 .022 222) / h195 */
   --gut:32px;--cont:1200px;--win-w:1120px;--win-h:640px;--stage-inset:16px;--stage-r:24px;--stage-pad:56px;
   --sans:'Kuberik Page Inter',system-ui,-apple-system,'Segoe UI',sans-serif;
   --mono:'Kuberik Page Mono',ui-monospace,'SF Mono',Menlo,monospace;
   color-scheme:light}
 html.dark{
-  --page:#0e1418;--page-alt:#121a1f;--ink:#f2f5f7;--ink-muted:#a9b4bc;--ink-subtle:#8794a0;--line:#273239;
-  --mint-ink:#3fe0cf;--win-ground:#161f25;--win-border:rgba(255,255,255,.08);--win-shadow:0 24px 64px -16px rgba(0,0,0,.6);
-  --dots:rgba(255,255,255,.05);--nav:rgba(14,20,24,.8);--bloom:.2;
-  --st-mint:linear-gradient(180deg,#0f2724,#121c2a);--st-rose:linear-gradient(180deg,#1e1828,#171b2a);
-  --st-violet:linear-gradient(180deg,#1c1830,#122029);--st-sky:linear-gradient(180deg,#121e2e,#10231f);
+  --page:#0e1619;            /* --k-ground */
+  --page-alt:#162024;        /* --k-surface */
+  --ink:#f0f4f6;--ink-muted:#b6c0c3;--ink-subtle:#889599;   /* --k-fg, --k-fg-muted, --k-fg-subtle */
+  --line:#202c31;            /* --k-line */
+  --mint-ink:#42dfcd;        /* oklch(.82 .13 184), dev tier ink on dark */
+  --win-ground:#162024;      /* --k-surface */
+  --win-border:oklch(1 0 0/.07);--win-shadow:0 24px 64px -16px rgba(0,0,0,.6);   /* --k-shadow-dialog */
+  --dots:oklch(.965 .005 222/.05);   /* dark --k-fg at 5% */
+  --nav:oklch(.195 .014 222/.8);--bloom:.2;
+  --st-mint:linear-gradient(180deg,#0c231f,#0f191c);     /* oklch(.235 .030 183) -> oklch(.205 .016 222) */
+  --st-lagoon:linear-gradient(180deg,#0a2023,#0f191c);   /* oklch(.228 .028 206) -> same */
+  --st-slate:linear-gradient(180deg,#111b1f,#0f181b);    /* oklch(.215 .016 222) -> oklch(.200 .014 222) */
   color-scheme:dark}
 @media(min-width:1920px){:root{--cont:1440px;--gut:48px;--win-w:1200px}}
 @media(min-width:2400px){:root{--cont:1920px;--gut:64px;--win-w:1280px}}
@@ -68,20 +90,17 @@ a{color:inherit;text-decoration:none}
 .btn-line:hover{background:var(--page-alt)}
 .nav-cta{height:36px;padding:0 14px;font-size:14px}
 
-/* stages: reusable (SPEC 1.1). Use .stage + one of .stage-mint/rose/violet/sky, with two .bloom children. */
+/* stages: reusable (SPEC 1.1). Use .stage + one of .stage-mint/lagoon/slate, with two .bloom children. */
 .stage{position:relative;margin:0 var(--stage-inset);border-radius:var(--stage-r);overflow:hidden;isolation:isolate}
 .stage::before{content:'';position:absolute;inset:0;z-index:-1;background:radial-gradient(circle,var(--dots) 1px,transparent 1.2px) 0 0/20px 20px}
-.stage-mint{background:var(--st-mint)}.stage-rose{background:var(--st-rose)}
-.stage-violet{background:var(--st-violet)}.stage-sky{background:var(--st-sky)}
+.stage-mint{background:var(--st-mint)}.stage-lagoon{background:var(--st-lagoon)}.stage-slate{background:var(--st-slate)}
 .bloom{position:absolute;width:max(620px,36vw);height:max(620px,36vw);border-radius:50%;z-index:-1;opacity:var(--bloom);filter:blur(8px);pointer-events:none}
 .stage-mint .b1{left:-180px;top:-160px;background:radial-gradient(closest-side,color-mix(in oklab,var(--mint-a) 55%,transparent),transparent)}
 .stage-mint .b2{right:-200px;bottom:-200px;background:radial-gradient(closest-side,color-mix(in oklab,var(--mint-b) 50%,transparent),transparent)}
-.stage-rose .b1{right:-180px;top:-200px;background:radial-gradient(closest-side,color-mix(in oklab,var(--rose-a) 45%,transparent),transparent)}
-.stage-rose .b2{left:-200px;bottom:-220px;background:radial-gradient(closest-side,color-mix(in oklab,var(--rose-b) 45%,transparent),transparent)}
-.stage-violet .b1{right:-180px;top:-200px;background:radial-gradient(closest-side,color-mix(in oklab,var(--violet-a) 50%,transparent),transparent)}
-.stage-violet .b2{left:-200px;bottom:-220px;background:radial-gradient(closest-side,color-mix(in oklab,var(--violet-b) 50%,transparent),transparent)}
-.stage-sky .b1{left:-180px;top:-160px;background:radial-gradient(closest-side,color-mix(in oklab,var(--sky-a) 50%,transparent),transparent)}
-.stage-sky .b2{right:-200px;bottom:-200px;background:radial-gradient(closest-side,color-mix(in oklab,var(--sky-b) 50%,transparent),transparent)}
+.stage-lagoon .b1{left:-180px;top:-160px;background:radial-gradient(closest-side,color-mix(in oklab,var(--lagoon-a) 50%,transparent),transparent)}
+.stage-lagoon .b2{right:-200px;bottom:-200px;background:radial-gradient(closest-side,color-mix(in oklab,var(--lagoon-b) 50%,transparent),transparent)}
+.stage-slate .b1{right:-180px;top:-200px;background:radial-gradient(closest-side,color-mix(in oklab,var(--slate-a) 50%,transparent),transparent)}
+.stage-slate .b2{left:-200px;bottom:-220px;background:radial-gradient(closest-side,color-mix(in oklab,var(--slate-b) 35%,transparent),transparent)}
 
 /* the product window frame (SPEC 1.1) */
 .window{position:relative;margin-inline:auto;width:min(var(--win-w),100%);border-radius:12px;background:var(--win-ground);border:1px solid var(--win-border);box-shadow:var(--win-shadow);transform:translateZ(0)}
