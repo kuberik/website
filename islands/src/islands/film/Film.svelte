@@ -83,7 +83,8 @@
 		const g = group!.getBoundingClientRect(), r = el.getBoundingClientRect(), u = unit();
 		return { x: (r.left - g.left) / u, y: (r.top - g.top) / u, w: r.width / u, h: r.height / u };
 	}
-	function aim(m: Move, jump: boolean) {
+	let refineTimer: ReturnType<typeof setTimeout> | undefined;
+	function aim(m: Move, jump: boolean, refine = false) {
 		if (!group || !main) return;
 		const vw = main.clientWidth, vh = main.clientHeight, gw = group.offsetWidth, gh = group.offsetHeight;
 		const el = m.to === 'rest' ? null : resolveTarget(m.to, group, phone);
@@ -97,12 +98,16 @@
 		}
 		x = Math.min(0, Math.max(Math.min(0, vw - s * gw), x));
 		y = Math.min(0, Math.max(Math.min(0, vh - s * gh), y));
-		const dur = jump || reduced ? 0 : phone ? (m.dur ? 320 : 0) : m.dur;
+		if (refine && Math.abs(x - cam.x) < 6 && Math.abs(y - cam.y) < 6 && Math.abs(s - cam.s) < 0.02) return;
+		const dur = jump || reduced ? 0 : refine ? 260 : phone ? (m.dur ? 320 : 0) : m.dur;
 		cam = { x, y, s, dur, ease: phone ? 'cubic-bezier(0.2, 0.8, 0.2, 1)' : m.ease, moving: dur > 0 };
 		clearTimeout(moveTimer);
 		if (dur > 0) moveTimer = setTimeout(() => { cam = { ...cam, moving: false }; }, dur + 40);
 		/* the dim hole: everything but the target at 35% (an opacity layer, never a filter) */
 		dimHole = el && (m.dim === 'page' || m.dim === 'both') ? relRect(el) : null;
+		/* the product's own enter animations (banners opening, cards collapsing) keep moving the target for ~0.5 s after a move starts: re-aim once they have settled */
+		clearTimeout(refineTimer);
+		if (!refine && el && !reduced) refineTimer = setTimeout(() => aim(m, false, true), 650);
 	}
 	/* a move starts when the story reaches its keyframe, or the surface under it changed (re-aim once its layout has settled) */
 	$effect(() => {
@@ -182,7 +187,7 @@
 					<main class="film-main" bind:this={main}>
 						<div class="film-group" bind:this={group} style="{camStyle}; opacity:{swapOpacity}; {swapOpacity ? 'transition: transform ' + cam.dur + 'ms ' + cam.ease + ', opacity .2s ease-out' : 'transition: opacity .12s ease-in'}">
 							{#if Comp}<Comp {...props} />{/if}
-							<div class="film-dimmer" class:film-dimmer-on={!reduced && (mv.dim === 'page' || mv.dim === 'both') && !!dimHole} style={dimHole ? `clip-path: polygon(evenodd, 0 0, 100% 0, 100% 100%, 0 100%, 0 0, ${dimHole.x}px ${dimHole.y}px, ${dimHole.x}px ${dimHole.y + dimHole.h}px, ${dimHole.x + dimHole.w}px ${dimHole.y + dimHole.h}px, ${dimHole.x + dimHole.w}px ${dimHole.y}px, ${dimHole.x}px ${dimHole.y}px)` : ''}></div>
+							<div class="film-dimmer" class:film-dimmer-on={!reduced && (mv.dim === 'page' || mv.dim === 'both') && !!dimHole} class:film-dimmer-zoom={cam.s > 1.05} style={dimHole ? `clip-path: polygon(evenodd, 0 0, 100% 0, 100% 100%, 0 100%, 0 0, ${dimHole.x}px ${dimHole.y}px, ${dimHole.x}px ${dimHole.y + dimHole.h}px, ${dimHole.x + dimHole.w}px ${dimHole.y + dimHole.h}px, ${dimHole.x + dimHole.w}px ${dimHole.y}px, ${dimHole.x}px ${dimHole.y}px)` : ''}></div>
 						</div>
 					</main>
 				</div>
@@ -213,5 +218,7 @@
 	.film-tabs :global(nav > *) { transition: opacity 0.434s ease; }
 	.film-dimmer { position: absolute; inset: 0; background: var(--k-ground); opacity: 0; pointer-events: none; transition: opacity 0.2s ease-out; z-index: 4; }
 	.film-dimmer-on { opacity: 0.65; }
+	/* zoomed: a neighbour that peeks into the frame is nearly gone rather than cut mid-word */
+	.film-dimmer-on.film-dimmer-zoom { opacity: 0.86; }
 	.film-tabs { position: absolute; left: 0; right: 0; bottom: 0; z-index: 5; }
 </style>

@@ -38,7 +38,9 @@ export function resolveTarget(name: string, root: ParentNode, phone: boolean): H
 			/* the banner's text block (title, the figure, its budget line, Details) without the Retry / Roll back buttons on the right: climb from the figure to the lowest box that also holds the title */
 			const row = byText(root, 'div,p,span', /^3\.2\s*%\s*error rate/i); if (!row) return q('.ap-cq');
 			let e: HTMLElement | null = row; while (e && !/Deployment failed/i.test(text(e))) e = e.parentElement;
-			return contentBox(e ?? row);
+			const title = e && byText(e, 'div,p,span,h1,h2,h3,h4', /^Deployment failed$/i), more = e && byText(e, 'button,summary,span,div', /^Details$/i);
+			let blk: HTMLElement = row; while (blk.parentElement && blk !== e && !/budget/i.test(text(blk))) blk = blk.parentElement; /* the figure and its budget line */
+			return union([title, contentBox(blk), more].filter(Boolean) as HTMLElement[]);
 		}
 		/* both recovery-mode banners (Recovery mode, Rolled back) as one frame */
 		case 'banners': { const bs = [...root.querySelectorAll<HTMLElement>('.ap-cq')].slice(0, 2); return bs.length ? union(bs) : null; }
@@ -53,7 +55,7 @@ export function resolveTarget(name: string, root: ParentNode, phone: boolean): H
 /** the box of an element's CONTENT (what its children occupy), not its block: a full-width row holding a short figure frames the figure (a synthetic target: only the rect is read) */
 function contentBox(el: HTMLElement): HTMLElement {
 	const r = document.createRange();
-	const w = document.createTreeWalker(el, NodeFilter.SHOW_TEXT, { acceptNode: (n) => (n.textContent?.trim() ? NodeFilter.FILTER_ACCEPT : NodeFilter.FILTER_REJECT) });
+	const w = document.createTreeWalker(el, NodeFilter.SHOW_TEXT, { acceptNode: (n) => (n.textContent?.trim() && !n.parentElement?.closest('button,a') ? NodeFilter.FILTER_ACCEPT : NodeFilter.FILTER_REJECT) }); /* buttons are not part of a figure's frame */
 	const first = w.nextNode() as Text | null;
 	let last = first;
 	for (let n = w.nextNode(); n; n = w.nextNode()) last = n as Text; /* text boxes only: a flex child that grows to fill the row has a wide box but short text */
