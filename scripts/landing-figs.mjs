@@ -195,12 +195,12 @@ function twoPlates(rampCls) {
 	// gates: "your gate decides which version may go now". The dashed bar (the only "yours" mark) lifts,
 	// the waiting build goes through to mid-ramp, the gate drops back, the next build arrives.
 	begin(); let b = twoPlates('is-idle');
-	const gw = 7 + 3; // A7: gate half-width = ramp half-width + 3, posts stand just outside the rails
+	const gw = 7 + 12; // lane 23 (AD L11): the cube (half-width ~13 at e 14) passes BETWEEN the posts, which stand 12 outside the rails (they were 3: the cube overlapped its post)
 	const g1 = P(TW / 2 - gw, 4, 0), g2 = P(TW / 2 + gw, 4, 0);
-	b += `<path class="fig-gate" ${NS} d="M${g1[0]} ${g1[1]}v-22M${g2[0]} ${g2[1]}v-22"/>`;
-	b += `<g class="m m-gate-bar"><path class="fig-gate fig-dash" ${NS} d="M${g1[0]} ${f(g1[1] - 16)}L${g2[0]} ${f(g2[1] - 16)}"/></g>`;
+	b += `<path class="fig-gate" ${NS} d="M${g1[0]} ${g1[1]}v-36M${g2[0]} ${g2[1]}v-36"/>`;
+	b += `<g class="m m-gate-bar"><path class="fig-gate fig-dash" ${NS} d="M${g1[0]} ${f(g1[1] - 28)}L${g2[0]} ${f(g2[1] - 28)}"/></g>`;
 	const wait = P(TW / 2, 26, 0), foot = P(TW / 2, -2, 0), mid = P(TW / 2, -TG / 2, TZ / 2);
-	b += `<g class="m m-gate-cube">${cube({ px: TW / 2, py: 26, e: 16 })}</g>`;
+	b += `<g class="m m-gate-cube">${cube({ px: TW / 2, py: 26, e: 14 })}</g>`;
 	const pass = d(wait, foot), up = d(wait, mid);
 	track('gate-bar', CYCLE, [{ t: 0, o: 1 }, { t: 0, x: 0, y: 0 }, { t: 240, x: 0, y: -8, o: 0 }, { t: 1900, x: 0, y: -8, o: 0 }, { t: 2140, x: 0, y: 0, o: 1 }, { t: 6000, o: 1 }]);
 	track('gate-cube', CYCLE, [{ t: 0, o: 1 }, { t: 160, o: 1 }, { t: 160, dur: 700, pts: [[0, 0], pass, up], o: [1, 1] }, { t: 1500, x: up[0], y: up[1], o: 1 }, { t: 1700, x: up[0], y: up[1], o: 0 }, { t: 2200, o: 0 }, { t: 2400, o: 1 }, { t: 6000, o: 1 }]);
@@ -267,11 +267,11 @@ staircase('staircase-done-compact', 'stc', { w: 110, step: 34, gap: 70, wd: 14, 
 function depsGraph(name, { compact = false } = {}) {
 	begin(); const w = 120, g = compact ? 70 : 96, gv = 120; let b = '';
 	const N = compact ? {
-		pay: { px: 0, py: 0, label: 'payments-svc', v: '3.0.0 rolling out' },
-		api: { px: w + g, py: w + g, label: 'checkout-api', v: '4.45.0 waiting' },
+		pay: { px: 0, py: 0, label: 'payments-svc', v: '3.1.0 rolling out' },
+		api: { px: w + g, py: w + g, label: 'checkout-api', v: '4.46.0-46 waiting' },
 	} : {
-		pay: { px: 0, py: 0, label: 'payments-svc', v: '3.0.0 rolling out' },
-		api: { px: 0, py: -(w + gv), label: 'checkout-api', v: '4.45.0 waiting' }, // A7: only the waiting edge is widened
+		pay: { px: 0, py: 0, label: 'payments-svc', v: '3.1.0 rolling out' },
+		api: { px: 0, py: -(w + gv), label: 'checkout-api', v: '4.46.0-46 waiting' }, // A7: only the waiting edge is widened
 		work: { px: w + g, py: 0, label: 'checkout-worker', v: '2.8.1 not held' },
 		front: { px: w + g, py: -(w + gv), label: 'storefront', v: '1.12.0' },
 	};

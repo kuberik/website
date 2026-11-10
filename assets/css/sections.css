@@ -18,6 +18,7 @@
   --fig-tile-line:#cad4d7;    /* --k-line-strong */
   --fig-ghost:#97a4a9;        /* --k-fg-disabled */
   --fig-label:#47555a;        /* --k-fg-muted */
+  --fig-wait:#b4540a;         /* the product's holding orange (Holding 1 build here) */
   --fig-teal:#009689;         /* dev tier colour */
   --fig-cube-t:#77ecdb;       /* logo mint, L+: oklch(.87 .11 183) */
   --fig-cube-l:#00c9b5;       /* logo stop 1 */
@@ -34,6 +35,7 @@ html.dark{
   --fig-tile-line:#38454a;    /* --k-line-strong */
   --fig-ghost:#889599;        /* --k-fg-subtle */
   --fig-label:#b6c0c3;        /* --k-fg-muted */
+  --fig-wait:#f0a35e;         /* the same, lifted for dark */
   --fig-teal:#3ad9c6;         /* logo mint lifted for dark: oklch(.80 .13 183) */
   --fig-cube-t:#8cf4e4;       /* oklch(.90 .10 183) */
   --fig-cube-l:#3ad9c6;
@@ -181,7 +183,7 @@ html.dark .vendor-mark{background-image:var(--logo-dark);opacity:.72}
 .deps-art{display:block;padding:0;border:0}
 .deps-art.fig-cell{border-left:0;padding:0}
 .deps .fig-sub,.fig-sub{fill:var(--fig-label);font:500 12px/1 var(--mono)}
-.fig-sub.is-waiting{fill:var(--mint-ink)}
+.fig-sub.is-waiting{fill:var(--fig-wait)}
 .fig-env{fill:var(--ink);font-size:14px}
 /* RULE: a rendered label is >= 12px. The graph scales 0.8 (1200) to 1.4 (2560), so the user-unit size steps by breakpoint (measure: figs-design/scripts/measure2.mjs) */
 @media(min-width:1200px) and (max-width:1439px){.deps-wide .fig-env{font-size:16px}.deps-wide .fig-sub{font-size:15.5px}}
