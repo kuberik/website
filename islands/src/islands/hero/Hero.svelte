@@ -93,7 +93,7 @@
 					{#if row.group === 'rest'}
 						<!-- nothing is moving: the product opens no pipeline for a settled place, it draws the Builds ledger of collapsed place rows -->
 						{@const L = ledgerFor()}
-						<div class="ad-places"><AppBuilds stops={L.stops} places={L.places} view={L.view} nested onDeploy={() => {}} /></div>
+						<div class="ad-places"><AppBuilds stops={L.stops} places={L.places} view={L.view} phone={narrow} nested onDeploy={() => {}} /></div>
 					{:else}
 						<Slipway {row} nested compact={false} action={act} />
 					{/if}

@@ -32,7 +32,7 @@ html.dark{
 @media(min-width:1920px){:root{--cont:1440px;--gut:48px;--win-w:1200px}}
 @media(min-width:2400px){:root{--cont:1920px;--gut:64px;--win-w:1280px}}
 @media(max-width:1023px){:root{--win-w:696px;--stage-r:20px;--stage-inset:12px;--stage-pad:24px;--gut:24px}}
-@media(max-width:640px){:root{--win-w:350px;--win-h:620px;--stage-r:16px;--stage-inset:8px;--stage-pad:12px;--gut:16px}}
+@media(max-width:640px){:root{--win-w:350px;--win-h:700px;--stage-r:16px;--stage-inset:8px;--stage-pad:12px;--gut:16px}}
 
 *{box-sizing:border-box}
 html{background:var(--page);scroll-behavior:smooth}
