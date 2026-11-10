@@ -11,11 +11,14 @@
  * App `checkout-api`: old build 4.45.0-45 (b-45), new build 4.46.0-46 (b-46), PR #112 by olivia-bennett.
  */
 import type { FleetSource } from '$lib/components/home/sketch/fleet-source.svelte';
-import { release, gate, prChange } from '../shared/cr';
+import { release, gate, prChange, CLOCK_MS } from '../shared/cr';
 
 export const APP = 'checkout-api';
 export const VIEWER = 'danielreed';
-const BASE = Date.parse('2026-11-10T09:00:00Z');
+/* ONE clock for the page: the world's `now` never moves (shared/cr.ts CLOCK_MS). This story's own time is expressed by moving ITS timestamps instead:
+   BASE is where story second 0 sits relative to that fixed `now`, so an age is right whichever island is installed last. See shared/world.ts. */
+let BASE = CLOCK_MS;
+const rebase = (t: number) => { BASE = CLOCK_MS - t * SIM * 1000; };
 const SIM = 20; // simulated seconds per story second
 export const simMs = (t: number): number => BASE + t * SIM * 1000;
 const iso = (t: number) => new Date(simMs(t)).toISOString();
@@ -40,7 +43,7 @@ export const ASKS_AT = 14;
 type Release = ReturnType<typeof rel>;
 const rel = (n: number, sha: string, createdMs: number) => release(`b-${n}`, `4.${n}.0-${n}`, sha, createdMs);
 const SHA = { 44: 'b44d3e19a0c7e5a1f2b8c9d04e6a7b1c2d3e4f50', 45: 'b45a7c2e9d1f03b4a5c6d7e8f9a0b1c2d3e4f561', 46: 'e1c7a04b8d2f19a3c5e7091b3d5f7a9c1e3b5d72' };
-const R44 = rel(44, SHA[44], BASE - 30 * H), R45 = rel(45, SHA[45], BASE - 4 * H), R46 = (): Release => rel(46, SHA[46], simMs(MERGE) + 90_000);
+const R44 = (): Release => rel(44, SHA[44], BASE - 30 * H), R45 = (): Release => rel(45, SHA[45], BASE - 4 * H), R46 = (): Release => rel(46, SHA[46], simMs(MERGE) + 90_000);
 
 type Place = { ns: string; env: 'dev' | 'staging' | 'prod'; site?: string; wave?: number; step: Step; bake: string; theme: string };
 const PLACES: Place[] = [
@@ -60,7 +63,7 @@ export const phaseAt = (p: Place, t: number): Phase => (t < p.step.start ? 'old'
 function rollout(p: Place, t: number, failed: boolean) {
 	const merged = t >= MERGE;
 	const ph = phaseAt(p, t);
-	const releases = merged ? [R44, R45, R46()] : [R44, R45];
+	const releases = merged ? [R44(), R45(), R46()] : [R44(), R45()];
 	const onNew = ph !== 'old';
 	const cur = onNew ? 'b-46' : 'b-45';
 	const hist: Record<string, unknown>[] = [];
@@ -72,7 +75,7 @@ function rollout(p: Place, t: number, failed: boolean) {
 			...(ph === 'done' ? { bakeEndTime: iso(p.step.done) } : {})
 		});
 	}
-	hist.push({ id: 1, version: R45, timestamp: new Date(BASE - 3 * H).toISOString(), bakeStatus: 'Succeeded', bakeStartTime: new Date(BASE - 3 * H).toISOString(), bakeEndTime: new Date(BASE - 3 * H + 600_000).toISOString(), triggeredBy: { kind: 'System', name: 'System' } });
+	hist.push({ id: 1, version: R45(), timestamp: new Date(BASE - 3 * H).toISOString(), bakeStatus: 'Succeeded', bakeStartTime: new Date(BASE - 3 * H).toISOString(), bakeEndTime: new Date(BASE - 3 * H + 600_000).toISOString(), triggeredBy: { kind: 'System', name: 'System' } });
 	/* gates (SPEC 2.3): staging waits on dev (promotion gate), prod on staging then on a person (release-approval), the other regions on wave 1 */
 	const gates: unknown[] = [];
 	const newTag = merged ? ['b-46'] : [];
@@ -153,6 +156,7 @@ const change = (n: number, title: string, author: string, mergedMs: number, sha:
 
 /** the answers the dashboard's GitHub routes would give (range and commit lookups), keyed by route: see stubs/github-read.svelte.ts */
 export function githubAt(t: number): Record<string, unknown> {
+	rebase(t);
 	const out: Record<string, unknown> = {};
 	const commit = (sha: string, message: string, author: string) => ({ sha, message, author, commitDate: new Date(BASE - H).toISOString() });
 	const c45 = commit(SHA[45], '#108 Show saved cards first', 'liam-foster'), c46 = commit(SHA[46], '#112 Add Apple Pay to checkout', 'olivia-bennett'), c44 = commit(SHA[44], '#101 Fix tax rounding on refunds', 'noah-carter');
@@ -193,6 +197,7 @@ function scenery() {
 
 export type Fleet = FleetSource;
 export function fleetAt(t: number): FleetSource {
+	rebase(t);
 	const merged = t >= MERGE;
 	const changes = [
 		change(101, 'Fix tax rounding on refunds', 'noah-carter', BASE - 30 * H, SHA[44], 2),
@@ -212,6 +217,6 @@ export function fleetAt(t: number): FleetSource {
 		healthChecks: healthChecks(t, null) as never,
 		github: { configured: true, connected: true, login: VIEWER },
 		me: VIEWER,
-		now: new Date(simMs(t))
+		now: new Date(CLOCK_MS)
 	};
 }

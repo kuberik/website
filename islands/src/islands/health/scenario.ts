@@ -9,12 +9,14 @@
  * back is a person pressing Roll back (beat 6), so the controller deploys the chosen older version as a new history entry (beat 7).
  */
 import type { FleetSource } from '$lib/components/home/sketch/fleet-source.svelte';
-import { release, gate, prChange } from '../shared/cr';
+import { release, gate, prChange, CLOCK_MS } from '../shared/cr';
 
 export const APP = 'orders-api';
 export const VIEWER = 'danielreed';
-const BASE = Date.parse('2026-11-10T09:00:00Z');
+/* one fixed page clock; this story's time is expressed in its timestamps (see hero/scenario.ts, shared/world.ts) */
+let BASE = CLOCK_MS;
 const SIM = 10;
+const rebase = (t: number) => { BASE = CLOCK_MS - t * SIM * 1000; };
 export const simMs = (t: number): number => BASE + t * SIM * 1000;
 const iso = (t: number) => new Date(simMs(t)).toISOString();
 const H = 3600_000;
@@ -25,8 +27,8 @@ export const LOOP = 26;
 const NEW = 'a3f9c21', OLD = '7c14e2a', OLDER = '5d2e8b0';
 const SHA = { [NEW]: 'a3f9c21e5b7d09f1c3a5e7092b4d6f8a0c2e4b61', [OLD]: '7c14e2a9d0b3f5c71a2e4d6b8091c3e5f7a92b04', [OLDER]: '5d2e8b04c6a8e1f3b5d7092a4c6e8f1a3b5d7c92' } as const;
 const R_NEW = () => release(NEW, NEW, SHA[NEW], simMs(T.deployed) - 8 * 60_000);
-const R_OLD = release(OLD, OLD, SHA[OLD], BASE - 20 * H);
-const R_OLDER = release(OLDER, OLDER, SHA[OLDER], BASE - 50 * H);
+const R_OLD_ = () => release(OLD, OLD, SHA[OLD], BASE - 20 * H);
+const R_OLDER_ = () => release(OLDER, OLDER, SHA[OLDER], BASE - 50 * H);
 
 type Place = { env: 'dev' | 'staging' | 'prod'; ns: string };
 const PLACES: Place[] = [{ env: 'dev', ns: `${APP}-dev` }, { env: 'staging', ns: `${APP}-staging` }, { env: 'prod', ns: `${APP}-prod` }];
@@ -45,24 +47,24 @@ function rollout(p: Place, t: number) {
 	const old = (id: number, v: ReturnType<typeof release>, atMs: number) => ({ id, version: v, timestamp: new Date(atMs).toISOString(), bakeStatus: 'Succeeded', bakeStartTime: new Date(atMs).toISOString(), bakeEndTime: new Date(atMs + 300_000).toISOString(), triggeredBy: { kind: 'System', name: 'System' } });
 	if (p.env === 'dev') {
 		cur = NEW; prev = OLD;
-		hist.push(old(3, R_NEW(), BASE - 40 * 60_000), old(2, R_OLD, BASE - 20 * H));
+		hist.push(old(3, R_NEW(), BASE - 40 * 60_000), old(2, R_OLD_(), BASE - 20 * H));
 	} else if (p.env === 'prod') {
-		hist.push(old(2, R_OLD, BASE - 19 * H), old(1, R_OLDER, BASE - 50 * H));
+		hist.push(old(2, R_OLD_(), BASE - 19 * H), old(1, R_OLDER_(), BASE - 50 * H));
 	} else {
 		const ph = phaseAt(t);
 		const failedEntry = base(2, R_NEW(), T.deployed, { bakeStatus: 'Failed', bakeStartTime: iso(T.checking), bakeEndTime: iso(T.stops), bakeStatusMessage: `Health check error-rate failed: ${BREAK_MESSAGE}`, failedHealthChecks: [{ name: 'error-rate', namespace: p.ns, message: BREAK_MESSAGE }] });
-		const old1 = old(1, R_OLD, BASE - 19 * H);
+		const old1 = old(1, R_OLD_(), BASE - 19 * H);
 		if (ph === 'deploying') { cur = NEW; prev = OLD; hist.push(base(2, R_NEW(), T.deployed, { bakeStatus: 'Deploying', bakeStartTime: iso(T.deployed) }), old1); }
 		else if (ph === 'checking') { cur = NEW; prev = OLD; hist.push(base(2, R_NEW(), T.deployed, { bakeStatus: 'InProgress', bakeStartTime: iso(T.checking) }), old1); }
 		else if (ph === 'failed') { cur = NEW; prev = OLD; hist.push(failedEntry, old1); }
 		else {
 			cur = OLD; prev = NEW;
-			const rb = base(3, R_OLD, T.rollback, { bakeStatus: ph === 'rolling-back' ? 'Deploying' : ph === 'rolled-checking' ? 'InProgress' : 'Succeeded', bakeStartTime: iso(ph === 'rolling-back' ? T.rollback : T.rolledChecking), triggeredBy: user, message: `Roll back to ${OLD}`, ...(ph === 'back' ? { bakeEndTime: iso(T.back) } : {}) });
+			const rb = base(3, R_OLD_(), T.rollback, { bakeStatus: ph === 'rolling-back' ? 'Deploying' : ph === 'rolled-checking' ? 'InProgress' : 'Succeeded', bakeStartTime: iso(ph === 'rolling-back' ? T.rollback : T.rolledChecking), triggeredBy: user, message: `Roll back to ${OLD}`, ...(ph === 'back' ? { bakeEndTime: iso(T.back) } : {}) });
 			hist.push(rb, failedEntry, old1);
 		}
 	}
 	/* prod learns of the build only once it is proven; until then it is simply behind */
-	const avail = p.env === 'prod' || (p.env === 'staging') ? [R_OLDER, R_OLD, R_NEW()] : [R_OLDER, R_OLD, R_NEW()];
+	const avail = p.env === 'prod' || (p.env === 'staging') ? [R_OLDER_(), R_OLD_(), R_NEW()] : [R_OLDER_(), R_OLD_(), R_NEW()];
 	return {
 		apiVersion: 'kuberik.com/v1alpha1', kind: 'Rollout',
 		metadata: { name: APP, namespace: p.ns, labels: { environment: p.env }, annotations: { 'rollout-dashboard.kuberik.com/source-cluster': p.env } },
@@ -111,7 +113,8 @@ export const windowStartAt = (t: number): Date => new Date(simMs(phaseAt(t) === 
 const repo = 'orders-api';
 const change = (n: number, title: string, author: string, mergedMs: number, sha: string, files: number) => prChange('exampleco', repo, n, title, author, mergedMs, sha, files);
 
-export function githubAt(_t: number): Record<string, unknown> {
+export function githubAt(t: number): Record<string, unknown> {
+	rebase(t);
 	const out: Record<string, unknown> = {};
 	const commit = (sha: string, message: string, author: string) => ({ sha, message, author, commitDate: new Date(BASE - H).toISOString() });
 	const cNew = commit(SHA[NEW], '#118 Cache cart totals per session', 'noah-carter'), cOld = commit(SHA[OLD], '#114 Retry idempotent order writes', 'olivia-bennett'), cOlder = commit(SHA[OLDER], '#109 Paginate the order history query', 'liam-foster');
@@ -127,6 +130,7 @@ export function githubAt(_t: number): Record<string, unknown> {
 }
 
 export function fleetAt(t: number): FleetSource {
+	rebase(t);
 	return {
 		rollouts: PLACES.map((p) => rollout(p, t)) as never,
 		environments: PLACES.map((p) => environment(p, t)) as never,
@@ -142,6 +146,6 @@ export function fleetAt(t: number): FleetSource {
 		healthChecks: PLACES.map((p) => ({ metadata: { namespace: p.ns, name: APP, annotations: { 'rollout-dashboard.kuberik.com/source-cluster': p.env } }, healthChecks: checksOf(p, t) })) as never,
 		github: { configured: true, connected: true, login: VIEWER },
 		me: VIEWER,
-		now: new Date(simMs(t))
+		now: new Date(CLOCK_MS)
 	};
 }

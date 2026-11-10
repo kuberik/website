@@ -9,3 +9,6 @@ export const prChange = (owner: string, repo: string, n: number, title: string, 
 	owner, repo, kind: 'pr', number: n, title, htmlUrl: `https://github.com/${owner}/${repo}/pull/${n}`, author,
 	mergedAt: new Date(mergedMs).toISOString(), mergeCommitSha: sha, headSha: sha, base: 'main', changedFiles: files, containedIn: [sha], containedInAll: false
 });
+
+/** the page's one wall clock (see shared/world.ts): every story's timestamps are placed relative to it */
+export const CLOCK_MS = Date.parse('2026-11-10T09:00:00Z');
