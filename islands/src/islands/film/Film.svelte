@@ -58,13 +58,32 @@
 		swapping = next;
 		const c = await loadSurface(next);
 		if (seq !== swapSeq) return;
+		const src = !instant && shown === 'rollouts' && next === 'gates' ? rowRect() : null; /* b8: the In-flight row is about to grow into the rollout's title row */
 		if (!instant && shown) { swapOpacity = 0.4; /* the outgoing page dims, it never goes to empty ground: a slow incoming chunk must not leave a blank window */ await new Promise((r) => setTimeout(r, 120)); if (seq !== swapSeq) return; }
 		Object.assign(page, SURFACE_PATH[next]);
 		pageStore.update((p) => ({ ...p, ...SURFACE_PATH[next] })); // the History tab reads get(page) of $app/stores (not $app/state)
 		Comp = c; shown = next;
 		await tick();
 		swapOpacity = 1;
+		if (src) void tick().then(() => requestAnimationFrame(() => morph(src)));
 		if (seq === swapSeq) swapping = null;
+	}
+	/* ---- b8 shared-element morph (STORYBOARD section 4: FLIP 360 ms, cubic-bezier(.2,.8,.2,1)): a ghost of the row's box (surface, hairline, 8 px corners: the product's row) travels onto the title row's box and
+	   fades as the page under it arrives. NEW BY DESIGN: no product component animates between pages. Boxes only, never text (a scaled heading would be a smear). ---- */
+	let ghostEl: HTMLElement | undefined = $state();
+	const inCanvas = (r: DOMRect) => { const c = canvas!.getBoundingClientRect(); return { x: (r.left - c.left) / k, y: (r.top - c.top) / k, w: r.width / k, h: r.height / k }; };
+	function rowRect() {
+		if (!canvas || !group) return null;
+		const a = [...group.querySelectorAll<HTMLElement>('a')].find((e) => e.textContent?.trim() === 'checkout-api'); if (!a) return null;
+		let e: HTMLElement = a; while (e.parentElement && e.parentElement !== group && e.parentElement.getBoundingClientRect().height < 90 && e.parentElement.getBoundingClientRect().width > e.getBoundingClientRect().width) e = e.parentElement;
+		const r = e.getBoundingClientRect(); return r.width > 300 ? inCanvas(r) : null;
+	}
+	function morph(from: { x: number; y: number; w: number; h: number }) {
+		if (!canvas || !group || !ghostEl || reduced) return;
+		const h1 = [...group.querySelectorAll<HTMLElement>('h1')].find((e) => /checkout-api/.test(e.textContent ?? '')); const row = h1?.parentElement; if (!row) return;
+		const to = inCanvas(row.getBoundingClientRect()); if (to.y < -50 || to.y > CH) return;
+		const px = (r: { x: number; y: number; w: number; h: number }, o: number) => ({ left: r.x + 'px', top: r.y + 'px', width: r.w + 'px', height: r.h + 'px', opacity: o });
+		ghostEl.animate([px(from, 1), { ...px(to, 0.9), offset: 0.8 }, px(to, 0)], { duration: 360, easing: 'cubic-bezier(.2,.8,.2,1)', fill: 'none' });
 	}
 	let lastT = -1;
 	$effect(() => {
@@ -238,6 +257,7 @@
 				</div>
 				{#if phone}<div class="film-tabs">{#if Tabs}<Tabs />{/if}<i class="film-shade" class:film-shade-on={shellDim}></i></div>{/if}
 			</div>
+			<i class="film-ghost" bind:this={ghostEl} aria-hidden="true"></i>
 			{#if Layer}<Layer />{/if}
 			<Cursor x={ptr.x} y={ptr.y} on={ptr.on} press={ptr.press} touch={phone} />
 		</div>
@@ -264,5 +284,6 @@
 	.film-side, .film-top { position: relative; }
 	.film-shade { position: absolute; inset: 0; z-index: 6; pointer-events: none; background: var(--film-dim); opacity: 0; transition: opacity 0.2s ease-out; }
 	.film-shade-on { opacity: 1; }
+	.film-ghost { position: absolute; z-index: 7; pointer-events: none; opacity: 0; background: var(--k-surface, #fff); border: 1px solid var(--k-line-strong, #cad4d7); border-radius: 8px; box-sizing: border-box; }
 	.film-tabs { position: absolute; left: 0; right: 0; bottom: 0; z-index: 5; }
 </style>
