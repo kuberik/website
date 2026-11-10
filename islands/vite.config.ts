@@ -101,6 +101,7 @@ export default defineConfig({
 		outDir: process.env.ISLANDS_OUT ? resolve(process.env.ISLANDS_OUT) : resolve(HERE, '../static/islands'),
 		emptyOutDir: true,
 		target: 'es2022',
+		minify: process.env.ISLANDS_DEBUG ? false : undefined,
 		cssCodeSplit: false,
 		modulePreload: false,
 		rollupOptions: {

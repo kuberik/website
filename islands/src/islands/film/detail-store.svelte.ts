@@ -34,3 +34,24 @@ export function installAnswers(fleetRollouts: () => unknown[]) {
 		}
 	});
 }
+
+/**
+ * NETWORK SEAM (named stub): the real ChangeVersionModal fetches the fleet list straight through `fetch` (`/api/rollouts`, `/api/clusters/<c>/rollouts?namespace=`),
+ * not through a query, so the query stub cannot answer it. This wraps `window.fetch` for exactly those two routes and answers from the film's snapshot (the
+ * payload the API would serve); every other request passes through untouched. Installed once, when the film starts.
+ */
+export function installFetch(list: () => { rollouts: unknown[]; environments: unknown[]; kustomizations: unknown[]; kruiseRollouts: unknown[]; rolloutDependencies: unknown } | null) {
+	const real = window.fetch.bind(window);
+	if ((window.fetch as any).__film) return;
+	const wrapped = (input: RequestInfo | URL, init?: RequestInit) => {
+		const u = new URL(typeof input === 'string' ? input : input instanceof URL ? input.href : input.url, location.href);
+		const m = /^\/api\/(?:clusters\/[^/]+\/)?rollouts$/.exec(u.pathname);
+		const s = m ? list() : null;
+		if (!m || !s) return real(input, init);
+		const ns = u.searchParams.get('namespace');
+		const rollouts = ns ? s.rollouts.filter((r: any) => r.metadata.namespace === ns) : s.rollouts;
+		return Promise.resolve(new Response(JSON.stringify({ rollouts: { items: rollouts }, environments: { items: s.environments }, rolloutDependencies: s.rolloutDependencies, kustomizations: { items: s.kustomizations }, kruiseRollouts: { items: s.kruiseRollouts } }), { status: 200, headers: { 'content-type': 'application/json' } }));
+	};
+	(wrapped as any).__film = true;
+	window.fetch = wrapped as typeof fetch;
+}

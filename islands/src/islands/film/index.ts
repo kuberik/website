@@ -9,7 +9,7 @@ import { Player } from '../shared/player';
 import { setPart } from '../shared/world';
 import { LOOP, CHAPTERS, REST_T, upcoming } from './script';
 import { eventIndexAt, worldAt } from './scenario';
-import { installAnswers, setDetail } from './detail-store.svelte';
+import { installAnswers, installFetch, setDetail } from './detail-store.svelte';
 import { loadSurface } from './surfaces';
 import Film from './Film.svelte';
 
@@ -17,6 +17,7 @@ export function mountFilm(ctx: CustomCtx) {
 	const props = reactive({ t: 0, playing: false, reduced: false, eventIdx: -1, onseek: (_: number) => {}, ontoggle: () => {} });
 	let world: ReturnType<typeof worldAt> | null = null;
 	installAnswers(() => (world?.fleet.rollouts as unknown[]) ?? []);
+	installFetch(() => (world?.fleet as any) ?? null);
 	let last = NaN;
 	let player: Player | undefined;
 	const apply = (t: number) => {
