@@ -1,0 +1,9 @@
+{{- /* {{< island name="rollouts-list" height="300" >}} : mounts a registered island (islands/src/registry.ts) into a shadow root.
+       height reserves the box so nothing shifts when it mounts. The runtime is loaded once per page. */ -}}
+{{- $name := .Get "name" -}}
+{{- $h := .Get "height" | default "300" -}}
+<div data-island="{{ $name }}" data-theme-sync style="min-height:{{ $h }}px"></div>
+{{- if not (.Page.Scratch.Get "islands-loaded") -}}
+{{- .Page.Scratch.Set "islands-loaded" true -}}
+<script type="module" src="{{ "islands/islands.js" | relURL }}"></script>
+{{- end -}}

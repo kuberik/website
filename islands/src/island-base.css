@@ -1,0 +1,15 @@
+/* The part of the dashboard's `html { ... }` base rule that a shadow root needs on its host (the dashboard sets it on
+   <html>, which a shadow tree never sees). Same values, language.css section 3. */
+:host {
+	display: block;
+	font-family: var(--font-sans);
+	font-feature-settings: 'cv05', 'cv08';
+	font-optical-sizing: auto;
+	-webkit-font-smoothing: antialiased;
+	-moz-osx-font-smoothing: grayscale;
+	text-rendering: optimizeLegibility;
+	color: var(--k-fg);
+	contain: content;
+}
+.k-island { color: var(--k-fg); }
+.k-island-ctl { margin-top: 8px; display: flex; justify-content: flex-end; }

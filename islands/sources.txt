@@ -1,0 +1,8 @@
+# Tailwind @source entries, relative to the dashboard's src/. Narrow on purpose: only what islands render.
+lib/components/new/StrandRow.svelte
+lib/components/new/MiniPipeline.svelte
+lib/components/new/ListCard.svelte
+lib/components/StatusMark.svelte
+lib/components/EmptyGlyph.svelte
+lib/components/Chip.svelte
+lib/components/atoms/LeadBar.svelte
