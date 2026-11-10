@@ -13,7 +13,7 @@
   <script>(function(){var d=document.documentElement,t;try{t=localStorage.getItem("color-theme")}catch(e){}
   if(t!=="light"&&t!=="dark")t=matchMedia("(prefers-color-scheme: dark)").matches?"dark":"light";
   d.classList.remove("light","dark");d.classList.add(t);d.style.colorScheme=t})()</script>
-  <link rel="preload" href="/islands/fonts/inter-latin-opsz.woff2" as="font" type="font/woff2" crossorigin>
+  <link rel="preload" href="{{ "islands/fonts/inter-latin-opsz.woff2" | relURL }}" as="font" type="font/woff2" crossorigin>
   <link rel="stylesheet" href="{{ $css.RelPermalink }}" integrity="{{ $css.Data.Integrity }}">
   <link rel="icon" type="image/svg+xml" href="/favicon.svg">
   <link rel="alternate icon" href="/favicon.ico">

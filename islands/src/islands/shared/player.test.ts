@@ -26,3 +26,8 @@ test('hidden tab freezes; reduced motion parks on the rest frame and only jumps'
 	p.gate('motion', false); expect(p.time).toBe(16); run(5000); expect(p.time).toBe(16);
 	p.seek(7.7); run(5000); expect(p.time).toBeCloseTo(7.7, 1); expect(p.playing).toBe(false);
 });
+test('a reader pause survives scrolling away and back', () => {
+	const { p, run } = rig();
+	p.gate('onscreen', true); run(3000); p.toggle(); const t = p.time; p.gate('onscreen', false); p.gate('onscreen', true); run(2000);
+	expect(p.paused).toBe(true); expect(p.time).toBeCloseTo(t, 1);
+});

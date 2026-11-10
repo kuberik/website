@@ -3,5 +3,8 @@
        runs a module script with the same URL once per document, and a Scratch "loaded once" flag goes stale under hugo's fast re-render. */ -}}
 {{- $name := .Get "name" -}}
 {{- $h := .Get "height" | default "300" -}}
-<div data-island="{{ $name }}" data-theme-sync{{ if .Get "eager" }} data-eager{{ end }} style="min-height:{{ $h }}px"></div>
+<div data-island="{{ $name }}" data-theme-sync{{ if .Get "eager" }} data-eager{{ end }} style="min-height:{{ $h }}px">{{ if .Get "eager" }}<div class="ph-frame" aria-hidden="true" style="height:100%;display:flex;flex-direction:column;gap:16px;padding:0;border-radius:inherit;overflow:hidden">
+  <div style="height:44px;display:flex;align-items:center;gap:10px;padding:0 24px;border-bottom:1px solid color-mix(in srgb,currentColor 10%,transparent)"><i style="width:18px;height:18px;border-radius:5px;background:#00bfb3"></i><b style="font:500 13px/1 'Kuberik Inter',system-ui,sans-serif;opacity:.7">Apps / checkout-api</b></div>
+  <div style="margin:0 24px;height:100px;border-radius:8px;background:color-mix(in srgb,currentColor 5%,transparent)"></div>
+  <div style="margin:0 24px;flex:1;border-radius:8px;background:color-mix(in srgb,currentColor 5%,transparent)"></div></div>{{ end }}</div>
 <script type="module" src="{{ "islands/islands.js" | relURL }}"></script>

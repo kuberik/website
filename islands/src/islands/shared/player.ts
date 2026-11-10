@@ -37,7 +37,7 @@ export class Player {
 		const before = this.g[name];
 		this.g[name] = v;
 		if (name === 'motion') { if (!v) this.jump(this.o.rest); else this.jump(0); }
-		if (name === 'onscreen' && v && !before && this.g.motion) this.jump(0);
+		if (name === 'onscreen' && v && !before && this.g.motion && this.g.user) this.jump(0); // a reader's pause survives scrolling away and back
 		this.sync(was);
 	}
 	toggle() { const was = this.playing; this.g.user = !this.g.user; this.sync(was); }
