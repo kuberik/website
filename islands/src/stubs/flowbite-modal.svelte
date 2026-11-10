@@ -14,6 +14,8 @@
 	.fm-panel { position: relative; width: 100%; max-width: 640px; margin: 0; overflow: hidden; box-shadow: 0 12px 40px rgba(0, 0, 0, 0.25); }
 	@container kc (max-width: 639px) {
 		.fm-scrim { padding: 0; align-items: stretch; }
+		/* the sheet's footer (Cancel / Roll back and its hint line) sits over the foot of the scroller: its content gets the room, so the last field can scroll clear of it */
+		.fm-panel :global([class*="max-sm:overflow-y-auto"]) { padding-bottom: 96px; }
 		.fm-panel { max-width: none; width: 100%; height: 100%; max-height: none; border-radius: 0; border-width: 0; box-shadow: none; }
 	}
 </style>

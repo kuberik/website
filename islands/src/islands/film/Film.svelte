@@ -158,7 +158,7 @@
 		if (reduced) { cam = { x: 0, y: 0, s: 1, dur: 0, ease: 'ease', moving: false }; holeOn = false; shadeOn = false; return; }
 		const vw = main.clientWidth, vh = main.clientHeight, gw = group.offsetWidth, gh = group.offsetHeight;
 		const el = m.to === 'rest' || (phone && m.to === 'modal-fields') ? null : resolveTarget(m.to, camEl!, phone); /* phone: the rollback dialog is a full-screen sheet, there is nothing to zoom */
-		let x = 0, y = 0, s = m.s;
+		let x = 0, y = 0, s = el ? m.s : 1; /* a target that is not on the page rests (never a blind zoom at the origin) */
 		if (el) {
 			const r = relRect(el);
 			if (phone) { s = 1; y = -Math.max(0, r.y - 10); }
@@ -238,7 +238,7 @@
 	/** The two confirms are the product's REAL dialogs, opened by pressing the real buttons, and their open state is a pure function of `t` (so a seek lands on them too):
 	 *  the approval confirm between the two Approve presses (anchored in canvas px), the rollback dialog between the banner's Roll back and Continue.
 	 *  Neither dialog's own confirm is clicked: the story's CRs carry the outcome (grantApproval would write an optimistic "Deploying" row, TRUTH defect). */
-	let lastGoal: HTMLElement | null = null;
+	let lastGoal: HTMLElement | null = null, scrollAt = 0;
 	let rbOpen = false, pressedGo = false, dlgTick = $state(0);
 	$effect(() => { if (t < 34) pressedGo = false; });
 	$effect(() => {
@@ -258,6 +258,7 @@
 	});
 
 	/* the prod ceremony's two fields are typed from `t` (a pure function: a seek lands on the right half-typed text): set the value and tell the product's binding */
+	const byTextEl = (root: ParentNode, re: RegExp) => [...root.querySelectorAll<HTMLElement>('.fm-panel button')].find((e) => re.test((e.textContent ?? '').trim())) ?? null;
 	function typeInto(el: HTMLInputElement | HTMLTextAreaElement | null, text: string) {
 		if (!el || el.value === text) return;
 		el.value = text; el.dispatchEvent(new Event('input', { bubbles: true }));
@@ -274,7 +275,13 @@
 				const rEl = resolveTarget('modal-reason', canvas, phone), cEl = resolveTarget('modal-confirm', canvas, phone);
 				let sc: HTMLElement | null = rEl?.parentElement ?? null; while (sc && !(sc.scrollHeight > sc.clientHeight + 4 && /auto|scroll/.test(getComputedStyle(sc).overflowY))) sc = sc.parentElement;
 				const goal = tt >= 36.8 ? cEl : tt >= 34.7 ? rEl : null;
-				if (sc && goal) { const a = sc.getBoundingClientRect(), g = goal.getBoundingClientRect(), u = a.height / sc.clientHeight || 1; const want = Math.max(0, sc.scrollTop + (g.top - a.top) / u - (sc.clientHeight - g.height / u) * (goal === cEl ? 0.6 : 0.35)); if (goal !== lastGoal) { lastGoal = goal; sc.scrollTo({ top: want, behavior: 'smooth' }); } }
+				if (sc && goal) {
+					const a = sc.getBoundingClientRect(), g = goal.getBoundingClientRect(), u = a.height / sc.clientHeight || 1;
+					/* the sheet's footer (Cancel / Roll back, under the scroller) grows by a "does not match yet" line once typing starts: the field is centred in the scroller as it will be THEN, so the footer never covers it and nothing jumps */
+					const avail = sc.clientHeight - (/does not match/.test(canvas.querySelector('.fm-panel')?.textContent ?? '') ? 0 : 28);
+					const want = Math.min(Math.max(0, sc.scrollTop + (g.top - a.top) / u - (avail - g.height / u) * 0.5), Math.max(0, sc.scrollHeight - sc.clientHeight));
+					if (goal !== lastGoal) { lastGoal = goal; scrollAt = tt; sc.scrollTo({ top: want, behavior: 'smooth' }); } else if (tt > scrollAt + 0.7 && Math.abs(want - sc.scrollTop) > 1) sc.scrollTop = want; /* held there while the footer's line comes and goes */
+				}
 			}
 			typeInto(resolveTarget('modal-confirm', canvas, phone) as HTMLInputElement | null, v.slice(0, typedLen(tt, TYPING.confirm, v.length)));
 		});

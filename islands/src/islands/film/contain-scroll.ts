@@ -18,7 +18,7 @@ export function containScroll() {
 		const zget = zd.get;
 		Object.defineProperty(Element.prototype, 'currentCSSZoom', { configurable: true, enumerable: zd.enumerable, get(this: Element) {
 			const z = zget.call(this) as number;
-			const g = this.getRootNode() instanceof ShadowRoot ? this.closest('.film-group') : null;
+			const g = this.getRootNode() instanceof ShadowRoot ? this.closest('.film-cam') : null;
 			if (!g) return z;
 			const tf = getComputedStyle(g).transform;
 			const sc = tf && tf !== 'none' ? new DOMMatrix(tf).a : 1;
@@ -28,7 +28,7 @@ export function containScroll() {
 	const nativeFocus = HTMLElement.prototype.focus;
 	HTMLElement.prototype.focus = function (this: HTMLElement, o?: FocusOptions) {
 		const root = this.getRootNode();
-		if (root instanceof ShadowRoot && (root.host as HTMLElement).dataset?.island) return;
+		if (root instanceof ShadowRoot && (root.host as HTMLElement).dataset?.island && this.closest('.film-canvas')) return; /* decorative film only: the chrome's own controls keep native focus */
 		return nativeFocus.call(this, o);
 	};
 	const native = Element.prototype.scrollIntoView;

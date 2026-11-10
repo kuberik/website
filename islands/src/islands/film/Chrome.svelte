@@ -38,7 +38,7 @@
 				{/each}
 			</div>
 			{#if !reduced}
-				<button type="button" class="fc-play" aria-label={playing ? 'Pause demo' : 'Play demo'} aria-pressed={!playing} onclick={ontoggle}>
+				<button type="button" class="fc-play" aria-label={playing ? 'Pause demo' : 'Play demo'} onclick={ontoggle}>
 					{#if playing}<svg width="14" height="14" viewBox="0 0 14 14" aria-hidden="true"><path d="M3.5 2h2.5v10H3.5zM8 2h2.5v10H8z" fill="currentColor" /></svg>{:else}<svg width="14" height="14" viewBox="0 0 14 14" aria-hidden="true"><path d="M3.5 2l8 5-8 5z" fill="currentColor" /></svg>{/if}
 				</button>
 			{/if}
