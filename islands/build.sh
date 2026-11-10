@@ -6,7 +6,7 @@
 # via DASHBOARD_NODE_MODULES.
 set -euo pipefail
 cd "$(dirname "$0")"
-export DASHBOARD_SRC="${DASHBOARD_SRC:?set DASHBOARD_SRC to the dashboard checkout's frontend/ dir}"
+export DASHBOARD_SRC="${DASHBOARD_SRC:?set DASHBOARD_SRC to the frontend dir of a dashboard checkout}"
 NM="${DASHBOARD_NODE_MODULES:-$DASHBOARD_SRC/node_modules}"
 [ -d "$NM" ] || { echo "no node_modules at $NM (set DASHBOARD_NODE_MODULES)"; exit 1; }
 ln -sfn "$NM" node_modules
