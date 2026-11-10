@@ -19,3 +19,14 @@ lib/components/PromotionLane.svelte
 lib/components/Toast.svelte
 lib/components/ChangeDot.svelte
 islands:src/islands/hero/Hero.svelte
+islands:src/islands/shared/AppHeader.svelte
+islands:src/islands/shared/Pointer.svelte
+islands:src/islands/shared/ChipBar.svelte
+islands:src/islands/shared/WindowBar.svelte
+islands:src/islands/health/Health.svelte
+lib/components/StatementBanner.svelte
+lib/components/AlertPanel.svelte
+lib/components/HealthChecksCard.svelte
+lib/components/Card.svelte
+lib/components/HeldGlyph.svelte
+lib/components/StatusSpinner.svelte

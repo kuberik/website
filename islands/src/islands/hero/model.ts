@@ -5,9 +5,9 @@
  * over one opened place row (the Slipway). The only departure is WHICH place the header and Slipway follow: the app page follows
  * production (AP5); the landing follows the place the build is in, because the story is the build walking through them (SPEC 2.2).
  */
-import { apps, placeHolds, rowsOf, stepsOf, deployedBuild, waitingBuild, tabPill, approvalTarget, ago, type TRow, type PlaceHold } from '$lib/components/new/data';
+import { approvalTarget, type TRow } from '$lib/components/new/data';
 import { rowAction } from '$lib/components/new/rollout-view';
-import { laneOf } from '$lib/components/new/Footprint.svelte';
+import { appRowsOf, identityOf, laneOfApp } from '../shared/app-model';
 import { APP, APPROVE_AT, ASKS_AT, MERGE } from './scenario';
 
 /** the place the build is "in", by story time (SPEC 2.3 `current`) */
@@ -29,25 +29,7 @@ export const chipAt = (t: number): number => CHIPS.findIndex((c) => t >= c.from 
 export const REST_T = 16.0;
 
 type Row = TRow;
-/** AppDetail's `rowFor`, for one place: the model's row where the place has one, else a closed healthy place */
-function rowFor(p: PlaceHold): Row {
-	const un = rowsOf('incident', p.tier, p.label).find((r) => r.app === APP);
-	if (un) return un;
-	const dep = deployedBuild({ app: APP, href: p.href, version: p.runs });
-	return {
-		key: `${APP}@${p.env}`, app: APP, tier: p.tier, where: p.place, regions: p.tier === 'prod' ? [p.label] : [], state: p.state, group: 'rest', glyph: 'rest', word: '', change: null,
-		version: p.runs, since: dep.at, href: p.href, needsYou: false, lead: false, action: null, cause: null, pipeline: null,
-		steps: stepsOf({ state: 'healthy', pipeline: null }).map((s) => ({ ...s, state: 'done' as const })), failure: null, place: p.place, deployedAt: dep.at, regionsOf: null, stillChecking: false
-	} as unknown as Row;
-}
-
-/** every row the app has in the live source: the roster's rows (folded per region where it folds them) first, then closed healthy places */
-export function appRows(): { rows: Row[]; approval: Row | null } {
-	const A = apps('incident');
-	const fromGroups = (A.R.groups.flatMap((g) => g.rows) as Row[]).filter((r) => r.app === APP);
-	const closed = (placeHolds(APP, 'incident') as PlaceHold[]).filter((p) => !fromGroups.some((r) => r.href === p.href || r.regions.includes(p.label) && r.tier === p.tier)).map(rowFor);
-	return { rows: [...fromGroups, ...closed], approval: fromGroups.find((r) => r.group === 'approval') ?? null };
-}
+export const appRows = () => appRowsOf(APP);
 
 /** the row the Slipway opens at `t` */
 export function focusRow(t: number): Row | null {
@@ -64,22 +46,9 @@ export function focusRow(t: number): Row | null {
 	}
 }
 
-/** the app page's header facts for `row`: the build in focus (a gated place names the build that WAITS), its tab pill, its commit */
-export function identityOf(row: Row): { build: string; pill: { word: string; role: string } | null; commit: { title: string; who: string | null } | null; age: string } {
-	const gated = row.state === 'awaiting-approval' || row.state === 'held-by-rule';
-	const wb = gated ? waitingBuild(row) : null;
-	const dep = deployedBuild(row);
-	const pill = gated ? null : tabPill(row);
-	const c = wb ? { title: wb.title ?? '', who: wb.author } : dep.title ? { title: dep.title, who: dep.author } : null;
-	return { build: wb?.build ?? dep.build, pill: pill ? { word: pill.word, role: pill.role } : null, commit: c, age: ago(wb ? wb.since : dep.at) };
-}
-
+export { identityOf };
 /** the app page's env strip (PromotionLane) for the live source */
-export function laneFor() {
-	const A = apps('incident');
-	const item = A.items.find((a) => a.app === APP);
-	return item ? laneOf(item, A.R.c.m as never, A.R.c.events as never).lane : null;
-}
+export const laneFor = () => laneOfApp(APP);
 
 /** the Approve the Slipway offers on an approval row, and what pressing it would release (the confirm's target) */
 export const actionOf = (row: Row) => (row.group === 'approval' ? rowAction(row) : null);
