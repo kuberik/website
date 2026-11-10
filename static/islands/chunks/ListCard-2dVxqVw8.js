@@ -1,1 +1,0 @@
-import{w as i,S as r,t as d,l as c,d as o,h as p,B as v}from"./svelte-zyT0he_e.js";var m=i("<div><!></div>");function f(e,s){let t=o(s,"class",3,"");var a=m(),l=p(a);r(l,()=>s.children),d(()=>v(a,1,`lc ${t()??""}`,"svelte-ilxib0")),c(e,a)}export{f as L};

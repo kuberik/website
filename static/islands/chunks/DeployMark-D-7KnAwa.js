@@ -1,1 +1,0 @@
-import{w as o,t as m,k as e,o as n,h as p,l as d}from"./svelte-zyT0he_e.js";var k=o('<span class="t-meta shrink-0 text-fg-subtle" data-manual-deploy=""> </span>');function i(s,t){const l={manual:"Manual deploy: a person pressed deploy"};var a=k(),r=p(a);m(()=>{e(a,"data-deploy-mark",t.mark),e(a,"title",l[t.mark]),n(r,t.mark)}),d(s,a)}export{i as D};

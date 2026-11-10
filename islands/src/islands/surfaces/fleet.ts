@@ -1,10 +1,8 @@
 /**
- * SPIKE (landing-v5 surfaces): the hero's checkout-api world (hero/scenario.ts fleetAt) plus 10 other apps, so the list pages
- * (Home / Rollouts / Apps / Environments / Changes) have a fleet to draw. Raw CRs only; every word on screen is the product's.
+ * The other apps of the film's fleet (film/scenario.ts picks the ones that sit at rest, plus billing-api, which waits). Raw CRs only; every word on screen is the product's.
  * `failing` flips one prod region (eu-central-1) to a failed bake with an Unhealthy check carrying observation figures.
  */
 import type { FleetSource } from '$lib/components/home/sketch/fleet-source.svelte';
-import { fleetAt, githubAt, simMs } from '../hero/scenario';
 import { release, gate, prChange, CLOCK_MS } from '../shared/cr';
 
 const H = 3600_000;
@@ -70,23 +68,4 @@ export function extras(opt: { failing: boolean; only?: (a: (typeof APPS)[number]
 	});
 	void opt;
 	return { rollouts, environments, changes, hcs, gh };
-}
-
-/** the hero world at story second `t`, plus the other apps; `failing` marks checkout-api's eu-central-1 as a failed bake */
-export function surfaceFleet(t: number, opt: { failing?: boolean } = {}): { fleet: FleetSource; github: Record<string, unknown> } {
-	const base = fleetAt(t);
-	const x = extras({ failing: !!opt.failing });
-	const github = { ...githubAt(t), ...x.gh };
-	const rolloutsOut = (base.rollouts as unknown[]).filter((r) => (r as { metadata: { name: string } }).metadata.name !== 'billing-api');
-	const envsOut = (base.environments as unknown[]).filter((r) => (r as { metadata: { name: string } }).metadata.name !== 'billing-api');
-	void simMs;
-	return {
-		fleet: {
-			...base, me: 'olivia-bennett', github: { configured: true, connected: true, login: 'olivia-bennett' },
-			rollouts: [...rolloutsOut, ...x.rollouts] as never, environments: [...envsOut, ...x.environments] as never,
-			changes: [...(base.changes as unknown[]), ...x.changes] as never,
-			healthChecks: [...((base.healthChecks as unknown[]) ?? []), ...x.hcs] as never
-		},
-		github
-	};
 }

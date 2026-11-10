@@ -10,9 +10,6 @@
 	 */
 	import { untrack, tick } from 'svelte';
 	import type { Component } from 'svelte';
-	import Sidebar from '$lib/Sidebar.svelte';
-	import MobileTabBar from '$lib/MobileTabBar.svelte';
-	import ApprovalLayer from '$lib/components/new/ApprovalLayer.svelte';
 	import { approvalUi } from '$lib/components/new/approvals.svelte';
 	import WindowBar from '../shared/WindowBar.svelte';
 	import Chrome from './Chrome.svelte';
@@ -41,6 +38,12 @@
 	const fading = $derived(!reduced && t >= FADE_AT);
 	const press = $derived(reduced ? null : pressAt(t));
 	void tallyShown;
+
+	/* ---- the shell and the approval layer are their own chunks, fetched right after the first surface (the first frame needs only the page): the real Sidebar
+	   / MobileTabBar fill the space reserved for them (.film-side is the product's w-58), the real ApprovalLayer arrives 3 s before the first Approve ---- */
+	let Side = $state<Component<any> | null>(null), Tabs = $state<Component<any> | null>(null), Layer = $state<Component<any> | null>(null);
+	$effect(() => { void (phone ? import('$lib/MobileTabBar.svelte').then((m) => (Tabs = m.default)) : import('$lib/Sidebar.svelte').then((m) => (Side = m.default))); });
+	$effect(() => { if (t >= 4 && !Layer) void import('$lib/components/new/ApprovalLayer.svelte').then((m) => (Layer = m.default)); });
 
 	/* ---- the surface: lazy chunk per surface, cut with a 120 ms out / 200 ms in cross-fade ---- */
 	let shown = $state<Surf | null>(null);
@@ -163,7 +166,7 @@
 	<div class="film-frame" class:film-fade={fading}>
 		<div class="film-canvas" bind:this={canvas} style="width:{CW}px;height:{CH}px;transform:scale({k})">
 			<div class="film-app">
-				{#if !phone}<div class="film-side" class:film-dim={shellDim}><Sidebar /></div>{/if}
+				{#if !phone}<div class="film-side" class:film-dim={shellDim}>{#if Side}<Side />{/if}</div>{/if}
 				<div class="film-col">
 					<div class="film-top" class:film-dim={shellDim}><WindowBar crumbs={crumbs} narrow={phone} keep={2} /></div>
 					<main class="film-main" bind:this={main}>
@@ -173,9 +176,9 @@
 						</div>
 					</main>
 				</div>
-				{#if phone}<div class="film-tabs" class:film-dim={shellDim}><MobileTabBar /></div>{/if}
+				{#if phone}<div class="film-tabs" class:film-dim={shellDim}>{#if Tabs}<Tabs />{/if}</div>{/if}
 			</div>
-			<ApprovalLayer />
+			{#if Layer}<Layer />{/if}
 			<Cursor x={ptr.x} y={ptr.y} on={ptr.on} press={ptr.press} touch={phone} />
 		</div>
 	</div>
@@ -189,7 +192,7 @@
 	/* the canvas is a real dashboard viewport: its width answers the compiled `sm:`/`lg:` queries (container "kc"), `fixed` children (confirm, sheet, bottom nav) anchor to it */
 	.film-canvas { position: relative; transform-origin: 0 0; container-type: inline-size; container-name: kc; overflow: hidden; background: var(--k-ground); contain: layout paint; }
 	.film-app { display: flex; height: 100%; flex-direction: row; background: var(--k-ground); }
-	.film-side { display: flex; flex-shrink: 0; transition: opacity 0.434s ease; }
+	.film-side { display: flex; flex-shrink: 0; width: 14.5rem; transition: opacity 0.434s ease; }
 	.film-col { display: flex; flex-direction: column; min-width: 0; flex: 1 1 0; }
 	.film-top { flex: none; transition: opacity 0.434s ease; }
 	.film-main { position: relative; flex: 1 1 0; min-height: 0; overflow: hidden; }

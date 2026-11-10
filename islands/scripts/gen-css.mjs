@@ -4,12 +4,13 @@
 //     not the whole checkout;
 //   - the two flowbite-svelte @source lines and the flowbite / typography plugins are dropped (no island uses them);
 //   - language.css is imported by absolute path (the dashboard's design tokens + roles, untouched).
-import { readFileSync, writeFileSync, mkdirSync } from 'node:fs';
+import { readFileSync, writeFileSync, mkdirSync, existsSync } from 'node:fs';
 import { resolve } from 'node:path';
 import { fileURLToPath } from 'node:url';
 const D = process.env.DASHBOARD_SRC;
 const app = readFileSync(resolve(D, 'src/app.css'), 'utf8');
-const sources = readFileSync(process.env.SOURCES ? resolve(process.env.SOURCES) : new URL('../sources.txt', import.meta.url), 'utf8').split('\n').map((s) => s.trim()).filter((s) => s && !s.startsWith('#'));
+const lines = (u) => (existsSync(u) ? readFileSync(u, 'utf8') : '').split('\n').map((s) => s.trim()).filter((s) => s && !s.startsWith('#'));
+const sources = [...lines(process.env.SOURCES ? resolve(process.env.SOURCES) : new URL('../sources.txt', import.meta.url)), ...lines(new URL('../sources.auto.txt', import.meta.url))];
 let css = app
 	.replace(/@import 'tailwindcss';/, "@import 'tailwindcss' source(none);")
 	.replace(/@import '\.\/styles\/language\.css';/, `@import '${resolve(D, 'src/styles/language.css')}';`)

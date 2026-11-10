@@ -1,1 +1,0 @@
-const e="kuberik",i=/(\[bot\]$|^github-actions|^dependabot|^renovate|-bot$|^bot-|^ci$|^ci-|-ci$)/i;function r(o,c){const n=(o?.kind??"").toLowerCase(),t=(o?.name??"").trim();return!t||n==="system"||t.toLowerCase()==="system"?{kind:"controller",name:e}:i.test(t)||n==="serviceaccount"||n==="ci"?{kind:"ci",name:t}:{kind:"person",name:t}}export{r as a};
