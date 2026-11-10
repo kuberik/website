@@ -38,6 +38,7 @@ export async function mountIsland(host: HTMLElement, BASE: string) {
 	const [def, css] = await Promise.all([load(), sharedSheet(BASE)]);
 	const root = host.shadowRoot ?? host.attachShadow({ mode: 'open' });
 	root.adoptedStyleSheets = [css];
+	if (host.querySelector('.ph-poster')) { const slot = document.createElement('slot'); root.appendChild(slot); } // the static first frame stays (slotted, above the island) until ready()
 	const wrap = document.createElement('div');
 	wrap.className = 'k-island';
 	root.appendChild(wrap);
@@ -51,7 +52,8 @@ export async function mountIsland(host: HTMLElement, BASE: string) {
 	if ('custom' in def) {
 		const cbs: ((g: 'onscreen' | 'visible' | 'motion', v: boolean) => void)[] = [];
 		const fire = (g: 'onscreen' | 'visible' | 'motion', v: boolean) => cbs.forEach((f) => f(g, v));
-		def.custom({ wrap, host, onGate: (cb) => cbs.push(cb) });
+		const ready = () => { const p = host.querySelector<HTMLElement>('.ph-poster'); if (!p) return; p.style.opacity = '0'; host.querySelector('.ph-chapters')?.remove(); setTimeout(() => p.remove(), 220); };
+		def.custom({ wrap, host, onGate: (cb) => cbs.push(cb), ready });
 		fire('motion', !reduced.matches);
 		fire('visible', document.visibilityState === 'visible');
 		reduced.addEventListener('change', () => fire('motion', !reduced.matches));

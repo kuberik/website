@@ -38,7 +38,14 @@ export function mountFilm(ctx: CustomCtx) {
 	apply(0);
 	props.onseek = (i) => { player!.seek(player!.reduced ? CHAPTERS[i].settled : CHAPTERS[i].from); props.playing = player!.playing; };
 	props.ontoggle = () => { player!.toggle(); props.playing = player!.playing; };
-	void loadSurface('change').then(() => mount(Film, { target: ctx.wrap, props }));
+	/* the first frame is real once the surface, the shell and the fonts are in and painted: only then does the static poster leave (no blank gap, no shift) */
+	const shell = ctx.host.clientWidth < 600 ? import('$lib/MobileTabBar.svelte') : import('$lib/Sidebar.svelte'); // fetched in parallel with the first surface, same chunk Film asks for
+	void Promise.all([loadSurface('change'), shell]).then(async () => {
+		mount(Film, { target: ctx.wrap, props });
+		await Promise.race([document.fonts.ready, new Promise((r) => setTimeout(r, 1500))]);
+		await new Promise<void>((r) => requestAnimationFrame(() => requestAnimationFrame(() => r())));
+		ctx.ready();
+	});
 	ctx.onGate((g, v) => { player!.gate(g, v); props.playing = player!.playing; props.reduced = player!.reduced; });
 	/* QA hook: freeze the story on second `t` (screenshot harness; harmless in the page) */
 	(ctx.host as any).__story = { at: (t: number) => { player!.seek(t); player!.pause(); props.playing = player!.playing; }, player };

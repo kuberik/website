@@ -13,7 +13,8 @@ export type IslandDef<P extends Record<string, any>> = {
 
 /** An island that runs its own clock and mounts itself (the hero film): the runtime hands it the shadow wrapper and the three gates. */
 export type Gate = 'onscreen' | 'visible' | 'motion';
-export type CustomCtx = { wrap: HTMLElement; host: HTMLElement; onGate: (cb: (gate: Gate, open: boolean) => void) => void };
+/** `ready()`: the island's first frame is painted; the host's slotted poster (the static first frame, Hugo markup) is removed. */
+export type CustomCtx = { wrap: HTMLElement; host: HTMLElement; onGate: (cb: (gate: Gate, open: boolean) => void) => void; ready: () => void };
 export type CustomIsland = { custom: (ctx: CustomCtx) => void | (() => void) };
 export type IslandModule = IslandDef<any> | CustomIsland;
 
