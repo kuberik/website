@@ -2,6 +2,7 @@
    <html>, which a shadow tree never sees). Same values, language.css section 3. */
 :host {
 	display: block;
+	text-align: left; /* a host page may centre its text (the hero stage does); the product never does */
 	font-family: var(--font-sans);
 	font-feature-settings: 'cv05', 'cv08';
 	font-optical-sizing: auto;

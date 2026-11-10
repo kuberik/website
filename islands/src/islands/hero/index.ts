@@ -10,7 +10,7 @@ import { fleetAt, githubAt } from './scenario';
 import { CHIPS, LOOP, REST_T } from './model';
 import { Player } from './player';
 
-export function mountHero({ wrap, onGate }: CustomCtx) {
+export function mountHero({ wrap, host, onGate }: CustomCtx) {
 	const props = reactive({ t: 0, playing: false, reduced: false, onseek: (_: number) => {}, ontoggle: () => {} });
 	let last = NaN;
 	const apply = (t: number) => {
@@ -29,5 +29,7 @@ export function mountHero({ wrap, onGate }: CustomCtx) {
 	props.ontoggle = () => { player!.toggle(); props.playing = player!.playing; };
 	mount(Hero, { target: wrap, props });
 	onGate((g, v) => { player!.gate(g, v); props.playing = player!.playing; props.reduced = player!.reduced; if (g === 'motion' && !v) approvalUi.ask = null; });
+	/* QA hook: freeze the story on second `t` (used by the screenshot harness, harmless in the page) */
+	(host as any).__hero = { at: (t: number) => { player!.seek(t); if (player!.playing) player!.toggle(); }, player };
 	return () => player!.destroy();
 }

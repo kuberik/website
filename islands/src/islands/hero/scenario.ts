@@ -43,13 +43,13 @@ const R44 = rel(44, SHA[44], BASE - 30 * H), R45 = rel(45, SHA[45], BASE - 4 * H
 
 type Place = { ns: string; env: 'dev' | 'staging' | 'prod'; site?: string; wave?: number; step: Step; bake: string; theme: string };
 const PLACES: Place[] = [
-	{ ns: 'checkout-api-dev', env: 'dev', step: STEPS.dev, bake: '10m', theme: 'dev' },
-	{ ns: 'checkout-api-staging', env: 'staging', step: STEPS.staging, bake: '10m', theme: 'staging' },
-	{ ns: 'checkout-api-prod-us-east-1', env: 'prod', site: 'us-east-1', wave: 1, step: STEPS['us-east-1'], bake: '15m', theme: 'prod' },
-	{ ns: 'checkout-api-prod-us-east-2', env: 'prod', site: 'us-east-2', wave: 2, step: STEPS['us-east-2'], bake: '15m', theme: 'prod' },
-	{ ns: 'checkout-api-prod-eu-west-1', env: 'prod', site: 'eu-west-1', wave: 2, step: STEPS['eu-west-1'], bake: '15m', theme: 'prod' },
-	{ ns: 'checkout-api-prod-eu-central-1', env: 'prod', site: 'eu-central-1', wave: 2, step: STEPS['eu-central-1'], bake: '15m', theme: 'prod' },
-	{ ns: 'checkout-api-prod-ap-southeast-2', env: 'prod', site: 'ap-southeast-2', wave: 2, step: STEPS['ap-southeast-2'], bake: '15m', theme: 'prod' }
+	{ ns: 'checkout-api-dev', env: 'dev', step: STEPS.dev, bake: '1m', theme: 'dev' },
+	{ ns: 'checkout-api-staging', env: 'staging', step: STEPS.staging, bake: '1m', theme: 'staging' },
+	{ ns: 'checkout-api-prod-us-east-1', env: 'prod', site: 'us-east-1', wave: 1, step: STEPS['us-east-1'], bake: '50s', theme: 'prod' },
+	{ ns: 'checkout-api-prod-us-east-2', env: 'prod', site: 'us-east-2', wave: 2, step: STEPS['us-east-2'], bake: '1m', theme: 'prod' },
+	{ ns: 'checkout-api-prod-eu-west-1', env: 'prod', site: 'eu-west-1', wave: 2, step: STEPS['eu-west-1'], bake: '1m', theme: 'prod' },
+	{ ns: 'checkout-api-prod-eu-central-1', env: 'prod', site: 'eu-central-1', wave: 2, step: STEPS['eu-central-1'], bake: '1m', theme: 'prod' },
+	{ ns: 'checkout-api-prod-ap-southeast-2', env: 'prod', site: 'ap-southeast-2', wave: 2, step: STEPS['ap-southeast-2'], bake: '1m', theme: 'prod' }
 ];
 
 type Phase = 'old' | 'deploying' | 'checking' | 'done';
@@ -85,7 +85,8 @@ function rollout(p: Place, t: number, failed: boolean) {
 		/* the approval gate is raised once staging is healthy: until then prod is simply behind, waiting on its promotion gate */
 		if (staged) gates.push(gate('release-approval', approved ? ['b-44', 'b-45', ...newTag] : ['b-44', 'b-45']));
 	}
-	const candidates = onNew || !merged ? [] : [R46()];
+	/* prod only learns of the build once staging has proven it (an Environment's promotion gate lists it from then on) */
+	const candidates = onNew || !merged || (p.env === 'prod' && t < ASKS_AT) ? [] : [R46()];
 	return {
 		apiVersion: 'kuberik.com/v1alpha1', kind: 'Rollout',
 		metadata: { name: APP, namespace: p.ns, labels: { environment: p.site ? `${p.env}-${p.site}` : p.env }, annotations: { 'rollout-dashboard.kuberik.com/source-cluster': p.env } },
@@ -171,6 +172,28 @@ export function githubAt(t: number): Record<string, unknown> {
 	return out;
 }
 
+/**
+ * SCENERY (documented, not decoration): the dashboard's roster treats the single oldest approval in the fleet as "the lead" and
+ * hands it no Approve of its own (home-view.ts `approvals = approvalsAll.filter(x => x !== leadApproval)`): the lead gets the Home
+ * page's big card instead. The hero window shows the app page, where checkout-api's approval must carry its Approve, so another
+ * app has been waiting on a person for longer. Nothing of it is drawn: the hero only ever looks at checkout-api.
+ */
+function scenery() {
+	const ns = 'billing-api-prod';
+	const r7 = rel(7, 'a7a7a7a1c3e5092b4d6f8a0c2e4b6d8f0a2c4e61', BASE - 9 * H), r8 = rel(8, 'a8b8c8d1e3f5092b4d6f8a0c2e4b6d8f0a2c4e71', BASE - 5 * H);
+	return {
+		rollout: {
+			apiVersion: 'kuberik.com/v1alpha1', kind: 'Rollout',
+			metadata: { name: 'billing-api', namespace: ns, labels: { environment: 'prod' }, annotations: { 'rollout-dashboard.kuberik.com/source-cluster': 'prod' } },
+			spec: { releasesImagePolicy: `${ns}/billing-api`, versionHistoryLimit: 20, minBakeTime: '2m', bakeTime: '1m' },
+			status: { source: 'github.com/exampleco/billing-api', wantedVersion: 'b-7', currentVersion: 'b-7', previousVersion: 'b-6', availableReleases: [r7, r8], releaseCandidates: [r8],
+				history: [{ id: 1, version: r7, timestamp: new Date(BASE - 8 * H).toISOString(), bakeStatus: 'Succeeded', bakeStartTime: new Date(BASE - 8 * H).toISOString(), bakeEndTime: new Date(BASE - 8 * H + 60_000).toISOString(), triggeredBy: { kind: 'System', name: 'System' } }],
+				gates: [gate('release-approval', ['b-7'])] }
+		},
+		env: { apiVersion: 'environments.kuberik.com/v1alpha1', kind: 'Environment', metadata: { name: 'billing-api', namespace: ns, annotations: { 'rollout-dashboard.kuberik.com/source-cluster': 'prod' } }, spec: { environment: 'prod', name: 'billing-api-service', rolloutRef: { name: 'billing-api' } }, status: { currentVersion: 'b-7', lastStatusChangeTime: new Date(BASE - 8 * H).toISOString(), conditions: [] } }
+	};
+}
+
 export type Fleet = FleetSource;
 export function fleetAt(t: number): FleetSource {
 	const merged = t >= MERGE;
@@ -180,9 +203,10 @@ export function fleetAt(t: number): FleetSource {
 		...(merged ? [change(112, 'Add Apple Pay to checkout', 'olivia-bennett', simMs(MERGE), SHA[46], 6)] : [])
 	];
 	const prod = PLACES.filter((p) => p.env === 'prod');
+	const sc = scenery();
 	return {
-		rollouts: PLACES.map((p) => rollout(p, t, false)) as never,
-		environments: PLACES.map((p) => environment(p, t)) as never,
+		rollouts: [...PLACES.map((p) => rollout(p, t, false)), sc.rollout] as never,
+		environments: [...PLACES.map((p) => environment(p, t)), sc.env] as never,
 		rolloutDependencies: { items: [] },
 		kustomizations: prod.map(kustomization) as never,
 		kruiseRollouts: prod.map((p) => kruise(p, t)) as never,

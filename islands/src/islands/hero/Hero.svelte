@@ -54,7 +54,13 @@
 			if (ask && !approvalUi.ask && row) {
 				const tg = targetOf(row);
 				const a = rel(box?.querySelector('[data-approve-open]') ?? null);
-				if (tg && a) approvalUi.ask = { target: tg, anchor: { top: a.top, left: a.left, right: a.right, bottom: a.bottom } };
+				if (tg && a) {
+					/* ApprovalLayer measures the viewport, not this frame: with no room below the button inside the frame, hand it an anchor
+					   that makes it open ABOVE the button (it positions from the frame's bottom edge) */
+					const room = (box?.clientHeight ?? 0) - a.bottom;
+					const vh = window.innerHeight;
+					approvalUi.ask = { target: tg, anchor: room > 170 ? { top: a.top, left: a.left, right: a.right, bottom: a.bottom } : { top: vh - (box?.clientHeight ?? 0) + a.top, left: a.left, right: a.right, bottom: vh } };
+				}
 			}
 			if (!ask && approvalUi.ask) approvalUi.ask = null;
 			if (done && !approvalUi.done && row) { const tg = targetOf(row) ?? lastTarget; if (tg) approvalUi.done = { target: tg, error: null }; }
