@@ -130,6 +130,7 @@
 	}
 	$effect(() => {
 		const p = press, tt = t;
+		void shown; void swapOpacity; void eventIdx; void Comp; /* re-aim once the surface under the cursor has been shown and laid out (a seek lands before it) */
 		untrack(() => {
 			if (!p || !canvas) { ptr.on = false; ptr.press = false; return; }
 			const el = resolveTarget(p.target, canvas, phone);
@@ -147,11 +148,12 @@
 		void shown; void eventIdx;
 		untrack(() => {
 			if (!canvas) return;
-			if (want && !approvalUi.ask) {
+			/* only on the surface that owns the button: a seek lands here before the new surface is shown, and the old page may carry a link with the same words (a real navigation of the host page) */
+			if (want && !approvalUi.ask && shown === 'rollouts') {
 				const el = resolveTarget('approve', canvas, phone) as HTMLElement | null;
 				if (el) { el.click(); const a = approvalUi.ask; if (a) { const c = canvas.getBoundingClientRect(), r = el.getBoundingClientRect(); a.anchor = { top: (r.top - c.top) / k, left: (r.left - c.left) / k, right: (r.right - c.left) / k, bottom: (r.bottom - c.top) / k }; } }
 			} else if (!want && approvalUi.ask) approvalUi.ask = null;
-			if (wantRb && !rbOpen) { const el = resolveTarget('banner-rollback', canvas, phone); if (el) { el.click(); rbOpen = true; } }
+			if (wantRb && !rbOpen && shown === 'overview') { const el = resolveTarget('banner-rollback', canvas, phone); if (el) { el.click(); rbOpen = true; } }
 			else if (!wantRb && rbOpen) { resolveTarget('modal-cancel', canvas, phone)?.click(); rbOpen = false; }
 		});
 	});
@@ -176,7 +178,7 @@
 						</div>
 					</main>
 				</div>
-				{#if phone}<div class="film-tabs" class:film-dim={shellDim}>{#if Tabs}<Tabs />{/if}</div>{/if}
+				{#if phone}<div class="film-tabs" class:film-tabs-dim={shellDim}>{#if Tabs}<Tabs />{/if}</div>{/if}
 			</div>
 			{#if Layer}<Layer />{/if}
 			<Cursor x={ptr.x} y={ptr.y} on={ptr.on} press={ptr.press} touch={phone} />
@@ -198,6 +200,9 @@
 	.film-main { position: relative; flex: 1 1 0; min-height: 0; overflow: hidden; }
 	.film-group { position: relative; transform-origin: 0 0; min-width: 0; }
 	.film-dim { opacity: 0.25; }
+	/* the phone's bottom nav is opaque and sits over the page: dim its contents, never the bar (a 25% bar lets the page show through) */
+	.film-tabs-dim :global(nav > *) { opacity: 0.25; }
+	.film-tabs :global(nav > *) { transition: opacity 0.434s ease; }
 	.film-dimmer { position: absolute; inset: 0; background: var(--k-ground); opacity: 0; pointer-events: none; transition: opacity 0.2s ease-out; z-index: 4; }
 	.film-dimmer-on { opacity: 0.65; }
 	.film-tabs { position: absolute; left: 0; right: 0; bottom: 0; z-index: 5; }
