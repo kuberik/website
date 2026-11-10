@@ -10,8 +10,9 @@
 	let scroller: HTMLElement | undefined = $state();
 	$effect(() => {
 		if (!narrow || !scroller || lit < 0) return;
-		const el = scroller.children[lit] as HTMLElement | undefined;
-		if (el) scroller.scrollTo({ left: el.offsetLeft - (scroller.clientWidth - el.offsetWidth) / 2, behavior: 'smooth' });
+		/* start the window one chip before the lit one so the neighbours read whole, never a clipped half label */
+		const el = scroller.children[Math.max(0, lit - 1)] as HTMLElement | undefined;
+		if (el) scroller.scrollTo({ left: el.offsetLeft - 4, behavior: 'smooth' });
 	});
 </script>
 <nav class="hw-chips t-label" class:hw-narrow={narrow} aria-label="Demo timeline">
