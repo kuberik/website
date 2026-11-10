@@ -72,3 +72,9 @@ theme = 'hextra'
     weight = 4
     [menu.main.params]
       icon = "github"
+
+# dev server only: never let a browser keep a stale islands bundle while it is being rebuilt
+[[server.headers]]
+  for = "/islands/*"
+  [server.headers.values]
+    Cache-Control = "no-store"
