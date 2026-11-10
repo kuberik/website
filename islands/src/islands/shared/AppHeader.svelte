@@ -30,7 +30,7 @@
 	{#if who.commit}
 		<div class="t-meta flex min-w-0 items-center gap-x-3 text-fg-muted" data-story-commit>
 			<span class="flex min-w-0 items-center gap-2">
-				{#if who.commit.who}<Avatar name={who.commit.who} src={avatarSrc(who.commit.who)} size={16} class="shrink-0" /><span class="shrink-0 whitespace-nowrap">{who.commit.who}</span>{/if}
+				{#if who.commit.who}<Avatar name={who.commit.who} src={avatarSrc(who.commit.who)} size={16} class="shrink-0 max-sm:hidden" /><span class="shrink-0 whitespace-nowrap max-sm:sr-only">{who.commit.who}</span>{/if}
 				<CodeBranchOutline class="h-3.5 w-3.5 shrink-0 text-fg-disabled max-sm:hidden" aria-hidden="true" /><span class="min-w-0 truncate text-fg-subtle max-sm:hidden">{who.commit.title}</span>
 			</span>
 			{#if who.age}<span class="inline-flex shrink-0 items-center gap-2 whitespace-nowrap tabular-nums text-fg-subtle"><ClockOutline class="h-3.5 w-3.5 shrink-0" aria-hidden="true" />{who.age} ago</span>{/if}

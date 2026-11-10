@@ -72,7 +72,7 @@ a{color:inherit;text-decoration:none}
 .stage::before{content:'';position:absolute;inset:0;z-index:-1;background:radial-gradient(circle,var(--dots) 1px,transparent 1.2px) 0 0/20px 20px}
 .stage-mint{background:var(--st-mint)}.stage-rose{background:var(--st-rose)}
 .stage-violet{background:var(--st-violet)}.stage-sky{background:var(--st-sky)}
-.bloom{position:absolute;width:620px;height:620px;border-radius:50%;z-index:-1;opacity:var(--bloom);filter:blur(8px);pointer-events:none}
+.bloom{position:absolute;width:max(620px,36vw);height:max(620px,36vw);border-radius:50%;z-index:-1;opacity:var(--bloom);filter:blur(8px);pointer-events:none}
 .stage-mint .b1{left:-180px;top:-160px;background:radial-gradient(closest-side,color-mix(in oklab,var(--mint-a) 55%,transparent),transparent)}
 .stage-mint .b2{right:-200px;bottom:-200px;background:radial-gradient(closest-side,color-mix(in oklab,var(--mint-b) 50%,transparent),transparent)}
 .stage-rose .b1{right:-180px;top:-200px;background:radial-gradient(closest-side,color-mix(in oklab,var(--rose-a) 45%,transparent),transparent)}
