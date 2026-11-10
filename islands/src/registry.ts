@@ -2,6 +2,7 @@ import type { Component } from 'svelte';
 import type { Beat } from './timeline';
 import RolloutsList from './islands/rollouts-list/RolloutsList.svelte';
 import * as rollouts from './islands/rollouts-list/story';
+import { mountHero } from './islands/hero';
 
 /** An island = a real dashboard component + the scripted states that drive its props. */
 export type IslandDef<P extends Record<string, any>> = {
@@ -13,6 +14,11 @@ export type IslandDef<P extends Record<string, any>> = {
 	restMs?: number;
 };
 
-export const registry: Record<string, IslandDef<any>> = {
+/** An island that runs its own clock and mounts itself (the hero): main.ts hands it the shadow wrapper and the three gates. */
+export type CustomCtx = { wrap: HTMLElement; host: HTMLElement; onGate: (cb: (gate: 'onscreen' | 'visible' | 'motion', open: boolean) => void) => void };
+export type CustomIsland = { custom: (ctx: CustomCtx) => void | (() => void) };
+
+export const registry: Record<string, IslandDef<any> | CustomIsland> = {
+	hero: { custom: mountHero },
 	'rollouts-list': { component: RolloutsList, initial: rollouts.initial, beats: rollouts.beats, representative: rollouts.representative, restMs: 3200 } satisfies IslandDef<rollouts.State>
 };

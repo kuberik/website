@@ -28,7 +28,7 @@ function declareFonts() {
 }
 
 let sheet: Promise<CSSStyleSheet> | null = null;
-const sharedSheet = () => (sheet ??= fetch(new URL('islands.css', BASE)).then((r) => r.text()).then((css) => { const s = new CSSStyleSheet(); s.replaceSync(css); return s; }));
+const sharedSheet = () => (sheet ??= fetch(new URL('islands.css', BASE), { cache: 'no-cache' }).then((r) => r.text()).then((css) => { const s = new CSSStyleSheet(); s.replaceSync(css); return s; }));
 
 const dark = () => document.documentElement.classList.contains('dark');
 const reduced = matchMedia('(prefers-reduced-motion: reduce)');
@@ -49,6 +49,17 @@ async function mountIsland(host: HTMLElement) {
 		new MutationObserver(sync).observe(document.documentElement, { attributes: true, attributeFilter: ['class'] });
 	}
 
+	if ('custom' in def) {
+		const cbs: ((g: 'onscreen' | 'visible' | 'motion', v: boolean) => void)[] = [];
+		const fire = (g: 'onscreen' | 'visible' | 'motion', v: boolean) => cbs.forEach((f) => f(g, v));
+		def.custom({ wrap, host, onGate: (cb) => cbs.push(cb) });
+		fire('motion', !reduced.matches);
+		fire('visible', document.visibilityState === 'visible');
+		reduced.addEventListener('change', () => fire('motion', !reduced.matches));
+		document.addEventListener('visibilitychange', () => fire('visible', document.visibilityState === 'visible'));
+		new IntersectionObserver((es) => fire('onscreen', es[es.length - 1].isIntersecting), { threshold: 0.25 }).observe(host);
+		return;
+	}
 	// Svelte 5: a $state proxy as `props` makes later assignments re-render the component in place.
 	const props = makeProps(def.initial);
 	mount(def.component, { target: wrap, props });

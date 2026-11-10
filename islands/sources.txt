@@ -1,4 +1,4 @@
-# Tailwind @source entries, relative to the dashboard's src/. Narrow on purpose: only what islands render.
+# Tailwind @source entries, relative to the dashboard's src/ (or `islands:` = relative to islands/). Narrow on purpose: only what islands render.
 lib/components/new/StrandRow.svelte
 lib/components/new/MiniPipeline.svelte
 lib/components/new/ListCard.svelte
@@ -6,3 +6,16 @@ lib/components/StatusMark.svelte
 lib/components/EmptyGlyph.svelte
 lib/components/Chip.svelte
 lib/components/atoms/LeadBar.svelte
+lib/components/new/Slipway.svelte
+lib/components/new/PipelineCard.svelte
+lib/components/new/TraySteps.svelte
+lib/components/new/ApprovalLayer.svelte
+lib/components/ActRow.svelte
+lib/components/FailedCheckLine.svelte
+lib/components/Avatar.svelte
+lib/components/AppGlyph.svelte
+lib/components/EnvRow.svelte
+lib/components/PromotionLane.svelte
+lib/components/Toast.svelte
+lib/components/ChangeDot.svelte
+islands:src/islands/hero/Hero.svelte

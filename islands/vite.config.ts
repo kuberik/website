@@ -13,7 +13,6 @@ const S = (p: string) => resolve(HERE, 'src/stubs', p);
 /** Dashboard modules that drag the app (fixtures, GitHub reader, query layer) into a component's import graph.
  *  Keyed by path relative to the dashboard's src/; replaced by a stub wherever any file imports them. Never edits the dashboard. */
 const STUBBED_MODULES: Record<string, string> = {
-	'lib/components/atoms/atoms-live.svelte.ts': 'atoms-live.ts',
 	'lib/view-models/home/fixture.ts': 'home-fixture.ts',
 	'lib/components/new/github-read.svelte.ts': 'github-read.svelte.ts',
 	'lib/view-models/home/fixtures/incident-input.json': 'incident-input.json',

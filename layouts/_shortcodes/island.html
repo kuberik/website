@@ -1,7 +1,7 @@
-{{- /* {{< island name="rollouts-list" height="300" >}} : mounts a registered island (islands/src/registry.ts) into a shadow root.
+{{- /* island name="rollouts-list" height="300" : mounts a registered island (islands/src/registry.ts) into a shadow root.
        height reserves the box so nothing shifts when it mounts. The runtime tag is emitted per island on purpose: the browser
        runs a module script with the same URL once per document, and a Scratch "loaded once" flag goes stale under hugo's fast re-render. */ -}}
 {{- $name := .Get "name" -}}
 {{- $h := .Get "height" | default "300" -}}
 <div data-island="{{ $name }}" data-theme-sync style="min-height:{{ $h }}px"></div>
-<script type="module" src="{{ "islands/islands.js" | relURL }}"></script>
+<script type="module" src="{{ "islands/islands.js" | relURL }}?v={{ now.Unix }}"></script>

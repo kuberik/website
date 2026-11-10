@@ -15,4 +15,5 @@ node scripts/gen-css.mjs
 node_modules/.bin/vite build --config vite.config.ts
 mkdir -p ../static/islands/fonts && cp "$DASHBOARD_SRC"/static/fonts/*.woff2 ../static/islands/fonts/
 echo "dashboard $(git -C "$DASHBOARD_SRC" rev-parse --short HEAD 2>/dev/null || echo '?')" > ../static/islands/BUILT-FROM
+touch ../layouts/_shortcodes/island.html  # hugo server re-renders pages (new ?v= on the script) so browsers do not serve a stale bundle
 ls -l ../static/islands

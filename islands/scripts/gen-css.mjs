@@ -6,6 +6,7 @@
 //   - language.css is imported by absolute path (the dashboard's design tokens + roles, untouched).
 import { readFileSync, writeFileSync, mkdirSync } from 'node:fs';
 import { resolve } from 'node:path';
+import { fileURLToPath } from 'node:url';
 const D = process.env.DASHBOARD_SRC;
 const app = readFileSync(resolve(D, 'src/app.css'), 'utf8');
 const sources = readFileSync(new URL('../sources.txt', import.meta.url), 'utf8').split('\n').map((s) => s.trim()).filter((s) => s && !s.startsWith('#'));
@@ -15,7 +16,7 @@ let css = app
 	.replace(/@plugin 'flowbite\/plugin';\n?/, '')
 	.replace(/@plugin '@tailwindcss\/typography';\n?/, '')
 	.replace(/@source "\.\.\/node_modules\/[^"]+";\n?/g, '');
-css += '\n' + sources.map((s) => `@source "${resolve(D, 'src', s)}";`).join('\n') + '\n';
+css += '\n' + sources.map((s) => `@source "${s.startsWith('islands:') ? resolve(fileURLToPath(new URL('..', import.meta.url)), s.slice(8)) : resolve(D, 'src', s)}";`).join('\n') + '\n';
 mkdirSync(new URL('../.gen', import.meta.url), { recursive: true });
 writeFileSync(new URL('../.gen/island.css', import.meta.url), css);
 console.log(`island.css: ${css.length} bytes, ${sources.length} @source entries`);
