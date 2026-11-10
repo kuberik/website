@@ -7,8 +7,8 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Kuberik · Kubernetes releases you don't have to watch.</title>
-  <meta name="description" content="Merge, and Kuberik walks each build through your environments, checks its health at every step, and only asks you when a person has to decide. Open source, runs in your cluster, works with Flux." />
+  <title>Kuberik · End-to-end delivery, without the pipeline.</title>
+  <meta name="description" content="Kuberik is a Kubernetes-native delivery controller. Declare when a version may deploy and when it counts as healthy; the controller runs the rollout, promotes across environments and rolls back. In your cluster, next to Flux." />
   {{- /* same key and class convention as hextra (color-theme in localStorage; class light/dark on <html>), applied before first paint */}}
   <script>(function(){var d=document.documentElement,t;try{t=localStorage.getItem("color-theme")}catch(e){}
   if(t!=="light"&&t!=="dark")t=matchMedia("(prefers-color-scheme: dark)").matches?"dark":"light";
@@ -19,6 +19,15 @@
   <link rel="alternate icon" href="/favicon.ico">
 </head>
 <body>
+
+{{ with .Site.Params.latest_release }}
+<a class="announce" href="/blog/{{ . }}/">
+  <span class="announce-badge">{{ . }}</span>
+  <span class="announce-desc">Changes: is my PR in yet, why not, when · new home page · contract gates between services</span>
+  <span class="announce-short">Release notes</span>
+  <svg viewBox="0 0 16 16" width="12" height="12" fill="none" stroke="currentColor" stroke-width="1.5" aria-hidden="true"><path d="M3 8h10M9 4l4 4-4 4" stroke-linecap="round" stroke-linejoin="round"/></svg>
+</a>
+{{ end }}
 
 <header class="nav" id="nav">
   <div class="cont">
@@ -46,13 +55,18 @@
 <div class="stage stage-mint stage-hero" id="hero-stage">
   <div class="bloom b1"></div><div class="bloom b2"></div>
   <div class="hero">
-    <span class="eyebrow"><b></b>Open source · Apache 2.0 · Works with Flux</span>
+    <span class="eyebrow"><b></b>Kubernetes-native continuous delivery</span>
+    {{- /* PROPOSAL for the owner, not shown: the v5 headline and subhead.
     <h1>Kubernetes releases you don't have to watch.</h1>
     <p class="sub">Merge, and Kuberik walks each build through your environments, checks its health at every step, and only asks you when a person has to decide.</p>
+    */ -}}
+    <h1>End-to-end delivery, without the pipeline.</h1>
+    <p class="sub">Schedule windows, manual approvals, canaries, environment promotion, alert checks, smoke tests. Everyone can describe the pipeline they want; no tool has ever made it easy to build. Kuberik does, one piece at a time.</p>
     <div class="ctas">
       <a class="btn btn-ink" href="{{ $getStarted }}">Get started</a>
-      <a class="btn btn-line" href="{{ $github }}"><svg viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M12 2l2.9 6.9 7.1.6-5.4 4.7 1.6 7.3L12 17.8 5.8 21.5l1.6-7.3L2 9.5l7.1-.6z"/></svg>View on GitHub</a>
+      <a class="btn btn-line" href="{{ $github }}"><svg viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M12 2l2.9 6.9 7.1.6-5.4 4.7 1.6 7.3L12 17.8 5.8 21.5l1.6-7.3L2 9.5l7.1-.6z"/></svg>Star on GitHub</a>
     </div>
+    <p class="hero-meta"><span>Apache 2.0</span><i aria-hidden="true">·</i><span>composes with Flux, OpenKruise, Prometheus, Datadog</span></p>
     <div class="window hero-window" id="hero-window">
       {{ .Content }}
     </div>
@@ -60,29 +74,145 @@
   </div>
 </div>
 
-{{- /* S1 health at every step (SPEC 3). The island is the product: the dashboard's own components driven by a scripted scenario. Below 1680 the title sits above a full-bleed stage; from 1680 the two sit side by side. */ -}}
-<section id="s1" class="s1" aria-labelledby="s1-title">
-  <div class="s1-grid">
-    <div class="cont s1-text">
-      <h2 class="title" id="s1-title">A failing check stops the build where it is.</h2>
-      <p class="title-body">Kuberik reads your metrics after every deploy. When one breaks its budget, the build goes no further, production keeps the last good build, and Roll back is one press away.</p>
-      <a class="s1-link" href="/docs/">How health checks work<span aria-hidden="true"> →</span></a>
+{{- /* Sections restored from the live landing, restyled in the v5 grammar. All static: the page has exactly one animation, the hero window. Each section = title block + (where it has a visual) one tinted stage; from 1680 the two sit side by side (SPEC 1.3). */ -}}
+
+<section class="sec" id="how" aria-labelledby="how-title">
+  <div class="sec-grid">
+    <div class="cont sec-text">
+      <span class="label">How it works</span>
+      <h2 class="title" id="how-title">A reactive loop with <span class="mute">five clear phases.</span></h2>
+      <p class="title-body">Each phase is a Kubernetes resource. Two are yours to compose; three are built in. Nothing else is hidden behind the curtain.</p>
     </div>
-    <div class="stage stage-rose s1-stage">
+    <div class="stage stage-violet sec-stage">
       <div class="bloom b1"></div><div class="bloom b2"></div>
-      <div class="s1-inner">
-        <div class="window s1-window" id="s1-window"><div data-island="health" data-theme-sync style="min-height:660px"></div></div>
-        <div class="s1-chiproom" aria-hidden="true"></div>
+      <div class="sec-inner">
+        <ol class="phases">
+          <li class="phase"><div class="phase-head"><span class="num">01</span><span class="ph">release</span></div>
+            <p class="q">Which versions are available?</p>
+            <div class="chips"><span>Flux ImagePolicy</span><span>OCI pull</span><span>cosign-verified</span></div></li>
+          <li class="phase"><div class="phase-head"><span class="num">02</span><span class="ph">guard</span><span class="note">built-in · no config</span></div>
+            <p class="q">Is this environment safe to deploy to?</p>
+            <div class="chips"><span>healthy</span><span>not paused</span><span>idle</span><span>no override</span></div></li>
+          <li class="phase"><div class="phase-head"><span class="num">03</span><span class="ph">gates</span><span class="note">open class · you own this</span></div>
+            <p class="q">Which version can we deploy right now?</p>
+            <div class="chips"><span>schedule</span><span>manual</span><span>after(env)</span><span>dependency</span><span>custom CRD</span></div></li>
+          <li class="phase"><div class="phase-head"><span class="num">04</span><span class="ph">update</span></div>
+            <p class="q">Roll out the new version.</p>
+            <div class="chips"><span>Flux Kustomization</span><span>OpenKruise</span><span>canary 0→100%</span></div></li>
+          <li class="phase"><div class="phase-head"><span class="num">05</span><span class="ph">health</span><span class="note">open class · you own this</span></div>
+            <p class="q">Did it deploy successfully?</p>
+            <div class="chips"><span>kstatus</span><span>metrics</span><span>alerts</span><span>smoke test</span><span>custom CRD</span></div></li>
+        </ol>
+        <p class="loopback"><svg viewBox="0 0 40 40" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M33 20a13 13 0 1 1-4.6-9.9"/><path d="M30 4v7h-7"/></svg>When health passes, the loop starts again on the next version.</p>
       </div>
     </div>
+  </div>
+</section>
+
+<section class="sec" id="compose" aria-labelledby="compose-title">
+  <div class="sec-grid">
+    <div class="cont sec-text">
+      <span class="label">Composing environments</span>
+      <h2 class="title" id="compose-title">Each environment is a loop. <span class="mute">Compose them with gates.</span></h2>
+      <p class="title-body">No central pipeline orchestrates anything. Each environment runs its own loop and opens its gate when conditions are met, including <code>after(env)</code>.</p>
+    </div>
+    <div class="stage stage-sky sec-stage">
+      <div class="bloom b1"></div><div class="bloom b2"></div>
+      <div class="sec-inner">
+        <div class="chain">
+          <div class="env"><svg class="loopmark" viewBox="0 0 40 40" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M33 20a13 13 0 1 1-4.6-9.9"/><path d="M30 4v7h-7"/></svg><span class="env-name">dev</span><span class="env-gate">on commit</span></div>
+          <div class="link"><span class="gt">after(env)</span><svg viewBox="0 0 44 10" fill="none" stroke="currentColor" stroke-width="1.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M0 5h38M34 1l6 4-6 4"/></svg></div>
+          <div class="env"><svg class="loopmark" viewBox="0 0 40 40" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M33 20a13 13 0 1 1-4.6-9.9"/><path d="M30 4v7h-7"/></svg><span class="env-name">staging</span><span class="env-gate">after <em>dev</em></span></div>
+          <div class="link"><span class="gt">after(env)</span><svg viewBox="0 0 44 10" fill="none" stroke="currentColor" stroke-width="1.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M0 5h38M34 1l6 4-6 4"/></svg></div>
+          <div class="env"><svg class="loopmark" viewBox="0 0 40 40" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M33 20a13 13 0 1 1-4.6-9.9"/><path d="M30 4v7h-7"/></svg><span class="env-name">production</span><span class="env-gate">after <em>staging</em> + schedule</span></div>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<section class="sec" id="spec" aria-labelledby="spec-title">
+  <div class="sec-grid">
+    <div class="cont sec-text">
+      <span class="label">The spec</span>
+      <h2 class="title" id="spec-title">This is <span class="mute">everything you write.</span></h2>
+      <p class="title-body">Three Flux resources, one Kuberik resource, one <code>${VERSION}</code> placeholder.</p>
+    </div>
+    <div class="stage stage-rose sec-stage">
+      <div class="bloom b1"></div><div class="bloom b2"></div>
+      <div class="sec-inner">
+        <div class="manifests">
+          <figure class="mf"><figcaption><span>image-automation.yaml</span><b>flux</b></figcaption>
+<pre><code>apiVersion: image.toolkit.fluxcd.io/v1beta2
+kind: <span class="k">ImageRepository</span>
+metadata:
+  name: my-app
+spec:
+  image: <span class="s">ghcr.io/me/my-app</span>
+---
+kind: <span class="k">ImagePolicy</span>
+spec:
+  policy:
+    semver:
+      range: <span class="s">"&gt;=0.1.0"</span></code></pre></figure>
+          <figure class="mf mf-kuberik"><figcaption><span>rollout.yaml</span><b>kuberik</b></figcaption>
+<pre><code>apiVersion: kuberik.com/v1alpha1
+kind: <span class="a">Rollout</span>
+metadata:
+  name: my-app
+spec:
+  releasesImagePolicy:
+    name: my-app
+  bakeTime: <span class="s">10m</span></code></pre></figure>
+          <figure class="mf"><figcaption><span>kustomization.yaml</span><b>flux</b></figcaption>
+<pre><code>apiVersion: kustomize.toolkit.fluxcd.io/v1
+kind: <span class="k">Kustomization</span>
+metadata:
+  name: my-app
+  annotations:
+    <span class="a">rollout.kuberik.com/substitute.VERSION.from:</span> my-app
+spec:
+  sourceRef:
+    kind: GitRepository
+    name: my-app</code></pre></figure>
+          <figure class="mf"><figcaption><span>deployment.yaml</span><b>yours</b></figcaption>
+<pre><code>apiVersion: apps/v1
+kind: <span class="k">Deployment</span>
+metadata: { name: my-app }
+spec:
+  template:
+    spec:
+      containers:
+        - name: app
+          image: ghcr.io/me/my-app:<span class="var">${VERSION}</span></code></pre></figure>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<section class="sec" id="dashboard" aria-labelledby="dash-title">
+  <div class="sec-grid sec-grid-plain">
+    <div class="cont sec-text">
+      <span class="label">One dashboard</span>
+      <h2 class="title" id="dash-title">Every rollout. <span class="mute">Every cluster.</span></h2>
+      <p class="title-body">No hub cluster. No stored cross-cluster credentials. RBAC on your own OIDC.</p>
+    </div>
+    <ul class="facts3">
+      <li><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="3" y="4" width="18" height="12" rx="2"/><path d="M8 20h8M12 16v4"/></svg><h3>One page for every cluster</h3><p>The dashboard reads each cluster directly: home, apps, changes and every rollout's pipeline, wherever it runs.</p></li>
+      <li><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="12" r="3"/><path d="M12 3v3M12 18v3M3 12h3M18 12h3"/></svg><h3>No hub, no stored credentials</h3><p>Nothing sits in the middle holding keys to your clusters. There is no hub cluster to run or to trust.</p></li>
+      <li><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 3l8 3v6c0 4.5-3.2 8-8 9-4.8-1-8-4.5-8-9V6z"/><path d="M9 12l2 2 4-4"/></svg><h3>RBAC on your own OIDC</h3><p>You see what your own identity may see in each cluster, and press only what it may press.</p></li>
+    </ul>
   </div>
 </section>
 
 <div class="install" id="install">
   <div class="cont">
     <div>
-      <h2 class="title">Runs in your cluster, next to Flux.</h2>
-      <p class="title-body">Install it with one Helm release and keep your GitOps as it is. Kuberik works beside Flux; it does not replace it.</p>
+      <span class="label">Try it</span>
+      <h2 class="title">Stop writing rollout glue. <span class="mute">Declare gates and health. Watch the loop run.</span></h2>
+      <p class="title-body">One Helm release, next to Flux. Your GitOps stays as it is.</p>
+      <div class="ctas ctas-left"><a class="btn btn-ink" href="{{ $getStarted }}">Get started</a><a class="btn btn-line" href="{{ $github }}">Source</a></div>
       <p class="facts">Apache 2.0 · Runs in your cluster · No SaaS</p>
     </div>
     <div class="code">
@@ -97,15 +227,6 @@
   </div>
 </div>
 
-<section class="final">
-  <div class="cont">
-    <h2>Ship the next build and go do something else.</h2>
-    <div class="ctas">
-      <a class="btn btn-ink" href="{{ $getStarted }}">Get started</a>
-      <a class="btn btn-line" href="{{ $github }}">View on GitHub</a>
-    </div>
-  </div>
-</section>
 </main>
 
 <footer class="foot">

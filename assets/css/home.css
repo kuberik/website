@@ -18,7 +18,7 @@
   --st-rose:linear-gradient(180deg,#f8f0f8 0%,#f2f1fc 100%);--rose-a:#f6d2ec;--rose-b:#dcd6ff;
   --st-violet:linear-gradient(180deg,#f2efff 0%,#eef6fb 100%);--violet-a:#d9cfff;--violet-b:#c6ecf5;
   --st-sky:linear-gradient(180deg,#ebf4ff 0%,#effaf6 100%);--sky-a:#c3dcff;--sky-b:#bff0df;
-  --gut:32px;--cont:1200px;--win-w:1120px;--win-h:640px;--s1-h:720px;--stage-inset:16px;--stage-r:24px;--stage-pad:56px;
+  --gut:32px;--cont:1200px;--win-w:1120px;--win-h:640px;--stage-inset:16px;--stage-r:24px;--stage-pad:56px;
   --sans:'Kuberik Page Inter',system-ui,-apple-system,'Segoe UI',sans-serif;
   --mono:'Kuberik Page Mono',ui-monospace,'SF Mono',Menlo,monospace;
   color-scheme:light}
@@ -31,10 +31,9 @@ html.dark{
   color-scheme:dark}
 @media(min-width:1920px){:root{--cont:1440px;--gut:48px;--win-w:1200px}}
 @media(min-width:2400px){:root{--cont:1920px;--gut:64px;--win-w:1280px}}
-@media(min-width:1680px) and (max-width:2399px){:root{--s1-h:960px}}
 /* hero window = a fixed viewport onto the page (640 desktop/tablet, 600 phone): the page scrolls INSIDE it per beat (Hero.svelte). Story window S1 = the tallest beat (its content fits), measured by .work/landing-v5/build/r4/measure.mjs */
-@media(max-width:1023px){:root{--win-h:640px;--s1-h:980px;--win-w:696px;--stage-r:20px;--stage-inset:12px;--stage-pad:24px;--gut:24px}}
-@media(max-width:640px){:root{--win-w:350px;--win-h:600px;--s1-h:725px;--stage-r:16px;--stage-inset:8px;--stage-pad:12px;--gut:16px}}
+@media(max-width:1023px){:root{--win-h:640px;--win-w:696px;--stage-r:20px;--stage-inset:12px;--stage-pad:24px;--gut:24px}}
+@media(max-width:640px){:root{--win-w:350px;--win-h:600px;--stage-r:16px;--stage-inset:8px;--stage-pad:12px;--gut:16px}}
 
 *{box-sizing:border-box}
 html{background:var(--page);scroll-behavior:smooth}
@@ -105,20 +104,6 @@ h1{font:600 64px/68px var(--sans);letter-spacing:-.035em;margin:24px auto 20px;m
 .title-body{margin:16px 0 0;font:400 18px/28px var(--sans);color:var(--ink-muted);max-width:560px}
 .slot{margin-top:128px;display:grid;place-items:center;min-height:260px;border:1.5px dashed var(--line);border-radius:var(--stage-r);margin-inline:var(--stage-inset);font:500 13px/20px var(--mono);color:var(--ink-subtle);text-align:center;padding:24px}
 
-/* S1 health (SPEC 3.3): the title block above a full-bleed rose stage; side by side from 1680 */
-.s1{margin-top:128px}
-.s1-link{display:inline-block;margin-top:20px;font:500 15px/24px var(--sans);color:var(--mint-ink)}
-.s1-link:hover{text-decoration:underline;text-underline-offset:3px}
-.s1-stage{margin-top:32px}
-.s1-inner{padding:var(--stage-pad) var(--stage-pad) 8px}
-.s1-window{height:var(--s1-h,660px)}
-.s1-window>[data-island]{height:100%;min-height:0!important}
-.s1-chiproom{height:72px}
-@media(min-width:1680px){
-  .s1-grid{display:grid;grid-template-columns:440px minmax(0,1fr);gap:64px;align-items:center;width:min(var(--cont),100% - 2*var(--gut));margin-inline:auto}
-  .s1-text{width:auto;margin:0}
-  .s1-stage{margin:0}
-}
 /* S5 install band */
 .install{margin-top:160px;background:var(--page-alt);padding:96px 0}
 .install .cont{display:grid;grid-template-columns:1fr 1fr;gap:48px;align-items:center}
@@ -156,10 +141,10 @@ h1{font:600 64px/68px var(--sans);letter-spacing:-.035em;margin:24px auto 20px;m
   .ctas{flex-direction:column;gap:8px;padding:0 4px}
   .hero-window{margin-top:32px}
   .hero-chiproom{height:80px}
-  .story,.s1{margin-top:80px}
-  .s1-stage{margin-top:20px}
-  .s1-window{height:var(--s1-h,750px)}
-  .s1-chiproom{height:80px}
+  .story,
+  
+  
+  
   .title,.final h2{font-size:26px;line-height:32px}
   .title-body{font-size:16px;line-height:24px;margin-top:12px}
   .slot{margin-top:80px;min-height:200px}
@@ -169,3 +154,85 @@ h1{font:600 64px/68px var(--sans);letter-spacing:-.035em;margin:24px auto 20px;m
   .foot nav{margin-left:0}
 }
 @media(prefers-reduced-motion:reduce){html{scroll-behavior:auto}}
+
+/* ===== restored sections (static; the page's one animation is the hero window) ===== */
+/* release-notes banner: slim strip above the nav, data-driven from params.latest_release */
+.announce{display:flex;align-items:center;justify-content:center;gap:10px;min-height:36px;padding:6px var(--gut);background:var(--page-alt);border-bottom:1px solid var(--line);font:500 13px/20px var(--sans);color:var(--ink-muted)}
+.announce:hover{color:var(--ink)}
+.announce-badge{padding:0 8px;border-radius:999px;border:1px solid var(--line);background:var(--page);color:var(--mint-ink);font:600 12px/20px var(--sans)}
+.announce-short{display:none}
+.announce svg{flex:none}
+.hero-meta{display:flex;gap:10px;justify-content:center;flex-wrap:wrap;margin:20px 0 0;font:500 14px/20px var(--sans);color:var(--ink-subtle)}
+.hero-meta i{font-style:normal}
+.sub{max-width:720px}
+
+/* section = title block + one tinted stage. Reference: the hero's stage + the dashboard's section header (label, title, body). */
+.sec{margin-top:128px}
+.label{display:inline-block;margin-bottom:12px;font:500 13px/20px var(--sans);color:var(--mint-ink);letter-spacing:.01em}
+.title .mute{color:var(--ink-muted)}
+.title-body code,.title code{font:500 .9em var(--mono);padding:1px 6px;border-radius:6px;background:var(--page-alt);border:1px solid var(--line);color:var(--ink)}
+.sec-stage{margin-top:32px}
+.sec-inner{padding:var(--stage-pad)}
+
+/* five phases */
+.phases{list-style:none;margin:0;padding:0;display:grid;grid-template-columns:repeat(5,minmax(0,1fr));gap:16px}
+.phase{position:relative;display:flex;flex-direction:column;gap:12px;padding:16px;border-radius:12px;background:var(--page);border:1px solid var(--win-border);box-shadow:var(--win-shadow)}
+.phase-head{display:flex;align-items:center;gap:8px;flex-wrap:wrap;min-height:28px}
+.phase .num{font:600 12px/20px var(--mono);color:var(--mint-ink)}
+.phase .ph{font:600 18px/24px var(--sans);letter-spacing:-.01em}
+.phase .note{flex-basis:100%;font:500 12px/16px var(--sans);color:var(--ink-subtle)}
+.phase .q{margin:0;font:400 15px/22px var(--sans);color:var(--ink-muted)}
+.chips{display:flex;flex-wrap:wrap;gap:6px;margin-top:auto}
+.chips span{height:24px;padding:0 8px;border-radius:6px;border:1px solid var(--line);background:var(--page-alt);font:500 12px/22px var(--sans);color:var(--ink)}
+.loopback{display:flex;align-items:center;justify-content:center;gap:10px;margin:24px 0 0;font:500 14px/20px var(--sans);color:var(--ink-muted);text-align:center}
+.loopback svg{width:18px;height:18px;flex:none;color:var(--mint-ink)}
+
+/* composing environments */
+.chain{display:flex;align-items:stretch;justify-content:center;gap:0}
+.env{flex:1 1 0;min-width:0;display:flex;flex-direction:column;align-items:flex-start;gap:6px;padding:20px;border-radius:12px;background:var(--page);border:1px solid var(--win-border);box-shadow:var(--win-shadow)}
+.env .loopmark{width:28px;height:28px;color:var(--mint-ink);margin-bottom:6px}
+.env-name{font:600 22px/28px var(--sans);letter-spacing:-.015em}
+.env-gate{font:500 14px/20px var(--sans);color:var(--ink-muted)}
+.env-gate em{font-style:normal;color:var(--ink)}
+.link{flex:none;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:6px;padding:0 14px;color:var(--ink-muted)}
+.link .gt{padding:0 8px;height:24px;border-radius:6px;border:1px solid var(--line);background:var(--page);font:500 12px/22px var(--mono);color:var(--ink)}
+.link svg{width:44px;height:10px}
+
+/* the spec: four manifests as white windows with a 47px header */
+.manifests{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:16px}
+.mf{margin:0;min-width:0;border-radius:12px;background:var(--page);border:1px solid var(--win-border);box-shadow:var(--win-shadow);overflow:hidden}
+.mf figcaption{display:flex;align-items:center;justify-content:space-between;height:47px;padding:0 16px;border-bottom:1px solid var(--line);font:500 13px/20px var(--mono);color:var(--ink-muted)}
+.mf figcaption b{padding:0 8px;height:22px;border-radius:999px;border:1px solid var(--line);font:500 12px/20px var(--sans);color:var(--ink-subtle)}
+.mf-kuberik figcaption b{color:var(--mint-ink);border-color:color-mix(in oklab,var(--mint) 55%,var(--line))}
+.mf pre{margin:0;padding:16px 20px;overflow-x:auto;font:400 13px/22px var(--mono);color:var(--ink-muted);tab-size:2}
+.mf .k{color:var(--ink);font-weight:500}.mf .a{color:var(--mint-ink);font-weight:500}.mf .s{color:var(--ink)}
+.mf .var{padding:1px 5px;border-radius:5px;background:color-mix(in oklab,var(--mint) 18%,transparent);color:var(--mint-ink);font-weight:500}
+
+/* one dashboard: three facts, no screenshots */
+.facts3{list-style:none;margin:40px 0 0;padding:0;display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:16px;width:min(var(--cont),100% - 2*var(--gut));margin-inline:auto}
+.facts3 li{padding:24px;border-radius:12px;background:var(--page-alt);border:1px solid var(--line)}
+.facts3 svg{width:24px;height:24px;color:var(--mint-ink)}
+.facts3 h3{margin:16px 0 6px;font:600 18px/24px var(--sans);letter-spacing:-.01em}
+.facts3 p{margin:0;font:400 15px/22px var(--sans);color:var(--ink-muted)}
+.ctas-left{justify-content:flex-start}
+.install .title{font-size:32px;line-height:40px}
+
+@media(min-width:1680px){
+  .sec-grid{display:grid;grid-template-columns:440px minmax(0,1fr);gap:64px;align-items:center;width:min(var(--cont),100% - 2*var(--gut));margin-inline:auto}
+  .sec-grid .sec-text{width:auto;margin:0}
+  .sec-grid .sec-stage{margin:0}
+  .sec-grid-plain .facts3{margin:0;width:auto}
+}
+@media(min-width:1680px) and (max-width:2199px){.phases{grid-template-columns:repeat(2,minmax(0,1fr))}.phase:last-child{grid-column:1/-1}}
+@media(max-width:1279px){.phases{grid-template-columns:repeat(2,minmax(0,1fr))}.phase:last-child{grid-column:1/-1}}
+@media(max-width:900px){.facts3{grid-template-columns:1fr}.manifests{grid-template-columns:1fr}
+  .chain{flex-direction:column}.link{flex-direction:row;padding:12px 0}.link svg{transform:rotate(90deg);width:36px}}
+@media(max-width:640px){
+  .announce-desc{display:none}.announce-short{display:inline}.announce{min-height:36px;padding-block:4px}
+  .sec{margin-top:80px}.sec-stage{margin-top:20px}
+  .phases{grid-template-columns:1fr;gap:12px}.phase:last-child{grid-column:auto}
+  .mf pre{font-size:12px;padding:14px 16px}
+  .facts3{margin-top:24px}.facts3 li{padding:20px}
+  .install .title{font-size:26px;line-height:32px}
+  .hero-meta{font-size:13px;margin-top:16px;flex-direction:column;gap:2px}.hero-meta i{display:none}
+}
