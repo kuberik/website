@@ -10,7 +10,7 @@
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>Kuberik · {{ $hero.h1 }}</title>
-  <meta name="description" content="Kuberik is a Kubernetes-native delivery controller. Declare when a version may deploy and when it counts as healthy; the controller runs the rollout, promotes across environments and rolls back. In your cluster, next to Flux." />
+  <meta name="description" content="Kuberik is a Kubernetes-native delivery controller. Declare when a version may deploy and when it counts as healthy; the controller runs the rollout and promotes it across environments. In your cluster, next to Flux." />
   {{- /* same key and class convention as hextra (color-theme in localStorage; class light/dark on <html>), applied before first paint */}}
   <script>(function(){var d=document.documentElement,t;try{t=localStorage.getItem("color-theme")}catch(e){}
   if(t!=="light"&&t!=="dark")t=matchMedia("(prefers-color-scheme: dark)").matches?"dark":"light";
@@ -70,8 +70,8 @@
   <ul class="proof-row">
     <li class="proof-cell"><span class="vendor-mark" style="--logo-light:url(/logos/fluxcd-light.svg); --logo-dark:url(/logos/fluxcd-dark.svg);" role="img" aria-label="Flux"></span><span class="proof-name">Flux</span><span class="proof-job">sync</span></li>
     <li class="proof-cell"><span class="vendor-mark" style="--logo-light:url(/logos/openkruise-light.svg); --logo-dark:url(/logos/openkruise-dark.svg);" role="img" aria-label="OpenKruise"></span><span class="proof-name">OpenKruise</span><span class="proof-job">canaries</span></li>
-    <li class="proof-cell"><span class="vendor-mark" style="--logo-light:url(/logos/prometheus-light.svg); --logo-dark:url(/logos/prometheus-dark.svg);" role="img" aria-label="Prometheus"></span><span class="proof-name">Prometheus</span><span class="proof-job">alerts</span></li>
-    <li class="proof-cell"><span class="vendor-mark" style="--logo-light:url(/logos/datadog-light.svg); --logo-dark:url(/logos/datadog-dark.svg);" role="img" aria-label="Datadog"></span><span class="proof-name">Datadog</span><span class="proof-job">monitors</span></li>
+        <li class="proof-cell"><span class="vendor-mark" style="--logo-light:url(/logos/datadog-light.svg); --logo-dark:url(/logos/datadog-dark.svg);" role="img" aria-label="Datadog"></span><span class="proof-name">Datadog</span><span class="proof-job">monitors</span></li>
+    <li class="proof-cell"><span class="vendor-mark" style="--logo-light:url(/logos/github-light.svg); --logo-dark:url(/logos/github-dark.svg);" role="img" aria-label="GitHub"></span><span class="proof-name">GitHub</span><span class="proof-job">deployments</span></li>
   </ul>
 </div>
 
@@ -84,7 +84,7 @@
     <h2 class="statement-text reveal" id="thesis-h"><span class="statement-claim">{{ $t.claim }}</span> <span class="statement-rest">{{ $t.rest }}</span></h2>
     <ol class="figs reveal">
       {{- range $i, $p := $t.phases }}
-      <li class="fig-cell{{ if eq $p.own "Yours" }} is-yours{{ end }}">
+      <li class="fig-cell{{ if eq $p.own "Yours" }} is-yours{{ else if eq $p.own "Optional" }} is-opt{{ end }}">
         <div class="fig-art" aria-hidden="true">{{ partial (printf "landing-figs/%s.html" $p.fig) $ }}</div>
         <p class="fig-cap"><span class="fig-no">Fig {{ add $i 1 }}</span><span class="fig-name">{{ $p.name }}</span><span class="fig-own">{{ $p.own }}</span></p>
         <h3 class="fig-q">{{ $p.q }}</h3>
@@ -112,10 +112,8 @@
         <li class="feat reveal" id="{{ .id }}">
           <div class="fv" aria-hidden="true">{{ partial (printf "landing-features/%s.html" .id) $ }}</div>
           <div class="feat-copy">
-            <p class="feat-name">{{ .name }}</p>
             <h3 class="feat-title">{{ .title }}</h3>
             <p class="feat-body">{{ .body }}</p>
-            <ul class="feat-kinds" aria-label="Resources">{{ range .kinds }}<li>{{ . }}</li>{{ end }}</ul>
             <a class="link-arrow" href="{{ .link.href }}">{{ .link.text }}<svg viewBox="0 0 16 16" width="14" height="14" fill="none" stroke="currentColor" stroke-width="1.5" aria-hidden="true"><path d="M3 8h10M9 4l4 4-4 4" stroke-linecap="round" stroke-linejoin="round"/></svg></a>
           </div>
         </li>
@@ -132,10 +130,10 @@
   <div class="cont">
       <div class="head">
         <h2 class="title reveal" id="room-h">This is everything you write.</h2>
-        <p class="title-body reveal">Two Kuberik resources, one Flux Kustomization, one <code>$VERSION</code> placeholder. The rollout and the release source are the only new things in your repository.</p>
+        <p class="title-body reveal">Two new resources, a Rollout and a ReleaseSource. Your Flux Kustomization gets one annotation and your Deployment one <code>$VERSION</code> placeholder. Gates and health checks are optional.</p>
       </div>
       <div class="manifests reveal">
-        <figure class="mf mf-kuberik"><figcaption><span>rollout.yaml</span><b>kuberik</b></figcaption>
+        <figure class="mf mf-kuberik"><figcaption><span>rollout.yaml</span><b>Yours</b></figcaption>
 <pre><code>apiVersion: kuberik.com/v1alpha1
 kind: <span class="a">Rollout</span>
 metadata:
@@ -145,8 +143,8 @@ spec:
     name: my-app
   bakeTime: <span class="s">10m</span></code></pre></figure>
         <details class="mf-fold" open data-mp-fold>
-          <summary class="mf-sum"><span class="mf-name">releasesource.yaml</span><b>kuberik</b><span class="mf-hint"></span></summary>
-          <figure class="mf mf-kuberik"><figcaption><span>releasesource.yaml</span><b>kuberik</b></figcaption>
+          <summary class="mf-sum"><span class="mf-name">releasesource.yaml</span><b>Yours</b><span class="mf-hint"></span></summary>
+          <figure class="mf mf-kuberik"><figcaption><span>releasesource.yaml</span><b>Yours</b></figcaption>
 <pre><code>apiVersion: kuberik.com/v1alpha1
 kind: <span class="k">ReleaseSource</span>
 metadata:
@@ -159,8 +157,8 @@ spec:
         range: <span class="s">"&gt;=0.1.0"</span></code></pre></figure>
         </details>
         <details class="mf-fold" open data-mp-fold>
-          <summary class="mf-sum"><span class="mf-name">kustomization.yaml</span><b>flux</b><span class="mf-hint"></span></summary>
-          <figure class="mf"><figcaption><span>kustomization.yaml</span><b>flux</b></figcaption>
+          <summary class="mf-sum"><span class="mf-name">kustomization.yaml</span><b>+1 annotation</b><span class="mf-hint"></span></summary>
+          <figure class="mf"><figcaption><span>kustomization.yaml</span><b>+1 annotation</b></figcaption>
 <pre><code>apiVersion: kustomize.toolkit.fluxcd.io/v1
 kind: <span class="k">Kustomization</span>
 metadata:
@@ -174,8 +172,8 @@ spec:
     name: my-app</code></pre></figure>
         </details>
         <details class="mf-fold" open data-mp-fold>
-          <summary class="mf-sum"><span class="mf-name">deployment.yaml</span><b>yours</b><span class="mf-hint"></span></summary>
-          <figure class="mf"><figcaption><span>deployment.yaml</span><b>yours</b></figcaption>
+          <summary class="mf-sum"><span class="mf-name">deployment.yaml</span><b>+1 placeholder</b><span class="mf-hint"></span></summary>
+          <figure class="mf"><figcaption><span>deployment.yaml</span><b>+1 placeholder</b></figcaption>
 <pre><code>apiVersion: apps/v1
 kind: <span class="k">Deployment</span>
 metadata: { name: my-app }
@@ -201,8 +199,10 @@ spec:
         <p class="title-body reveal">The controller runs in your cluster, next to the thing it gates. No hosted service, no agent to register.</p>
         <div class="code reveal">
           <div class="code-head"><span>Terminal</span><button class="copy" id="copy" type="button"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="9" y="9" width="12" height="12" rx="2"/><path d="M5 15V5a2 2 0 0 1 2-2h10"/></svg><span id="copy-l">Copy</span></button></div>
-<pre><code id="install-cmd"><span class="p">$ </span>helm install kuberik \
+<pre><code id="install-cmd"><span class="c"># helm creates the namespace, so the chart does not</span>
+<span class="p">$ </span>helm install kuberik \
     oci://ghcr.io/kuberik/charts/kuberik \
+    --version 0.8.0 \
     --namespace kuberik-system \
     --create-namespace \
     --set createNamespace=false</code></pre>

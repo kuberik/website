@@ -10,15 +10,15 @@ hero:
 # product's thesis. Capability names live in `features`, once; the loop keeps only its questions.
 thesis:
   claim: "Kuberik is a controller that lives in your cluster."
-  rest: "Every build goes through the same five phases, and each one is a Kubernetes resource you can read with kubectl. Two are yours to write. There is no pipeline to script and no server to run."
+  rest: "Every build goes through the same five phases. You write a Rollout and a ReleaseSource, add gates and health checks when you want them, and Kuberik runs the rest."
   phases:
-    - { fig: release, name: release, own: "Built in", q: "Which versions are available?" }
-    - { fig: guard,   name: guard,   own: "Built in", q: "Is this environment safe to deploy to?" }
-    - { fig: gates,   name: gates,   own: "Yours",    q: "Which version may go now?" }
-    - { fig: update,  name: update,  own: "Built in", q: "How does it reach the cluster?" }
-    - { fig: health,  name: health,  own: "Yours",    q: "Did it actually work?" }
+    - { fig: release, name: release, own: "Yours",    q: "Which versions are available?" }
+    - { fig: guard,   name: guard,   own: "Kuberik",  q: "Is this environment safe to deploy to?" }
+    - { fig: gates,   name: gates,   own: "Optional", q: "Which version may go now?" }
+    - { fig: update,  name: update,  own: "Kuberik",  q: "How does it reach the cluster?" }
+    - { fig: health,  name: health,  own: "Optional", q: "Did it actually work?" }
 
-# FEATURES: six peers, one anatomy (visual card, title, two sentences, resource kinds, one docs link).
+# FEATURES: six peers, one anatomy (visual card, title, two lines of body, one docs link).
 # Every sentence is checked against content/docs (fact sheet in BRIEF.md "Truth rules").
 features:
   title: "Every step of a release, declared."
@@ -27,36 +27,30 @@ features:
     - id: gates
       name: "Gates"
       title: "A build moves when every gate passes."
-      body: "A schedule, an approval, a service it depends on and the environment before it. When the last one passes, the build goes on by itself."
-      kinds: [RolloutSchedule, RolloutGate, RolloutDependency]
-      link: { text: "Declare a dependency", href: "/docs/guides/service-dependencies/" }
+      body: "Schedules, approvals, the services it needs and the environment before it. Then it goes on its own."
+      link: { text: "How gates work", href: "/docs/concepts/rollouts/#gating-process" }
     - id: health
       name: "Health checks"
       title: "Healthy for the whole bake, not for a moment."
-      body: "Kustomization status, Prometheus alerts and Datadog monitors are read every 30 seconds. A build counts only after all of them stay healthy for the bake time; one failure fails the release."
-      kinds: [HealthCheck, bakeTime]
+      body: "Your Flux Kustomization and Datadog monitors stay healthy for the whole bake, or the release fails."
       link: { text: "Add health checks", href: "/docs/guides/health-checks/" }
     - id: canary
       name: "Canary and waves"
       title: "Traffic in steps, regions in waves."
-      body: "OpenKruise shifts traffic step by step, with a bake and a test Job at each step. Across sites, wave 2 starts a build only after every site in wave 1 has baked it."
-      kinds: [OpenKruise Rollout, RolloutTest, spec.wave]
+      body: "OpenKruise shifts traffic in steps, with a test at each. Wave 2 waits until wave 1 has baked."
       link: { text: "Run a canary", href: "/docs/guides/canary-rollouts/" }
     - id: releases
       name: "Releases"
       title: "Every version, and where it came from."
-      body: "A ReleaseSource reads the tags in your OCI registry, orders them by semver and keeps each one with its digest and git revision. Rolling back is picking an older entry."
-      kinds: [ReleaseSource, OCI, semver]
+      body: "A ReleaseSource reads your OCI tags, orders them by semver and keeps each digest and git revision."
       link: { text: "Publish releases", href: "/docs/guides/publishing-releases/" }
     - id: dashboard
       name: "Dashboard"
       title: "Every cluster in one place."
-      body: "Apps, environments and merged changes from all your clusters, served by one hub. Paste a pull request link to see how far it got. Every action runs as you, under your RBAC."
-      kinds: [OIDC, multi-cluster]
+      body: "All your clusters on one hub. Paste a pull request link to see how far it got."
       link: { text: "Expose the dashboard", href: "/docs/installation/helm/#expose-the-dashboard" }
     - id: gitops
       name: "GitOps"
       title: "Flux stays in charge of your cluster."
-      body: "Kuberik doesn't apply manifests. It sets one value on your Flux Kustomization and Flux does the rest, while GitHub Deployments record what ran where."
-      kinds: [Flux, GitHub Deployments]
+      body: "Kuberik never applies manifests. It sets one value on your Flux Kustomization, and Flux does the rest."
       link: { text: "Connect Flux", href: "/docs/integrations/fluxcd/" }
