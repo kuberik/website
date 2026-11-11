@@ -89,3 +89,9 @@ const FAILED = [27.0];
 export const tallyAt = (t: number) => ({ passed: PASSED.filter((x) => t >= x).length, failed: FAILED.filter((x) => t >= x).length, people: PEOPLE.filter((x) => t >= x).length });
 /** the page fades with the loop's end, so the tally clears with it */
 export const tallyShown = (t: number) => tallyAt(t);
+
+/** Which product reflows are hidden under a still of the page before them (Film.svelte takeSnap). The product's own transitions (a banner opening, a dialog closing,
+ *  rows sliding) are the point of the film, so they PLAY, unless one alone costs more layout shift than the page can spend: measured at 1440 the Approve collapse is one
+ *  0.105 shift, over the whole 0.1 budget, so it is the single desktop cover. On the phone the same reflows move 2-3x the viewport area (0.12-0.19 each): all covered. */
+export const COVER_DESKTOP_AT = [10.3];
+export function coverEvent(t: number, phone: boolean): boolean { return phone || COVER_DESKTOP_AT.some((c) => Math.abs(t - c) < 0.35); }

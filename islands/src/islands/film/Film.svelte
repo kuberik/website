@@ -20,7 +20,7 @@
 	import { page } from '../../stubs/app-state';
 	import { page as pageStore } from '../../stubs/app-stores';
 	import { setDisplayTimeZone } from '$lib/timezone.svelte';
-	import { rollbackOpen, REASON, TYPING, typedLen } from './script';
+	import { coverEvent, rollbackOpen, REASON, TYPING, typedLen } from './script';
 	setDisplayTimeZone('utc'); // the chrome clock is UTC, and so is every absolute time the product prints
 
 	let { t, playing, userPlaying, reduced, onseek, ontoggle, eventIdx }: { t: number; playing: boolean; reduced: boolean; onseek: (chip: number) => void; ontoggle: () => void; eventIdx: number; userPlaying: boolean } = $props();
@@ -75,8 +75,8 @@
 	/* ---- reflow without a visible shift (CLS): the product re-lays itself out at a few moments (the Approve card collapsing, a banner opening, a dialog closing, a page arriving). A still of the page BEFORE the change covers the window, the real page lays out hidden, and the still fades once the layout has stopped moving. ---- */
 	let hid = $state(false);
 	let snapEl: HTMLElement | null = null;
-	function takeSnap(): HTMLElement | null {
-		if (!group || reduced) return null;
+	function takeSnap(kind: 'cut' | 'event' = 'cut'): HTMLElement | null {
+		if (!group || reduced || (globalThis as any).__kfNoSnap?.includes(kind)) return null;
 		const c = group.cloneNode(true) as HTMLElement;
 		c.style.cssText = `position:absolute;left:0;top:0;width:${group.offsetWidth}px;height:${group.offsetHeight}px;overflow:hidden;pointer-events:none;z-index:3;opacity:1;visibility:visible`;
 		c.setAttribute('aria-hidden', 'true'); c.removeAttribute('inert'); c.classList.add('film-snap');
@@ -102,7 +102,7 @@
 	let preEi = -2, preSnap: { el: HTMLElement | null; h: number } | null = null;
 	$effect.pre(() => {
 		const ei = eventIdx;
-		untrack(() => { if (ei === preEi) return; preEi = ei; preSnap = !group || swapping || hid || reduced || !shown ? null : { el: takeSnap(), h: group.offsetHeight }; });
+		untrack(() => { if (ei === preEi) return; preEi = ei; preSnap = !group || swapping || hid || reduced || !shown ? null : { el: coverEvent(t, phone) ? takeSnap('event') : null, h: group.offsetHeight }; });
 	});
 	$effect(() => {
 		void eventIdx;

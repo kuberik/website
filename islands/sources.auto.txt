@@ -108,6 +108,7 @@ lib/components/new/TraySteps.svelte
 lib/components/new/app/app-model.ts
 lib/components/new/approval-rev.svelte.ts
 lib/components/new/approvals.svelte.ts
+lib/components/new/approve-place.ts
 lib/components/new/change-cards.ts
 lib/components/new/change-truth.ts
 lib/components/new/change-view.ts
@@ -192,6 +193,7 @@ lib/view-models/diff-link.ts
 lib/view-models/diff-page-title.ts
 lib/view-models/env-rank.ts
 lib/view-models/event-age.ts
+lib/view-models/failed-builds.ts
 lib/view-models/fleet-facts.ts
 lib/view-models/fleet-groups.ts
 lib/view-models/fleet-signals.ts
