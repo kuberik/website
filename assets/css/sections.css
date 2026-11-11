@@ -108,7 +108,7 @@ html.dark .vendor-mark{background-image:var(--logo-dark);opacity:.72}
 /* motion groups: animate the <g>, never an element that carries a transform attribute (A5) */
 .m{transform-box:fill-box;transform-origin:center}
 /* REST POSE: each fig tells its story alone. */
-.m-rel-next,.m-rel-g3,.m-dp{opacity:0}
+.m-rel-next,.m-rel-g3{opacity:0}
 .m-hp1{opacity:.5;transform:scale(.5)}.m-hp2{opacity:.22}   /* health: ring A at r 23, ring B at r 46 */
 .m-upd-cube{transform:var(--rest)}                           /* update: mid-ramp */
 .m-st-t,.m-stc-t{display:none}                               /* staircase: the finished picture */
@@ -165,12 +165,14 @@ html.dark .mf{box-shadow:none}
   .mf-fold{display:block;border-radius:12px;background:var(--page);border:1px solid var(--win-border);box-shadow:0 1px 2px oklch(.195 .014 222/.05);overflow:hidden}
   .mf-fold .mf{border:0;box-shadow:none;border-radius:0;height:auto}
   .mf-fold .mf figcaption{display:none}
-  .mf-sum{display:flex;align-items:center;gap:10px;height:47px;padding:0 16px;cursor:pointer;list-style:none;font:500 13px/20px var(--mono);color:var(--ink)}
+  .mf-sum{display:grid;grid-template-columns:minmax(0,1fr) auto 16px;align-items:center;column-gap:12px;min-height:47px;padding:0 16px;cursor:pointer;list-style:none;font:500 13px/20px var(--mono);color:var(--ink)}
   .mf-sum::-webkit-details-marker{display:none}
   .mf-fold[open] .mf-sum{border-bottom:1px solid var(--line)}
-  .mf-name{margin-right:auto}
-  .mf-hint{font:500 12px/20px var(--sans);color:var(--ink-subtle);min-width:64px;text-align:right}
-  .mf-hint::before{content:'Show file'}.mf-fold[open] .mf-hint::before{content:'Hide file'}
+  .mf-name{white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+  /* one anatomy for all four files: name | tag | chevron (AD r2 #1) */
+  .mf-hint{width:16px;height:16px;display:grid;place-items:center;color:var(--ink-subtle)}
+  .mf-hint::before{content:'';width:6px;height:6px;border:solid currentColor;border-width:0 1.5px 1.5px 0;transform:translateY(-2px) rotate(45deg)}
+  .mf-fold[open] .mf-hint::before{transform:translateY(1px) rotate(-135deg)}
 }
 @media(max-width:640px){.mf pre{font-size:12px;padding:14px 16px}}
 
@@ -229,7 +231,7 @@ html.dark{--ok-tint:oklch(.305 .062 155);--ok-line:oklch(.46 .1 155);--ok-fg:okl
 
 /* feature visual = a dashboard Card, drawn in HTML so it reads at 1:1 and themes with the page */
 .fv{display:block}
-.fv-card{display:flex;flex-direction:column;min-height:216px;border-radius:12px;background:var(--page);border:1px solid var(--win-border);box-shadow:0 1px 2px oklch(.195 .014 222/.05),0 12px 32px -16px oklch(.195 .014 222/.16);overflow:hidden}
+.fv-card{display:flex;flex-direction:column;min-height:208px;border-radius:12px;background:var(--page);border:1px solid var(--win-border);box-shadow:0 1px 2px oklch(.195 .014 222/.05),0 12px 32px -16px oklch(.195 .014 222/.16);overflow:hidden}
 html.dark .fv-card{background:var(--page-alt);box-shadow:0 12px 32px -16px rgba(0,0,0,.5)}
 .fv-head{display:flex;align-items:center;gap:8px;height:47px;flex:none;padding:0 16px;border-bottom:1px solid var(--line);min-width:0}
 .fv-icon{width:16px;height:16px;flex:none;color:var(--ink-muted)}
@@ -256,7 +258,7 @@ html.dark .fv-card{background:var(--page-alt);box-shadow:0 12px 32px -16px rgba(
 .fv-bar{display:block;height:4px;border-radius:2px;background:var(--line);overflow:hidden;margin:0 4px}
 .fv-bar i{display:block;height:100%;width:calc(var(--p) * 100%);background:var(--ink-muted);border-radius:2px}
 /* canary steps */
-.fv-steps{list-style:none;margin:0;padding:14px 16px 12px;display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:10px;border-bottom:1px solid var(--line)}
+.fv-steps{list-style:none;margin:0;padding:12px 16px 11px;display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:10px;border-bottom:1px solid var(--line)}
 .fv-steps li{display:flex;flex-direction:column;gap:8px;min-width:0}
 .fv-step-bar{display:block;height:4px;border-radius:2px;background:var(--line)}
 .fv-steps .is-done .fv-step-bar{background:var(--ok-solid)}
@@ -269,9 +271,9 @@ html.dark .fv-card{background:var(--page-alt);box-shadow:0 12px 32px -16px rgba(
 .fv-ver{font:500 13px/20px var(--mono);color:var(--ink)}
 .fv-rel .fv-name{font-weight:400;color:var(--ink-muted)}
 /* gitops diff: the one line kuberik writes, in the brand mint (the .mf .var grammar) */
-.fv-diff{margin:0;padding:12px 16px;flex:1;font:400 12px/20px var(--mono);color:var(--ink-subtle);border-bottom:1px solid var(--line);overflow:hidden;white-space:pre}
+.fv-diff{margin:0;padding:10px 16px 9px;flex:1;font:400 12px/20px var(--mono);color:var(--ink-subtle);border-bottom:1px solid var(--line);overflow:hidden;white-space:pre}
 .fv-diff span{display:block}
-.fv-diff .del{color:var(--ink-subtle);text-decoration:line-through;text-decoration-color:color-mix(in oklab,var(--ink-subtle) 60%,transparent)}
+.fv-diff .del{color:var(--ink-subtle)}
 .fv-diff .add{margin:0 -16px;padding:0 16px;background:color-mix(in oklab,var(--mint) 14%,transparent);color:var(--mint-ink);font-weight:500}
 
 /* footer: brand + three link columns (Railway/Linear footers, sized to what we have) */
@@ -301,3 +303,23 @@ main{padding-bottom:128px}
 @media(max-width:640px){.foot-brand .logo{min-height:44px;display:inline-flex;align-items:center}}
 /* phones: a card drops its least useful fact rather than ellipsising (AD r1 #4 follow-through) */
 @media(max-width:640px){.fv-wide{display:none}.fv-rel li{grid-template-columns:48px minmax(0,1fr) auto}.fv-rel .fv-id{display:none}}
+
+/* ---- landing v5 page, AD round 2 / QA round 1 ---- */
+.code-note{margin:0;padding:10px 16px;border-top:1px solid var(--line);font:400 13px/20px var(--sans);color:var(--ink-subtle)}
+@media(prefers-reduced-motion:reduce){.link-arrow svg,.vendor-mark{transition:none}.link-arrow:hover svg{transform:none}}
+@media(max-width:640px){.foot-col a{min-width:44px}}
+/* 1024-1199: the thesis figs stay one row of five equal cells; the install panel keeps the desktop split (AD r2 #3) */
+@media(min-width:1024px) and (max-width:1199px){
+  .figs{grid-template-columns:repeat(5,minmax(0,1fr));row-gap:0}
+  .figs .fig-cell,.figs .fig-cell:nth-child(n+4){grid-column:auto;padding:0 12px}
+  .figs .fig-cell:nth-child(4){border-left-color:var(--fig-sep)}
+  .figs .fig-cell:nth-child(n+4) .fig-art{max-width:none}
+  .fig-cap{flex-wrap:wrap;gap:4px 8px}
+  .fig-q{font-size:16px;line-height:22px}
+  .closing-inner{grid-template-columns:minmax(0,1.4fr) minmax(0,1fr);column-gap:40px}
+  .closing-art{order:2}
+}
+/* 3000+: the panels frame the content column instead of spanning the screen (AD r2 #4, owner: no lone column at 4K) */
+@media(min-width:3000px){.sec>.stage{max-width:calc(var(--cont) + 240px);margin-inline:auto}}
+/* every section starts with its heading: the staircase follows the copy at every width (AD r2 #3) */
+.closing-art{order:2}

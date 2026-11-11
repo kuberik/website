@@ -37,20 +37,20 @@ features:
     - id: canary
       name: "Canary and waves"
       title: "Traffic in steps, regions in waves."
-      body: "OpenKruise shifts traffic in steps, with a test at each. Wave 2 waits until wave 1 has baked."
+      body: "OpenKruise moves traffic in steps, with a test where you ask for one. Wave 2 waits until wave 1 has baked."
       link: { text: "Run a canary", href: "/docs/guides/canary-rollouts/" }
     - id: releases
       name: "Releases"
       title: "Every version, and where it came from."
-      body: "A ReleaseSource reads your OCI tags, orders them by semver and keeps each digest and git revision."
+      body: "A ReleaseSource reads your OCI tags, orders them by version and keeps each digest and git revision."
       link: { text: "Publish releases", href: "/docs/guides/publishing-releases/" }
     - id: dashboard
       name: "Dashboard"
       title: "Every cluster in one place."
-      body: "All your clusters on one hub. Paste a pull request link to see how far it got."
+      body: "Apps and environments from every cluster, on one hub. Paste a pull request link to see how far it got."
       link: { text: "Expose the dashboard", href: "/docs/installation/helm/#expose-the-dashboard" }
     - id: gitops
       name: "GitOps"
       title: "Flux stays in charge of your cluster."
-      body: "Kuberik never applies manifests. It sets one value on your Flux Kustomization, and Flux does the rest."
+      body: "Kuberik never applies manifests. It sets one version in your Flux objects, and Flux does the rest."
       link: { text: "Connect Flux", href: "/docs/integrations/fluxcd/" }

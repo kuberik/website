@@ -18,5 +18,5 @@
   var phone = matchMedia('(max-width: 1099px)');
   function apply() { folds.forEach(function (d) { if (phone.matches) d.removeAttribute('open'); else d.setAttribute('open', ''); }); }
   if (folds.length) { apply(); phone.addEventListener('change', apply); }
-  folds.forEach(function (d) { d.querySelector('summary').addEventListener('click', function (e) { if (!phone.matches) e.preventDefault(); }); });
+  [].slice.call(document.querySelectorAll('.mf-fold')).forEach(function (d) { d.querySelector('summary').addEventListener('click', function (e) { if (!phone.matches) e.preventDefault(); }); });
 })();
