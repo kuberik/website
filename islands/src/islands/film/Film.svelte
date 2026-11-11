@@ -187,7 +187,9 @@ import { flipRecord, flipPlay, type Pos } from './flip';
 				s = Math.max(1, Math.min(Math.max(m.s, need), (vw - 28) / r.w, m.min ? (vh - 28) / r.h : Infinity, 2.4));
 				/* AD r4: a frame edge never slices a word. The origin slides (and the scale gives a little) until both edges sit in a gutter between the product's own text (snap.ts). Dialog beats snap against the dialog's text only. */
 				const sn = snapFrame(r, textRects(m.to.startsWith('modal')), vw, vh, gw, gh, s, Math.max(1, s * (m.min ? 0.93 : 0.86)), Math.min((vw - 28) / r.w, m.min ? (vh - 28) / r.h : Infinity, 2.4));
-				s = sn.s; x = sn.x; y = sn.y; (globalThis as any).__kfAim = { to: m.to, r, sn, vw, vh, gw, gh, refine }; /* even when no x position clears every word (ok = false) the y found for a clean top edge stands */
+				s = sn.s; x = sn.x; y = sn.y;
+				if (m.to === 'modal-fields' && s < 1.12) { s = 1; x = 0; y = 0; } /* a dialog that fills the window anyway: no crop of the page behind it for a 5% zoom */
+				 (globalThis as any).__kfAim = { to: m.to, r, sn, vw, vh, gw, gh, refine }; /* even when no x position clears every word (ok = false) the y found for a clean top edge stands */
 			}
 		}
 		x = Math.min(0, Math.max(Math.min(0, vw - s * gw), x));
