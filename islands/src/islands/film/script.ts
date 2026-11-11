@@ -6,7 +6,7 @@
 import { LOOP } from './clock';
 
 export { LOOP };
-export type Surf = 'change' | 'rollouts' | 'gates' | 'overview' | 'history' | 'envs';
+export type Surf = 'change' | 'rollouts' | 'gates' | 'overview' | 'history' | 'envs' | 'app';
 
 /** the 6 chapters (STORYBOARD section 2): label, [from, to), and the settled frame reduced motion seeks to */
 export const CHAPTERS = [
@@ -23,7 +23,7 @@ export const chapterAt = (t: number) => Math.max(0, CHAPTERS.findIndex((c) => t 
 export const chapterFill = (t: number) => { const c = CHAPTERS[chapterAt(t)]; return Math.min(1, Math.max(0, (t - c.from) / (c.to - c.from))); };
 
 /** which surface the window shows (the cut times are the storyboard's: N() sidebar steps and T() tab slides) */
-const SURF: [number, Surf][] = [[0, 'change'], [6.3, 'rollouts'], [12.5, 'gates'], [18, 'overview'], [31.4, 'envs'], [33.8, 'overview'], [42.6, 'history'], [44, 'envs']];
+const SURF: [number, Surf][] = [[0, 'change'], [6.3, 'rollouts'], [12.5, 'gates'], [18, 'overview'], [31.4, 'envs'], [33.8, 'overview'], [42.6, 'history'], [44, 'app']];
 export const surfAt = (t: number): Surf => [...SURF].reverse().find(([at]) => t >= at)![1];
 /** surfaces whose cut comes within `ahead` story seconds (their chunks are fetched before the beat: STORYBOARD section 9) */
 export const upcoming = (t: number, ahead = 3): Surf[] => SURF.filter(([at]) => at > t && at - t <= ahead).map(([, s]) => s);

@@ -309,7 +309,7 @@ import { flipRecord, flipPlay, type Pos } from './flip';
 		});
 	});
 
-	const crumbs = $derived(surf === 'change' ? ['Changes', 'checkout-api #112'] : surf === 'rollouts' ? ['Rollouts'] : surf === 'envs' ? ['Environments'] : ['Rollouts', 'checkout-api']);
+	const crumbs = $derived(surf === 'change' ? ['Changes', 'checkout-api #112'] : surf === 'rollouts' ? ['Rollouts'] : surf === 'envs' ? ['Environments'] : surf === 'app' ? ['Apps', 'checkout-api'] : ['Rollouts', 'checkout-api']);
 	const tally = $derived(tallyShown(t));
 	const fill = $derived(chapterFill(t));
 	void CHAPTERS;

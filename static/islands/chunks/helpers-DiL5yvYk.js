@@ -1,0 +1,1 @@
+import{as as s}from"./svelte-B7QmbggT.js";const r=/^(?:(.*):)?(w|h|size|m[trblxyse]?|p[trblxyse]?|gap)-/;function c(...o){const n=new Map;for(const t of o.filter(Boolean).join(" ").split(/\s+/).filter(Boolean)){const e=r.exec(t);n.set(e?`${e[1]??""}:${e[2]}`:t,t)}return[...n.values()].join(" ")}function i(...o){return c(s(o))}export{i as c};

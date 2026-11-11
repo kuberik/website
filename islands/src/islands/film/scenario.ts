@@ -25,7 +25,7 @@ type Any = any;
 /** story seconds at which a CR changes (STORYBOARD beat table; TRUTH R3/R5/R11) */
 export const EV = {
 	step2: 2.6, check: 3.4, hcStagingErr: 3.8, hcStagingLat: 4.2, stagingDone: 4.4,
-	promo: 6.5, approved: 10.3, depSat: 14.4, window: 16.6,
+	promo: 6.5, approved: 10.3, billing: 12.6, depSat: 14.4, window: 16.6,
 	deploy: 16.9, paused1: 19.0, testPending: 19.4, testRunning: 19.6, testPassed: 20.9, step2Go: 22.9, step2Done: 23.9, hcLat: 24.8, hcErr: 25.0,
 	caught: 27.0,
 	rolled: 38.7, stage1Again: 39.6, testPending2: 39.8, testRunning2: 40.0, testPassed2: 40.4, step2Again: 40.9, step2Done2: 41.5, hcLat2: 41.8, hcErr2: 42.2, recovered: 42.4
@@ -242,7 +242,7 @@ export function worldAt(t: number): { fleet: FleetSource; github: Record<string,
 	}
 
 	const rolloutsAll = PLACES.map(rollout), envsAll = PLACES.map(environment), krs = PLACES.map(kruise), hcs = PLACES.map(healthChecks);
-	const ex = extras({ failing: false, only: (a) => a.state === 'rest' || a.name === 'billing-api' });
+	const ex = extras({ failing: false, only: (a) => a.state === 'rest' || a.name === 'billing-api', settled: t >= EV.billing ? ['billing-api'] : [] });
 	const change = (n: number, title: string, author: string, mergedMs: number, sha: string, files: number) => prChange('exampleco', APP, n, title, author, mergedMs, sha, files);
 	const fleet = {
 		rollouts: [...rolloutsAll, ...ex.rollouts] as never,

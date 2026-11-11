@@ -15,6 +15,7 @@ const loaders: Record<Surf, () => Promise<Component<any>>> = {
 	change: () => import('$lib/components/new/change/ChangeDetail.svelte').then((m) => m.default),
 	rollouts: () => import('$lib/components/new/Rollouts.svelte').then((m) => m.default),
 	envs: () => import('$lib/components/new/Environments.svelte').then((m) => m.default),
+	app: () => import('$lib/components/new/app/AppDetail.svelte').then((m) => m.default),
 	gates: () => import('./RolloutShell.svelte').then((m) => m.default),
 	overview: () => import('./RolloutShell.svelte').then((m) => m.default),
 	history: () => import('./RolloutShell.svelte').then((m) => m.default)
@@ -38,6 +39,7 @@ export function surfaceProps(s: Surf, ei: number): Record<string, unknown> {
 	void ei;
 	if (s === 'change') return { change: findChange(SLUG, 'incident'), scenario: 'incident', checks: null };
 	if (isRollout(s)) return { Tab: tabComp[s] };
+	if (s === 'app') return { state: 'incident', name: APP };
 	return { state: 'incident' };
 }
 const base = `/rollouts/${CLUSTER}/${NS}/${APP}`;
@@ -47,6 +49,7 @@ export const SURFACE_PATH: Record<Surf, { url: URL; route: { id: string }; param
 	change: at(`/changes/${SLUG}`, '/changes/[...slug]', { slug: SLUG }),
 	rollouts: at('/rollouts', '/rollouts'),
 	envs: at('/environments', '/environments'),
+	app: at(`/apps/${APP}`, '/apps/[name]', { name: APP }),
 	overview: at(base, '/rollouts/[cluster]/[namespace]/[name]', R),
 	gates: at(`${base}/gates`, '/rollouts/[cluster]/[namespace]/[name]/gates', R),
 	history: at(`${base}/history`, '/rollouts/[cluster]/[namespace]/[name]/history', R)
