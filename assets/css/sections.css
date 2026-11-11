@@ -160,7 +160,7 @@ html.dark .mf{box-shadow:none}
 .mf .var{padding:1px 5px;border-radius:6px;background:color-mix(in oklab,var(--mint) 18%,transparent);color:var(--mint-ink);font-weight:500}
 .mf-fold{display:contents}
 .mf-sum{display:none}
-@media(max-width:1099px){
+@media(max-width:1023px){
   .manifests{grid-template-columns:minmax(0,1fr);gap:12px}
   .mf-fold{display:block;border-radius:12px;background:var(--page);border:1px solid var(--win-border);box-shadow:0 1px 2px oklch(.195 .014 222/.05);overflow:hidden}
   .mf-fold .mf{border:0;box-shadow:none;border-radius:0;height:auto}
@@ -336,3 +336,13 @@ main{padding-bottom:128px}
 @media(max-width:400px){.mf pre{font-size:11px;line-height:20px;padding:12px 10px 12px 12px;letter-spacing:-.02em}}
 /* proof row: the logos follow their label instead of drifting to the far edge on wide screens */
 @media(min-width:641px){.proof{justify-content:flex-start;column-gap:56px}}
+/* ---- landing v5 page, AD round 4 ---- */
+.code-note{text-wrap:pretty}
+/* 1024-1199: two open file columns at 12px so the annotation key fits a 428px card */
+@media(min-width:1024px) and (max-width:1199px){.mf pre{font-size:12px;line-height:21px;padding:16px}}
+/* small phones: headers and code give back their padding before anything clips */
+@media(max-width:380px){
+  .mf-sum{padding:0 12px;column-gap:8px}
+  .mf pre{padding:12px 6px 12px 10px}
+}
+@media(max-width:340px){.fig-cap{flex-wrap:wrap;white-space:normal}.fig-own{margin-left:0}}

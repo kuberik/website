@@ -186,8 +186,8 @@ spec:
   template:
     spec:
       containers:
-        - name: app
-          image: ghcr.io/me/my-app:<span class="var">${VERSION}</span></code></pre></figure>
+      - name: app
+        image: ghcr.io/me/my-app:<span class="var">${VERSION}</span></code></pre></figure>
         </details>
       </div>
   </div>
@@ -210,7 +210,7 @@ spec:
     --namespace kuberik-system \
     --create-namespace \
     --set createNamespace=false</code></pre>
-          <p class="code-note">Helm creates the namespace, so the chart's own is switched off.</p>
+          <p class="code-note">Helm creates the namespace, so the chart leaves it alone.</p>
         </div>
         <div class="ctas ctas-left reveal"><a class="btn btn-ink" href="{{ $getStarted }}">Get started<svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5" aria-hidden="true"><path d="M3 8h10M9 4l4 4-4 4" stroke-linecap="round" stroke-linejoin="round"/></svg></a><a class="btn btn-line" href="/docs/">Read the docs</a></div>
       </div>
