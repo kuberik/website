@@ -86,8 +86,11 @@ import { flipRecord, flipPlay, type Pos } from './flip';
 		c.querySelectorAll('[id]').forEach((e) => e.removeAttribute('id'));
 		return c;
 	}
+	let coverDog: ReturnType<typeof setTimeout> | undefined;
 	function coverWith(c: HTMLElement) {
 		snapEl?.remove(); snapEl = c; camEl!.insertBefore(c, group!.nextSibling); hid = true;
+		/* watchdog: no cover outlives 1.4 s (settleThenReveal returns early when its still was replaced or the group unmounted mid-swap; a stuck `hid` blanked the phone for 2 s at 10.9 on Fast 3G, until the next cut re-covered) */
+		clearTimeout(coverDog); coverDog = setTimeout(() => { if (snapEl === c) { hid = false; snapEl = null; c.remove(); } }, 1400);
 	}
 	async function settleThenReveal(c: HTMLElement, rec: Pos | null = null) {
 		const t0 = performance.now(); let last = group!.offsetHeight, since = t0;
