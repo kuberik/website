@@ -31,7 +31,7 @@ export const upcoming = (t: number, ahead = 3): Surf[] => SURF.filter(([at]) => 
 export const FADE_AT = 47.0;
 
 /** camera: a keyframe is a move that STARTS at `at`. `to` names a target the film resolves in the surface's DOM ('rest' = scale 1, origin). `dur` in ms. */
-export type Move = { at: number; to: string; s: number; dur: number; ease: string; dim?: string; min?: number };
+export type Move = { at: number; to: string; s: number; dur: number; ease: string; dim?: string; min?: number; hole?: string /* the dim's hole when it is not the camera target (the catch: frame the text, light the whole banner) */ };
 const EXPO = 'cubic-bezier(0.16, 1, 0.3, 1)', SPRING = 'cubic-bezier(0.34, 1.15, 0.64, 1)', ANTIC = 'cubic-bezier(0.34, 1.3, 0.64, 1)';
 const PULL = 'cubic-bezier(0.45, 0, 0.2, 1)';
 /* FIVE zooms in all (L3): merge (where it runs -> history, a pan), gates (held across both beats), the pipeline (pans to the health checks and back for the final check), the rollback aftermath (banners -> pipeline -> timeline, panning) and the finale's pull-back over the resolved Environments page.
@@ -50,7 +50,7 @@ export const CAMERA: Move[] = [
 	{ at: 18.4, to: 'pipeline', s: 1.5, dur: 434, ease: EXPO },
 	{ at: 20.6, to: 'health-checks', s: 1.5, dur: 460, ease: SPRING },
 	{ at: 25.0, to: 'pipeline', s: 1.5, dur: 460, ease: SPRING },
-	{ at: 27.3, to: 'figure', s: 1.5, dur: 480, ease: EXPO, dim: 'both', min: 15 },
+	{ at: 27.3, to: 'figure-text', hole: 'figure', s: 1.5, dur: 480, ease: EXPO, dim: 'both', min: 15 },
 	{ at: 30.4, to: 'rest', s: 1, dur: 400, ease: EXPO },
 	{ at: 31.8, to: 'prod-card', s: 1, dur: 420, ease: EXPO },
 	{ at: 33.1, to: 'rest', s: 1, dur: 420, ease: EXPO },
@@ -60,7 +60,7 @@ export const CAMERA: Move[] = [
 	{ at: 39.4, to: 'banners', s: 1.5, dur: 434, ease: EXPO },
 	{ at: 40.6, to: 'pipeline', s: 1.5, dur: 460, ease: SPRING },
 	{ at: 42.2, to: 'rest', s: 1, dur: 340, ease: EXPO }, /* clear before the History cut (42.6) and held through the Environments cut (44.0): a cut never lands under another page's zoom. The History strip spans the page's whole content width, so no zoom can frame it without slicing the rail beside it (AD r4: no cropped words): it is shown at rest. */
-	{ at: 44.4, to: 'final-prod', s: 1.6, dur: 900, ease: PULL }
+
 ];
 export const moveAt = (t: number): Move => [...CAMERA].reverse().find((m) => t >= m.at)!;
 
@@ -93,5 +93,8 @@ export const tallyShown = (t: number) => tallyAt(t);
 /** Which product reflows are hidden under a still of the page before them (Film.svelte takeSnap). The product's own transitions (a banner opening, a dialog closing,
  *  rows sliding) are the point of the film, so they PLAY, unless one alone costs more layout shift than the page can spend: measured at 1440 the Approve collapse is one
  *  0.105 shift, over the whole 0.1 budget, so it is the single desktop cover. On the phone the same reflows move 2-3x the viewport area (0.12-0.19 each): all covered. */
-export const COVER_DESKTOP_AT = [10.3, 38.7];
+export const COVER_DESKTOP_AT = [38.7];
+/** the reflows that PLAY as a slide (flip.ts, by transform: no layout shift) instead of being covered or left to jump: the approved card leaving the Rollouts list */
+export const FLIP_AT = [10.3];
+export const flipEvent = (t: number, phone: boolean) => !phone && FLIP_AT.some((c) => Math.abs(t - c) < 0.35);
 export function coverEvent(t: number, phone: boolean): boolean { return phone || COVER_DESKTOP_AT.some((c) => Math.abs(t - c) < 0.35); }

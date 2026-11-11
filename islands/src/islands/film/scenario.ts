@@ -26,7 +26,7 @@ type Any = any;
 export const EV = {
 	step2: 2.6, check: 3.4, hcStagingErr: 3.8, hcStagingLat: 4.2, stagingDone: 4.4,
 	promo: 6.5, approved: 10.3, depSat: 14.4, window: 16.6,
-	deploy: 16.9, paused1: 19.0, testPending: 19.4, testRunning: 19.6, testPassed: 20.9, step2Go: 22.9, step2Done: 23.9, hcLat: 24.8,
+	deploy: 16.9, paused1: 19.0, testPending: 19.4, testRunning: 19.6, testPassed: 20.9, step2Go: 22.9, step2Done: 23.9, hcLat: 24.8, hcErr: 25.0,
 	caught: 27.0,
 	rolled: 38.7, stage1Again: 39.6, testPending2: 39.8, testRunning2: 40.0, testPassed2: 40.4, step2Again: 40.9, step2Done2: 41.5, hcLat2: 41.8, hcErr2: 42.2, recovered: 42.4
 } as const;
@@ -86,16 +86,23 @@ export function worldAt(t: number): { fleet: FleetSource; github: Record<string,
 	const auto = 'Automatic deployment';
 	const base = { id: 1, version: R45, timestamp: new Date(ago(3 * H)).toISOString(), message: auto, bakeStatus: 'Succeeded', bakeStatusMessage: DONE_MSG, bakeStartTime: new Date(ago(3 * H)).toISOString(), bakeEndTime: new Date(ago(3 * H) + 600_000).toISOString(), triggeredBy: sys };
 	const failedInfo = { bakeStatusMessage: 'A HealthCheck reported an error after bake started.', failedHealthChecks: [{ name: `${APP}-error-rate`, namespace: 'checkout-api-prod-us-east-1', message: FAIL_MSG, observations: OBS }] };
-	const bakeMsg = (ph: Phase) => (ph === 'deploying' || ph === 'rolling' ? WAIT_MSG : ph === 'checking' ? START_MSG : DONE_MSG);
+	/* the controller starts a bake (bakeStartTime, InProgress, "Bake started...") only once EVERY health check is Healthy with a fresh lastChangeTime (rollout_controller.go ~1950-1984); until then the entry is Deploying and "Waiting for health checks to become healthy before starting bake." */
+	const baking = (p: Place) => (p.env === 'staging' ? t >= EV.hcStagingLat : t >= EV.hcErr);
 	function history(p: Place): Any[] {
 		const ph = phaseOf(p, t);
 		if (ph === 'old') return [base];
-		if (p.env === 'staging') return [{ id: 2, version: R46, timestamp: at(0), message: auto, bakeStatus: ph === 'deploying' ? 'Deploying' : ph === 'checking' ? 'InProgress' : 'Succeeded', bakeStatusMessage: bakeMsg(ph), ...(ph === 'deploying' ? {} : { bakeStartTime: at(EV.check) }), ...(ph === 'done' ? { bakeEndTime: at(EV.stagingDone) } : {}), triggeredBy: sys }, base];
+		if (p.env === 'staging') {
+			const bk = baking(p);
+			return [{ id: 2, version: R46, timestamp: at(0), message: auto, bakeStatus: ph === 'done' ? 'Succeeded' : bk ? 'InProgress' : 'Deploying', bakeStatusMessage: ph === 'done' ? DONE_MSG : bk ? START_MSG : WAIT_MSG, ...(bk ? { bakeStartTime: at(EV.hcStagingLat) } : {}), ...(ph === 'done' ? { bakeEndTime: at(EV.stagingDone) } : {}), triggeredBy: sys }, base];
+		}
 		const failed = ph === 'failed' || ph === 'rolling' || ph === 'recovered';
-		const first = { id: 2, version: R46, timestamp: at(EV.deploy), message: auto, bakeStatus: ph === 'deploying' ? 'Deploying' : ph === 'checking' ? 'InProgress' : 'Failed', bakeStatusMessage: failed ? failedInfo.bakeStatusMessage : bakeMsg(ph), ...(ph === 'deploying' ? {} : { bakeStartTime: at(EV.step2Done) }), ...(failed ? { bakeEndTime: at(EV.caught), failedHealthChecks: failedInfo.failedHealthChecks } : {}), triggeredBy: sys };
+		const bk = baking(p);
+		const first = { id: 2, version: R46, timestamp: at(EV.deploy), message: auto, bakeStatus: failed ? 'Failed' : bk ? 'InProgress' : 'Deploying', bakeStatusMessage: failed ? failedInfo.bakeStatusMessage : bk ? START_MSG : WAIT_MSG, bakeStartTime: bk ? at(EV.hcErr) : undefined, ...(failed ? { bakeEndTime: at(EV.caught), failedHealthChecks: failedInfo.failedHealthChecks } : {}), triggeredBy: sys };
+		if (!bk) delete first.bakeStartTime;
 		if (ph === 'rolling' || ph === 'recovered') {
 			/* the person's rollback: their typed reason is the deployment's message (the dashboard writes it as the deploy-message annotation) */
-			const rolled = { id: 3, version: R45, timestamp: at(EV.rolled), message: REASON, bakeStatus: ph === 'rolling' ? 'Deploying' : 'Succeeded', bakeStatusMessage: bakeMsg(ph), ...(ph === 'rolling' ? {} : { bakeStartTime: at(EV.step2Done2), bakeEndTime: at(EV.recovered) }), triggeredBy: { kind: 'User', name: VIEWER } };
+			const rb = t >= EV.hcErr2; /* the rollback's own bake starts when its checks are healthy again */
+			const rolled = { id: 3, version: R45, timestamp: at(EV.rolled), message: REASON, bakeStatus: ph === 'recovered' ? 'Succeeded' : rb ? 'InProgress' : 'Deploying', bakeStatusMessage: ph === 'recovered' ? DONE_MSG : rb ? START_MSG : WAIT_MSG, ...(rb ? { bakeStartTime: at(EV.hcErr2) } : {}), ...(ph === 'recovered' ? { bakeEndTime: at(EV.recovered) } : {}), triggeredBy: { kind: 'User', name: VIEWER } };
 			return [rolled, first, base];
 		}
 		return [first, base];
@@ -135,7 +142,7 @@ export function worldAt(t: number): { fleet: FleetSource; github: Record<string,
 	/* ---- environment-controller's view (wave.go): members, selected revision, the wave-2 leader's blocker while wave 1 is in flight ---- */
 	const leaderOf = (p: Place) => PLACES.filter((q) => q.env === p.env && (q.wave ?? 1) === (p.wave ?? 1)).sort((a, b) => (a.site ?? 'default').localeCompare(b.site ?? 'default'))[0];
 	const revOf = (q: Place) => (deployed(q) ? SHA[46] : SHA[45]);
-	const bakeOf = (q: Place) => { const ph = phaseOf(q, t); return ph === 'deploying' ? 'Deploying' : ph === 'checking' ? 'InProgress' : ph === 'failed' ? 'Failed' : ph === 'rolling' ? 'Deploying' : 'Succeeded'; };
+	const bakeOf = (q: Place) => { const ph = phaseOf(q, t); return ph === 'deploying' ? 'Deploying' : ph === 'checking' ? (baking(q) ? 'InProgress' : 'Deploying') : ph === 'failed' ? 'Failed' : ph === 'rolling' ? (t >= EV.hcErr2 ? 'InProgress' : 'Deploying') : 'Succeeded'; };
 	function environment(p: Place): Any {
 		const lead = leaderOf(p), w = p.wave ?? 1, upEnv = p.env === 'prod' ? 'staging' : null;
 		const members = PLACES.filter((q) => q.env === p.env || q.env === upEnv).map((q) => ({ environment: q.env, site: q.site ?? 'default', wave: q.wave ?? 1, revision: revOf(q), bakeStatus: bakeOf(q) }))
@@ -144,14 +151,14 @@ export function worldAt(t: number): { fleet: FleetSource; github: Record<string,
 		if (lead === p && !deployed(p)) {
 			const prev = w > 1 ? PLACES.filter((q) => q.env === p.env && (q.wave ?? 1) === w - 1) : upEnv ? PLACES.filter((q) => q.env === upEnv) : [];
 			const inFlight = prev.find((q) => { const ph = phaseOf(q, t); return ph === 'deploying' || ph === 'checking' || ph === 'failed' || ph === 'rolling'; });
-			if (inFlight) blocker = { reason: 'WaitingFor', environment: inFlight.env, site: inFlight.site ?? 'default', waitingOn: 'Bake', revision: SHA[46] };
+			if (inFlight) blocker = { reason: 'WaitingFor', environment: inFlight.env, site: inFlight.site ?? 'default', waitingOn: 'Bake', revision: t >= EV.rolled ? SHA[45] : SHA[46] }; /* the rollback is written by the wave-1 leader as an explicit selection record (githubenvironment_controller.go), so from 38.7 the wave's selection, and the revision named, is SHA45 */
 		}
 		/* a FOLLOWER carries NO blocker here (wave.go decideFollower): the wave's selection is the leader's newest deployment once the previous wave completed it, and that is the build every site already runs (SHA45), so the follower is Ready with allowed = [that tag]. WaitingFor/Selection only exists while a wave has no selection at all, which this story never has. Only the wave-2 LEADER waits (above): {WaitingFor, waitingOn: Bake, site: <wave-1 site>, revision} and NO outcome (fleet.go blocker()). */
 		const cond = (type: string, status: string, reason: string, message: string) => ({ type, status, reason, message, lastTransitionTime: at(0) });
 		return {
 			apiVersion: 'environments.kuberik.com/v1alpha1', kind: 'Environment',
 			metadata: { name: APP, namespace: p.ns, annotations: { 'rollout-dashboard.kuberik.com/source-cluster': p.env } },
-			spec: { environment: p.env, name: 'checkout-api-service', rolloutRef: { name: APP }, ...(p.site ? { site: p.site, wave: p.wave } : {}) },
+			spec: { environment: p.env, name: 'checkout-api-service', rolloutRef: { name: APP }, backend: { type: 'github', project: 'exampleco/checkout-api', secret: 'github-token' }, ...(p.site ? { site: p.site, wave: p.wave } : {}) },
 			status: {
 				...(p.env === 'staging' ? {} : { rolloutGateRef: { name: `promotion-prod-${p.site}` } }),
 				currentVersion: deployed(p) ? 'b-46' : 'b-45', lastStatusChangeTime: deployed(p) ? at(p.env === 'staging' ? 0 : EV.deploy) : new Date(ago(3 * H)).toISOString(),
@@ -203,16 +210,18 @@ export function worldAt(t: number): { fleet: FleetSource; github: Record<string,
 		const ph = phaseOf(p, t);
 		const mk = (name: 'error-rate' | 'latency-p99') => {
 			let status = 'Healthy', message = `No alerts firing for labels map[alertname:${name === 'error-rate' ? 'HighErrorRate' : 'HighLatencyP99'} app:${APP}]`, obs: Any[] = [];
-			if (p.env === 'staging' && t < (name === 'error-rate' ? EV.hcStagingErr : EV.hcStagingLat)) status = 'Pending';
+			let since = -1; /* story second of the latest status transition (the check's lastChangeTime) */
+			if (p.env === 'staging') { const turn = name === 'error-rate' ? EV.hcStagingErr : EV.hcStagingLat; if (t < turn) { status = 'Pending'; since = 0; } else since = turn; }
 			if (isUS1(p) && t >= EV.deploy) {
-				if (name === 'latency-p99' && (t < EV.hcLat || (t >= EV.rolled && t < EV.hcLat2))) status = 'Pending';
-				if (name === 'error-rate') {
-					if (t < EV.caught || (t >= EV.rolled && t < EV.hcErr2)) status = 'Pending';
-					else if (t < EV.rolled) { status = 'Unhealthy'; message = FAIL_MSG; obs = OBS; }
-				}
+				const turn = name === 'error-rate' ? EV.hcErr : EV.hcLat, turn2 = name === 'error-rate' ? EV.hcErr2 : EV.hcLat2;
+				if (t < turn) { status = 'Pending'; since = EV.deploy; }
+				else if (t < (name === 'error-rate' ? EV.caught : EV.rolled)) since = turn;
+				else if (name === 'error-rate' && t < EV.rolled) { status = 'Unhealthy'; message = FAIL_MSG; obs = OBS; since = EV.caught; }
+				else if (t < turn2) { status = 'Pending'; since = EV.rolled; }
+				else since = turn2;
 			}
 			return { apiVersion: 'kuberik.com/v1alpha1', kind: 'HealthCheck', metadata: { name: `${APP}-${name}`, namespace: p.ns, labels: { app: APP }, annotations: { 'kuberik.com/display-name': name } }, spec: { class: 'prometheus-alert' },
-				status: { status, message, lastChangeTime: at(ph === 'old' ? -1 : EV.deploy), observations: obs, ...(name === 'error-rate' && isUS1(p) && t >= EV.caught ? { lastErrorTime: at(EV.caught) } : {}) } }; /* the witness: the controller never clears it, so the rollout page keeps listing the failed check, and keeps it after the recovery */
+				status: { status, message, lastChangeTime: at(since), observations: obs, ...(name === 'error-rate' && isUS1(p) && t >= EV.caught ? { lastErrorTime: at(EV.caught) } : {}) } }; /* the witness: the controller never clears it, so the rollout page keeps listing the failed check, and keeps it after the recovery */
 		};
 		return { metadata: { namespace: p.ns, name: APP, annotations: { 'rollout-dashboard.kuberik.com/source-cluster': p.env } }, healthChecks: [mk('error-rate'), mk('latency-p99')] };
 	}

@@ -7,8 +7,8 @@
 	 */
 	import { CHAPTERS } from './script';
 	import { clockFace } from './clock';
-	let { t, lit, fill, reduced, playing, narrow, tally, onseek, ontoggle }: {
-		t: number; lit: number; fill: number; reduced: boolean; playing: boolean; narrow: boolean;
+	let { t, lit, fill, reduced, playing, narrow, tight = false, tally, onseek, ontoggle }: {
+		t: number; lit: number; fill: number; reduced: boolean; playing: boolean; narrow: boolean; tight?: boolean;
 		tally: { passed: number; failed: number; people: number }; onseek: (i: number) => void; ontoggle: () => void;
 	} = $props();
 	const face = $derived(clockFace(t));
@@ -21,13 +21,21 @@
 	let scroller: HTMLElement | undefined = $state();
 	$effect(() => {
 		if (!narrow || !scroller) return;
+		void bits.length; /* the tally growing narrows the scroller: centre again */
 		const el = scroller.children[lit] as HTMLElement | undefined;
-		if (el) { const sr = scroller.getBoundingClientRect(), er = el.getBoundingClientRect(); /* rects, not offsetLeft: the tab's offsetParent is the panel, not the scroller (the lit tab was centred 60 px too far right and clipped by the clock) */ scroller.scrollTo({ left: Math.max(0, scroller.scrollLeft + (er.left - sr.left) - (sr.width - er.width) / 2), behavior: reduced ? 'auto' : 'smooth' }); }
+		if (el) {
+			/* rects, not offsetLeft (the tab's offsetParent is the panel). The scroll lands on a tab boundary nearest the centring position, with the lit tab fully inside: no half-dot at the scroller's edge. */
+			const sr = scroller.getBoundingClientRect(), er = el.getBoundingClientRect(), sl = scroller.scrollLeft;
+			const litL = sl + er.left - sr.left, ideal = litL - (sr.width - er.width) / 2, max = Math.max(0, scroller.scrollWidth - scroller.clientWidth);
+			const starts = [...scroller.children].map((c) => sl + c.getBoundingClientRect().left - sr.left).filter((o) => o <= litL + 0.5 && o + sr.width >= litL + er.width - 0.5);
+			const snap = starts.length ? starts.reduce((a, b) => (Math.abs(b - ideal) < Math.abs(a - ideal) ? b : a)) : ideal;
+			scroller.scrollTo({ left: Math.min(max, Math.max(0, snap)), behavior: reduced ? 'auto' : 'smooth' });
+		}
 	});
 </script>
-<div class="fc" class:fc-narrow={narrow}>
+<div class="fc" class:fc-narrow={narrow} class:fc-tight={tight}>
 	<div class="fc-panel">
-		<span class="fc-clock t-code" aria-label="Story time" title="Story time (a time-lapse)">{face}</span>
+		<span class="fc-clock t-code" role="timer" aria-label="Story time" title="Story time (a time-lapse)">{face}</span>
 		<nav class="fc-bar t-label" aria-label="Demo chapters">
 			<div class="fc-scroll" bind:this={scroller}>
 				{#each CHAPTERS as c, i (c.key)}
@@ -43,7 +51,7 @@
 				</button>
 			{/if}
 		</nav>
-		{#if bits.length}<span class="fc-tally t-meta" aria-live="off" aria-label={bits.map((b) => `${b.n} ${b.k === 'p' ? (b.n === 1 ? 'check passed' : 'checks passed') : b.word}`).join(', ')}>
+		{#if bits.length}<span class="fc-tally t-meta" role="status" aria-live="off" aria-label={bits.map((b) => `${b.n} ${b.k === 'p' ? (b.n === 1 ? 'check passed' : 'checks passed') : b.word}`).join(', ')}>
 			{#each bits as b (b.k)}<span class="fc-bit" class:fc-bad={b.k === 'f'}>
 				{#if narrow}<svg class="fc-ic" width="12" height="12" viewBox="0 0 12 12" aria-hidden="true">{#if b.k === 'f'}<path d="M3 3l6 6M9 3l-6 6" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" />{:else}<path d="M2.5 6.4l2.4 2.4 4.6-5" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" />{/if}</svg>{/if}
 				{#key b.n}<b class="fc-n">{b.n}</b>{/key}{#if !narrow} {b.word}{/if}</span>{/each}
@@ -55,14 +63,14 @@
 	.fc-panel { pointer-events: auto; width: calc(100% - 24px); height: 44px; display: grid; grid-template-columns: minmax(0, 1fr) auto minmax(0, 1fr); align-items: center; gap: 12px; padding: 4px 4px 4px 14px; box-sizing: border-box; background: var(--k-surface, #fff); border: 1px solid var(--k-line); border-radius: 12px; box-shadow: 0 6px 20px rgba(14, 20, 24, 0.08); }
 	.fc-clock { justify-self: start; display: inline-flex; align-items: center; color: var(--ink-muted, var(--k-fg-muted)); font-variant-numeric: tabular-nums; font-size: 14px; }
 	.fc-tally { justify-self: end; display: inline-flex; align-items: center; gap: 0; padding-right: 6px; color: var(--k-fg-muted); font-size: 14px; white-space: nowrap; }
-	.fc-bit + .fc-bit::before { content: '\00b7'; margin: 0 8px; color: var(--k-fg-muted); }
+	.fc-bit + .fc-bit::before { content: '\00b7'; margin: 0 6px; color: var(--k-fg-muted); }
 	.fc-n { color: var(--k-fg); font-weight: 600; font-variant-numeric: tabular-nums; display: inline-block; animation: fc-roll 0.2s ease-out; }
 	.fc-bad .fc-n, .fc-bad { color: var(--k-danger-fg); }
 	@keyframes fc-roll { from { transform: translateY(8px); opacity: 0; } to { transform: none; opacity: 1; } }
 	.fc-bar { display: flex; align-items: center; gap: 2px; min-width: 0; max-width: 100%; }
 	.fc-scroll { display: flex; align-items: center; gap: 2px; min-width: 0; overflow-x: auto; scrollbar-width: none; }
 	.fc-scroll::-webkit-scrollbar { display: none; }
-	.fc-tab { flex: none; position: relative; overflow: hidden; display: inline-flex; align-items: center; gap: 8px; height: 34px; padding: 0 9px; border-radius: 8px; color: var(--k-fg-muted); font-size: 14px; font-weight: 500; white-space: nowrap; background: transparent; border: 0; cursor: pointer; }
+	.fc-tab { flex: none; position: relative; overflow: hidden; display: inline-flex; align-items: center; gap: 8px; height: 34px; padding: 0 7px; border-radius: 8px; color: var(--k-fg-muted); font-size: 14px; font-weight: 500; white-space: nowrap; background: transparent; border: 0; cursor: pointer; }
 	.fc-tab > :not(.fc-fill) { position: relative; }
 	.fc-tab:hover, .fc-tab:focus-visible { color: var(--k-fg); background: var(--k-ground); outline-offset: -2px; }
 	.fc-on { color: var(--k-fg); background: color-mix(in srgb, var(--k-ground) 70%, transparent); }
@@ -88,6 +96,7 @@
 	.fc-narrow .fc-tab:not(.fc-on) .fc-lab { display: none; }
 	.fc-narrow .fc-tab:not(.fc-on) .fc-dot { display: inline-block; }
 	.fc-narrow .fc-play { width: 44px; height: 44px; }
-	/* tablet widths: no room for three cells in a row */
-	@media (max-width: 1100px) { .fc:not(.fc-narrow) .fc-panel { grid-template-columns: auto minmax(0, 1fr) auto; } .fc:not(.fc-narrow) .fc-bar { justify-self: center; } }
+	/* a window under 1000 px (tablet): the tally can outgrow an equal side cell, so the sides take what they need and the tabs give way */
+	.fc-tight .fc-panel { grid-template-columns: auto minmax(0, 1fr) auto; }
+	.fc-tight .fc-bar { justify-self: center; }
 </style>

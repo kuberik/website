@@ -16,7 +16,7 @@ import Film from './Film.svelte';
 import { containScroll } from './contain-scroll';
 
 export function mountFilm(ctx: CustomCtx) {
-	const props = reactive({ t: 0, playing: false, userPlaying: true, reduced: false, eventIdx: -1, onseek: (_: number) => {}, ontoggle: () => {} });
+	const props = reactive({ t: 0, playing: false, userPlaying: true, reduced: false, eventIdx: -1, onseek: (_: number) => {}, ontoggle: () => {}, onshown: () => {} });
 	let world: ReturnType<typeof worldAt> | null = null;
 	installAnswers(() => (world?.fleet.rollouts as unknown[]) ?? [], () => world?.github ?? null);
 	containScroll();
@@ -48,7 +48,9 @@ export function mountFilm(ctx: CustomCtx) {
 	/* the first frame is real once the surface, the shell and the fonts are in and painted: only then does the static poster leave (no blank gap, no shift) */
 	const shell = ctx.host.clientWidth < 600 ? import('$lib/MobileTabBar.svelte') : import('$lib/Sidebar.svelte'); // fetched in parallel with the first surface, same chunk Film asks for
 	void Promise.all([loadSurface(surfAt(props.t)), shell]) /* the surface the story STARTS on (reduced motion rests on the Overview): the poster only leaves once it is in */.then(async () => {
+		const shownP = new Promise<void>((r) => { props.onshown = r; });
 		mount(Film, { target: ctx.wrap, props });
+		await Promise.race([shownP, new Promise((r) => setTimeout(r, 4000))]); /* the poster stays until the first surface is actually SHOWN (opacity 1): QA r5 saw a 2 s blank under load when it left on mount alone */
 		await Promise.race([document.fonts.ready, new Promise((r) => setTimeout(r, 1500))]);
 		await new Promise<void>((r) => requestAnimationFrame(() => requestAnimationFrame(() => r())));
 		ctx.ready();

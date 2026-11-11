@@ -18,13 +18,14 @@
 	import { loadSurface, surfaceProps, SURFACE_PATH } from './surfaces';
 	import { resolveTarget } from './targets';
 import { snapFrame } from './snap';
+import { flipRecord, flipPlay, type Pos } from './flip';
 	import { page } from '../../stubs/app-state';
 	import { page as pageStore } from '../../stubs/app-stores';
 	import { setDisplayTimeZone } from '$lib/timezone.svelte';
-	import { coverEvent, rollbackOpen, REASON, TYPING, typedLen } from './script';
+	import { coverEvent, flipEvent, rollbackOpen, REASON, TYPING, typedLen } from './script';
 	setDisplayTimeZone('utc'); // the chrome clock is UTC, and so is every absolute time the product prints
 
-	let { t, playing, userPlaying, reduced, onseek, ontoggle, eventIdx }: { t: number; playing: boolean; reduced: boolean; onseek: (chip: number) => void; ontoggle: () => void; eventIdx: number; userPlaying: boolean } = $props();
+	let { t, playing, userPlaying, reduced, onseek, ontoggle, onshown, eventIdx }: { t: number; playing: boolean; reduced: boolean; onseek: (chip: number) => void; ontoggle: () => void; onshown?: () => void; eventIdx: number; userPlaying: boolean } = $props();
 
 	let host: HTMLElement | undefined = $state();
 	let W = $state(1120), H = $state(640);
@@ -67,6 +68,7 @@ import { snapFrame } from './snap';
 		Comp = c; shown = next;
 		await tick();
 		swapOpacity = 1;
+		onshown?.();
 		if (copy) void settleThenReveal(copy);
 		if (seq === swapSeq) swapping = null;
 	}
@@ -100,15 +102,17 @@ import { snapFrame } from './snap';
 		const done = () => c.remove();
 		c.animate([{ opacity: 1 }, { opacity: 0 }], { duration: 80, easing: "ease-out", fill: "forwards" }).finished.then(done, done);
 	}
-	let preEi = -2, preSnap: { el: HTMLElement | null; h: number } | null = null;
+	let preEi = -2, preSnap: { el: HTMLElement | null; h: number; flip: Pos | null } | null = null;
 	$effect.pre(() => {
 		const ei = eventIdx;
-		untrack(() => { if (ei === preEi) return; preEi = ei; preSnap = !group || swapping || hid || reduced || !shown ? null : { el: coverEvent(t, CW < 1000) ? takeSnap('event') : null, h: group.offsetHeight }; });
+		untrack(() => { if (ei === preEi) return; preEi = ei; preSnap = !group || swapping || hid || reduced || !shown ? null : { el: coverEvent(t, CW < 1000) ? takeSnap('event') : null, h: group.offsetHeight, flip: flipEvent(t, CW < 1000) && !(globalThis as any).__kfNoSnap?.includes('flip') ? flipRecord(group, unit()) : null }; });
 	});
 	$effect(() => {
 		void eventIdx;
 		untrack(() => {
-			const p = preSnap; preSnap = null; if (!p?.el || !group) return;
+			const p = preSnap; preSnap = null; if (!p || !group) return;
+			if (p.flip) { const rec = p.flip; void tick().then(() => { if (group && !swapping && !hid) flipPlay(group, rec, unit()); }); return; } /* the product's one-step reflow plays as a slide by transform (flip.ts): no layout shift */
+			if (!p.el) return;
 			void tick().then(() => tick()).then(() => {
 				if (!group || swapping || hid || Math.abs(group.offsetHeight - p.h) < 3) return; /* nothing moved: no cover */
 				coverWith(p.el!); void settleThenReveal(p.el!);
@@ -165,7 +169,7 @@ import { snapFrame } from './snap';
 		}
 		return out;
 	}
-	let refineTimer: ReturnType<typeof setTimeout> | undefined;
+	let refineTimer: ReturnType<typeof setTimeout> | undefined, refine2Timer: ReturnType<typeof setTimeout> | undefined;
 	function aim(m: Move, jump: boolean, refine = false) {
 		if (!group || !main) return;
 		/* reduced motion: no camera at all (STORYBOARD section 9): every frame is the unzoomed, unscrolled page */
@@ -183,7 +187,7 @@ import { snapFrame } from './snap';
 				s = Math.max(1, Math.min(Math.max(m.s, need), (vw - 28) / r.w, m.min ? (vh - 28) / r.h : Infinity, 2.4));
 				/* AD r4: a frame edge never slices a word. The origin slides (and the scale gives a little) until both edges sit in a gutter between the product's own text (snap.ts). Dialog beats snap against the dialog's text only. */
 				const sn = snapFrame(r, textRects(m.to.startsWith('modal')), vw, vh, gw, gh, s, Math.max(1, s * (m.min ? 0.93 : 0.86)), Math.min((vw - 28) / r.w, m.min ? (vh - 28) / r.h : Infinity, 2.4));
-				if (sn.ok) { s = sn.s; x = sn.x; y = sn.y; } else { x = vw / 2 - s * (r.x + r.w / 2); y = vh / 2 - s * (r.y + r.h / 2); }
+				s = sn.s; x = sn.x; y = sn.y; (globalThis as any).__kfAim = { to: m.to, r, sn, vw, vh, gw, gh, refine }; /* even when no x position clears every word (ok = false) the y found for a clean top edge stands */
 			}
 		}
 		x = Math.min(0, Math.max(Math.min(0, vw - s * gw), x));
@@ -191,7 +195,8 @@ import { snapFrame } from './snap';
 		/* the ONE dim (L1/L2): the product's ink at 38% over everything but the target, shell included. The hole is the target's own rect and corner radius. */
 		const wantDim = !!el && !!m.dim && !reduced;
 		shadeOn = wantDim; /* 'shade' = the shell only (the dialog's own scrim dims the page) */
-		const next = wantDim && m.dim !== 'shade' ? holeOf(el!) : null;
+		const hEl = m.hole ? resolveTarget(m.hole, camEl!, phone) : el; /* the lit shape can differ from the framed one (the catch: frame the text, light the whole banner) */
+		const next = wantDim && m.dim !== 'shade' && hEl ? holeOf(hEl) : null;
 		clearTimeout(holeTimer);
 		if (!next) holeOn = false;
 		else if (refine || !holeOn || !hole) { hole = next; holeOn = true; }
@@ -204,8 +209,8 @@ import { snapFrame } from './snap';
 		clearTimeout(moveTimer);
 		if (dur > 0) moveTimer = setTimeout(() => { cam = { ...cam, moving: false }; }, dur + 40);
 		/* the product's own enter animations (banners opening, cards collapsing) keep moving the target for ~0.5 s after a move starts: re-aim once they have settled */
-		clearTimeout(refineTimer);
-		if (!refine && el && !reduced) refineTimer = setTimeout(() => aim(m, false, true), 650);
+		if (!refine) { clearTimeout(refineTimer); clearTimeout(refine2Timer); }
+		if (!refine && el && !reduced) { refineTimer = setTimeout(() => aim(m, false, true), 650); refine2Timer = setTimeout(() => aim(m, false, true), 1500); } /* twice: the page keeps settling a little after the product's enter animations */
 	}
 	/* a move starts when the story reaches its keyframe, or the surface under it changed (re-aim once its layout has settled) */
 	$effect(() => {
@@ -333,7 +338,7 @@ import { snapFrame } from './snap';
 			<Cursor x={ptr.x} y={ptr.y} on={ptr.on} press={ptr.press} touch={phone} />
 		</div>
 	</div>
-	<Chrome {t} {lit} {fill} {reduced} playing={userPlaying} narrow={phone} {tally} {onseek} {ontoggle} />
+	<Chrome {t} {lit} {fill} {reduced} playing={userPlaying} narrow={phone} tight={!phone && W < 1000} {tally} {onseek} {ontoggle} />
 </div>
 
 <style>

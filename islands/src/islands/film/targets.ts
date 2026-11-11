@@ -44,6 +44,16 @@ export function resolveTarget(name: string, root: ParentNode, phone: boolean): H
 		case 'banner': return q('.ap-cq');
 		/* the catch: the WHOLE failure banner (AD r4: lit as a banner with its own radius, not as a text box) */
 		case 'figure': return q('.ap-cq');
+		/* the catch's CAMERA frame: the banner from its left edge to the right of its text block (icon, title, the 3.2 % figure, budget line, Details), full banner height, without the empty middle and the buttons; the HOLE stays the whole banner (Move.hole), so the lit shape is the banner and the zoom reads at hero scale (AD r5) */
+		case 'figure-text': {
+			const ban = q('.ap-cq'); if (!ban) return null;
+			const row = byText(ban, 'div,p,span', /^3\.2\s*%\s*error rate/i); if (!row) return ban;
+			let e: HTMLElement | null = row; while (e && e !== ban && !/Deployment failed/i.test(text(e))) e = e.parentElement; if (!e || e === ban) return ban;
+			const title = byText(e, 'div,p,span,h1,h2,h3,h4', /^Deployment failed$/i), more = byText(e, 'button,summary,span,div', /^Details$/i);
+			let blk: HTMLElement = row; while (blk.parentElement && blk !== e && !/budget/i.test(text(blk))) blk = blk.parentElement; /* the figure and its budget line */
+			const parts = [title, contentBox(blk), more].filter(Boolean) as HTMLElement[];
+			return { __r: 12, getBoundingClientRect() { const b = ban.getBoundingClientRect(); const right = Math.max(...parts.map((x) => x.getBoundingClientRect().right)); return new DOMRect(b.left, b.top, Math.max(80, right + 14 - b.left), b.height); } } as unknown as HTMLElement;
+		}
 		/* both recovery-mode banners (Recovery mode, Rolled back) as one frame */
 		case 'banners': { const bs = [...root.querySelectorAll<HTMLElement>('.ap-cq')].slice(0, 2); return bs.length ? union(bs.map(contentBox)) : null; } /* their text, not their full-width bars: the zoom can land on the words */
 		case 'history': return cardOf(root, /^History$/);
