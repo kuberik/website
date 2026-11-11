@@ -71,6 +71,8 @@ export function resolveTarget(name: string, root: ParentNode, phone: boolean): H
 		}
 		/* the finale's opening frame: the top-left of the Environments page (Staging, the Production summary) at width-fit, so "All 8 healthy" reads first and the pull-back reveals the rest */
 		case 'envs-lead': { const a = cardOf(root, /^Staging/i), b = cardOf(root, /^Production/i); if (!a || !b) return null; const u = union([a, b]); return { __r: 8, getBoundingClientRect() { const r = u.getBoundingClientRect(); return new DOMRect(r.left, r.top, Math.min(r.width, 640 * (r.width / (b as HTMLElement).offsetWidth || 1)), r.height); } } as unknown as HTMLElement; }
+		/* the finale's push-in: the Builds card (the five prod regions and the build they sit on) */
+		case 'builds': return cardOf(root, /^Builds/i);
 		case 'prod-card': return cardOf(root, /Production/i);
 		/* the History cadence strip (bar, hour ticks, the "shown wider" note): the nearest ancestor of the note that also holds the ticks */
 		case 'timeline': { let e: HTMLElement | null = byText(root, 'span,div,p', /shown wider than its real time/i); for (let i = 0; e && i < 5; i++, e = e.parentElement) if (/07:00|08:00/.test(text(e)) && /\d\.\d+\.\d+-\d+/.test(text(e))) return e; return null; }

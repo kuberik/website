@@ -382,7 +382,9 @@ import { flipRecord, flipPlay, type Pos } from './flip';
 	.film-hole { position: absolute; z-index: 4; pointer-events: none; box-shadow: 0 0 0 4000px var(--film-dim); opacity: 0; transition: opacity 0.2s ease-out; }
 	.film-hole-on { opacity: 1; }
 	.film-side, .film-top { position: relative; }
-	.film-shade { position: absolute; inset: 0; z-index: 6; pointer-events: none; background: var(--film-dim); opacity: 0; transition: opacity 0.2s ease-out; }
+	.film-frame { --film-shade: rgb(12 20 26 / 0.15); } /* the shell recedes under the zoom: on a light page the full dim read as a heavy grey slab (AD r7) */
+	:global(.dark) .film-frame { --film-shade: var(--film-dim); }
+	.film-shade { position: absolute; inset: 0; z-index: 6; pointer-events: none; background: var(--film-shade); opacity: 0; transition: opacity 0.2s ease-out; }
 	.film-shade-on { opacity: 1; }
 	:global(.fm-panel header) { position: sticky; top: 0; z-index: 5; background-color: var(--k-surface); } /* the sheet's title stays while its body scrolls */
 	/* the product's own toast ("Successfully pinned and deployed version", fixed bottom-right / top on a phone) rides the camera over the page the story is about to show: the dialog's close is the confirmation here */

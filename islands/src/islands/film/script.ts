@@ -58,6 +58,7 @@ export const CAMERA: Move[] = [
 	{ at: 39.4, to: 'banners', s: 1, dur: 434, ease: EXPO },
 	{ at: 42.2, to: 'rest', s: 1, dur: 340, ease: EXPO }, /* clear before the History cut (42.6) and held through the Environments cut (44.0): a cut never lands under another page's zoom. The History strip spans the page's whole content width, so no zoom can frame it without slicing the rail beside it (AD r4: no cropped words): it is shown at rest. */
 
+	{ at: 44.7, to: 'builds', s: 1.5, dur: 2400, ease: PULL }, /* the finale pushes in on the five regions, slowly, and the loop's wrap eases it home under the cross-fade */
 ];
 export const moveAt = (t: number, phone = false): Move => [...CAMERA].reverse().find((m) => t >= m.at && !(phone && m.desk))!;
 
