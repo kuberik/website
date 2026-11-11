@@ -212,7 +212,7 @@ import { flipRecord, flipPlay, type Pos } from './flip';
 	function boxRects(T: { x: number; y: number; w: number; h: number }) {
 		const out: { x: number; y: number; w: number; h: number }[] = [];
 		const g = group!.getBoundingClientRect(), u = unit();
-		for (const e of camEl!.querySelectorAll<HTMLElement>('[class*="rounded"]')) {
+		for (const e of camEl!.querySelectorAll<HTMLElement>('[class*="rounded"], .btn, button')) { /* buttons too: the product's .btn carries its radius in CSS, not a class (the History push-in's top edge sliced "Open PR", lane 32) */
 			const q = e.getBoundingClientRect(); if (q.width < 40 || q.height < 20) continue;
 			const cs = getComputedStyle(e); if (cs.visibility === 'hidden' || cs.display === 'none') continue;
 			if (!(parseFloat(cs.borderTopWidth) > 0 || (cs.backgroundColor !== 'rgba(0, 0, 0, 0)' && cs.backgroundColor !== 'transparent'))) continue;
