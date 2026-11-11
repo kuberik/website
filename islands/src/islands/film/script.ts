@@ -96,8 +96,10 @@ export const tallyShown = (t: number) => tallyAt(t);
 export const COVER_DESKTOP_AT = [38.7];
 /** the reflows that PLAY as a slide (flip.ts, by transform: no layout shift) instead of being covered or left to jump: the approved card leaving the Rollouts list */
 export const FLIP_AT = [10.3];
-/** the phone's rollback sheet closing (38.7): a still cannot copy a fixed full-screen sheet (the copy came back at its top with the nav over it, AD r8 P2-1), so the
- *  sheet goes straight to its exit and the page under it slides from where it was laid out under the sheet */
-export const FLIP_PHONE_AT = [38.7];
-export const flipEvent = (t: number, phone: boolean) => (phone ? FLIP_PHONE_AT : FLIP_AT).some((c) => Math.abs(t - c) < 0.35);
-export function coverEvent(t: number, phone: boolean): boolean { return phone ? !FLIP_PHONE_AT.some((c) => Math.abs(t - c) < 0.35) : COVER_DESKTOP_AT.some((c) => Math.abs(t - c) < 0.35); }
+/** the moment the rollback sheet closes (the Roll back press, 38.7): on the phone the still that covers the reflow is of the PAGE, without the sheet. A copy of a
+ *  fixed full-screen sheet cannot be laid out like the real one (it came back at its top with the nav over it, AD r8 P2-1), and the press sends the sheet away:
+ *  the page then slides from where it was laid out under the sheet (Film.svelte settleThenReveal) */
+export const SHEET_CLOSE_AT = 38.7;
+export const sheetClosing = (t: number) => Math.abs(t - SHEET_CLOSE_AT) < 0.35;
+export const flipEvent = (t: number, phone: boolean) => !phone && FLIP_AT.some((c) => Math.abs(t - c) < 0.35);
+export function coverEvent(t: number, phone: boolean): boolean { return phone || COVER_DESKTOP_AT.some((c) => Math.abs(t - c) < 0.35); }

@@ -22,7 +22,7 @@ import { flipRecord, flipPlay, type Pos } from './flip';
 	import { page } from '../../stubs/app-state';
 	import { page as pageStore } from '../../stubs/app-stores';
 	import { setDisplayTimeZone } from '$lib/timezone.svelte';
-	import { coverEvent, flipEvent, rollbackOpen, REASON, TYPING, typedLen } from './script';
+	import { coverEvent, flipEvent, sheetClosing, rollbackOpen, REASON, TYPING, typedLen } from './script';
 	setDisplayTimeZone('utc'); // the chrome clock is UTC, and so is every absolute time the product prints
 
 	let { t, playing, userPlaying, reduced, onseek, ontoggle, onshown, eventIdx }: { t: number; playing: boolean; reduced: boolean; onseek: (chip: number) => void; ontoggle: () => void; onshown?: () => void; eventIdx: number; userPlaying: boolean } = $props();
@@ -93,6 +93,7 @@ import { flipRecord, flipPlay, type Pos } from './flip';
 		c.style.cssText = `position:absolute;left:0;top:0;width:${group.offsetWidth}px;height:${group.offsetHeight}px;overflow:hidden;pointer-events:none;z-index:3;opacity:1;visibility:visible`;
 		c.setAttribute('aria-hidden', 'true'); c.removeAttribute('inert'); c.classList.add('film-snap');
 		c.querySelectorAll('[id]').forEach((e) => e.removeAttribute('id'));
+		if (kind === 'event' && phone && sheetClosing(t)) c.querySelectorAll('.fm-scrim').forEach((e) => e.remove()); /* the press sends the sheet away: the still is the page (script.ts sheetClosing) */
 		/* a clone does not carry scroll positions: the 390 rollback sheet (scrolled to its fields) came back at its top under the still (AD r8 P2-1). Copied once the still is in the document */
 		const src = group.querySelectorAll('*'), dst = c.querySelectorAll('*'), sc: [Element, number, number][] = [];
 		for (let i = 0; i < src.length; i++) if (src[i].scrollTop || src[i].scrollLeft) sc.push([dst[i], src[i].scrollTop, src[i].scrollLeft]);
@@ -299,12 +300,12 @@ import { flipRecord, flipPlay, type Pos } from './flip';
 	}
 	$effect(() => {
 		const p = press, tt = t, live = playing;
-		void shown; void swapOpacity; void eventIdx; void Comp; /* re-aim once the surface under the cursor has been shown and laid out (a seek lands before it) */
+		void shown; void swapOpacity; void eventIdx; void Comp; void hid; /* re-aim once the surface under the cursor has been shown and laid out (a seek lands before it) */
 		untrack(() => {
 			if (!p || !canvas) { ptr.on = false; ptr.press = false; return; }
 			const el = resolveTarget(p.target, canvas, phone);
 			if (el) { const pt = canvasPoint(el); ptr.x = pt.x; ptr.y = pt.y; }
-			ptr.on = tt < p.off - 0.1 && (!!el || tt < p.press); /* the dot leaves with what it pressed (a closed sheet): it never rests on what is under it (AD r8 P2-1) */
+			ptr.on = tt < p.off - 0.1 && (!!el || tt < p.press) && !(phone && hid && tt >= p.press); /* the dot leaves with what it pressed (a closed sheet): it never rests on what is under it (AD r8 P2-1) */
 			ptr.press = tt >= p.press;
 		});
 		/* the target can still move while the cursor is up (rows entering, the camera, async data): follow it frame by frame until the press ends */
