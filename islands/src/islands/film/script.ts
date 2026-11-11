@@ -48,16 +48,14 @@ export const CAMERA: Move[] = [
 	{ at: 13.4, to: 'gate-column', s: 1.5, dur: 380, ease: ANTIC },
 	{ at: 17.3, to: 'rest', s: 1, dur: 537, ease: EXPO },
 	{ at: 18.4, to: 'pipeline', s: 1.5, dur: 434, ease: EXPO }, /* the WHOLE pipeline card held through the canary (Stage 1 -> the final check -> its health checks); the old pan to the rail's Health checks card left the pipeline half out of frame (AD r6 P1-1) */
-	{ at: 27.3, to: 'figure-text', hole: 'figure', s: 1.5, dur: 480, ease: EXPO, dim: 'both', min: 15 },
+	{ at: 27.3, to: 'figure', s: 1.5, dur: 480, ease: EXPO, dim: 'both', min: 15 }, /* the WHOLE banner is the frame (AD r7: a text-block crop ran the card off the edge); it fills the page width, so the zoom lands near 1.07x and the spotlight does the work */
 	{ at: 30.4, to: 'rest', s: 1, dur: 400, ease: EXPO },
-	{ at: 31.2, to: 'pipeline', s: 1.5, dur: 460, ease: EXPO }, /* the failure is stated ONCE (the banner); this beat shows what it adds: the failed Check step and its health checks. The Environments detour (32-34) restated the failure and is cut (AD r6 P1-2) */
 	{ at: 33.2, to: 'rest', s: 1, dur: 420, ease: EXPO },
 	{ at: 34.5, to: 'modal', s: 1.5, dur: 460, ease: EXPO, dim: 'shade', min: 15 }, /* the recovery-mode warning (the product's own dialog before the version dialog) */
 	{ at: 35.8, to: 'modal-top', s: 1.5, dur: 460, ease: EXPO, dim: 'shade', min: 15 },
 	{ at: 36.6, to: 'modal-fields', s: 1.5, dur: 460, ease: EXPO, dim: 'shade', min: 15, desk: true },
 	{ at: 39.0, to: 'rest', s: 1, dur: 300, ease: EXPO },
-	{ at: 39.4, to: 'banners', s: 1.5, dur: 434, ease: EXPO },
-	{ at: 40.6, to: 'pipeline', s: 1.5, dur: 460, ease: SPRING },
+	{ at: 39.4, to: 'banners', s: 1, dur: 434, ease: EXPO },
 	{ at: 42.2, to: 'rest', s: 1, dur: 340, ease: EXPO }, /* clear before the History cut (42.6) and held through the Environments cut (44.0): a cut never lands under another page's zoom. The History strip spans the page's whole content width, so no zoom can frame it without slicing the rail beside it (AD r4: no cropped words): it is shown at rest. */
 
 ];
