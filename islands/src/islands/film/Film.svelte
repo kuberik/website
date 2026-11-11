@@ -89,7 +89,7 @@ import { flipRecord, flipPlay, type Pos } from './flip';
 	function coverWith(c: HTMLElement) {
 		snapEl?.remove(); snapEl = c; camEl!.insertBefore(c, group!.nextSibling); hid = true;
 	}
-	async function settleThenReveal(c: HTMLElement) {
+	async function settleThenReveal(c: HTMLElement, rec: Pos | null = null) {
 		const t0 = performance.now(); let last = group!.offsetHeight, since = t0;
 		while (performance.now() - t0 < 700) {
 			await new Promise((r) => requestAnimationFrame(r));
@@ -99,13 +99,15 @@ import { flipRecord, flipPlay, type Pos } from './flip';
 		}
 		if (c !== snapEl) return;
 		hid = false; snapEl = null;
+		/* a covered reflow on the phone: the still is dropped in one frame (no two layouts superimposed: the ghost) and what moved SLIDES from where it was to where it is (flip.ts, transform only: no layout shift) */
+		if (rec) { c.remove(); void tick().then(() => { if (group && !swapping && !hid) flipPlay(group, rec, unit(), 300); }); return; }
 		const done = () => c.remove();
 		c.animate([{ opacity: 1 }, { opacity: 0 }], { duration: 80, easing: "ease-out", fill: "forwards" }).finished.then(done, done);
 	}
-	let preEi = -2, preSnap: { el: HTMLElement | null; h: number; flip: Pos | null } | null = null;
+	let preEi = -2, preSnap: { el: HTMLElement | null; h: number; flip: Pos | null; rec: Pos | null } | null = null;
 	$effect.pre(() => {
 		const ei = eventIdx;
-		untrack(() => { if (ei === preEi) return; preEi = ei; preSnap = !group || swapping || hid || reduced || !shown ? null : { el: coverEvent(t, CW < 1000) ? takeSnap('event') : null, h: group.offsetHeight, flip: flipEvent(t, CW < 1000) && !(globalThis as any).__kfNoSnap?.includes('flip') ? flipRecord(group, unit()) : null }; });
+		untrack(() => { if (ei === preEi) return; preEi = ei; preSnap = !group || swapping || hid || reduced || !shown ? null : { el: coverEvent(t, CW < 1000) ? takeSnap('event') : null, h: group.offsetHeight, flip: flipEvent(t, CW < 1000) && !(globalThis as any).__kfNoSnap?.includes('flip') ? flipRecord(group, unit()) : null, rec: CW < 640 && coverEvent(t, true) && !(globalThis as any).__kfNoSnap?.includes('slide') ? flipRecord(group, unit()) : null }; });
 	});
 	$effect(() => {
 		void eventIdx;
@@ -115,7 +117,7 @@ import { flipRecord, flipPlay, type Pos } from './flip';
 			if (!p.el) return;
 			void tick().then(() => tick()).then(() => {
 				if (!group || swapping || hid || Math.abs(group.offsetHeight - p.h) < 3) return; /* nothing moved: no cover */
-				coverWith(p.el!); void settleThenReveal(p.el!);
+				coverWith(p.el!); void settleThenReveal(p.el!, p.rec);
 			});
 		});
 	});
