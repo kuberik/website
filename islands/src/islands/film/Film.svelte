@@ -37,7 +37,7 @@ import { flipRecord, flipPlay, type Pos } from './flip';
 
 	const surf = $derived<Surf>(surfAt(t));
 	const lit = $derived(chapterAt(t));
-	const mv = $derived<Move>(moveAt(t));
+	const mv = $derived<Move>(moveAt(t, phone));
 	/* the loop wrap is a cross-fade from the last frame into b1 (the outgoing page dims, the incoming one fades in): no empty-ground beat, which in dark was a black window */
 	const press = $derived(reduced ? null : pressAt(t));
 	void tallyShown;
