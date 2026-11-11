@@ -59,9 +59,7 @@ export const CAMERA: Move[] = [
 	{ at: 39.0, to: 'rest', s: 1, dur: 300, ease: EXPO },
 	{ at: 39.4, to: 'banners', s: 1.5, dur: 434, ease: EXPO },
 	{ at: 40.6, to: 'pipeline', s: 1.5, dur: 460, ease: SPRING },
-	{ at: 42.2, to: 'rest', s: 1, dur: 340, ease: EXPO }, /* clear before the History cut (42.6): a cut never lands under another page's zoom */
-	{ at: 43.0, to: 'timeline', s: 1.5, dur: 460, ease: SPRING },
-	{ at: 43.6, to: 'rest', s: 1, dur: 340, ease: EXPO }, /* and again before the Environments cut (44.0) */
+	{ at: 42.2, to: 'rest', s: 1, dur: 340, ease: EXPO }, /* clear before the History cut (42.6) and held through the Environments cut (44.0): a cut never lands under another page's zoom. The History strip spans the page's whole content width, so no zoom can frame it without slicing the rail beside it (AD r4: no cropped words): it is shown at rest. */
 	{ at: 44.4, to: 'final-prod', s: 1.6, dur: 900, ease: PULL }
 ];
 export const moveAt = (t: number): Move => [...CAMERA].reverse().find((m) => t >= m.at)!;

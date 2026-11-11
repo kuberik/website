@@ -24,6 +24,7 @@
   --win-ground:#f4f7f9;      /* --k-ground */
   --win-border:oklch(.195 .014 222/.10);
   --win-shadow:0 1px 2px oklch(.195 .014 222/.06),0 24px 48px -16px oklch(.195 .014 222/.18);
+  --hero-shadow:var(--win-shadow);
   --dots:oklch(.195 .014 222/.07);   /* --k-fg at 7% */
   --nav:rgba(255,255,255,.8);--bloom:1;
   /* stage washes: mint = hero + closing, slate = loop + spec, lagoon = dependencies */
@@ -38,6 +39,7 @@
   --mono:'Kuberik Page Mono',ui-monospace,'SF Mono',Menlo,monospace;
   color-scheme:light}
 html.dark{
+  --hero-shadow:0 0 0 1px oklch(1 0 0/.04),0 12px 32px -14px rgba(0,0,0,.42);
   --page:#0e1619;            /* --k-ground */
   --page-alt:#162024;        /* --k-surface */
   --ink:#f0f4f6;--ink-muted:#b6c0c3;--ink-subtle:#889599;   /* --k-fg, --k-fg-muted, --k-fg-subtle */
@@ -51,7 +53,7 @@ html.dark{
   --st-lagoon:linear-gradient(180deg,#0a2023,#0f191c);   /* oklch(.228 .028 206) -> same */
   --st-slate:linear-gradient(180deg,#111b1f,#0f181b);    /* oklch(.215 .016 222) -> oklch(.200 .014 222) */
   color-scheme:dark}
-@media(min-width:1920px){:root{--cont:1440px;--gut:48px;--win-w:1200px}}
+@media(min-width:1920px){:root{--cont:1440px;--gut:48px;--win-w:1440px;--win-h:823px}}
 @media(min-width:2400px){:root{--cont:1920px;--gut:64px;--win-w:1600px;--win-h:914px}}
 /* hero window = a fixed viewport onto the page (640 desktop/tablet, 600 phone): the page scrolls INSIDE it per beat (Hero.svelte). Story window S1 = the tallest beat (its content fits), measured by .work/landing-v5/build/r4/measure.mjs */
 @media(max-width:1023px){:root{--win-h:640px;--win-w:696px;--stage-r:20px;--stage-inset:12px;--stage-pad:24px;--gut:24px}}
@@ -113,7 +115,7 @@ a{color:inherit;text-decoration:none}
 h1{font:600 64px/68px var(--sans);letter-spacing:-.035em;margin:18px auto 14px;max-width:1000px;text-wrap:balance}
 .sub{font:400 20px/30px var(--sans);color:var(--ink-muted);max-width:720px;margin:0 auto;text-wrap:pretty}
 .ctas{display:flex;gap:12px;justify-content:center;margin-top:24px}
-.hero-window{margin-top:68px;height:var(--win-h);overflow:visible}
+.hero-window{margin-top:68px;height:var(--win-h);overflow:visible;box-shadow:var(--hero-shadow)}
 .hero-window>[data-island]{height:100%;min-height:0!important}
 .hero-chiproom{height:72px}
 
@@ -152,6 +154,7 @@ h1{font:600 64px/68px var(--sans);letter-spacing:-.035em;margin:18px auto 14px;m
   .ctas{gap:8px;padding:0 4px;margin-top:20px}
   .ctas .btn{flex:1 1 0;min-width:0;padding-inline:10px}
 
+  .hero-window{margin-top:72px}
   .hero-chiproom{height:80px}
   .story,
   

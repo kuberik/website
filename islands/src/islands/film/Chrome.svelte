@@ -54,10 +54,10 @@
 	.fc { position: absolute; left: 0; right: 0; top: -56px; z-index: 6; height: 44px; display: flex; justify-content: center; pointer-events: none; }
 	.fc-panel { pointer-events: auto; width: calc(100% - 24px); height: 44px; display: grid; grid-template-columns: minmax(0, 1fr) auto minmax(0, 1fr); align-items: center; gap: 12px; padding: 4px 4px 4px 14px; box-sizing: border-box; background: var(--k-surface, #fff); border: 1px solid var(--k-line); border-radius: 12px; box-shadow: 0 6px 20px rgba(14, 20, 24, 0.08); }
 	.fc-clock { justify-self: start; display: inline-flex; align-items: center; color: var(--ink-muted, var(--k-fg-muted)); font-variant-numeric: tabular-nums; font-size: 14px; }
-	.fc-tally { justify-self: end; display: inline-flex; align-items: center; gap: 0; padding-right: 6px; color: var(--k-fg-muted); font-size: 13px; white-space: nowrap; }
+	.fc-tally { justify-self: end; display: inline-flex; align-items: center; gap: 0; padding-right: 6px; color: var(--k-fg-muted); font-size: 14px; white-space: nowrap; }
 	.fc-bit + .fc-bit::before { content: '\00b7'; margin: 0 8px; color: var(--k-fg-muted); }
 	.fc-n { color: var(--k-fg); font-weight: 600; font-variant-numeric: tabular-nums; display: inline-block; animation: fc-roll 0.2s ease-out; }
-	.fc-bad .fc-n, .fc-bad { color: var(--k-red-fg, #c2362b); }
+	.fc-bad .fc-n, .fc-bad { color: var(--k-danger-fg); }
 	@keyframes fc-roll { from { transform: translateY(8px); opacity: 0; } to { transform: none; opacity: 1; } }
 	.fc-bar { display: flex; align-items: center; gap: 2px; min-width: 0; max-width: 100%; }
 	.fc-scroll { display: flex; align-items: center; gap: 2px; min-width: 0; overflow-x: auto; scrollbar-width: none; }
@@ -72,20 +72,22 @@
 	.fc-play { margin-left: 2px; width: 34px; height: 34px; flex: none; display: inline-grid; place-items: center; color: var(--k-fg-muted); background: transparent; border: 0; border-left: 1px solid var(--k-line); border-radius: 0 8px 8px 0; cursor: pointer; }
 	.fc-play:hover { color: var(--k-fg); }
 	/* phone: the SAME panel, still one 44 px line and the same 12 px inset: clock | tabs (the lit chapter keeps its label, the others are dots) + play | tally. The tabs scroll if the tally grows. */
-	.fc-narrow .fc-panel { grid-template-columns: auto minmax(0, 1fr) auto; gap: 6px; padding: 4px 4px 4px 10px; }
+	.fc-narrow { top: -60px; height: 48px; }
+	.fc-narrow .fc-panel { grid-template-columns: auto minmax(0, 1fr) auto; gap: 6px; height: 48px; padding: 0 0 0 10px; }
 	.fc-narrow .fc-clock { font-size: 13px; }
+	.fc-narrow .fc-tab { font-size: 13px; }
 	.fc-ic { flex: none; }
 	.fc-bit { display: inline-flex; align-items: center; gap: 0.3em; white-space: nowrap; }
 	.fc-narrow .fc-tally { gap: 8px; }
 	.fc-narrow .fc-bit + .fc-bit::before { content: none; }
-	.fc-narrow .fc-tally { padding-right: 6px; font-size: 12px; }
+	.fc-narrow .fc-tally { padding-right: 6px; font-size: 13px; }
 	.fc-narrow .fc-bar { justify-self: stretch; }
 	.fc-narrow .fc-scroll { flex: 1 1 auto; }
-	.fc-narrow .fc-tab { height: 36px; padding: 0 6px; gap: 6px; }
+	.fc-narrow .fc-tab { height: 44px; min-width: 44px; justify-content: center; padding: 0 6px; gap: 6px; border-radius: 10px; }
 	.fc-narrow .fc-tab.fc-on { padding: 0 9px; }
 	.fc-narrow .fc-tab:not(.fc-on) .fc-lab { display: none; }
 	.fc-narrow .fc-tab:not(.fc-on) .fc-dot { display: inline-block; }
-	.fc-narrow .fc-play { width: 40px; height: 36px; }
+	.fc-narrow .fc-play { width: 44px; height: 44px; }
 	/* tablet widths: no room for three cells in a row */
 	@media (max-width: 1100px) { .fc:not(.fc-narrow) .fc-panel { grid-template-columns: auto minmax(0, 1fr) auto; } .fc:not(.fc-narrow) .fc-bar { justify-self: center; } }
 </style>

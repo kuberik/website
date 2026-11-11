@@ -21,14 +21,13 @@ export function resolveTarget(name: string, root: ParentNode, phone: boolean): H
 		case 'approve': return q('[data-approve-open]');
 		/* the Approve card and, once it is open, its confirm popover under it: one frame */
 		case 'approve-pair': { const c = q('[data-approve-open]')?.closest<HTMLElement>('[class*="rounded"]') ?? null, pop = phone ? null : q('[data-approve-confirm]'); return c && pop ? union([c, pop]) : c; }
-		/* the rollback dialog's fields: the reason, the typed confirmation and the dialog's own Roll back, with their labels (inflated above) */
-		case 'modal-fields': { const a = q('.fm-panel textarea'), b = q('.fm-panel #cvm-confirm-version'), m = q('.fm-panel'), c = m ? byText(m, 'button', /^Roll back$/) : null; if (!a || !b) return null; const u = union([a, b, ...(c ? [c] : [])]); return { __r: 8, getBoundingClientRect() { const r = u.getBoundingClientRect(); return new DOMRect(r.left - 14, r.top - 40, r.width + 28, r.height + 54); } } as unknown as HTMLElement; }
 		/* the finale's frame: the Production card's regions (the four untouched ones) and its Last deploy record ("rolled back"), clipped to the card's left 660 px so the zoom lands on them */
 		case 'final-prod': { const c = cardOf(root, /^Production/i); if (!c) return null; return { __r: 8, getBoundingClientRect() { const r = c.getBoundingClientRect(), sc = r.width / (c.offsetWidth || r.width); return new DOMRect(r.left, r.top, Math.min(r.width, 660 * sc), r.height); } } as unknown as HTMLElement; }
 		case 'approve-confirm': return q('[data-action="approve-confirm"]');
 		case 'attention': return q('[data-approve-open]')?.closest<HTMLElement>('[class*="rounded"]') ?? null;
 		case 'banner-rollback': return byText(root, 'button, a', /^Roll back$/);
-		case 'modal': return q('.fm-panel');
+		/* the whole dialog, title included (AD r4: the title was off-screen 35.8-38 s); it fits the window at about 1.06x */
+		case 'modal': case 'modal-fields': return q('.fm-panel');
 		case 'warn-continue': { const m = q('.fm-panel'); return m && !m.querySelector('textarea') ? byText(m, 'button', /^Continue$/) : null; } /* the recovery-mode warning's own Continue */
 		case 'modal-reason': return q('.fm-panel textarea');
 		case 'modal-confirm': return q('.fm-panel #cvm-confirm-version');
@@ -43,15 +42,8 @@ export function resolveTarget(name: string, root: ParentNode, phone: boolean): H
 		case 'pipeline': return cardOf(root, /Deployment pipeline/i);
 		case 'health-checks': return cardOf(root, /^Health checks/i);
 		case 'banner': return q('.ap-cq');
-		/* the observed figure ("3.2 % error rate") inside the failure banner: the zoom lands on the number, not the whole-width banner */
-		case 'figure': {
-			/* the banner's text block (title, the figure, its budget line, Details) without the Retry / Roll back buttons on the right: climb from the figure to the lowest box that also holds the title */
-			const row = byText(root, 'div,p,span', /^3\.2\s*%\s*error rate/i); if (!row) return q('.ap-cq');
-			let e: HTMLElement | null = row; while (e && !/Deployment failed/i.test(text(e))) e = e.parentElement;
-			const title = e && byText(e, 'div,p,span,h1,h2,h3,h4', /^Deployment failed$/i), more = e && byText(e, 'button,summary,span,div', /^Details$/i);
-			let blk: HTMLElement = row; while (blk.parentElement && blk !== e && !/budget/i.test(text(blk))) blk = blk.parentElement; /* the figure and its budget line */
-			return union([title, contentBox(blk), more].filter(Boolean) as HTMLElement[]);
-		}
+		/* the catch: the WHOLE failure banner (AD r4: lit as a banner with its own radius, not as a text box) */
+		case 'figure': return q('.ap-cq');
 		/* both recovery-mode banners (Recovery mode, Rolled back) as one frame */
 		case 'banners': { const bs = [...root.querySelectorAll<HTMLElement>('.ap-cq')].slice(0, 2); return bs.length ? union(bs.map(contentBox)) : null; } /* their text, not their full-width bars: the zoom can land on the words */
 		case 'history': return cardOf(root, /^History$/);

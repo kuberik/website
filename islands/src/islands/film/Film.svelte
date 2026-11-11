@@ -17,6 +17,7 @@
 	import { CHAPTERS, chapterAt, chapterFill, surfAt, moveAt, pressAt, confirmOpen, tallyShown, FADE_AT, type Surf, type Move } from './script';
 	import { loadSurface, surfaceProps, SURFACE_PATH } from './surfaces';
 	import { resolveTarget } from './targets';
+import { snapFrame } from './snap';
 	import { page } from '../../stubs/app-state';
 	import { page as pageStore } from '../../stubs/app-stores';
 	import { setDisplayTimeZone } from '$lib/timezone.svelte';
@@ -151,6 +152,19 @@
 		}
 		return min === 99 ? 13 : min;
 	}
+	/** every line of the product's text, in group space (what the camera must not slice); `dialog` = only the dialog's own text (the page behind its scrim is not what the frame is about) */
+	function textRects(dialog: boolean) {
+		const out: { x: number; y: number; w: number; h: number }[] = [];
+		const w = document.createTreeWalker(dialog ? camEl!.querySelector('.fm-panel') ?? camEl! : camEl!, NodeFilter.SHOW_TEXT);
+		const rg = document.createRange(), g = group!.getBoundingClientRect(), u = unit();
+		for (let n = w.nextNode(); n; n = w.nextNode()) {
+			if (!n.textContent?.trim()) continue;
+			const p = n.parentElement!; if (p.closest('svg,style,script') || getComputedStyle(p).visibility === 'hidden') continue;
+			rg.selectNodeContents(n);
+			for (const q of rg.getClientRects()) { if (q.width < 3) continue; out.push({ x: (q.left - g.left) / u, y: (q.top - g.top) / u, w: q.width / u, h: q.height / u }); }
+		}
+		return out;
+	}
 	let refineTimer: ReturnType<typeof setTimeout> | undefined;
 	function aim(m: Move, jump: boolean, refine = false) {
 		if (!group || !main) return;
@@ -167,7 +181,9 @@
 				/* fit with a 14 px margin: the product's gap between cards is >= 12 px x scale, so a neighbour never peeks into the frame mid-word. The PERSON beats (m.min) zoom until their smallest text renders at m.min px, bounded by the window (both axes) and 2.4x. */
 				const need = m.min ? m.min / (minFont(r) * k) : 0;
 				s = Math.max(1, Math.min(Math.max(m.s, need), (vw - 28) / r.w, m.min ? (vh - 28) / r.h : Infinity, 2.4));
-				x = vw / 2 - s * (r.x + r.w / 2); y = vh / 2 - s * (r.y + r.h / 2);
+				/* AD r4: a frame edge never slices a word. The origin slides (and the scale gives a little) until both edges sit in a gutter between the product's own text (snap.ts). Dialog beats snap against the dialog's text only. */
+				const sn = snapFrame(r, textRects(m.to.startsWith('modal')), vw, vh, gw, gh, s, Math.max(1, s * (m.min ? 0.93 : 0.86)), Math.min((vw - 28) / r.w, m.min ? (vh - 28) / r.h : Infinity, 2.4));
+				if (sn.ok) { s = sn.s; x = sn.x; y = sn.y; } else { x = vw / 2 - s * (r.x + r.w / 2); y = vh / 2 - s * (r.y + r.h / 2); }
 			}
 		}
 		x = Math.min(0, Math.max(Math.min(0, vw - s * gw), x));
@@ -322,7 +338,7 @@
 
 <style>
 	.film { position: relative; width: 100%; height: 100%; }
-	.film-frame { position: relative; height: 100%; overflow: hidden; border-radius: inherit; background: var(--k-ground); transition: opacity 0.4s ease-in; }
+	.film-frame { position: relative; height: 100%; overflow: hidden; border-radius: 11px; background: var(--k-ground); transition: opacity 0.4s ease-in; }
 	.film-fade { opacity: 0; }
 	/* the canvas is a real dashboard viewport: its width answers the compiled `sm:`/`lg:` queries (container "kc"), `fixed` children (confirm, sheet, bottom nav) anchor to it */
 	.film-canvas { position: relative; container-type: inline-size; container-name: kc; overflow: hidden; background: var(--k-ground); contain: layout paint; }

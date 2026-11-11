@@ -23,12 +23,12 @@ describe('film scenario', () => {
 		const h = rolloutOf(27.5).status.history[0];
 		expect(h.bakeStatus).toBe('Failed');
 		expect(h.failedHealthChecks[0].message).toContain('3.2%');
-		for (const p of PLACES.slice(2)) expect(rolloutOf(40, p.ns).status.currentVersion).toBe('b-45');
+		for (const p of PLACES.slice(2)) expect(rolloutOf(40, p.ns).status.history[0].version.tag).toBe('b-45');
 	});
 	it('the rollback: a person adds b-45 to the history; recovery mode is on', () => {
 		const r = rolloutOf(45);
 		expect(r.status.history[0].triggeredBy.name).toBe('noah-carter');
-		expect(r.status.currentVersion).toBe('b-45');
+		expect(r.status.history[0].version.tag).toBe('b-45');
 		expect(r.status.conditions[0].type).toBe('BakeFailureDisabled');
 	});
 	it('event indices only move at event times', () => {

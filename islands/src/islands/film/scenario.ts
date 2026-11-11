@@ -12,6 +12,7 @@ import type { FleetSource } from '$lib/components/home/sketch/fleet-source.svelt
 import { release, gate, prChange } from '../shared/cr';
 import { extras } from '../surfaces/fleet';
 import { clockSeconds } from './clock';
+import { REASON } from './script';
 
 export const APP = 'checkout-api';
 /** the viewer: an approver on the platform team. The product offers Approve on OTHER people's changes (home-view `elsewhere`), so the author (olivia-bennett) is not who presses it. */
@@ -79,17 +80,22 @@ export function worldAt(t: number): { fleet: FleetSource; github: Record<string,
 	const R46 = { ...rel(46, SHA[46], atMs(-0.01)), requires: { payments: '^3.1.0' } };
 	const deployed = (p: Place) => onNewBuild(phaseOf(p, t));
 
-	/* ---- history ---- */
-	const base = { id: 1, version: R45, timestamp: new Date(ago(3 * H)).toISOString(), bakeStatus: 'Succeeded', bakeStartTime: new Date(ago(3 * H)).toISOString(), bakeEndTime: new Date(ago(3 * H) + 600_000).toISOString(), triggeredBy: { kind: 'System', name: 'System' } };
-	const sys = { kind: 'System', name: 'System' };
-	const failedInfo = { message: 'Health check error-rate failed', failedHealthChecks: [{ name: 'error-rate', message: FAIL_MSG, observations: OBS }] };
+	/* ---- history: the API's own entry shape (rollout-controller api/v1alpha1 DeploymentHistoryEntry + rollout_controller.go): `message` = generateDeploymentMessage ("Automatic deployment", or the person's explanation), `bakeStatusMessage` = the bake's own sentence, `bakeStartTime` is nil until the health checks first turn healthy, `triggeredBy` System is named "rollout-controller", a failed bake carries failedHealthChecks {name, namespace, message, observations} ---- */
+	const DONE_MSG = 'Bake time completed successfully (no errors within bake time).', WAIT_MSG = 'Waiting for health checks to become healthy before starting bake.', START_MSG = 'Bake started, monitoring for errors.';
+	const sys = { kind: 'System', name: 'rollout-controller' };
+	const auto = 'Automatic deployment';
+	const base = { id: 1, version: R45, timestamp: new Date(ago(3 * H)).toISOString(), message: auto, bakeStatus: 'Succeeded', bakeStatusMessage: DONE_MSG, bakeStartTime: new Date(ago(3 * H)).toISOString(), bakeEndTime: new Date(ago(3 * H) + 600_000).toISOString(), triggeredBy: sys };
+	const failedInfo = { bakeStatusMessage: 'A HealthCheck reported an error after bake started.', failedHealthChecks: [{ name: `${APP}-error-rate`, namespace: 'checkout-api-prod-us-east-1', message: FAIL_MSG, observations: OBS }] };
+	const bakeMsg = (ph: Phase) => (ph === 'deploying' || ph === 'rolling' ? WAIT_MSG : ph === 'checking' ? START_MSG : DONE_MSG);
 	function history(p: Place): Any[] {
 		const ph = phaseOf(p, t);
 		if (ph === 'old') return [base];
-		if (p.env === 'staging') return [{ id: 2, version: R46, timestamp: at(0), bakeStatus: ph === 'deploying' ? 'Deploying' : ph === 'checking' ? 'InProgress' : 'Succeeded', bakeStartTime: at(ph === 'deploying' ? 0 : EV.check), ...(ph === 'done' ? { bakeEndTime: at(EV.stagingDone) } : {}), triggeredBy: sys }, base];
-		const first = { id: 2, version: R46, timestamp: at(EV.deploy), bakeStatus: ph === 'deploying' ? 'Deploying' : ph === 'checking' ? 'InProgress' : 'Failed', bakeStartTime: at(ph === 'deploying' ? EV.deploy : EV.step2Done), ...(ph === 'failed' || ph === 'rolling' || ph === 'recovered' ? { bakeEndTime: at(EV.caught), ...failedInfo } : {}), triggeredBy: sys };
+		if (p.env === 'staging') return [{ id: 2, version: R46, timestamp: at(0), message: auto, bakeStatus: ph === 'deploying' ? 'Deploying' : ph === 'checking' ? 'InProgress' : 'Succeeded', bakeStatusMessage: bakeMsg(ph), ...(ph === 'deploying' ? {} : { bakeStartTime: at(EV.check) }), ...(ph === 'done' ? { bakeEndTime: at(EV.stagingDone) } : {}), triggeredBy: sys }, base];
+		const failed = ph === 'failed' || ph === 'rolling' || ph === 'recovered';
+		const first = { id: 2, version: R46, timestamp: at(EV.deploy), message: auto, bakeStatus: ph === 'deploying' ? 'Deploying' : ph === 'checking' ? 'InProgress' : 'Failed', bakeStatusMessage: failed ? failedInfo.bakeStatusMessage : bakeMsg(ph), ...(ph === 'deploying' ? {} : { bakeStartTime: at(EV.step2Done) }), ...(failed ? { bakeEndTime: at(EV.caught), failedHealthChecks: failedInfo.failedHealthChecks } : {}), triggeredBy: sys };
 		if (ph === 'rolling' || ph === 'recovered') {
-			const rolled = { id: 3, version: R45, timestamp: at(EV.rolled), bakeStatus: ph === 'rolling' ? 'Deploying' : 'Succeeded', bakeStartTime: at(ph === 'rolling' ? EV.rolled : EV.step2Done2), ...(ph === 'recovered' ? { bakeEndTime: at(EV.recovered) } : {}), triggeredBy: { kind: 'User', name: VIEWER } };
+			/* the person's rollback: their typed reason is the deployment's message (the dashboard writes it as the deploy-message annotation) */
+			const rolled = { id: 3, version: R45, timestamp: at(EV.rolled), message: REASON, bakeStatus: ph === 'rolling' ? 'Deploying' : 'Succeeded', bakeStatusMessage: bakeMsg(ph), ...(ph === 'rolling' ? {} : { bakeStartTime: at(EV.step2Done2), bakeEndTime: at(EV.recovered) }), triggeredBy: { kind: 'User', name: VIEWER } };
 			return [rolled, first, base];
 		}
 		return [first, base];
@@ -117,9 +123,9 @@ export function worldAt(t: number): { fleet: FleetSource; github: Record<string,
 		return {
 			apiVersion: 'kuberik.com/v1alpha1', kind: 'Rollout',
 			metadata: { name: APP, namespace: p.ns, labels: { environment: p.site ? `${p.env}-${p.site}` : p.env }, annotations: { 'rollout-dashboard.kuberik.com/source-cluster': p.env } },
-			spec: { releaseSourceRef: { name: APP }, versionHistoryLimit: 20, minBakeTime: '2m', bakeTime: isUS1(p) ? '50s' : '1m', healthCheckSelector: { matchLabels: { app: APP, env: p.site ? `${p.env}-${p.site}` : p.env } }, ...(recovering ? { wantedVersion: 'b-45' } : {}) },
+			spec: { releaseSourceRef: { name: APP }, versionHistoryLimit: 20, bakeTime: isUS1(p) ? '50s' : '1m', healthCheckSelector: { matchLabels: { app: APP, env: p.site ? `${p.env}-${p.site}` : p.env } }, ...(recovering ? { wantedVersion: 'b-45' } : {}) },
 			status: {
-				source: 'github.com/exampleco/checkout-api', wantedVersion: recovering ? 'b-45' : cur, currentVersion: recovering ? 'b-45' : cur, previousVersion: recovering ? 'b-46' : nw ? 'b-45' : 'b-44',
+				source: 'github.com/exampleco/checkout-api',
 				availableReleases: [R44, R45, R46], releaseCandidates: heldCandidate || recovering ? [R46] : [], history: history(p), gates: gates(p),
 				...(recovering ? { conditions: [{ type: 'BakeFailureDisabled', status: 'True', reason: 'PreviousBakeFailed', message: 'Previous deployment failed. Health check failures will not fail this deployment.', lastTransitionTime: at(EV.rolled) }] } : {})
 			}
@@ -140,8 +146,7 @@ export function worldAt(t: number): { fleet: FleetSource; github: Record<string,
 			const inFlight = prev.find((q) => { const ph = phaseOf(q, t); return ph === 'deploying' || ph === 'checking' || ph === 'failed' || ph === 'rolling'; });
 			if (inFlight) blocker = { reason: 'WaitingFor', environment: inFlight.env, site: inFlight.site ?? 'default', waitingOn: 'Bake', revision: SHA[46] };
 		}
-		/* a FOLLOWER that has not deployed waits on its wave leader's selection record (environment-controller internal/wave/wave.go decideFollower, ~358-362: {reason: WaitingFor, waitingOn: Selection, site: <leader>}). A wave-2 LEADER's blocker above is {WaitingFor, waitingOn: Bake, site: <wave-1 site>} with NO outcome (fleet.go 368-377, wave.go 381-385): only followers of a failed leader would carry outcome Failed, and no such follower exists in this story. */
-		if (lead !== p && !deployed(p)) blocker = { reason: 'WaitingFor', environment: p.env, site: lead.site ?? 'default', waitingOn: 'Selection', revision: SHA[46] };
+		/* a FOLLOWER carries NO blocker here (wave.go decideFollower): the wave's selection is the leader's newest deployment once the previous wave completed it, and that is the build every site already runs (SHA45), so the follower is Ready with allowed = [that tag]. WaitingFor/Selection only exists while a wave has no selection at all, which this story never has. Only the wave-2 LEADER waits (above): {WaitingFor, waitingOn: Bake, site: <wave-1 site>, revision} and NO outcome (fleet.go blocker()). */
 		const cond = (type: string, status: string, reason: string, message: string) => ({ type, status, reason, message, lastTransitionTime: at(0) });
 		return {
 			apiVersion: 'environments.kuberik.com/v1alpha1', kind: 'Environment',
