@@ -207,7 +207,7 @@ export function worldAt(t: number): { fleet: FleetSource; github: Record<string,
 				}
 			}
 			return { apiVersion: 'kuberik.com/v1alpha1', kind: 'HealthCheck', metadata: { name: `${APP}-${name}`, namespace: p.ns, labels: { app: APP }, annotations: { 'kuberik.com/display-name': name } }, spec: { class: 'prometheus-alert' },
-				status: { status, message, lastChangeTime: at(ph === 'old' ? -1 : EV.deploy), observations: obs } };
+				status: { status, message, lastChangeTime: at(ph === 'old' ? -1 : EV.deploy), observations: obs, ...(name === 'error-rate' && isUS1(p) && t >= EV.caught ? { lastErrorTime: at(EV.caught) } : {}) } }; /* the witness: the controller never clears it, so the rollout page keeps listing the failed check, and keeps it after the recovery */
 		};
 		return { metadata: { namespace: p.ns, name: APP, annotations: { 'rollout-dashboard.kuberik.com/source-cluster': p.env } }, healthChecks: [mk('error-rate'), mk('latency-p99')] };
 	}

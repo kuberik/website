@@ -102,7 +102,7 @@
 	let preEi = -2, preSnap: { el: HTMLElement | null; h: number } | null = null;
 	$effect.pre(() => {
 		const ei = eventIdx;
-		untrack(() => { if (ei === preEi) return; preEi = ei; preSnap = !group || swapping || hid || reduced || !shown ? null : { el: coverEvent(t, phone) ? takeSnap('event') : null, h: group.offsetHeight }; });
+		untrack(() => { if (ei === preEi) return; preEi = ei; preSnap = !group || swapping || hid || reduced || !shown ? null : { el: coverEvent(t, CW < 1000) ? takeSnap('event') : null, h: group.offsetHeight }; });
 	});
 	$effect(() => {
 		void eventIdx;
@@ -240,7 +240,7 @@
 	 *  Neither dialog's own confirm is clicked: the story's CRs carry the outcome (grantApproval would write an optimistic "Deploying" row, TRUTH defect). */
 	let lastGoal: HTMLElement | null = null, scrollAt = 0;
 	let rbOpen = false, pressedGo = false, pressedWarn = false, dlgTick = $state(0);
-	$effect(() => { if (t < 34) { pressedGo = false; pressedWarn = false; } });
+	$effect(() => { if (t < 34.4 || t >= 38.75) { pressedGo = false; pressedWarn = false; } }); /* re-armed whenever the dialog window is out of reach, so a paused seek back into it walks the whole way again */
 	$effect(() => {
 		const want = confirmOpen(t), wantRb = rollbackOpen(t);
 		void shown; void eventIdx; void dlgTick; /* the dialogs open a frame after their button is pressed: a paused seek must still walk banner -> warning -> fields */

@@ -19,8 +19,8 @@ export function createQuery(fn: () => Opts & { enabled?: boolean }) {
 	const idle = () => { const o = fn(); const k = String(o?.queryKey?.[0] ?? ''); return k === 'rollouts' && o.queryKey?.[1] === 'all' ? listPayload() : undefined; };
 	return {
 		get data() { return ans() ?? idle(); },
-		get isPending() { return wired() ? ans() === undefined : undefined; },
-		get isSuccess() { return wired() ? ans() !== undefined : undefined; },
+		get isPending() { return wired() ? ans() === undefined : idle() !== undefined ? false : undefined; },
+		get isSuccess() { return wired() ? ans() !== undefined : idle() !== undefined ? true : undefined; }, /* the fleet list answers from the FleetSource: settled (the product's fleetSettled() holds the Gates body on a skeleton until it is) */
 		isLoading: false, isFetching: false, isError: false, error: null, failureCount: 0, refetch: async () => ({})
 	};
 }
