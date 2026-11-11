@@ -90,7 +90,7 @@
       </div>
       <ol class="figs reveal">
         {{- $phases := slice
-          (dict "fig" "release" "name" "release" "own" "Built in" "q" "Which versions are available?" "tags" (slice "Flux ImagePolicy" "OCI pull" "cosign-verified"))
+          (dict "fig" "release" "name" "release" "own" "Built in" "q" "Which versions are available?" "tags" (slice "ReleaseSource" "OCI pull" "cosign-verified"))
           (dict "fig" "guard"   "name" "guard"   "own" "Built in" "q" "Is this environment safe to deploy to?" "tags" (slice "healthy" "not paused" "idle" "no override"))
           (dict "fig" "gates"   "name" "gates"   "own" "Yours"    "q" "Which version may go now?" "tags" (slice "schedule" "manual" "after(env)" "dependency" "custom CRD"))
           (dict "fig" "update"  "name" "update"  "own" "Built in" "q" "How does it reach the cluster?" "tags" (slice "Flux Kustomization" "OpenKruise" "canary 0→100%"))
@@ -131,7 +131,7 @@
     <div class="sec-inner">
       <div class="head">
         <h2 class="title reveal" id="room-h">This is everything you write.</h2>
-        <p class="title-body reveal">Three Flux resources, one Kuberik resource, one <code>$VERSION</code> placeholder. The rollout file is the only new thing in your repository.</p>
+        <p class="title-body reveal">Two Kuberik resources, one Flux Kustomization, one <code>$VERSION</code> placeholder. The rollout and the release source are the only new things in your repository.</p>
       </div>
       <div class="manifests reveal">
         <figure class="mf mf-kuberik"><figcaption><span>rollout.yaml</span><b>kuberik</b></figcaption>
@@ -140,24 +140,22 @@ kind: <span class="a">Rollout</span>
 metadata:
   name: my-app
 spec:
-  releasesImagePolicy:
+  releaseSourceRef:
     name: my-app
   bakeTime: <span class="s">10m</span></code></pre></figure>
         <details class="mf-fold" open data-mp-fold>
-          <summary class="mf-sum"><span class="mf-name">image-automation.yaml</span><b>flux</b><span class="mf-hint"></span></summary>
-          <figure class="mf"><figcaption><span>image-automation.yaml</span><b>flux</b></figcaption>
-<pre><code>apiVersion: image.toolkit.fluxcd.io/v1beta2
-kind: <span class="k">ImageRepository</span>
+          <summary class="mf-sum"><span class="mf-name">releasesource.yaml</span><b>kuberik</b><span class="mf-hint"></span></summary>
+          <figure class="mf mf-kuberik"><figcaption><span>releasesource.yaml</span><b>kuberik</b></figcaption>
+<pre><code>apiVersion: kuberik.com/v1alpha1
+kind: <span class="k">ReleaseSource</span>
 metadata:
   name: my-app
 spec:
-  image: <span class="s">ghcr.io/me/my-app</span>
----
-kind: <span class="k">ImagePolicy</span>
-spec:
-  policy:
-    semver:
-      range: <span class="s">"&gt;=0.1.0"</span></code></pre></figure>
+  oci:
+    image: <span class="s">ghcr.io/me/my-app</span>
+    policy:
+      semver:
+        range: <span class="s">"&gt;=0.1.0"</span></code></pre></figure>
         </details>
         <details class="mf-fold" open data-mp-fold>
           <summary class="mf-sum"><span class="mf-name">kustomization.yaml</span><b>flux</b><span class="mf-hint"></span></summary>

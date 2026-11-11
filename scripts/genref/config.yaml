@@ -29,3 +29,7 @@ apis:
     title: OpenKruise Integration API
     package: github.com/kuberik/openkruise-controller
     path: api/v1alpha1
+  - name: release-controller
+    title: Release API
+    package: github.com/kuberik/release-controller
+    path: api/v1alpha1

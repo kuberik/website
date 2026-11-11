@@ -7,7 +7,7 @@ A Rollout decides **which version** is allowed to run in an environment. What th
 
 | | Image tag | Rendered manifests |
 |---|---|---|
-| Kuberik watches | An `ImagePolicy` over your app image | An `ImagePolicy` over your manifest artifact |
+| Kuberik watches | A `ReleaseSource` over your app image | A `ReleaseSource` over your manifest artifact |
 | Kuberik writes | `postBuild.substitute` on a `Kustomization` | `spec.ref.tag` on an `OCIRepository` |
 | Annotation | `rollout.kuberik.com/substitute.<VAR>.from` | `rollout.kuberik.com/rollout` |
 | Flux source | `GitRepository` | `OCIRepository` |
@@ -90,7 +90,7 @@ Reach for this when config changes are as risky as code changes, when you want p
 {{< callout type="info" >}}
 **Same namespace**
 
-Kuberik resolves the `ImagePolicy`, `Kustomization`, and `OCIRepository` in the Rollout's own namespace. Resources in other namespaces are ignored.
+Kuberik resolves the `ReleaseSource`, `Kustomization`, and `OCIRepository` in the Rollout's own namespace. Resources in other namespaces are ignored.
 {{< /callout >}}
 
 ## Running Both

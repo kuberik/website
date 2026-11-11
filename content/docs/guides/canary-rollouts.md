@@ -14,7 +14,7 @@ Use canary deployments when you need to validate changes with real traffic befor
 {{< callout type="warning" >}}
 **Prerequisite**
 
-Canary rollouts require the [OpenKruise Controller](/docs/installation/#openkruise-controller) to be installed in your cluster.
+Canary rollouts require the [OpenKruise Controller](/docs/installation/#optional-controllers) to be installed in your cluster.
 {{< /callout >}}
 
 {{% details title="Installing OpenKruise" %}}

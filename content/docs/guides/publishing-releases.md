@@ -174,7 +174,7 @@ Point a Flux `OCIRepository` at each environment's artifact and reuse the timest
 
 ## Matching Policies
 
-Ensure your Flux `ImagePolicy` matches the tagging strategy used above.
+Ensure your `ReleaseSource` (its `filterTags` and `policy`) matches the tagging strategy used above.
 
 **For Timestamp (Recommended):**
 ```yaml {filename="policy-timestamp.yaml"}

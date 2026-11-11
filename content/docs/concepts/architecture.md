@@ -20,14 +20,13 @@ flowchart TB
 
         subgraph FluxCD ["FluxCD Layer"]
             direction TB
-            IR[ImageRepository]:::flux
-            IP[ImagePolicy]:::flux
             OCIR[OCIRepository]:::flux
             KS[Kustomization]:::flux
         end
 
         subgraph Kuberik ["Kuberik Control Plane"]
             direction TB
+            RS[ReleaseSource]:::kuberik
             RO[Rollout]:::kuberik
             ENV[Environment]:::kuberik
             HC[HealthCheck]:::kuberik
@@ -38,8 +37,7 @@ flowchart TB
     end
 
     %% Flows
-    IR --> IP
-    IP --> RO
+    RS --> RO
     RO --> ENV
 
     %% Connections
@@ -58,7 +56,8 @@ flowchart TB
 
 | Component | Purpose |
 |-----------|---------|
-| **Rollout** | The core state machine. Watches `ImagePolicy` and orchestrates releases. Drives either a `Kustomization` substitution or an `OCIRepository` tag. |
+| **Rollout** | The core state machine. Reads the releases a `ReleaseSource` discovers and orchestrates releases. Drives either a `Kustomization` substitution or an `OCIRepository` tag. |
+| **ReleaseSource** | Lists the tags of an OCI repository, orders them by a policy and keeps the catalogue of releases (served by the release-controller). A Rollout points at one with `spec.releaseSourceRef`. |
 | **Environment** | Maps a Rollout to a logical target (e.g. "production") and syncs status to external backends (GitHub). |
 | **HealthCheck** | Probes system health during the bake period (HTTP, Datadog, Script). |
 | **RolloutGate** | Blocks a Rollout from proceeding until specific conditions (manual approval, API check) are met. |

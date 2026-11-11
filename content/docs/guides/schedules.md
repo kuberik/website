@@ -47,8 +47,8 @@ metadata:
   labels:
     schedule: business-hours
 spec:
-  releasesImagePolicy:
-    name: my-app-policy
+  releaseSourceRef:
+    name: my-app
 ```
 
 ## Cluster-Wide Schedules

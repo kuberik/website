@@ -26,7 +26,7 @@ Your CI publishes a tagged image or manifest artifact to a container registry.
 
 ### Detect
 
-FluxCD detects the new tag via `ImagePolicy`.
+A `ReleaseSource` detects the new tag and adds it to the catalogue of releases.
 
 ### Gate
 
