@@ -39,7 +39,7 @@ const PULL = 'cubic-bezier(0.45, 0, 0.2, 1)';
 export const CAMERA: Move[] = [
 	{ at: 0, to: 'rest', s: 1, dur: 500, ease: EXPO }, /* the loop wrap eases the camera home under the cross-fade */
 	{ at: 1.4, to: 'where-it-runs', s: 1.5, dur: 434, ease: EXPO },
-	{ at: 3.9, to: 'history', s: 2.4, dur: 460, ease: SPRING },
+	{ at: 3.9, to: 'history', s: 2.5, dur: 460, ease: SPRING }, /* 2.5x: the History card sits at the page's right edge, and only a frame narrower than the card plus its 16 px gutter can start right of the Where-it-runs card without running off the page (at 2.4x a 20 px strip of it showed at 1440, AD r8) */
 	{ at: 5.2, to: 'rest', s: 1, dur: 537, ease: EXPO },
 	/* the PERSON beats (the approval and its confirm, the catch, the rollback fields): zoomed until the smallest text renders at 15 px, and the ONLY dimmed beats besides the dialog's own scrim */
 	{ at: 7.3, to: 'attention', s: 1.5, dur: 520, ease: EXPO, dim: 'both', min: 15 },
@@ -48,7 +48,9 @@ export const CAMERA: Move[] = [
 	{ at: 13.4, to: 'gate-column', s: 1.5, dur: 380, ease: ANTIC },
 	{ at: 17.3, to: 'rest', s: 1, dur: 537, ease: EXPO },
 	{ at: 18.4, to: 'pipeline', s: 1.5, dur: 434, ease: EXPO }, /* the WHOLE pipeline card held through the canary (Stage 1 -> the final check -> its health checks); the old pan to the rail's Health checks card left the pipeline half out of frame (AD r6 P1-1) */
-	{ at: 27.3, to: 'figure', s: 1.5, dur: 480, ease: EXPO, dim: 'both', min: 15 }, /* the WHOLE banner is the frame (AD r7: a text-block crop ran the card off the edge); it fills the page width, so the zoom lands near 1.07x and the spotlight does the work */
+	{ at: 27.3, to: 'figure', s: 1.5, dur: 480, ease: EXPO, dim: 'both', min: 15 }, /* the phone's Catch frame (the tight rest below is desktop only and wins there: moveAt reads from the end) */
+	{ at: 27.3, to: 'figure-tight', s: 1.5, dur: 480, ease: EXPO, dim: 'both', min: 15, hole: 'figure', desk: true }, /* AD r8 P2-3: the Catch's ONE tight rest, on the failure banner's words at 1.5x (the whole banner fills the page width: whole, it lands near 1.07x), lit as the whole banner */
+	{ at: 29.0, to: 'figure', s: 1.5, dur: 480, ease: EXPO, dim: 'both', min: 15 }, /* then wide: the whole banner with its actions, still lit (on the phone this is the Catch's only frame, from 27.3) */
 	{ at: 30.4, to: 'rest', s: 1, dur: 400, ease: EXPO },
 	{ at: 33.2, to: 'rest', s: 1, dur: 420, ease: EXPO },
 	{ at: 34.5, to: 'modal', s: 1.5, dur: 460, ease: EXPO, dim: 'shade', min: 15 }, /* the recovery-mode warning (the product's own dialog before the version dialog) */
@@ -94,5 +96,8 @@ export const tallyShown = (t: number) => tallyAt(t);
 export const COVER_DESKTOP_AT = [38.7];
 /** the reflows that PLAY as a slide (flip.ts, by transform: no layout shift) instead of being covered or left to jump: the approved card leaving the Rollouts list */
 export const FLIP_AT = [10.3];
-export const flipEvent = (t: number, phone: boolean) => !phone && FLIP_AT.some((c) => Math.abs(t - c) < 0.35);
-export function coverEvent(t: number, phone: boolean): boolean { return phone || COVER_DESKTOP_AT.some((c) => Math.abs(t - c) < 0.35); }
+/** the phone's rollback sheet closing (38.7): a still cannot copy a fixed full-screen sheet (the copy came back at its top with the nav over it, AD r8 P2-1), so the
+ *  sheet goes straight to its exit and the page under it slides from where it was laid out under the sheet */
+export const FLIP_PHONE_AT = [38.7];
+export const flipEvent = (t: number, phone: boolean) => (phone ? FLIP_PHONE_AT : FLIP_AT).some((c) => Math.abs(t - c) < 0.35);
+export function coverEvent(t: number, phone: boolean): boolean { return phone ? !FLIP_PHONE_AT.some((c) => Math.abs(t - c) < 0.35) : COVER_DESKTOP_AT.some((c) => Math.abs(t - c) < 0.35); }

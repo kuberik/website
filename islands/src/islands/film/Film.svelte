@@ -55,28 +55,37 @@ import { flipRecord, flipPlay, type Pos } from './flip';
 	let swapSeq = 0;
 	/* the surface a swap is already under way for: the effect below re-runs on every story tick, and a re-entered show() used to bump swapSeq and abort the swap in flight, forever (window stuck at opacity 0: the black screen) */
 	let swapping: Surf | null = null;
-	async function show(next: Surf, instant: boolean) {
+	async function show(next: Surf, instant: boolean, wrap = false) {
 		const seq = ++swapSeq;
 		swapping = next;
 		const c = await loadSurface(next);
 		if (seq !== swapSeq) return;
-		/* the cut: a still of the outgoing page covers the window while the incoming one lays itself out UNSEEN (visibility:hidden), then the still fades over the settled page: nothing visible reflows (CLS), and the window is never empty ground */
-		const copy = !instant && shown ? takeSnap() : null;
+		/* the cut: a still of the outgoing page covers the window while the incoming one lays itself out UNSEEN (opacity 0), then the still fades over the settled page: nothing visible reflows (CLS), and the window is never empty ground */
+		/* the loop wrap: the still of the finale was taken before the story's data went back to 09:02 (wrapCover, below); without it the copy here is of the
+		   outgoing page already re-rendered with the opening's data (a flash of the Apps page "Deploying") */
+		const pre = wrap && wrapCover && wrapCover === snapEl ? wrapCover : null; wrapCover = null;
+		const copy = pre ? null : !instant && shown ? takeSnap() : null;
 		if (copy) coverWith(copy);
 		Object.assign(page, SURFACE_PATH[next]);
 		pageStore.update((p) => ({ ...p, ...SURFACE_PATH[next] })); // the History tab reads get(page) of $app/stores (not $app/state)
 		Comp = c; shown = next;
 		await tick();
+		if (!swapOpacity) setTimeout(() => (fadeIn = false), 300);
 		swapOpacity = 1;
 		onshown?.();
-		if (copy) void settleThenReveal(copy);
+		if (pre) void settleThenReveal(pre, null, 420); /* the wrap is a real cross-fade */
+		else if (copy) void settleThenReveal(copy);
 		if (seq === swapSeq) swapping = null;
 	}
 	let main: HTMLElement | undefined = $state();
 	let group: HTMLElement | undefined = $state();
 	let camEl: HTMLElement | undefined = $state();
 	/* ---- reflow without a visible shift (CLS): the product re-lays itself out at a few moments (the Approve card collapsing, a banner opening, a dialog closing, a page arriving). A still of the page BEFORE the change covers the window, the real page lays out hidden, and the still fades once the layout has stopped moving. ---- */
+	/* The cover hides the group with OPACITY, never with `visibility`. visibility is inherited: on a Fast 3G phone run (about 1 in 3) Chrome kept the stale inherited
+	   `hidden` on the Rollouts list sections whose slide (flip.ts) started in the frame the group was un-hidden, so the list stayed invisible (computed hidden,
+	   group visible) until the next cut replaced the DOM: the 2 s blank at 10.5-12.5. Opacity is not inherited, so no descendant can keep a stale copy of it. */
 	let hid = $state(false);
+	let fadeIn = $state(true); /* the first page fades in once; a cover hides and reveals in one frame */
 	let snapEl: HTMLElement | null = null;
 	function takeSnap(kind: 'cut' | 'event' = 'cut'): HTMLElement | null {
 		if (!group || reduced || (globalThis as any).__kfNoSnap?.includes(kind)) return null;
@@ -84,15 +93,17 @@ import { flipRecord, flipPlay, type Pos } from './flip';
 		c.style.cssText = `position:absolute;left:0;top:0;width:${group.offsetWidth}px;height:${group.offsetHeight}px;overflow:hidden;pointer-events:none;z-index:3;opacity:1;visibility:visible`;
 		c.setAttribute('aria-hidden', 'true'); c.removeAttribute('inert'); c.classList.add('film-snap');
 		c.querySelectorAll('[id]').forEach((e) => e.removeAttribute('id'));
+		/* a clone does not carry scroll positions: the 390 rollback sheet (scrolled to its fields) came back at its top under the still (AD r8 P2-1). Copied once the still is in the document */
+		const src = group.querySelectorAll('*'), dst = c.querySelectorAll('*'), sc: [Element, number, number][] = [];
+		for (let i = 0; i < src.length; i++) if (src[i].scrollTop || src[i].scrollLeft) sc.push([dst[i], src[i].scrollTop, src[i].scrollLeft]);
+		(c as any).__scroll = sc;
 		return c;
 	}
-	let coverDog: ReturnType<typeof setTimeout> | undefined;
 	function coverWith(c: HTMLElement) {
 		snapEl?.remove(); snapEl = c; camEl!.insertBefore(c, group!.nextSibling); hid = true;
-		/* watchdog: no cover outlives 1.4 s (settleThenReveal returns early when its still was replaced or the group unmounted mid-swap; a stuck `hid` blanked the phone for 2 s at 10.9 on Fast 3G, until the next cut re-covered) */
-		clearTimeout(coverDog); coverDog = setTimeout(() => { if (snapEl === c) { hid = false; snapEl = null; c.remove(); } }, 1400);
+		for (const [e, y, x] of (c as any).__scroll ?? []) { e.scrollTop = y; e.scrollLeft = x; }
 	}
-	async function settleThenReveal(c: HTMLElement, rec: Pos | null = null) {
+	async function settleThenReveal(c: HTMLElement, rec: Pos | null = null, fade = 80) {
 		const t0 = performance.now(); let last = group!.offsetHeight, since = t0;
 		while (performance.now() - t0 < 700) {
 			await new Promise((r) => requestAnimationFrame(r));
@@ -105,9 +116,24 @@ import { flipRecord, flipPlay, type Pos } from './flip';
 		/* a covered reflow on the phone: the still is dropped in one frame (no two layouts superimposed: the ghost) and what moved SLIDES from where it was to where it is (flip.ts, transform only: no layout shift) */
 		if (rec) { c.remove(); void tick().then(() => { if (group && !swapping && !hid) flipPlay(group, rec, unit(), 300); }); return; }
 		const done = () => c.remove();
-		c.animate([{ opacity: 1 }, { opacity: 0 }], { duration: 80, easing: "ease-out", fill: "forwards" }).finished.then(done, done);
+		c.animate([{ opacity: 1 }, { opacity: 0 }], { duration: fade, easing: "ease-out", fill: "forwards" }).finished.then(done, done);
 	}
 	let preEi = -2, preSnap: { el: HTMLElement | null; h: number; flip: Pos | null; rec: Pos | null } | null = null;
+	/* the loop wrap (AD r8 P3-1): a still of the finale AS IT IS, taken before the DOM re-renders with the opening's data, keeps the finale's framing on itself
+	   while the camera goes home at once; the opening page then lays out at rest under it and the still fades (show() reveals it). Easing the camera home over
+	   the incoming page showed it mid-move (the chip row's foot under the top bar at 47.5) */
+	let wrapCover: HTMLElement | null = null, preT = -1;
+	$effect.pre(() => {
+		const ei = eventIdx, tt = t;
+		untrack(() => {
+			const wrapping = preT > 40 && tt < 2; preT = tt;
+			if (!wrapping || !group || !camEl || !shown || reduced || surfAt(tt) === shown) return;
+			const c = takeSnap(); if (!c) return;
+			c.style.transformOrigin = '0 0'; c.style.transform = getComputedStyle(camEl).transform.replace('none', '');
+			cam = { x: 0, y: 0, s: 1, dur: 0, ease: 'ease', moving: false }; holeOn = false; shadeOn = false;
+			coverWith(c); wrapCover = c; preEi = ei; preSnap = null;
+		});
+	});
 	$effect.pre(() => {
 		const ei = eventIdx;
 		untrack(() => { if (ei === preEi) return; preEi = ei; preSnap = !group || swapping || hid || reduced || !shown ? null : { el: coverEvent(t, CW < 1000) ? takeSnap('event') : null, h: group.offsetHeight, flip: flipEvent(t, CW < 1000) && !(globalThis as any).__kfNoSnap?.includes('flip') ? flipRecord(group, unit()) : null, rec: CW < 640 && coverEvent(t, true) && !(globalThis as any).__kfNoSnap?.includes('slide') ? flipRecord(group, unit()) : null }; });
@@ -137,7 +163,7 @@ import { flipRecord, flipPlay, type Pos } from './flip';
 		const wrap = lastT > 40 && tt < 2; /* the loop's end into its start: animated, not a seek */
 		const jumped = (Math.abs(tt - lastT) > 0.4 && !wrap) || lastT < 0;
 		lastT = tt;
-		untrack(() => { if (s !== shown && s !== swapping) void show(s, jumped || reduced); });
+		untrack(() => { if (s !== shown && s !== swapping) void show(s, jumped || reduced, wrap && !reduced); });
 	});
 	const props = $derived(shown ? surfaceProps(shown, eventIdx) : {});
 
@@ -210,11 +236,11 @@ import { flipRecord, flipPlay, type Pos } from './flip';
 			else {
 				/* fit with a 14 px margin: the product's gap between cards is >= 12 px x scale, so a neighbour never peeks into the frame mid-word. The PERSON beats (m.min) zoom until their smallest text renders at m.min px, bounded by the window (both axes) and 2.4x. */
 				const need = m.min ? m.min / (minFont(r) * k) : 0;
-				s = Math.max(1, Math.min(Math.max(m.s, need), (vw - 28) / r.w, m.min ? (vh - 28) / r.h : Infinity, 2.4));
+				s = Math.max(1, Math.min(Math.max(m.s, need), (vw - 28) / r.w, m.min ? (vh - 28) / r.h : Infinity, Math.max(2.4, m.s))); /* 2.4x, or a move's own wanted scale above it (the History card: 2.5x) */
 				/* AD r4: a frame edge never slices a word. The origin slides (and the scale gives a little) until both edges sit in a gutter between the product's own text (snap.ts). Dialog beats snap against the dialog's text only. */
 				const dlg = m.to.startsWith('modal');
 					if (dlg && CW < 1000 && s < 1.12) { cam = { x: 0, y: 0, s: 1, dur: jump ? 0 : m.dur, ease: m.ease, moving: !jump }; holeOn = false; shadeOn = true; return; } /* a tablet canvas: the dialog fits the frame whole, nothing to zoom (the pan cut its title) */
-					const tr = textRects(dlg), args = [vw, vh, gw, gh, s, Math.max(1, s * (m.min ? 0.93 : 0.86)), Math.min((vw - 28) / r.w, m.min ? (vh - 28) / r.h : Infinity, 2.4)] as const;
+					const tr = textRects(dlg), args = [vw, vh, gw, gh, s, Math.max(1, s * (m.min ? 0.93 : 0.86)), Math.min((vw - 28) / r.w, m.min ? (vh - 28) / r.h : Infinity, Math.max(2.4, m.s))] as const;
 				let sn = dlg ? snapFrame(r, tr, ...args) : snapFrame(r, [...tr, ...boxRects(r)], vw, vh, gw, gh, s, Math.max(1, s * 0.9), Math.min(args[6], s * 1.25)); /* cards too, within a hair of the wanted zoom (a frame that only clears every card at 2.4x is a different shot) */
 				if (!sn.ok && !dlg) sn = snapFrame(r, tr, ...args); /* no frame clears every card: words at least */
 				s = sn.s; x = sn.x; y = sn.y;
@@ -278,7 +304,7 @@ import { flipRecord, flipPlay, type Pos } from './flip';
 			if (!p || !canvas) { ptr.on = false; ptr.press = false; return; }
 			const el = resolveTarget(p.target, canvas, phone);
 			if (el) { const pt = canvasPoint(el); ptr.x = pt.x; ptr.y = pt.y; }
-			ptr.on = tt < p.off - 0.1;
+			ptr.on = tt < p.off - 0.1 && (!!el || tt < p.press); /* the dot leaves with what it pressed (a closed sheet): it never rests on what is under it (AD r8 P2-1) */
 			ptr.press = tt >= p.press;
 		});
 		/* the target can still move while the cursor is up (rows entering, the camera, async data): follow it frame by frame until the press ends */
@@ -356,7 +382,7 @@ import { flipRecord, flipPlay, type Pos } from './flip';
 					<div class="film-top"><WindowBar crumbs={crumbs} narrow={phone} keep={2} /><i class="film-shade" class:film-shade-on={shellDim}></i></div>
 					<main class="film-main" bind:this={main}>
 						<div class="film-cam" bind:this={camEl} style={camStyle}>
-							<div class="film-group" bind:this={group} style="opacity:{swapOpacity}; visibility:{hid ? 'hidden' : 'visible'}; transition: opacity {swapOpacity ? '.2s ease-out' : '.12s ease-in'}">
+							<div class="film-group" bind:this={group} data-hid={hid ? '1' : null} style="opacity:{hid ? 0 : swapOpacity}; transition:{fadeIn && !hid ? 'opacity .2s ease-out' : 'none'}">
 								{#if Comp}<Comp {...props} />{/if}
 								{#if hole}<div class="film-hole" class:film-hole-on={holeOn} style="left:{hole.x}px;top:{hole.y}px;width:{hole.w}px;height:{hole.h}px;border-radius:{hole.r}px"></div>{/if}
 							</div>

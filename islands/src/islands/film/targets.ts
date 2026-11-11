@@ -15,7 +15,12 @@ function cardOf(root: ParentNode, re: RegExp): HTMLElement | null {
 	const h = byText(root, 'h1,h2,h3,h4,[class*="t-heading"],[class*="t-title"],[class*="t-label"],[class*="t-meta"]', re);
 	return h ? (h.closest('section, [data-card], .card, [class*="rounded"]') as HTMLElement | null) ?? h : null;
 }
+/** a still of the page (Film.svelte takeSnap) is a copy of the product's DOM: never a target (after the 390 rollback sheet closed, its copy's Roll back sat over the nav and the tap dot followed it to "Envs", AD r8 P2-1) */
 export function resolveTarget(name: string, root: ParentNode, phone: boolean): HTMLElement | null {
+	const e = resolve(name, root, phone);
+	return e && typeof (e as any).closest === 'function' && (e as HTMLElement).closest('.film-snap') ? null : e;
+}
+function resolve(name: string, root: ParentNode, phone: boolean): HTMLElement | null {
 	const q = <T extends Element = HTMLElement>(s: string) => root.querySelector<T>(s);
 	switch (name) {
 		case 'approve': return q('[data-approve-open]');
@@ -49,6 +54,15 @@ export function resolveTarget(name: string, root: ParentNode, phone: boolean): H
 		case 'banner': return q('.ap-cq');
 		/* the catch: the WHOLE failure banner (AD r4: lit as a banner with its own radius, not as a text box) */
 		case 'figure': return q('.ap-cq');
+		/* the Catch's tight rest (AD r8 P2-3): the failure banner from its left border to the end of its words (title, figure, budget line, Details), full height. Its actions sit
+		   far right across an empty middle, so the frame's right edge lands in the banner's own blank interior: no word, no button sliced, and the words read at 1.5x */
+		case 'figure-tight': {
+			const c = q('.ap-cq'); if (!c) return null;
+			const w = document.createTreeWalker(c, NodeFilter.SHOW_TEXT), rg = document.createRange(); let right = -Infinity;
+			for (let n = w.nextNode(); n; n = w.nextNode()) { if (!n.textContent?.trim() || n.parentElement?.closest('button:not([aria-expanded]), a')) continue; rg.selectNodeContents(n); const b = rg.getBoundingClientRect(); if (b.width) right = Math.max(right, b.right); }
+			if (!isFinite(right)) return c;
+			return { __r: 8, getBoundingClientRect() { const r = c.getBoundingClientRect(); return new DOMRect(r.left, r.top, Math.min(r.width, right - r.left + 28 * (r.width / (c.offsetWidth || r.width))), r.height); } } as unknown as HTMLElement;
+		}
 		/* the catch's CAMERA frame: the banner from its left edge to the right of its text block (icon, title, the 3.2 % figure, budget line, Details), full banner height, without the empty middle and the buttons; the HOLE stays the whole banner (Move.hole), so the lit shape is the banner and the zoom reads at hero scale (AD r5) */
 		case 'figure-text': {
 			const ban = q('.ap-cq'); if (!ban) return null;
