@@ -117,7 +117,7 @@ export function worldAt(t: number): { fleet: FleetSource; github: Record<string,
 		return {
 			apiVersion: 'kuberik.com/v1alpha1', kind: 'Rollout',
 			metadata: { name: APP, namespace: p.ns, labels: { environment: p.site ? `${p.env}-${p.site}` : p.env }, annotations: { 'rollout-dashboard.kuberik.com/source-cluster': p.env } },
-			spec: { releasesImagePolicy: `${p.ns}/${APP}`, versionHistoryLimit: 20, minBakeTime: '2m', bakeTime: isUS1(p) ? '50s' : '1m', healthCheckSelector: { matchLabels: { app: APP, env: p.site ? `${p.env}-${p.site}` : p.env } }, ...(recovering ? { wantedVersion: 'b-45' } : {}) },
+			spec: { releaseSourceRef: { name: APP }, versionHistoryLimit: 20, minBakeTime: '2m', bakeTime: isUS1(p) ? '50s' : '1m', healthCheckSelector: { matchLabels: { app: APP, env: p.site ? `${p.env}-${p.site}` : p.env } }, ...(recovering ? { wantedVersion: 'b-45' } : {}) },
 			status: {
 				source: 'github.com/exampleco/checkout-api', wantedVersion: recovering ? 'b-45' : cur, currentVersion: recovering ? 'b-45' : cur, previousVersion: recovering ? 'b-46' : nw ? 'b-45' : 'b-44',
 				availableReleases: [R44, R45, R46], releaseCandidates: heldCandidate || recovering ? [R46] : [], history: history(p), gates: gates(p),

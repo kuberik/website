@@ -51,7 +51,7 @@ export function extras(opt: { failing: boolean; only?: (a: (typeof APPS)[number]
 			rollouts.push({
 				apiVersion: 'kuberik.com/v1alpha1', kind: 'Rollout',
 				metadata: { name: a.name, namespace: ns, labels: { environment: env }, annotations: { 'rollout-dashboard.kuberik.com/source-cluster': env } },
-				spec: { releasesImagePolicy: `${ns}/${a.name}`, versionHistoryLimit: 20, minBakeTime: '2m', bakeTime: '1m', healthCheckSelector: { matchLabels: { app: a.name, env } } },
+				spec: { releaseSourceRef: { name: a.name }, versionHistoryLimit: 20, minBakeTime: '2m', bakeTime: '1m', healthCheckSelector: { matchLabels: { app: a.name, env } } },
 				status: {
 					source: `github.com/${a.owner}/${a.name}`, wantedVersion: cur.tag, currentVersion: cur.tag, previousVersion: oldR.tag, availableReleases: [oldR, newR],
 					releaseCandidates: awaiting || (env === 'staging' && !onNew && !inFlightNew) ? [newR] : [], history: hist,
