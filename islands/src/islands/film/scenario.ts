@@ -242,7 +242,7 @@ export function worldAt(t: number): { fleet: FleetSource; github: Record<string,
 	}
 
 	const rolloutsAll = PLACES.map(rollout), envsAll = PLACES.map(environment), krs = PLACES.map(kruise), hcs = PLACES.map(healthChecks);
-	const ex = extras({ failing: false, only: (a) => a.state === 'rest' || a.name === 'billing-api', settled: t >= EV.billing ? ['billing-api'] : [] });
+	const ex = extras({ failing: false, only: (a) => a.state === 'rest' || a.name === 'billing-api', settled: t >= EV.billing ? ['billing-api'] : [], settledAtMs: atMs(EV.billing) - 120_000 });
 	const change = (n: number, title: string, author: string, mergedMs: number, sha: string, files: number) => prChange('exampleco', APP, n, title, author, mergedMs, sha, files);
 	const fleet = {
 		rollouts: [...rolloutsAll, ...ex.rollouts] as never,

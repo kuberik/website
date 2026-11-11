@@ -200,7 +200,9 @@ import { flipRecord, flipPlay, type Pos } from './flip';
 				const need = m.min ? m.min / (minFont(r) * k) : 0;
 				s = Math.max(1, Math.min(Math.max(m.s, need), (vw - 28) / r.w, m.min ? (vh - 28) / r.h : Infinity, 2.4));
 				/* AD r4: a frame edge never slices a word. The origin slides (and the scale gives a little) until both edges sit in a gutter between the product's own text (snap.ts). Dialog beats snap against the dialog's text only. */
-				const dlg = m.to.startsWith('modal'), tr = textRects(dlg), args = [vw, vh, gw, gh, s, Math.max(1, s * (m.min ? 0.93 : 0.86)), Math.min((vw - 28) / r.w, m.min ? (vh - 28) / r.h : Infinity, 2.4)] as const;
+				const dlg = m.to.startsWith('modal');
+					if (dlg && CW < 1000 && s < 1.12) { cam = { x: 0, y: 0, s: 1, dur: jump ? 0 : m.dur, ease: m.ease, moving: !jump }; holeOn = false; shadeOn = true; return; } /* a tablet canvas: the dialog fits the frame whole, nothing to zoom (the pan cut its title) */
+					const tr = textRects(dlg), args = [vw, vh, gw, gh, s, Math.max(1, s * (m.min ? 0.93 : 0.86)), Math.min((vw - 28) / r.w, m.min ? (vh - 28) / r.h : Infinity, 2.4)] as const;
 				let sn = dlg ? snapFrame(r, tr, ...args) : snapFrame(r, [...tr, ...boxRects(r)], vw, vh, gw, gh, s, Math.max(1, s * 0.9), Math.min(args[6], s * 1.25)); /* cards too, within a hair of the wanted zoom (a frame that only clears every card at 2.4x is a different shot) */
 				if (!sn.ok && !dlg) sn = snapFrame(r, tr, ...args); /* no frame clears every card: words at least */
 				s = sn.s; x = sn.x; y = sn.y;
@@ -311,14 +313,14 @@ import { flipRecord, flipPlay, type Pos } from './flip';
 			typeInto(resolveTarget('modal-reason', canvas, phone) as HTMLTextAreaElement | null, REASON.slice(0, typedLen(tt, TYPING.reason, REASON.length)));
 			const v = canvas.querySelector('.fm-panel')?.textContent?.match(/Type\s+(\S+)\s+to confirm/)?.[1] ?? '4.45.0-45';
 			/* phone: the sheet's body is taller than the sheet; a person scrolls to the fields before typing (the reason first, then down to the confirmation). Pure function of t, so a seek lands scrolled. */
-			if (phone) {
+			{
 				const rEl = resolveTarget('modal-reason', canvas, phone), cEl = resolveTarget('modal-confirm', canvas, phone);
 				let sc: HTMLElement | null = rEl?.parentElement ?? null; while (sc && !(sc.scrollHeight > sc.clientHeight + 4 && /auto|scroll/.test(getComputedStyle(sc).overflowY))) sc = sc.parentElement;
 				const goal = tt >= 37.2 ? cEl : tt >= 35.9 ? rEl : null;
 				if (sc && goal) {
 					const a = sc.getBoundingClientRect(), g = goal.getBoundingClientRect(), u = a.height / sc.clientHeight || 1;
 					/* the sheet's footer (Cancel / Roll back, under the scroller) grows by a "does not match yet" line once typing starts: the field is centred in the scroller as it will be THEN, so the footer never covers it and nothing jumps */
-					const hd = 64 /* the sticky dialog title (AD r6: it scrolled away while the reason was typed) */, avail = sc.clientHeight - hd - (/does not match/.test(canvas.querySelector('.fm-panel')?.textContent ?? '') ? 0 : 28);
+					const hd = sc.contains(canvas.querySelector('.fm-panel header')) ? 64 : 0 /* 64 =  the sticky dialog title (AD r6: it scrolled away while the reason was typed); a tablet's title sits above the scroller: nothing to clear */, avail = sc.clientHeight - hd - (/does not match/.test(canvas.querySelector('.fm-panel')?.textContent ?? '') ? 0 : 28);
 					const want = Math.min(Math.max(0, sc.scrollTop + (g.top - a.top) / u - (hd + (avail - g.height / u) * 0.5)), Math.max(0, sc.scrollHeight - sc.clientHeight));
 					if (goal !== lastGoal) { lastGoal = goal; scrollAt = tt; sc.scrollTo({ top: want, behavior: 'smooth' }); } else if (tt > scrollAt + 0.7 && Math.abs(want - sc.scrollTop) > 1) sc.scrollTop = want; /* held there while the footer's line comes and goes */
 				}
@@ -381,5 +383,7 @@ import { flipRecord, flipPlay, type Pos } from './flip';
 	.film-shade { position: absolute; inset: 0; z-index: 6; pointer-events: none; background: var(--film-dim); opacity: 0; transition: opacity 0.2s ease-out; }
 	.film-shade-on { opacity: 1; }
 	:global(.fm-panel header) { position: sticky; top: 0; z-index: 5; background-color: var(--k-surface); } /* the sheet's title stays while its body scrolls */
+	/* the product's own toast ("Successfully pinned and deployed version", fixed bottom-right / top on a phone) rides the camera over the page the story is about to show: the dialog's close is the confirmation here */
+	.film-canvas :global([role="status"][class*="z-[60]"]) { display: none !important; }
 	.film-tabs { position: absolute; left: 0; right: 0; bottom: 0; z-index: 5; }
 </style>

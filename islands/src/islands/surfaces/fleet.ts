@@ -22,7 +22,7 @@ const APPS: { name: string; owner: string; state: State; n: number; title: strin
 const sha = (i: number, k: number) => `${(i + 10).toString(16)}${k}c4e91a07b3d5f2860c1e3a5b7d9f10234${k}${i.toString(16)}`.padEnd(40, '0').slice(0, 40);
 const iso = (ms: number) => new Date(ms).toISOString();
 
-export function extras(opt: { failing: boolean; only?: (a: (typeof APPS)[number]) => boolean; settled?: string[] }) {
+export function extras(opt: { failing: boolean; only?: (a: (typeof APPS)[number]) => boolean; settled?: string[]; settledAtMs?: number }) {
 	const rollouts: unknown[] = [], environments: unknown[] = [], changes: unknown[] = [], hcs: unknown[] = [], gh: Record<string, unknown> = {};
 	APPS.forEach((a0, i) => {
 		if (opt.only && !opt.only(a0)) return;
@@ -40,11 +40,11 @@ export function extras(opt: { failing: boolean; only?: (a: (typeof APPS)[number]
 			const bake = env === 'prod' && a.state === 'failed' ? 'Failed' : env === 'prod' && a.state === 'deploying' ? 'InProgress' : env === 'staging' && a.state === 'stagingDeploying' ? 'Deploying' : 'Succeeded';
 			const inFlightNew = env === 'staging' && a.state === 'stagingDeploying';
 			const cur = onNew || inFlightNew ? newR : oldR;
-			const t0 = CLOCK_MS - (2 + i) * H + (env === 'prod' ? 40 * 60_000 : 0);
+			const t0 = opt.settled?.includes(a0.name) && env === 'prod' && opt.settledAtMs ? opt.settledAtMs : CLOCK_MS - (2 + i) * H + (env === 'prod' ? 40 * 60_000 : 0); /* a settled app deployed AFTER its approval was granted */
 			const hist: Record<string, unknown>[] = [];
 			if (onNew || inFlightNew) hist.push({
 				id: 2, version: newR, timestamp: iso(bake === 'Deploying' ? CLOCK_MS - 3 * 60_000 : bake === 'InProgress' ? CLOCK_MS - 40_000 : t0), bakeStatus: bake,
-				bakeStartTime: iso(t0), ...(bake === 'Succeeded' || bake === 'Failed' ? { bakeEndTime: iso(t0 + 600_000) } : {}),
+				bakeStartTime: iso(t0), ...(bake === 'Succeeded' || bake === 'Failed' ? { bakeEndTime: iso(t0 + (opt.settledAtMs && opt.settled?.includes(a0.name) && env === 'prod' ? 120_000 : 600_000)) } : {}),
 				triggeredBy: { kind: 'System', name: 'System' },
 				...(bake === 'Failed' ? { message: 'Health check error-rate failed', failedHealthChecks: [{ name: 'error-rate', message: '4.2% of requests failed, over a 1% budget', observations: [{ name: 'error rate', kind: 'Threshold', value: '4.2', limit: '1', unit: '%', direction: 'Above', healthy: false }] }] } : {})
 			});
