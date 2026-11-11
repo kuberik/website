@@ -28,6 +28,8 @@ export function resolveTarget(name: string, root: ParentNode, phone: boolean): H
 		case 'approve-confirm': return q('[data-action="approve-confirm"]');
 		case 'attention': return q('[data-approve-open]')?.closest<HTMLElement>('[class*="rounded"]') ?? null;
 		case 'banner-rollback': return byText(root, 'button, a', /^Roll back$/);
+		case 'modal': return q('.fm-panel');
+		case 'warn-continue': { const m = q('.fm-panel'); return m && !m.querySelector('textarea') ? byText(m, 'button', /^Continue$/) : null; } /* the recovery-mode warning's own Continue */
 		case 'modal-reason': return q('.fm-panel textarea');
 		case 'modal-confirm': return q('.fm-panel #cvm-confirm-version');
 		case 'modal-cancel': return byText(root, 'button', /^Cancel$/);

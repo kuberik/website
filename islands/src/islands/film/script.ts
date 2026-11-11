@@ -54,7 +54,8 @@ export const CAMERA: Move[] = [
 	{ at: 30.4, to: 'rest', s: 1, dur: 400, ease: EXPO },
 	{ at: 31.8, to: 'prod-card', s: 1, dur: 420, ease: EXPO },
 	{ at: 33.1, to: 'rest', s: 1, dur: 420, ease: EXPO },
-	{ at: 34.5, to: 'modal-fields', s: 1.5, dur: 460, ease: EXPO, dim: 'shade', min: 15 },
+	{ at: 34.5, to: 'modal', s: 1.5, dur: 460, ease: EXPO, dim: 'shade', min: 15 }, /* the recovery-mode warning (the product's own dialog before the version dialog) */
+	{ at: 35.8, to: 'modal-fields', s: 1.5, dur: 460, ease: EXPO, dim: 'shade', min: 15 },
 	{ at: 39.0, to: 'rest', s: 1, dur: 300, ease: EXPO },
 	{ at: 39.4, to: 'banners', s: 1.5, dur: 434, ease: EXPO },
 	{ at: 40.6, to: 'pipeline', s: 1.5, dur: 460, ease: SPRING },
@@ -66,11 +67,12 @@ export const CAMERA: Move[] = [
 export const moveAt = (t: number): Move => [...CAMERA].reverse().find((m) => t >= m.at)!;
 
 /** the presses: a person decides (STORYBOARD cursor rule). `go` = cursor appears, `press` = the real click, `off` = it fades. */
-export type Press = { id: 'approve' | 'confirm' | 'rollback' | 'continue'; target: string; go: number; press: number; off: number };
+export type Press = { id: 'approve' | 'confirm' | 'rollback' | 'warn' | 'continue'; target: string; go: number; press: number; off: number };
 export const PRESSES: Press[] = [
 	{ id: 'approve', target: 'approve', go: 7.9, press: 8.6, off: 8.9 },
 	{ id: 'confirm', target: 'approve-confirm', go: 9.5, press: 10.2, off: 10.4 },
 	{ id: 'rollback', target: 'banner-rollback', go: 33.9, press: 34.2, off: 34.45 },
+	{ id: 'warn', target: 'warn-continue', go: 35.0, press: 35.5, off: 35.75 },
 	{ id: 'continue', target: 'modal-continue', go: 38.0, press: 38.7, off: 39.0 }
 ];
 export const pressAt = (t: number): Press | null => PRESSES.find((p) => t >= p.go && t < p.off) ?? null;
@@ -79,7 +81,7 @@ export const confirmOpen = (t: number) => t >= 8.75 && t < 10.4;
 export const rollbackOpen = (t: number) => t >= 34.4 && t < 38.75;
 /** the real prod ceremony, typed on screen at Railway's speed (about 30 characters a second): the reason, then the version to confirm; the real Roll back is pressed at 38.7 */
 export const REASON = 'Error rate over budget, back to the last good build';
-export const TYPING = { reason: [35.0, 36.8], confirm: [37.1, 37.8] } as const;
+export const TYPING = { reason: [36.0, 37.2], confirm: [37.4, 38.0] } as const;
 export const typedLen = (t: number, [a, b]: readonly [number, number], n: number) => Math.max(0, Math.min(n, Math.floor(((t - a) / (b - a)) * n)));
 
 /** the tally (STORYBOARD section 2): checks passed, failed, decided by a person. Each entry is the second its CR passes. */
@@ -93,5 +95,5 @@ export const tallyShown = (t: number) => tallyAt(t);
 /** Which product reflows are hidden under a still of the page before them (Film.svelte takeSnap). The product's own transitions (a banner opening, a dialog closing,
  *  rows sliding) are the point of the film, so they PLAY, unless one alone costs more layout shift than the page can spend: measured at 1440 the Approve collapse is one
  *  0.105 shift, over the whole 0.1 budget, so it is the single desktop cover. On the phone the same reflows move 2-3x the viewport area (0.12-0.19 each): all covered. */
-export const COVER_DESKTOP_AT = [10.3];
+export const COVER_DESKTOP_AT = [10.3, 38.7];
 export function coverEvent(t: number, phone: boolean): boolean { return phone || COVER_DESKTOP_AT.some((c) => Math.abs(t - c) < 0.35); }

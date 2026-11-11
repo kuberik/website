@@ -97,7 +97,7 @@
 		if (c !== snapEl) return;
 		hid = false; snapEl = null;
 		const done = () => c.remove();
-		c.animate([{ opacity: 1 }, { opacity: 0 }], { duration: 140, easing: "ease-out", fill: "forwards" }).finished.then(done, done);
+		c.animate([{ opacity: 1 }, { opacity: 0 }], { duration: 80, easing: "ease-out", fill: "forwards" }).finished.then(done, done);
 	}
 	let preEi = -2, preSnap: { el: HTMLElement | null; h: number } | null = null;
 	$effect.pre(() => {
@@ -239,11 +239,11 @@
 	 *  the approval confirm between the two Approve presses (anchored in canvas px), the rollback dialog between the banner's Roll back and Continue.
 	 *  Neither dialog's own confirm is clicked: the story's CRs carry the outcome (grantApproval would write an optimistic "Deploying" row, TRUTH defect). */
 	let lastGoal: HTMLElement | null = null, scrollAt = 0;
-	let rbOpen = false, pressedGo = false, dlgTick = $state(0);
-	$effect(() => { if (t < 34) pressedGo = false; });
+	let rbOpen = false, pressedGo = false, pressedWarn = false, dlgTick = $state(0);
+	$effect(() => { if (t < 34) { pressedGo = false; pressedWarn = false; } });
 	$effect(() => {
 		const want = confirmOpen(t), wantRb = rollbackOpen(t);
-		void shown; void eventIdx;
+		void shown; void eventIdx; void dlgTick; /* the dialogs open a frame after their button is pressed: a paused seek must still walk banner -> warning -> fields */
 		untrack(() => {
 			if (!canvas) return;
 			/* only on the surface that owns the button: a seek lands here before the new surface is shown, and the old page may carry a link with the same words (a real navigation of the host page) */
@@ -252,6 +252,7 @@
 				if (el) { el.click(); const a = approvalUi.ask; if (a) { if (phone) { const c = canvas.getBoundingClientRect(), r = el.getBoundingClientRect(); a.anchor = { top: (r.top - c.top) / k, left: (r.left - c.left) / k, right: (r.right - c.left) / k, bottom: (r.bottom - c.top) / k }; } else { const r = relRect(el); /* the layer lives in the camera wrapper: group space, so it sits under ITS button at any zoom; the 320 px panel is left-aligned to the button (right = left + 320) */ a.anchor = { top: r.y, left: r.x, right: r.x + 320, bottom: r.y + r.h }; } } }
 			} else if (!want && approvalUi.ask) approvalUi.ask = null;
 			if (wantRb && !rbOpen && shown === 'overview') { const el = resolveTarget('banner-rollback', canvas, phone); if (el) { el.click(); rbOpen = true; void tick().then(() => requestAnimationFrame(() => (dlgTick += 1))); } }
+			else if (wantRb && rbOpen && t >= 35.5 && !pressedWarn) { const w = resolveTarget('warn-continue', canvas, phone) as HTMLButtonElement | null; if (w && !w.disabled) { pressedWarn = true; w.click(); void tick().then(() => requestAnimationFrame(() => (dlgTick += 1))); } else if (!w && canvas.querySelector('.fm-panel textarea')) pressedWarn = true; }
 			else if (wantRb && rbOpen && t >= 38.7 && !pressedGo) { const go = resolveTarget('modal-continue', canvas, phone) as HTMLButtonElement | null; if (go && !go.disabled) { pressedGo = true; rbOpen = false; go.click(); } }
 			else if (!wantRb && rbOpen) { lastGoal = null; resolveTarget('modal-cancel', canvas, phone)?.click(); rbOpen = false; }
 		});
@@ -274,7 +275,7 @@
 			if (phone) {
 				const rEl = resolveTarget('modal-reason', canvas, phone), cEl = resolveTarget('modal-confirm', canvas, phone);
 				let sc: HTMLElement | null = rEl?.parentElement ?? null; while (sc && !(sc.scrollHeight > sc.clientHeight + 4 && /auto|scroll/.test(getComputedStyle(sc).overflowY))) sc = sc.parentElement;
-				const goal = tt >= 36.8 ? cEl : tt >= 34.7 ? rEl : null;
+				const goal = tt >= 37.2 ? cEl : tt >= 35.9 ? rEl : null;
 				if (sc && goal) {
 					const a = sc.getBoundingClientRect(), g = goal.getBoundingClientRect(), u = a.height / sc.clientHeight || 1;
 					/* the sheet's footer (Cancel / Roll back, under the scroller) grows by a "does not match yet" line once typing starts: the field is centred in the scroller as it will be THEN, so the footer never covers it and nothing jumps */
