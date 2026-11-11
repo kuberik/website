@@ -27,7 +27,12 @@ export function resolveTarget(name: string, root: ParentNode, phone: boolean): H
 		case 'attention': return q('[data-approve-open]')?.closest<HTMLElement>('[class*="rounded"]') ?? null;
 		case 'banner-rollback': return byText(root, 'button, a', /^Roll back$/);
 		/* the whole dialog, title included (AD r4: the title was off-screen 35.8-38 s); it fits the window at about 1.06x */
-		case 'modal': case 'modal-fields': return q('.fm-panel');
+		case 'modal': return q('.fm-panel');
+		/* the typed rollback ceremony is tall: the dialog frames in two halves at every desktop width (AD r6 P2-4): the top (title, the 4.46.0-46 to 4.45.0-45 pair, the warning), then the bottom (reason, confirmation, Roll back) */
+		case 'modal-top': case 'modal-fields': {
+			const m = q('.fm-panel'); if (!m) return null; const top = name === 'modal-top';
+			return { __r: 8, getBoundingClientRect() { const r = m.getBoundingClientRect(); const h = r.height * (top ? 0.5 : 0.55); return new DOMRect(r.left, top ? r.top : r.bottom - h, r.width, h); } } as unknown as HTMLElement;
+		}
 		case 'warn-continue': { const m = q('.fm-panel'); return m && !m.querySelector('textarea') ? byText(m, 'button', /^Continue$/) : null; } /* the recovery-mode warning's own Continue */
 		case 'modal-reason': return q('.fm-panel textarea');
 		case 'modal-confirm': return q('.fm-panel #cvm-confirm-version');

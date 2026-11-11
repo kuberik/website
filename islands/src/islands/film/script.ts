@@ -53,7 +53,8 @@ export const CAMERA: Move[] = [
 	{ at: 31.2, to: 'pipeline', s: 1.5, dur: 460, ease: EXPO }, /* the failure is stated ONCE (the banner); this beat shows what it adds: the failed Check step and its health checks. The Environments detour (32-34) restated the failure and is cut (AD r6 P1-2) */
 	{ at: 33.2, to: 'rest', s: 1, dur: 420, ease: EXPO },
 	{ at: 34.5, to: 'modal', s: 1.5, dur: 460, ease: EXPO, dim: 'shade', min: 15 }, /* the recovery-mode warning (the product's own dialog before the version dialog) */
-	{ at: 35.8, to: 'modal-fields', s: 1.5, dur: 460, ease: EXPO, dim: 'shade', min: 15 },
+	{ at: 35.8, to: 'modal-top', s: 1.5, dur: 460, ease: EXPO, dim: 'shade', min: 15 },
+	{ at: 36.6, to: 'modal-fields', s: 1.5, dur: 460, ease: EXPO, dim: 'shade', min: 15 },
 	{ at: 39.0, to: 'rest', s: 1, dur: 300, ease: EXPO },
 	{ at: 39.4, to: 'banners', s: 1.5, dur: 434, ease: EXPO },
 	{ at: 40.6, to: 'pipeline', s: 1.5, dur: 460, ease: SPRING },

@@ -189,7 +189,7 @@ import { flipRecord, flipPlay, type Pos } from './flip';
 		/* reduced motion: no camera at all (STORYBOARD section 9): every frame is the unzoomed, unscrolled page */
 		if (reduced) { cam = { x: 0, y: 0, s: 1, dur: 0, ease: 'ease', moving: false }; holeOn = false; shadeOn = false; return; }
 		const vw = main.clientWidth, vh = main.clientHeight, gw = group.offsetWidth, gh = group.offsetHeight;
-		const el = m.to === 'rest' || (phone && m.to === 'modal-fields') ? null : resolveTarget(m.to, camEl!, phone); /* phone: the rollback dialog is a full-screen sheet, there is nothing to zoom */
+		const el = m.to === 'rest' || (phone && (m.to === 'modal-fields' || m.to === 'modal-top')) ? null : resolveTarget(m.to, camEl!, phone); /* phone: the rollback dialog is a full-screen sheet, there is nothing to zoom */
 		let x = 0, y = 0, s = el ? m.s : 1; /* a target that is not on the page rests (never a blind zoom at the origin) */
 		if (el) {
 			const r = relRect(el);
@@ -204,7 +204,6 @@ import { flipRecord, flipPlay, type Pos } from './flip';
 				let sn = dlg ? snapFrame(r, tr, ...args) : snapFrame(r, [...tr, ...boxRects(r)], vw, vh, gw, gh, s, Math.max(1, s * 0.9), Math.min(args[6], s * 1.25)); /* cards too, within a hair of the wanted zoom (a frame that only clears every card at 2.4x is a different shot) */
 				if (!sn.ok && !dlg) sn = snapFrame(r, tr, ...args); /* no frame clears every card: words at least */
 				s = sn.s; x = sn.x; y = sn.y;
-				if (m.to === 'modal-fields' && s < 1.12) { s = 1; x = 0; y = 0; } /* a dialog that fills the window anyway: no crop of the page behind it for a 5% zoom */
 				 (globalThis as any).__kfAim = { to: m.to, r, sn, vw, vh, gw, gh, refine }; /* even when no x position clears every word (ok = false) the y found for a clean top edge stands */
 			}
 		}
@@ -319,8 +318,8 @@ import { flipRecord, flipPlay, type Pos } from './flip';
 				if (sc && goal) {
 					const a = sc.getBoundingClientRect(), g = goal.getBoundingClientRect(), u = a.height / sc.clientHeight || 1;
 					/* the sheet's footer (Cancel / Roll back, under the scroller) grows by a "does not match yet" line once typing starts: the field is centred in the scroller as it will be THEN, so the footer never covers it and nothing jumps */
-					const avail = sc.clientHeight - (/does not match/.test(canvas.querySelector('.fm-panel')?.textContent ?? '') ? 0 : 28);
-					const want = Math.min(Math.max(0, sc.scrollTop + (g.top - a.top) / u - (avail - g.height / u) * 0.5), Math.max(0, sc.scrollHeight - sc.clientHeight));
+					const hd = 64 /* the sticky dialog title (AD r6: it scrolled away while the reason was typed) */, avail = sc.clientHeight - hd - (/does not match/.test(canvas.querySelector('.fm-panel')?.textContent ?? '') ? 0 : 28);
+					const want = Math.min(Math.max(0, sc.scrollTop + (g.top - a.top) / u - (hd + (avail - g.height / u) * 0.5)), Math.max(0, sc.scrollHeight - sc.clientHeight));
 					if (goal !== lastGoal) { lastGoal = goal; scrollAt = tt; sc.scrollTo({ top: want, behavior: 'smooth' }); } else if (tt > scrollAt + 0.7 && Math.abs(want - sc.scrollTop) > 1) sc.scrollTop = want; /* held there while the footer's line comes and goes */
 				}
 			}
@@ -381,5 +380,6 @@ import { flipRecord, flipPlay, type Pos } from './flip';
 	.film-side, .film-top { position: relative; }
 	.film-shade { position: absolute; inset: 0; z-index: 6; pointer-events: none; background: var(--film-dim); opacity: 0; transition: opacity 0.2s ease-out; }
 	.film-shade-on { opacity: 1; }
+	:global(.fm-panel header) { position: sticky; top: 0; z-index: 5; background-color: var(--k-surface); } /* the sheet's title stays while its body scrolls */
 	.film-tabs { position: absolute; left: 0; right: 0; bottom: 0; z-index: 5; }
 </style>
