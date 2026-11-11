@@ -43,6 +43,8 @@ export function mountFilm(ctx: CustomCtx) {
 	};
 	player = new Player({ loop: LOOP, rest: REST_T, quantum: 0.05, onTime: apply });
 	apply(0);
+	/* reduced motion rests on REST_T (the motion gate arrives after mount and jumps there): start on that frame, or the first surface mounted is the Change page and the jump to the Overview leaves the window blank while its chunk loads (the blank start) */
+	if (matchMedia('(prefers-reduced-motion: reduce)').matches) apply(REST_T);
 	props.onseek = (i) => { player!.gate('hover', true); player!.seek(player!.reduced ? CHAPTERS[i].settled : CHAPTERS[i].from); props.playing = player!.playing; props.userPlaying = !player!.paused; };
 	props.ontoggle = () => { player!.gate('hover', true); player!.toggle(); props.playing = player!.playing; props.userPlaying = !player!.paused; };
 	/* the first frame is real once the surface, the shell and the fonts are in and painted: only then does the static poster leave (no blank gap, no shift) */
