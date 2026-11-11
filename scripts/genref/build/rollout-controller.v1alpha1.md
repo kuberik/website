@@ -1539,7 +1539,9 @@ RolloutSpec defines the desired state of Rollout.
    ReleaseSourceRef names a ReleaseSource (kuberik.com, served by release-controller)
 in the same namespace that provides this Rollout's releases. When set (and the
 release-controller CRDs are installed) the Rollout reads its releases from the
-source's ReleaseSlice catalogue; a Rollout without it uses releasesImagePolicy.</td>
+source's ReleaseSlice catalogue. This is the only release path: a Rollout
+without it gets no releases and reports ReleasesUpdated=False and Ready=False
+with reason ReleaseSourceRequired.</td>
 </tr>
 <tr><td><code>releasesImagePolicy</code>
       
@@ -1547,13 +1549,11 @@ source's ReleaseSlice catalogue; a Rollout without it uses releasesImagePolicy.<
 <a href="https://kubernetes.io/docs/reference/generated/kubernetes-api/v1.24/#localobjectreference-v1-core"><code>LocalObjectReference</code></a>
 </td>
 <td>
-   ReleasesImagePolicy specifies the ImagePolicy that provides available releases.
-Deprecated in favour of releaseSourceRef; will be removed in a later release.
-Read only by Rollouts without releaseSourceRef. Optional when releaseSourceRef is set.
-A value type, so Go clients always send "releasesImagePolicy: {}"; the API
-server defaults name to "" and the RolloutSpec rule then counts it as set.
-The rule therefore rejects a manifest that omits both keys, not a Go client
-that leaves both zero.</td>
+   Deprecated: ignored; removed in the next release. Releases come from
+releaseSourceRef; to migrate an existing Flux ImagePolicy, create a
+ReleaseSource with spec.oci.imagePolicyRef. A Rollout that sets it reports
+ReleasesImagePolicyIgnored=True.
+A value type, so Go clients always send "releasesImagePolicy: {}".</td>
 </tr>
 <tr><td><code>wantedVersion</code>
       
@@ -1577,8 +1577,7 @@ that leaves both zero.</td>
 <code>int32</code>
 </td>
 <td>
-   Deprecated: retention moves to ReleaseSource.spec.retention. No behaviour change.
-Will be removed in a later release.
+   Deprecated: ignored; retention is ReleaseSource.spec.retention. Removed in the next release.
 AvailableReleasesRetentionDays defines how many days of available releases to keep based on creation timestamp
 When history is full, releases older than this retention period may be removed.
 Defaults to 7 days if not specified.</td>
@@ -1589,8 +1588,7 @@ Defaults to 7 days if not specified.</td>
 <code>int32</code>
 </td>
 <td>
-   Deprecated: retention moves to ReleaseSource.spec.retention. No behaviour change.
-Will be removed in a later release.
+   Deprecated: ignored; retention is ReleaseSource.spec.retention. Removed in the next release.
 AvailableReleasesMinCount defines the minimum number of available releases to always keep
 When history is full, at least this many releases will be retained regardless of other criteria.
 Defaults to 30 if not specified.</td>
@@ -1668,10 +1666,8 @@ Each entry contains the version deployed and the timestamp of the deployment.</t
 <a href="#VersionInfo"><code>[]VersionInfo</code></a>
 </td>
 <td>
-   Deprecated: read status.candidates and the ReleaseSlice catalogue instead.
-Written by Rollouts without releaseSourceRef, and by those with one while
---dual-write-release-lists is on (its default); cleared otherwise. Will be
-removed in a later release.
+   Deprecated: ignored; no longer written (cleared on reconcile). Read
+status.candidates and the ReleaseSlice catalogue instead. Removed in the next release.
 AvailableReleases is a list of all releases available in the releases repository.</td>
 </tr>
 <tr><td><code>releaseCandidates</code>
@@ -1680,7 +1676,8 @@ AvailableReleases is a list of all releases available in the releases repository
 <a href="#VersionInfo"><code>[]VersionInfo</code></a>
 </td>
 <td>
-   Deprecated: read status.candidates instead. Will be removed in a later release.
+   Deprecated: ignored; no longer written (cleared on reconcile). Read status.candidates instead.
+Removed in the next release.
 ReleaseCandidates is a list of releases that are candidates for the next deployment.
 These are filtered from AvailableReleases based on deployment history and version ordering.</td>
 </tr>
@@ -1690,8 +1687,8 @@ These are filtered from AvailableReleases based on deployment history and versio
 <a href="#VersionInfo"><code>[]VersionInfo</code></a>
 </td>
 <td>
-   Deprecated: read status.candidates (gated field) instead. Will be removed in a
-later release.
+   Deprecated: ignored; no longer written (cleared on reconcile). Read status.candidates
+(gated field) instead. Removed in the next release.
 GatedReleaseCandidates is a list of release candidates that have passed through all gates.
 This shows which versions are actually available for deployment after gate evaluation.</td>
 </tr>
