@@ -94,8 +94,7 @@ customResourceState:
               each:
                 type: Gauge
                 gauge:
-                  path: [status, availableReleases]
-                  valueFrom: [length]
+                  path: [status, releaseSource, count]
 
             # Gates passing status
             - name: rollout_gates_passing

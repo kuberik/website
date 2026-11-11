@@ -7,7 +7,7 @@ tabs:
   sync: true
 ---
 
-Deploy your first application with Kuberik. This guide assumes you have a cluster with [FluxCD](https://fluxcd.io) and [Kuberik](/docs/installation/) installed.
+Deploy your first application with Kuberik. This guide assumes you have a cluster with [FluxCD](https://fluxcd.io) and [Kuberik](/docs/installation/helm/) installed (the Helm chart includes the release-controller that serves `ReleaseSource`).
 
 Kuberik propagates one of two things through your environments:
 

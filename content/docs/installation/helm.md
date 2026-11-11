@@ -8,20 +8,22 @@ Install Kuberik via the official Helm chart. One release installs the rollout-co
 ## Quick Install
 
 ```bash
-helm install kuberik oci://ghcr.io/kuberik/charts/kuberik \
-  --namespace kuberik-system --create-namespace \
-  --set createNamespace=false
-```
-
-The chart repo is also published as a Helm repository:
-
-```bash
 helm repo add kuberik https://kuberik.github.io/kuberik
 helm repo update
 helm install kuberik kuberik/kuberik \
   --namespace kuberik-system --create-namespace \
   --set createNamespace=false
 ```
+
+The chart is also published as an OCI artifact:
+
+```bash
+helm install kuberik oci://ghcr.io/kuberik/charts/kuberik --version 0.8.0 \
+  --namespace kuberik-system --create-namespace \
+  --set createNamespace=false
+```
+
+The release-controller, which serves the `ReleaseSource` and `ReleaseSlice` resources your Rollouts read their releases from, is installed by default. It needs no extra values.
 
 ## Enable Integration Controllers
 
@@ -154,9 +156,17 @@ helm install kuberik oci://ghcr.io/kuberik/charts/kuberik \
 ## Upgrade
 
 ```bash
-helm upgrade kuberik oci://ghcr.io/kuberik/charts/kuberik \
-  --namespace kuberik-system -f values.yaml
+helm repo update kuberik
+helm upgrade kuberik kuberik/kuberik --namespace kuberik-system -f values.yaml
 ```
+
+{{< callout type="warning" >}}
+**Upgrading to 0.8.0: releases now come from a ReleaseSource**
+
+- `spec.releasesImagePolicy` on a Rollout is deprecated and ignored.
+- Create a `ReleaseSource` for each app and point the Rollout at it with `spec.releaseSourceRef`. An existing Flux ImagePolicy can be referenced from the source with `spec.oci.imagePolicyRef`. See [Getting Started](/docs/getting-started/).
+- A Rollout without `releaseSourceRef` reports the `ReleaseSourceRequired` condition and gets no releases until you add one.
+{{< /callout >}}
 
 Since chart 0.7.0 the CRDs are chart resources, so `helm upgrade` installs new CRDs and updates existing ones. Coming from a chart ≤ 0.6.1, hand the existing CRDs over to the release once first, otherwise Helm refuses with `invalid ownership metadata`:
 

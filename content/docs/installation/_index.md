@@ -35,7 +35,7 @@ Kuberik relies on a resource reconciler to apply manifests to your cluster.
 
 ## Install Kuberik Controller
 
-Deploy the rollout controller:
+Deploy the rollout controller. The Helm chart also installs the release-controller by default; a manual install needs it too, because Rollouts read their releases from its `ReleaseSource` resources.
 
 ```bash
 kubectl apply --server-side -f https://github.com/kuberik/rollout-controller/releases/download/v0.7.0/install.yaml

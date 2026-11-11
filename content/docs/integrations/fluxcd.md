@@ -122,7 +122,7 @@ Then reference it from the Rollout with `spec.releaseSourceRef`.
 {{< callout type="info" >}}
 **Already have an ImagePolicy?**
 
-A ReleaseSource can reuse it: set `spec.oci.imagePolicyRef.name` instead of `image` and `policy`. Rollouts that still use `spec.releasesImagePolicy` keep working, but that field is deprecated.
+A ReleaseSource can reuse it: set `spec.oci.imagePolicyRef.name` instead of `image` and `policy`. `spec.releasesImagePolicy` on the Rollout is deprecated and ignored.
 {{< /callout >}}
 
 ### Verify Discovery

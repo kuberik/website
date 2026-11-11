@@ -59,7 +59,7 @@ spec:
 | Field | Purpose |
 |-------|---------|
 | `releaseSourceRef` | Reference to the `ReleaseSource` that provides new versions. Resolved in the Rollout's namespace. |
-| `releasesImagePolicy` | Deprecated. Reference to a Flux ImagePolicy, used only by Rollouts without `releaseSourceRef`. |
+| `releasesImagePolicy` | Deprecated and ignored. Use `releaseSourceRef`. |
 | `versionHistoryLimit` | How many past versions to retain in status |
 | `bakeTime` | Duration to wait and verify health after deployment (e.g., `5m`, `1h`) |
 | `healthCheckSelector` | Label selector to find HealthCheck resources to evaluate |
