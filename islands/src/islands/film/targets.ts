@@ -37,7 +37,7 @@ export function resolveTarget(name: string, root: ParentNode, phone: boolean): H
 		case 'modal-reason': return q('.fm-panel textarea');
 		case 'modal-confirm': return q('.fm-panel #cvm-confirm-version');
 		case 'modal-cancel': return byText(root, 'button', /^Cancel$/);
-		case 'modal-continue': { const m = q('.fm-panel'); return m ? byText(m, 'button', /^Roll back$/) : null; } /* the dialog's own confirm (its label is the verb), not the banner's button behind it */
+		case 'modal-continue': { const m = q('.fm-panel'); return m ? byText(m, 'button', /^Roll back( Roll back)?$/) : null; } /* the dialog's own confirm (its label is the verb), not the banner's button behind it */
 		case 'where-it-runs': return cardOf(root, /^Where it runs/i);
 		case 'gate-column': {
 			/* the gates column (every gate that feeds it) with the node, as one frame: whole cards only, so the dim hole never cuts a card mid-word; narrow enough for a true 1.5x */
