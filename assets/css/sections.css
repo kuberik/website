@@ -1,10 +1,10 @@
-/* Landing sections below the hero: landing v4's sections and isometric figs (scripts/landing-figs.mjs),
-   drawn in the v5 light look (tokens, stages, windows in home.css). Plain CSS.
-   Reference regions: stage panels = the hero's .stage; file windows = .mf (47px caption header, 12px radius);
-   chips/tags = the dashboard chip family; section header = label-less title + body (SPEC 1.2).
-   New by design (no v5 reference plays the role): .figs (five drawings in one band: Linear/Railway feature
-   row, proportions from the phase cards it replaces), .statement (Linear's two-tone paragraph), .deps-inner
-   (copy beside one large drawing, Railway's section split). */
+/* Landing sections below the hero (landing v5 page, .work/landing-v5/page/BRIEF.md): proof row, thesis (two-tone
+   statement + the five still isometric figs from landing v4, scripts/landing-figs.mjs), six even feature cards,
+   the four files, the install band, the footer. Plain CSS, v5 tokens (home.css), three hues only (PALETTE.md).
+   Reference regions: stage panels = the hero's .stage; feature visuals and file windows = the dashboard Card
+   (47px header, 16px icon, right rollup, rows with one 16px status column); chips = the dashboard chip family.
+   New by design: .feats (Linear's Features row + Railway's sub-feature anatomy: visual, name, title, two
+   sentences, kinds, one link), .statement-text (Linear's two-tone paragraph as the thesis h2). */
 
 :root{
   /* FIG TOKENS (PALETTE.md s4). Neutrals = dashboard --k-iso-* / --k-*; the only colour in a drawing is the
@@ -74,13 +74,12 @@ html.dark .vendor-mark{background-image:var(--logo-dark);opacity:.72}
 .proof-name{font:600 14px/20px var(--sans);color:var(--ink)}
 .proof-job{font:400 13px/20px var(--mono);color:var(--ink-subtle)}
 
-/* statement */
-.statement{margin-top:128px}
+/* thesis: the two-tone statement (Linear) is the section's h2; the five figures sit under it on the page ground */
 .statement-text{margin:0;max-width:1180px;font:500 clamp(24px,2.8vw,40px)/1.2 var(--sans);letter-spacing:-.022em;text-wrap:balance}
 .statement-claim{color:var(--ink)}
 .statement-rest{color:var(--statement-rest)}
 
-/* the drawings. Strokes: three weights only (FIGS-SPEC s3): 1 structure, 1.5 teal active, 2 the answer mark.
+/* the drawings are still (rest pose): the hero is the page's one animation (owner, landing v5). Strokes: three weights only (FIGS-SPEC s3): 1 structure, 1.5 teal active, 2 the answer mark.
    Dashes: 4 3 = "yours" (gate bar, health's outer ring); 0 4 round cap = trajectory (the release drop). */
 .fig{display:block;width:100%;height:auto;overflow:visible}
 .fig-top{fill:var(--fig-ground);stroke:var(--fig-top-line);stroke-width:1}
@@ -106,44 +105,14 @@ html.dark .vendor-mark{background-image:var(--logo-dark);opacity:.72}
 .fig-label{fill:var(--fig-label);font:500 13px/1 var(--mono);letter-spacing:.02em}
 /* motion groups: animate the <g>, never an element that carries a transform attribute (A5) */
 .m{transform-box:fill-box;transform-origin:center}
-/* REST POSE (no animation: reduced motion, or before the cell is live). Each fig tells its story alone. */
+/* REST POSE: each fig tells its story alone. */
 .m-rel-next,.m-rel-g3,.m-dp{opacity:0}
 .m-hp1{opacity:.5;transform:scale(.5)}.m-hp2{opacity:.22}   /* health: ring A at r 23, ring B at r 46 */
 .m-upd-cube{transform:var(--rest)}                           /* update: mid-ramp */
 .m-st-t,.m-stc-t{display:none}                               /* staircase: the finished picture */
 .m-st-pulse,.m-stc-pulse{opacity:0}
-/* ambient: runs only while the cell is on screen (sections.js sets .is-live, and --clk = the page clock so the
-   five figs stay in one sequence however they entered), never under reduced motion. One 6 s clock for the
-   row; fig n bursts at n x 1.1 s; the staircase plays once. Keyframes: landing-figs.gen.css. */
-@media(prefers-reduced-motion:no-preference){
-  .fig-cell.is-live{--d:calc(var(--i,0) * 1100ms - var(--clk,0ms))}
-  .is-live .m-rel-cube{animation:rel-cube 6s linear var(--d) infinite both}
-  .is-live .m-rel-next{animation:rel-next 6s linear var(--d) infinite both}
-  .is-live .m-rel-g1{animation:rel-g1 6s linear var(--d) infinite both}
-  .is-live .m-rel-g2{animation:rel-g2 6s linear var(--d) infinite both}
-  .is-live .m-rel-g3{animation:rel-g3 6s linear var(--d) infinite both}
-  .is-live .fig-release .fig-plate .fig-flash{animation:rel-flash 6s linear var(--d) infinite both}
-  .is-live .fig-scan{animation:scan 6s linear var(--d) infinite both}
-  .is-live .fig-check{animation:check 6s linear var(--d) infinite both}
-  .is-live .m-gate-bar{animation:gate-bar 6s linear var(--d) infinite both}
-  .is-live .m-gate-cube{animation:gate-cube 6s linear var(--d) infinite both}
-  .is-live .m-upd-cube{animation:upd-cube 6s linear var(--d) infinite both}
-  .is-live .fig-update .fig-up .fig-flash{animation:upd-flash 6s linear var(--d) infinite both}
-  .is-live .m-hp1{animation:hp 6s cubic-bezier(.16,1,.3,1) var(--d) infinite both}
-  .is-live .m-hp2{animation:hp 6s cubic-bezier(.16,1,.3,1) calc(var(--d) + 180ms) infinite both}
-  .is-live .m-dp{animation:hp 6s cubic-bezier(.16,1,.3,1) var(--d) infinite both}
-  .closing-art.is-live .m-st-t{display:block;animation:st-t 4.2s linear 0s 1 both}
-  .closing-art.is-live .m-st-s{animation:st-s 4.2s linear 0s 1 both}
-  .closing-art.is-live .m-st-p,.closing-art.is-live .st-ring{animation:st-p 4.2s linear 0s 1 both}
-  .closing-art.is-live .m-st-pulse{animation:st-pulse 4.2s cubic-bezier(.16,1,.3,1) 0s 1 both}
-  .closing-art.is-live .m-stc-t{display:block;animation:stc-t 4.2s linear 0s 1 both}
-  .closing-art.is-live .m-stc-s{animation:stc-s 4.2s linear 0s 1 both}
-  .closing-art.is-live .m-stc-p,.closing-art.is-live .stc-ring{animation:stc-p 4.2s linear 0s 1 both}
-  .closing-art.is-live .m-stc-pulse{animation:stc-pulse 4.2s cubic-bezier(.16,1,.3,1) 0s 1 both}
-}
-
 /* the loop: five figures */
-.figs{list-style:none;margin:56px calc(-1*var(--fig-gap,20px)) 0;padding:0;display:grid;grid-template-columns:repeat(5,minmax(0,1fr))}
+.figs{list-style:none;margin:64px calc(-1*var(--fig-gap,20px)) 0;padding:0;display:grid;grid-template-columns:repeat(5,minmax(0,1fr))}
 .fig-cell{display:flex;flex-direction:column;padding:0 20px;border-left:1px solid var(--fig-sep);min-width:0}
 .fig-cell:first-child{border-left-color:transparent}
 .fig-art{display:block;margin-bottom:24px}
@@ -153,8 +122,6 @@ html.dark .vendor-mark{background-image:var(--logo-dark);opacity:.72}
 .fig-own{margin-left:auto;height:22px;padding:0 8px;border-radius:6px;border:1px solid var(--line);background:color-mix(in oklab,var(--page) 70%,transparent);font:500 11px/20px var(--mono);color:var(--ink-muted)}
 .is-yours .fig-own{border-style:dashed;border-color:var(--fig-teal);color:var(--mint-ink)}
 .fig-q{margin:16px 0 0;font:600 18px/24px var(--sans);letter-spacing:-.01em;color:var(--ink);text-wrap:balance}
-.fig-tags{display:flex;flex-wrap:wrap;gap:6px;margin:12px 0 0;padding:0;list-style:none}
-.fig-tags li{height:24px;padding:0 8px;border-radius:6px;border:1px solid var(--line);background:color-mix(in oklab,var(--page) 70%,transparent);font:500 12px/22px var(--mono);color:var(--ink-muted)}
 @media(max-width:1199px){
   .figs{grid-template-columns:repeat(6,minmax(0,1fr));row-gap:48px}
   .figs .fig-cell{grid-column:span 2}
@@ -174,30 +141,6 @@ html.dark .vendor-mark{background-image:var(--logo-dark);opacity:.72}
   .figs .fig-tile,.figs .fig-ring,.fig-release .m-rel-g2,.fig-release .m-rel-g3{display:none}
 }
 @media(min-width:1024px) and (max-width:1199px){.figs .fig-cell{padding-top:8px}} /* A14: the upper plate's ring clears the frame edge */
-
-/* dependencies */
-.deps-inner{display:grid;grid-template-columns:minmax(0,1fr);gap:40px;align-items:center}
-.deps-copy{display:flex;flex-direction:column;align-items:flex-start;gap:20px}
-.deps-copy .title{max-width:none}
-.deps-copy .title-body{margin:0;max-width:46ch}
-.deps-art{display:block;padding:0;border:0}
-.deps-art.fig-cell{border-left:0;padding:0}
-.deps .fig-sub,.fig-sub{fill:var(--fig-label);font:500 12.5px/1 var(--mono)}
-.fig-sub.is-waiting{fill:var(--fig-wait)}
-.fig-env{fill:var(--ink);font-size:14px}
-/* RULE: a rendered label is >= 12px. The graph scales 0.8 (1200) to 1.4 (2560), so the user-unit size steps by breakpoint (measure: figs-design/scripts/measure2.mjs) */
-@media(min-width:1200px) and (max-width:1439px){.deps-wide .fig-env{font-size:16px}.deps-wide .fig-sub{font-size:15.5px}}
-@media(min-width:1920px){.deps-wide .fig-env{font-size:13px}.deps-wide .fig-sub{font-size:12px}}
-@media(min-width:2400px){.deps-wide .fig-env{font-size:10px}.deps-wide .fig-sub{font-size:9px}}
-.deps-compact{display:none}
-/* copy beside art from 1200; stacked below, with the art capped so it never renders under 0.45 scale (A11) */
-@media(min-width:1200px){.deps-inner{grid-template-columns:minmax(0,5fr) minmax(0,7fr);column-gap:64px}}
-@media(min-width:641px) and (max-width:1199px){.deps-wide{max-width:720px}}
-@media(max-width:640px){
-  .deps-wide{display:none}
-  .deps-compact{display:block;max-width:340px;margin-inline:auto}
-  .deps-compact .fig-env{font-size:14px}.deps-compact .fig-sub{font-size:14px}
-}
 
 /* everything you write: four file windows */
 .manifests{display:grid;grid-template-columns:minmax(0,1.25fr) minmax(0,1fr);gap:16px;margin-top:40px}
@@ -243,7 +186,7 @@ html.dark .vendor-mark{background-image:var(--logo-dark);opacity:.72}
 @media(min-width:1024px) and (max-width:1199px){.closing-wide{max-width:560px}.closing-art .fig-label{font-size:20px}}
 @media(max-width:1023px){.closing-wide{display:none}.closing-compact{display:block;width:300px;max-width:100%;margin-top:8px}}
 @media(max-width:640px){
-  .sec,.statement{margin-top:80px}
+  .sec{margin-top:80px}
   .head .title-body{margin-top:12px}
   .proof{margin-top:32px}
   .proof-row{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:16px;width:100%}
@@ -259,3 +202,84 @@ html.dark .vendor-mark{background-image:var(--logo-dark);opacity:.72}
 /* closing labels: >= 12px rendered at every width (scale 0.47 at 1200 to 0.82 at 2560) */
 @media(min-width:1200px) and (max-width:1439px){.closing-art .fig-label{font-size:27px}}
 @media(min-width:2400px){.closing-art .fig-label{font-size:18px}}
+
+/* ---- landing v5 page (BRIEF.md): status tokens for the feature visuals = dashboard language.css --k-success-*,
+   --k-warning-* (light / dark), used only inside .fv cards, as marks, never as areas. */
+:root{--ok-tint:oklch(.958 .045 155);--ok-line:oklch(.86 .06 155);--ok-fg:oklch(.47 .11 155);--ok-solid:oklch(.63 .14 155);
+  --wait-tint:oklch(.966 .066 88);--wait-line:oklch(.8 .15 78);--wait-fg:oklch(.5 .1 65);--line-strong:oklch(.862 .012 222)}
+html.dark{--ok-tint:oklch(.305 .062 155);--ok-line:oklch(.46 .1 155);--ok-fg:oklch(.8 .13 155);--ok-solid:oklch(.7 .15 155);
+  --wait-tint:oklch(.328 .07 80);--wait-line:oklch(.8 .15 78);--wait-fg:oklch(.85 .12 82);--line-strong:oklch(.38 .019 222)}
+
+/* thesis */
+.thesis .statement-text{max-width:1120px}
+.thesis .figs{margin-top:64px}
+
+/* features: three by two at >= 1024, two at >= 641, one on phones */
+.feats{list-style:none;margin:56px 0 0;padding:0;display:grid;grid-template-columns:repeat(3,minmax(0,1fr));column-gap:24px;row-gap:56px}
+.feat{display:flex;flex-direction:column;min-width:0;scroll-margin-top:96px}
+.feat-copy{flex:1;display:flex;flex-direction:column;align-items:flex-start;padding:24px 4px 0}
+.feat-name{margin:0;font:500 13px/20px var(--sans);color:var(--mint-ink)}
+.feat-title{margin:6px 0 0;font:600 18px/26px var(--sans);letter-spacing:-.01em;color:var(--ink);text-wrap:balance}
+.feat-body{margin:8px 0 0;font:400 15px/24px var(--sans);color:var(--ink-muted);text-wrap:pretty}
+.feat-kinds{display:flex;flex-wrap:wrap;gap:6px;margin:auto 0 0;padding:16px 0 0;list-style:none}
+.feat-kinds li{height:24px;padding:0 8px;border-radius:6px;border:1px solid var(--line);background:color-mix(in oklab,var(--page) 70%,transparent);font:500 12px/22px var(--mono);color:var(--ink-muted);white-space:nowrap}
+.feat .link-arrow{margin-top:16px;min-height:24px}
+@media(max-width:1023px){.feats{grid-template-columns:repeat(2,minmax(0,1fr));row-gap:48px}}
+@media(max-width:640px){.feats{grid-template-columns:minmax(0,1fr);row-gap:40px;margin-top:32px}.feat-copy{padding:20px 0 0}.feat-title{font-size:17px;line-height:24px}}
+
+/* feature visual = a dashboard Card, drawn in HTML so it reads at 1:1 and themes with the page */
+.fv{display:block}
+.fv-card{display:flex;flex-direction:column;min-height:216px;border-radius:12px;background:var(--page);border:1px solid var(--win-border);box-shadow:0 1px 2px oklch(.195 .014 222/.05),0 12px 32px -16px oklch(.195 .014 222/.16);overflow:hidden}
+html.dark .fv-card{background:var(--page-alt);box-shadow:0 12px 32px -16px rgba(0,0,0,.5)}
+.fv-head{display:flex;align-items:center;gap:8px;height:47px;flex:none;padding:0 16px;border-bottom:1px solid var(--line);min-width:0}
+.fv-icon{width:16px;height:16px;flex:none;color:var(--ink-muted)}
+.fv-title{font:600 14px/20px var(--sans);color:var(--ink);white-space:nowrap}
+.fv-ctx{font:400 13px/20px var(--sans);color:var(--ink-subtle);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;min-width:0}
+.fv-roll{margin-left:auto;padding-left:8px;font:500 12px/20px var(--sans);color:var(--ink-subtle);white-space:nowrap;font-variant-numeric:tabular-nums}
+.fv-rows{list-style:none;margin:0;padding:0}
+.fv-rows li{display:grid;grid-template-columns:16px auto minmax(0,1fr) auto;align-items:center;column-gap:10px;height:40px;padding:0 16px;border-top:1px solid var(--line)}
+.fv-rows li:first-child{border-top:0}
+.fv-name{font:500 13px/20px var(--sans);color:var(--ink);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;min-width:0}
+.fv-id{font:400 12px/20px var(--mono);color:var(--ink-subtle);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;min-width:0}
+.fv-state{font:500 12px/20px var(--sans);color:var(--ink-muted);white-space:nowrap;text-align:right}
+.fv-state.is-wait{color:var(--wait-fg)}
+.fv-dim{color:var(--ink-subtle);font-weight:400}
+.fv-num{font-variant-numeric:tabular-nums}
+.mk{width:16px;height:16px;flex:none;display:block}
+.mk circle{stroke-width:1}
+.mk path{fill:none;stroke-width:1.5;stroke-linecap:round;stroke-linejoin:round}
+.mk-ok circle{fill:var(--ok-tint);stroke:var(--ok-line)}.mk-ok path{stroke:var(--ok-fg)}
+.mk-wait circle{fill:var(--wait-tint);stroke:var(--wait-line)}.mk-wait path{stroke:var(--wait-fg)}
+.mk-run circle{fill:none;stroke:var(--line-strong)}.mk-run path{stroke:var(--ink-muted)}
+.mk-idle circle{fill:none;stroke:var(--line-strong)}
+/* bake: the one bar, neutral ink (time, not state) */
+.fv-bar{display:block;height:4px;border-radius:2px;background:var(--line);overflow:hidden;margin:0 4px}
+.fv-bar i{display:block;height:100%;width:calc(var(--p) * 100%);background:var(--ink-muted);border-radius:2px}
+/* canary steps */
+.fv-steps{list-style:none;margin:0;padding:14px 16px 12px;display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:10px;border-bottom:1px solid var(--line)}
+.fv-steps li{display:flex;flex-direction:column;gap:8px;min-width:0}
+.fv-step-bar{display:block;height:4px;border-radius:2px;background:var(--line)}
+.fv-steps .is-done .fv-step-bar{background:var(--ok-solid)}
+.fv-steps .is-run .fv-step-bar{background:linear-gradient(90deg,var(--ink-muted) 40%,var(--line) 40%)}
+.fv-step-l{display:flex;align-items:center;gap:6px;font:600 13px/20px var(--mono);color:var(--ink)}
+.fv-step-s{font:400 12px/16px var(--sans);color:var(--ink-subtle)}
+.fv-rows-tight li{height:40px}
+/* releases */
+.fv-rel li{grid-template-columns:48px 60px minmax(0,1fr) auto}
+.fv-ver{font:500 13px/20px var(--mono);color:var(--ink)}
+.fv-rel .fv-name{font-weight:400;color:var(--ink-muted)}
+/* gitops diff: the one line kuberik writes, in the brand mint (the .mf .var grammar) */
+.fv-diff{margin:0;padding:12px 16px;flex:1;font:400 12px/20px var(--mono);color:var(--ink-subtle);border-bottom:1px solid var(--line);overflow:hidden;white-space:pre}
+.fv-diff span{display:block}
+.fv-diff .del{color:var(--ink-subtle);text-decoration:line-through;text-decoration-color:color-mix(in oklab,var(--ink-subtle) 60%,transparent)}
+.fv-diff .add{margin:0 -16px;padding:0 16px;background:color-mix(in oklab,var(--mint) 14%,transparent);color:var(--mint-ink);font-weight:500}
+
+/* footer: brand + three link columns (Railway/Linear footers, sized to what we have) */
+.foot{padding:56px 0 64px}
+.foot .foot-grid{display:grid;grid-template-columns:minmax(0,2fr) repeat(3,minmax(0,1fr));gap:32px;align-items:start}
+.foot-brand p{margin:12px 0 0;font:400 13px/20px var(--sans);color:var(--ink-subtle)}
+.foot .foot-col{display:flex;flex-direction:column;align-items:flex-start;gap:2px;margin:0;flex-wrap:nowrap}
+.foot-col h2{margin:0 0 8px;font:600 13px/20px var(--sans);color:var(--ink)}
+.foot-col a{display:inline-flex;align-items:center;min-height:32px;font:400 14px/20px var(--sans);color:var(--ink-subtle)}
+.foot-col a:hover{color:var(--ink)}
+@media(max-width:767px){.foot .foot-grid{grid-template-columns:repeat(2,minmax(0,1fr));row-gap:40px}.foot-brand{grid-column:1/-1}}

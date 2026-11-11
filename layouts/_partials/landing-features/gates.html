@@ -1,0 +1,10 @@
+{{- /* Gates: the four kinds of gate on one environment, three passed and the dependency still holding. */ -}}
+<div class="fv-card">
+  <div class="fv-head">{{ partial "landing-features/icon.html" "gates" }}<span class="fv-title">Gates</span><span class="fv-ctx">production</span><span class="fv-roll">3 of 4 passed</span></div>
+  <ul class="fv-rows">
+    <li>{{ partial "landing-features/mark.html" "ok" }}<span class="fv-name">Business hours</span><span class="fv-id">Mon–Fri 09–17</span><span class="fv-state">Open</span></li>
+    <li>{{ partial "landing-features/mark.html" "ok" }}<span class="fv-name">After staging</span><span class="fv-id">baked 10m</span><span class="fv-state">Passed</span></li>
+    <li>{{ partial "landing-features/mark.html" "ok" }}<span class="fv-name">Approval</span><span class="fv-id">noah-carter</span><span class="fv-state">Approved</span></li>
+    <li>{{ partial "landing-features/mark.html" "wait" }}<span class="fv-name">payments-svc</span><span class="fv-id">^3.1.0</span><span class="fv-state is-wait">Waiting</span></li>
+  </ul>
+</div>

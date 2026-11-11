@@ -1,0 +1,10 @@
+{{- /* Health checks: three sources, all healthy, and the bake that has to run out before the build counts. */ -}}
+<div class="fv-card">
+  <div class="fv-head">{{ partial "landing-features/icon.html" "health" }}<span class="fv-title">Health checks</span><span class="fv-ctx">checkout-api</span><span class="fv-roll">3 of 3 healthy</span></div>
+  <ul class="fv-rows">
+    <li>{{ partial "landing-features/mark.html" "ok" }}<span class="fv-name">Resources</span><span class="fv-id">12 of 12 ready</span><span class="fv-state">Healthy</span></li>
+    <li>{{ partial "landing-features/mark.html" "ok" }}<span class="fv-name">error-rate</span><span class="fv-id">not firing</span><span class="fv-state">Healthy</span></li>
+    <li>{{ partial "landing-features/mark.html" "ok" }}<span class="fv-name">latency-p99</span><span class="fv-id">monitor OK</span><span class="fv-state">Healthy</span></li>
+    <li class="fv-bake">{{ partial "landing-features/mark.html" "run" }}<span class="fv-name">Bake</span><span class="fv-bar" style="--p:.64"><i></i></span><span class="fv-state fv-num">6m 24s of 10m</span></li>
+  </ul>
+</div>
