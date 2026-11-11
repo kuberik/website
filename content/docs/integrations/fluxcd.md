@@ -3,15 +3,15 @@ title: "FluxCD Integration"
 weight: 1
 ---
 
-Kuberik uses FluxCD for image automation and GitOps deployments.
+Kuberik uses FluxCD for GitOps deployments. Flux applies your manifests; Kuberik decides which version it applies, and discovers new versions itself with a [`ReleaseSource`](#release-source-setup).
 
 ## Overview
 
-FluxCD provides two critical capabilities for Kuberik:
+FluxCD provides the delivery half of Kuberik:
 
 | Component | Purpose |
 |-----------|---------|
-| **ImageRepository** + **ImagePolicy** | Detects new tags on an image or manifest artifact |
+| **GitRepository** | Holds the manifests in image tag mode |
 | **Kustomization** | Applies versioned manifests to the cluster |
 | **OCIRepository** | Pulls rendered manifests published as an OCI artifact |
 
@@ -20,7 +20,7 @@ Kuberik drives one of two of these. Annotate a `Kustomization` and Kuberik subst
 {{< callout type="warning" >}}
 **Everything in the Rollout's Namespace**
 
-Kuberik resolves the `ImagePolicy` and lists `Kustomization` and `OCIRepository` resources in the Rollout's own namespace. Resources in `flux-system` are not seen by a Rollout in `my-app`.
+Kuberik resolves the `ReleaseSource` and lists `Kustomization` and `OCIRepository` resources in the Rollout's own namespace. Resources in `flux-system` are not seen by a Rollout in `my-app`.
 {{< /callout >}}
 
 ```mermaid
@@ -39,21 +39,19 @@ flowchart LR
         direction TB
 
         subgraph FluxCD ["FluxCD System"]
-            IR[ImageRepository]:::flux
-            IP[ImagePolicy]:::flux
             OCIR[OCIRepository]:::flux
             KS[Kustomization]:::flux
         end
 
         subgraph Kuberik ["Kuberik"]
+            RS[ReleaseSource]:::kuberik
             RO[Rollout]:::kuberik
         end
     end
 
-    REG --> IR
+    REG --> RS
     REG --> OCIR
-    IR --> IP
-    IP --> RO
+    RS --> RO
     OCIR --> KS
     RO -.->|Substitutes Version| KS
     RO -.->|Moves Tag| OCIR
@@ -65,79 +63,77 @@ flowchart LR
 
 
 
-## Image Automation Setup
+## Release Source Setup
 
-### Create ImageRepository
+New versions are discovered by a Kuberik `ReleaseSource`, not by Flux image automation. It lists the tags of an OCI repository, orders them by a policy, and keeps the result as the catalogue your Rollout reads. You do not need `ImageRepository` or `ImagePolicy` resources for this.
 
-Tell Flux where to scan for new tags. Point it at your application image, or at the manifest artifact your CI publishes for this environment:
+### Create a ReleaseSource
 
-```yaml {filename="image-repo.yaml"}
-apiVersion: image.toolkit.fluxcd.io/v1beta2
-kind: ImageRepository
-metadata:
-  name: my-app
-  namespace: my-app
-spec:
-  image: ghcr.io/my-org/my-app
-  interval: 5m
-  # For private registries
-  secretRef:
-    name: registry-credentials
-```
-
-### Create ImagePolicy
-
-Define which tags to consider:
+Point it at your application image, or at the manifest artifact your CI publishes for this environment, and pick how tags are ordered:
 
 {{< tabs >}}
   {{< tab name="SemVer" >}}
   **Semantic Versioning (Recommended)**
 
-  ```yaml {filename="image-policy-semver.yaml"}
-  apiVersion: image.toolkit.fluxcd.io/v1beta2
-  kind: ImagePolicy
+  ```yaml {filename="releasesource-semver.yaml"}
+  apiVersion: kuberik.com/v1alpha1
+  kind: ReleaseSource
   metadata:
     name: my-app
     namespace: my-app
   spec:
-    imageRepositoryRef:
-      name: my-app
-    policy:
-      semver:
-        range: ">=1.0.0"
+    oci:
+      image: ghcr.io/my-org/my-app
+      # For private registries
+      secretRef:
+        name: registry-credentials
+      policy:
+        semver:
+          range: ">=1.0.0"
   ```
   {{< /tab >}}
 
-  {{< tab name="Alphabetical" >}}
-  **Alphabetical / Numerical**
+  {{< tab name="Numerical" >}}
+  **Numerical / Alphabetical**
 
-  Useful for timestamps or build numbers:
+  Useful for timestamps or build numbers. `filterTags` keeps matching tags and extracts the part to order by:
 
-  ```yaml {filename="image-policy-alpha.yaml"}
-  apiVersion: image.toolkit.fluxcd.io/v1beta2
-  kind: ImagePolicy
+  ```yaml {filename="releasesource-numerical.yaml"}
+  apiVersion: kuberik.com/v1alpha1
+  kind: ReleaseSource
   metadata:
     name: my-app
     namespace: my-app
   spec:
-    imageRepositoryRef:
-      name: my-app
-    policy:
-      alphabetical:
-        order: desc
+    oci:
+      image: ghcr.io/my-org/my-app
+      filterTags:
+        pattern: '^main-[a-f0-9]+-(?P<ts>[0-9]+)'
+        extract: '$ts'
+      policy:
+        numerical:
+          order: asc
   ```
   {{< /tab >}}
 {{< /tabs >}}
 
+Then reference it from the Rollout with `spec.releaseSourceRef`.
+
+{{< callout type="info" >}}
+**Already have an ImagePolicy?**
+
+A ReleaseSource can reuse it: set `spec.oci.imagePolicyRef.name` instead of `image` and `policy`. Rollouts that still use `spec.releasesImagePolicy` keep working, but that field is deprecated.
+{{< /callout >}}
+
 ### Verify Discovery
 
-Check that Flux found your images:
+Check that the source found your tags:
 
 ```bash
-kubectl get imagepolicy -n my-app my-app
+kubectl get releasesource -n my-app my-app
 ```
 
-Expected output shows the latest matching version.
+The source reports `Ready` once its catalogue is populated, and shows the newest release it found.
 
 ---
 
@@ -286,11 +282,11 @@ This checks if the Kustomization's `Ready` condition is true.
 
 {{% details title="Troubleshooting" %}}
 
-### ImagePolicy not finding versions
+### ReleaseSource not finding versions
 
-1. Check ImageRepository status:
+1. Check the ReleaseSource status and conditions:
    ```bash
-   kubectl describe imagerepository -n my-app my-app
+   kubectl describe releasesource -n my-app my-app
    ```
 
 2. Verify registry authentication:
@@ -310,9 +306,9 @@ This checks if the Kustomization's `Ready` condition is true.
 ### Common Issues
 
 {{< callout type="warning" >}}
-**ImageRepository showing "Failed"**
+**ReleaseSource not ready, `SourceReachable` false**
 
-Usually indicates authentication issues or invalid image path. Check the repository name matches your container registry exactly.
+Usually indicates authentication issues or an invalid image path. Check the image name matches your container registry exactly.
 {{< /callout >}}
 
 {{< callout type="info" >}}

@@ -87,7 +87,7 @@ kind: Rollout
 metadata:
   name: my-app
 spec:
-  releasesImagePolicy:
+  releaseSourceRef:
     name: my-app
   versionHistoryLimit: 5
   bakeTime: 10m

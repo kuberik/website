@@ -69,7 +69,7 @@ kubectl apply --server-side -f https://github.com/kuberik/openkruise-controller/
 
 {{< badge content="Canary Deployments" >}} {{< badge content="Traffic Shifting" >}}
 
-See [FluxCD Integration](/docs/integrations/fluxcd/) for image automation setup.
+See [FluxCD Integration](/docs/integrations/fluxcd/) for GitOps setup, and [Getting Started](/docs/getting-started/) for creating your first ReleaseSource.
 
 {{% /details %}}
 

@@ -7,7 +7,7 @@ A **Rollout** is the central resource in Kuberik. It tracks versions of an OCI a
 
 ## What is a Rollout?
 
-A Rollout watches a FluxCD `ImagePolicy` for new tags. When a new version is detected, the Rollout:
+A Rollout reads new versions from a [`ReleaseSource`](/docs/reference/api/), which watches an OCI repository for new tags. When a new version is detected, the Rollout:
 
 {{% steps %}}
 
@@ -37,8 +37,8 @@ metadata:
   name: my-app
   namespace: default
 spec:
-  # Watch this ImagePolicy for new versions
-  releasesImagePolicy:
+  # Read new versions from this ReleaseSource
+  releaseSourceRef:
     name: my-app
 
   # How many versions to keep in history
@@ -58,7 +58,8 @@ spec:
 
 | Field | Purpose |
 |-------|---------|
-| `releasesImagePolicy` | Reference to the FluxCD ImagePolicy that provides new versions. Resolved in the Rollout's namespace. |
+| `releaseSourceRef` | Reference to the `ReleaseSource` that provides new versions. Resolved in the Rollout's namespace. |
+| `releasesImagePolicy` | Deprecated. Reference to a Flux ImagePolicy, used only by Rollouts without `releaseSourceRef`. |
 | `versionHistoryLimit` | How many past versions to retain in status |
 | `bakeTime` | Duration to wait and verify health after deployment (e.g., `5m`, `1h`) |
 | `healthCheckSelector` | Label selector to find HealthCheck resources to evaluate |

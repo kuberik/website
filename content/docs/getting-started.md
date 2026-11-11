@@ -20,74 +20,59 @@ Pick a mode in the tabs below and it carries through the guide. Both modes use t
 
 {{% steps %}}
 
-### Configure Image Automation
+### Create a ReleaseSource
 
-Tell Flux which artifact to scan for new versions. Your CI publishes these artifacts with `main-<sha>-<timestamp>` tags — see [Publishing Releases](/docs/guides/publishing-releases/) for the workflows.
+Tell Kuberik which artifact to scan for new versions. A `ReleaseSource` lists the tags of an OCI repository, orders them by a policy, and keeps the result as the catalogue of releases your Rollout reads. Your CI publishes these artifacts with `main-<sha>-<timestamp>` tags — see [Publishing Releases](/docs/guides/publishing-releases/) for the workflows.
 
 {{< tabs >}}
   {{< tab name="Image tag" >}}
   Scan the container image your application is built into.
 
-  ```yaml {filename="image-automation.yaml"}
-  apiVersion: image.toolkit.fluxcd.io/v1beta2
-  kind: ImageRepository
+  ```yaml {filename="releasesource.yaml"}
+  apiVersion: kuberik.com/v1alpha1
+  kind: ReleaseSource
   metadata:
     name: hello-world-app
     namespace: hello-world
   spec:
-    image: ghcr.io/kuberik/hello-world/app
-    interval: 60s
-  ---
-  apiVersion: image.toolkit.fluxcd.io/v1beta2
-  kind: ImagePolicy
-  metadata:
-    name: hello-world-app
-    namespace: hello-world
-  spec:
-    imageRepositoryRef:
-      name: hello-world-app
-    policy:
-      alphabetical:
-        order: asc # Kuberik picks the last one (highest timestamp)
-    filterTags:
-      pattern: '^main-[a-f0-9]+-(?P<ts>[0-9]+)'
-      extract: '$ts'
+    oci:
+      image: ghcr.io/kuberik/hello-world/app
+      filterTags:
+        pattern: '^main-[a-f0-9]+-(?P<ts>[0-9]+)'
+        extract: '$ts'
+      policy:
+        numerical:
+          order: asc # the highest timestamp is the newest release
   ```
   {{< /tab >}}
 
   {{< tab name="Rendered manifests" >}}
-  Scan the manifest artifact CI pushes for this environment. Flux reads tags from an OCI artifact the same way it reads them from a container image, so the setup is identical apart from the repository path.
+  Scan the manifest artifact CI pushes for this environment. A ReleaseSource reads tags from an OCI artifact the same way it reads them from a container image, so the setup is identical apart from the repository path.
 
-  ```yaml {filename="image-automation.yaml"}
-  apiVersion: image.toolkit.fluxcd.io/v1beta2
-  kind: ImageRepository
+  ```yaml {filename="releasesource.yaml"}
+  apiVersion: kuberik.com/v1alpha1
+  kind: ReleaseSource
   metadata:
     name: hello-world-app
     namespace: hello-world
   spec:
-    image: ghcr.io/kuberik/hello-world/prod/manifests
-    interval: 60s
-  ---
-  apiVersion: image.toolkit.fluxcd.io/v1beta2
-  kind: ImagePolicy
-  metadata:
-    name: hello-world-app
-    namespace: hello-world
-  spec:
-    imageRepositoryRef:
-      name: hello-world-app
-    policy:
-      alphabetical:
-        order: asc # Kuberik picks the last one (highest timestamp)
-    filterTags:
-      pattern: '^main-[a-f0-9]+-(?P<ts>[0-9]+)'
-      extract: '$ts'
+    oci:
+      image: ghcr.io/kuberik/hello-world/prod/manifests
+      filterTags:
+        pattern: '^main-[a-f0-9]+-(?P<ts>[0-9]+)'
+        extract: '$ts'
+      policy:
+        numerical:
+          order: asc # the highest timestamp is the newest release
   ```
   {{< /tab >}}
 {{< /tabs >}}
 
+Private registry? Add `secretRef` under `oci` with the name of an image pull secret in the same namespace. Releases are kept for 7 days and at least 30 are retained; tune this with `spec.retention`.
+
 ```bash
-kubectl apply -f image-automation.yaml
+kubectl apply -f releasesource.yaml
+kubectl get releasesource -n hello-world
 ```
 
 ### Create the Rollout
@@ -101,7 +86,7 @@ metadata:
   name: hello-world-app
   namespace: hello-world
 spec:
-  releasesImagePolicy:
+  releaseSourceRef:
     name: hello-world-app
 ```
 
@@ -110,7 +95,7 @@ kubectl apply -f rollout.yaml
 ```
 
 {{< callout type="warning" >}}
-Kuberik resolves the `ImagePolicy` and the resources it drives in the Rollout's own namespace. Keep the `Rollout`, `ImagePolicy`, `Kustomization`, and `OCIRepository` together in one namespace.
+Kuberik resolves the `ReleaseSource` and the resources it drives in the Rollout's own namespace. Keep the `Rollout`, `ReleaseSource`, `Kustomization`, and `OCIRepository` together in one namespace.
 {{< /callout >}}
 
 ### Deploy with Kuberik

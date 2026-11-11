@@ -1492,13 +1492,21 @@ RolloutSpec defines the desired state of Rollout.
 <tbody>
     
   
+<tr><td><code>releaseSourceRef</code>
+      
+<br/>
+<a href="https://kubernetes.io/docs/reference/generated/kubernetes-api/v1.24/#localobjectreference-v1-core"><code>LocalObjectReference</code></a>
+</td>
+<td>
+   ReleaseSourceRef names a <a href="#ReleaseSource"><code>ReleaseSource</code></a> in the same namespace that provides this Rollout's releases. The Rollout reads them from the source's <a href="#ReleaseSlice"><code>ReleaseSlice</code></a> catalogue. A Rollout without it uses <code>releasesImagePolicy</code>. Requires the release-controller CRDs to be installed.</td>
+</tr>
 <tr><td><code>releasesImagePolicy</code>
       
 <br/>
 <a href="https://kubernetes.io/docs/reference/generated/kubernetes-api/v1.24/#localobjectreference-v1-core"><code>LocalObjectReference</code></a>
 </td>
 <td>
-   ReleasesImagePolicy specifies the ImagePolicy that provides available releases</td>
+   <strong>Deprecated:</strong> use <code>releaseSourceRef</code>. ReleasesImagePolicy specifies the ImagePolicy that provides available releases. Still read by Rollouts that do not set <code>releaseSourceRef</code>; will be removed in a later release. One of <code>releasesImagePolicy</code> or <code>releaseSourceRef</code> must be set.</td>
 </tr>
 <tr><td><code>wantedVersion</code>
       
@@ -1522,7 +1530,7 @@ RolloutSpec defines the desired state of Rollout.
 <code>int32</code>
 </td>
 <td>
-   AvailableReleasesRetentionDays defines how many days of available releases to keep based on creation timestamp
+   <strong>Deprecated:</strong> use <code>retention.days</code> on the ReleaseSource. AvailableReleasesRetentionDays defines how many days of available releases to keep based on creation timestamp
 When history is full, releases older than this retention period may be removed.
 Defaults to 7 days if not specified.</td>
 </tr>
@@ -1532,7 +1540,7 @@ Defaults to 7 days if not specified.</td>
 <code>int32</code>
 </td>
 <td>
-   AvailableReleasesMinCount defines the minimum number of available releases to always keep
+   <strong>Deprecated:</strong> use <code>retention.minCount</code> on the ReleaseSource. AvailableReleasesMinCount defines the minimum number of available releases to always keep
 When history is full, at least this many releases will be retained regardless of other criteria.
 Defaults to 30 if not specified.</td>
 </tr>
@@ -1603,13 +1611,29 @@ RolloutStatus defines the observed state of Rollout.
    History tracks the deployment history of this Rollout.
 Each entry contains the version deployed and the timestamp of the deployment.</td>
 </tr>
+<tr><td><code>releaseSource</code>
+      
+<br/>
+<code>ReleaseSourceStatusRef</code>
+</td>
+<td>
+   Summarises the ReleaseSource this Rollout reads: its name, whether it is ready, how many releases the catalogue holds and the newest tag.</td>
+</tr>
+<tr><td><code>candidates</code>
+      
+<br/>
+<code>[]ReleaseCandidate</code>
+</td>
+<td>
+   The releases this Rollout could deploy next, newest first: the newest releases newer than the deployed one, plus any release a gate, annotation or <code>wantedVersion</code> names. Each entry has <code>tag</code>, <code>created</code>, <code>firstSeen</code>, <code>gated</code> and <code>blockedBy</code>.</td>
+</tr>
 <tr><td><code>availableReleases</code>
       
 <br/>
 <a href="#VersionInfo"><code>[]VersionInfo</code></a>
 </td>
 <td>
-   AvailableReleases is a list of all releases available in the releases repository.</td>
+   <strong>Deprecated:</strong> read <code>candidates</code> and the ReleaseSlice catalogue instead. AvailableReleases is a list of all releases available in the releases repository.</td>
 </tr>
 <tr><td><code>releaseCandidates</code>
       
@@ -1617,7 +1641,7 @@ Each entry contains the version deployed and the timestamp of the deployment.</t
 <a href="#VersionInfo"><code>[]VersionInfo</code></a>
 </td>
 <td>
-   ReleaseCandidates is a list of releases that are candidates for the next deployment.
+   <strong>Deprecated:</strong> read <code>candidates</code> instead. ReleaseCandidates is a list of releases that are candidates for the next deployment.
 These are filtered from AvailableReleases based on deployment history and version ordering.</td>
 </tr>
 <tr><td><code>gatedReleaseCandidates</code>
@@ -1626,7 +1650,7 @@ These are filtered from AvailableReleases based on deployment history and versio
 <a href="#VersionInfo"><code>[]VersionInfo</code></a>
 </td>
 <td>
-   GatedReleaseCandidates is a list of release candidates that have passed through all gates.
+   <strong>Deprecated:</strong> read <code>candidates</code> (its <code>gated</code> field) instead. GatedReleaseCandidates is a list of release candidates that have passed through all gates.
 This shows which versions are actually available for deployment after gate evaluation.</td>
 </tr>
 <tr><td><code>gates</code>
@@ -1870,6 +1894,270 @@ VersionInfo represents detailed information about a version.
 </td>
 <td>
    Created is the creation timestamp extracted from OCI annotations if available.</td>
+</tr>
+</tbody>
+</table>
+
+---
+
+# Release API
+
+**Resource Types:**
+
+- [ReleaseSource](#ReleaseSource)
+- [ReleaseSlice](#ReleaseSlice)
+
+Served by the release-controller, group <code>kuberik.com/v1alpha1</code>. A <code>ReleaseSource</code> is what you write; the <code>ReleaseSlice</code> objects are the catalogue it produces.
+
+## ReleaseSource     {#ReleaseSource}
+
+ReleaseSource lists the tags of an OCI repository, orders them by a policy and keeps them as a catalogue of releases. Short name <code>relsrc</code>. Create one per image, in the namespace of the Rollouts that read it.
+
+<table>
+<thead><tr><th width="30%">Field</th><th>Description</th></tr></thead>
+<tbody>
+<tr><td><code>spec</code>
+      
+<br/>
+<a href="#ReleaseSourceSpec"><code>ReleaseSourceSpec</code></a>
+</td>
+<td></td>
+</tr>
+<tr><td><code>status</code>
+      
+<br/>
+<a href="#ReleaseSourceStatus"><code>ReleaseSourceStatus</code></a>
+</td>
+<td>
+   Written by the release-controller.</td>
+</tr>
+</tbody>
+</table>
+
+### ReleaseSourceSpec     {#ReleaseSourceSpec}
+
+<table>
+<thead><tr><th width="30%">Field</th><th>Description</th></tr></thead>
+<tbody>
+<tr><td><code>oci</code>
+      
+<br/>
+<a href="#OCISource"><code>OCISource</code></a>
+</td>
+<td>
+   Lists the tags of an OCI repository.</td>
+</tr>
+<tr><td><code>interval</code>
+      
+<br/>
+<a href="https://kubernetes.io/docs/reference/generated/kubernetes-api/v1.24/#duration-v1-meta"><code>Duration</code></a>
+</td>
+<td>
+   Interval between syncs, at least <code>10s</code>. Defaults to <code>1m</code>.</td>
+</tr>
+<tr><td><code>suspend</code>
+      
+<br/>
+<code>bool</code>
+</td>
+<td>
+   Stops syncing while true.</td>
+</tr>
+<tr><td><code>retention</code>
+      
+<br/>
+<a href="#Retention"><code>Retention</code></a>
+</td>
+<td>
+   When whole old slices are dropped.</td>
+</tr>
+</tbody>
+</table>
+
+### OCISource     {#OCISource}
+
+Exactly one of <code>image</code> or <code>imagePolicyRef</code> must be set. <code>policy</code> is required with <code>image</code>.
+
+<table>
+<thead><tr><th width="30%">Field</th><th>Description</th></tr></thead>
+<tbody>
+<tr><td><code>image</code>
+      
+<br/>
+<code>string</code>
+</td>
+<td>
+   The repository, for example <code>ghcr.io/org/app</code>.</td>
+</tr>
+<tr><td><code>secretRef</code>
+      
+<br/>
+<a href="https://kubernetes.io/docs/reference/generated/kubernetes-api/v1.24/#localobjectreference-v1-core"><code>LocalObjectReference</code></a>
+</td>
+<td>
+   Names a <code>kubernetes.io/dockerconfigjson</code> Secret for a private registry.</td>
+</tr>
+<tr><td><code>insecure</code>
+      
+<br/>
+<code>bool</code>
+</td>
+<td>
+   Allows plain HTTP registries.</td>
+</tr>
+<tr><td><code>filterTags</code>
+      
+<br/>
+<code>TagFilter</code>
+</td>
+<td>
+   Keeps only tags matching <code>pattern</code> (a regular expression) and applies <code>extract</code> (a capture-group expression) before ordering.</td>
+</tr>
+<tr><td><code>policy</code>
+      
+<br/>
+<code>OrderPolicy</code>
+</td>
+<td>
+   How tags are ordered: exactly one of <code>semver</code> (<code>range</code>), <code>alphabetical</code> (<code>order</code>) or <code>numerical</code> (<code>order</code>).</td>
+</tr>
+<tr><td><code>imagePolicyRef</code>
+      
+<br/>
+<a href="https://kubernetes.io/docs/reference/generated/kubernetes-api/v1.24/#localobjectreference-v1-core"><code>LocalObjectReference</code></a>
+</td>
+<td>
+   Reads <code>image</code>, <code>secretRef</code>, <code>filterTags</code> and <code>policy</code> from an existing Flux ImagePolicy and its ImageRepository. <code>policy</code> and <code>filterTags</code> must not be set with it.</td>
+</tr>
+</tbody>
+</table>
+
+### Retention     {#Retention}
+
+<table>
+<thead><tr><th width="30%">Field</th><th>Description</th></tr></thead>
+<tbody>
+<tr><td><code>days</code>
+      
+<br/>
+<code>int32</code>
+</td>
+<td>
+   Days after which a release counts as expired. <code>0</code> means age never expires anything. Defaults to <code>7</code>.</td>
+</tr>
+<tr><td><code>minCount</code>
+      
+<br/>
+<code>int32</code>
+</td>
+<td>
+   The number of newest releases always kept. Defaults to <code>30</code>.</td>
+</tr>
+</tbody>
+</table>
+
+### ReleaseSourceStatus     {#ReleaseSourceStatus}
+
+<table>
+<thead><tr><th width="30%">Field</th><th>Description</th></tr></thead>
+<tbody>
+<tr><td><code>newest</code>
+      
+<br/>
+<code>ReleaseRef</code>
+</td>
+<td>
+   The newest release in the catalogue: <code>tag</code>, <code>created</code> and <code>revision</code>.</td>
+</tr>
+<tr><td><code>count</code>
+      
+<br/>
+<code>int32</code>
+</td>
+<td>
+   The number of releases in the catalogue.</td>
+</tr>
+<tr><td><code>sliceCount</code>
+      
+<br/>
+<code>int32</code>
+</td>
+<td>
+   The number of ReleaseSlices.</td>
+</tr>
+<tr><td><code>backfillComplete</code>
+      
+<br/>
+<code>bool</code>
+</td>
+<td>
+   Whether the walk back through older tags has finished.</td>
+</tr>
+<tr><td><code>lastSyncTime</code>
+      
+<br/>
+<a href="https://kubernetes.io/docs/reference/generated/kubernetes-api/v1.24/#time-v1-meta"><code>Time</code></a>
+</td>
+<td>
+   When the source was last synced.</td>
+</tr>
+<tr><td><code>conditions</code>
+      
+<br/>
+<code>[]Condition</code>
+</td>
+<td>
+   <code>Ready</code> (the catalogue is usable), <code>SourceReachable</code> (the registry answered the last sync) and <code>Syncing</code>.</td>
+</tr>
+</tbody>
+</table>
+
+## ReleaseSlice     {#ReleaseSlice}
+
+ReleaseSlice holds a bounded chunk of a ReleaseSource catalogue, like an EndpointSlice. It has no spec or status. The release-controller writes it; do not edit it. Short name <code>relslice</code>.
+
+<table>
+<thead><tr><th width="30%">Field</th><th>Description</th></tr></thead>
+<tbody>
+<tr><td><code>source</code>
+      
+<br/>
+<code>string</code>
+</td>
+<td>
+   The name of the owning ReleaseSource. Immutable.</td>
+</tr>
+<tr><td><code>sealed</code>
+      
+<br/>
+<code>bool</code>
+</td>
+<td>
+   A sealed slice takes no new releases. Once true it stays true.</td>
+</tr>
+<tr><td><code>oldestCreated</code>
+      
+<br/>
+<a href="https://kubernetes.io/docs/reference/generated/kubernetes-api/v1.24/#time-v1-meta"><code>Time</code></a>
+</td>
+<td>
+   Creation time of the oldest release in the slice.</td>
+</tr>
+<tr><td><code>newestCreated</code>
+      
+<br/>
+<a href="https://kubernetes.io/docs/reference/generated/kubernetes-api/v1.24/#time-v1-meta"><code>Time</code></a>
+</td>
+<td>
+   Creation time of the newest release in the slice.</td>
+</tr>
+<tr><td><code>releases</code>
+      
+<br/>
+<code>[]Release</code>
+</td>
+<td>
+   The releases, sorted by <code>sequence</code>. Each has <code>tag</code>, <code>sequence</code>, <code>created</code>, <code>firstSeen</code> and optionally <code>digest</code>, <code>version</code>, <code>revision</code>, <code>requires</code> and <code>url</code>. Readers order by <code>sequence</code>, not <code>created</code>.</td>
 </tr>
 </tbody>
 </table>

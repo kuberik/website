@@ -34,8 +34,8 @@ kind: Rollout
 metadata:
   name: my-app
 spec:
-  releasesImagePolicy:
-    name: my-app-policy
+  releaseSourceRef:
+    name: my-app
   bakeTime: 5m
   healthCheckSelector:
     selector:
