@@ -89,13 +89,13 @@ import { flipRecord, flipPlay, type Pos } from './flip';
 	function coverWith(c: HTMLElement) {
 		snapEl?.remove(); snapEl = c; camEl!.insertBefore(c, group!.nextSibling); hid = true;
 	}
-	async function settleThenReveal(c: HTMLElement, rec: Pos | null = null) {
+	async function settleThenReveal(c: HTMLElement, rec: Pos | null = null, minMs = 180) {
 		const t0 = performance.now(); let last = group!.offsetHeight, since = t0;
-		while (performance.now() - t0 < 700) {
+		while (performance.now() - t0 < Math.max(700, minMs + 300)) {
 			await new Promise((r) => requestAnimationFrame(r));
 			if (c !== snapEl || !group) return;
 			const h = group.offsetHeight; if (h !== last) { last = h; since = performance.now(); }
-			if (performance.now() - since > 110 && performance.now() - t0 > 180) break;
+			if (performance.now() - since > 110 && performance.now() - t0 > minMs) break;
 		}
 		if (c !== snapEl) return;
 		hid = false; snapEl = null;
@@ -116,8 +116,8 @@ import { flipRecord, flipPlay, type Pos } from './flip';
 			if (p.flip) { const rec = p.flip; void tick().then(() => { if (group && !swapping && !hid) flipPlay(group, rec, unit()); }); return; } /* the product's one-step reflow plays as a slide by transform (flip.ts): no layout shift */
 			if (!p.el) return;
 			void tick().then(() => tick()).then(() => {
-				if (!group || swapping || hid || Math.abs(group.offsetHeight - p.h) < 3) return; /* nothing moved: no cover */
-				coverWith(p.el!); void settleThenReveal(p.el!, p.rec);
+				if (!group || swapping || hid || (CW < 1000 && Math.abs(group.offsetHeight - p.h) < 3)) return; /* nothing moved: no cover (phone). The one desktop cover (38.7, the dialog closing) is held a fixed 1 s: on a cold or loaded run the close lands after two ticks, 39.26 s, and 'nothing moved yet' used to drop the cover (the flake) */
+				coverWith(p.el!); void settleThenReveal(p.el!, p.rec, CW < 1000 ? 180 : 1000);
 			});
 		});
 	});
