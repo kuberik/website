@@ -220,14 +220,14 @@ import { flipRecord, flipPlay, type Pos } from './flip';
 		else { /* a pan between two targets: the dim lets go while the camera travels (a hole that rides the old target would spotlight the wrong content), then closes on the new one */
 			holeOn = false; const dd = jump ? 0 : (phone ? 320 : m.dur); holeTimer = setTimeout(() => { hole = next; holeOn = true; }, dd * 0.7);
 		}
-		if (refine && Math.abs(x - cam.x) < 0.75 && Math.abs(y - cam.y) < 0.75 && Math.abs(s - cam.s) < 0.004) return; /* a 1-3 px drift is a sliced line at 1920 */
+		if (refine && Math.abs(x - cam.x) < 3 && Math.abs(y - cam.y) < 3 && Math.abs(s - cam.s) < 0.01) return; /* QA r7: 0.75 px let every re-layout move the canary hold (y -398 <-> -279); 3 px keeps it still */
 		const dur = jump || reduced ? 0 : refine ? 260 : phone ? (m.dur ? 320 : 0) : m.dur;
 		cam = { x, y, s, dur, ease: phone ? 'cubic-bezier(0.2, 0.8, 0.2, 1)' : m.ease, moving: dur > 0 };
 		clearTimeout(moveTimer);
 		if (dur > 0) moveTimer = setTimeout(() => { cam = { ...cam, moving: false }; }, dur + 40);
 		/* the product's own enter animations (banners opening, cards collapsing) keep moving the target for ~0.5 s after a move starts: re-aim once they have settled */
 		if (!refine) { clearTimeout(refineTimer); clearTimeout(refine2Timer); clearTimeout(refine3Timer); }
-		if (!refine && el && !reduced) { refineTimer = setTimeout(() => aim(m, false, true), 650); refine2Timer = setTimeout(() => aim(m, false, true), 1500); refine3Timer = setTimeout(() => aim(m, false, true), 2700); } /* twice: the page keeps settling a little after the product's enter animations */
+		if (!refine && el && !reduced) { refineTimer = setTimeout(() => aim(m, false, true), 650); refine2Timer = setTimeout(() => aim(m, false, true), 1500); } /* twice: the page keeps settling a little after the product's enter animations */
 	}
 	/* a move starts when the story reaches its keyframe, or the surface under it changed (re-aim once its layout has settled) */
 	$effect(() => {
