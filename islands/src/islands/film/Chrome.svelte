@@ -16,7 +16,7 @@
 	const bits = $derived([
 		{ k: 'p', n: tally.passed, word: tally.passed === 1 ? 'check passed' : 'checks passed', show: tally.passed > 0 },
 		{ k: 'f', n: tally.failed, word: 'failed', show: tally.failed > 0 },
-		{ k: 'h', n: tally.people, word: narrow ? '' : 'by a person', show: tally.people > 0 && !narrow }
+		{ k: 'h', n: tally.people, word: narrow ? '' : 'decisions', show: tally.people > 0 && !narrow }
 	].filter((b) => b.show));
 	let scroller: HTMLElement | undefined = $state();
 	$effect(() => {

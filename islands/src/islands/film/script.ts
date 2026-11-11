@@ -23,7 +23,7 @@ export const chapterAt = (t: number) => Math.max(0, CHAPTERS.findIndex((c) => t 
 export const chapterFill = (t: number) => { const c = CHAPTERS[chapterAt(t)]; return Math.min(1, Math.max(0, (t - c.from) / (c.to - c.from))); };
 
 /** which surface the window shows (the cut times are the storyboard's: N() sidebar steps and T() tab slides) */
-const SURF: [number, Surf][] = [[0, 'change'], [6.3, 'rollouts'], [12.5, 'gates'], [18, 'overview'], [31.4, 'envs'], [33.8, 'overview'], [42.6, 'history'], [44, 'app']];
+const SURF: [number, Surf][] = [[0, 'change'], [6.3, 'rollouts'], [12.5, 'gates'], [18, 'overview'], [42.6, 'history'], [44, 'app']];
 export const surfAt = (t: number): Surf => [...SURF].reverse().find(([at]) => t >= at)![1];
 /** surfaces whose cut comes within `ahead` story seconds (their chunks are fetched before the beat: STORYBOARD section 9) */
 export const upcoming = (t: number, ahead = 3): Surf[] => SURF.filter(([at]) => at > t && at - t <= ahead).map(([, s]) => s);
@@ -47,13 +47,11 @@ export const CAMERA: Move[] = [
 	{ at: 10.4, to: 'rest', s: 1, dur: 420, ease: EXPO },
 	{ at: 13.4, to: 'gate-column', s: 1.5, dur: 380, ease: ANTIC },
 	{ at: 17.3, to: 'rest', s: 1, dur: 537, ease: EXPO },
-	{ at: 18.4, to: 'pipeline', s: 1.5, dur: 434, ease: EXPO },
-	{ at: 20.6, to: 'health-checks', s: 1.5, dur: 460, ease: SPRING },
-	{ at: 25.0, to: 'pipeline', s: 1.5, dur: 460, ease: SPRING },
+	{ at: 18.4, to: 'pipeline', s: 1.5, dur: 434, ease: EXPO }, /* the WHOLE pipeline card held through the canary (Stage 1 -> the final check -> its health checks); the old pan to the rail's Health checks card left the pipeline half out of frame (AD r6 P1-1) */
 	{ at: 27.3, to: 'figure-text', hole: 'figure', s: 1.5, dur: 480, ease: EXPO, dim: 'both', min: 15 },
 	{ at: 30.4, to: 'rest', s: 1, dur: 400, ease: EXPO },
-	{ at: 31.8, to: 'prod-card', s: 1, dur: 420, ease: EXPO },
-	{ at: 33.1, to: 'rest', s: 1, dur: 420, ease: EXPO },
+	{ at: 31.2, to: 'pipeline', s: 1.5, dur: 460, ease: EXPO }, /* the failure is stated ONCE (the banner); this beat shows what it adds: the failed Check step and its health checks. The Environments detour (32-34) restated the failure and is cut (AD r6 P1-2) */
+	{ at: 33.2, to: 'rest', s: 1, dur: 420, ease: EXPO },
 	{ at: 34.5, to: 'modal', s: 1.5, dur: 460, ease: EXPO, dim: 'shade', min: 15 }, /* the recovery-mode warning (the product's own dialog before the version dialog) */
 	{ at: 35.8, to: 'modal-fields', s: 1.5, dur: 460, ease: EXPO, dim: 'shade', min: 15 },
 	{ at: 39.0, to: 'rest', s: 1, dur: 300, ease: EXPO },

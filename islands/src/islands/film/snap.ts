@@ -46,6 +46,8 @@ export function snapFrame(T: Box, rects: Box[], vw: number, vh: number, gw: numb
 	/* nearest to the wanted scale first, bigger before smaller (bigger text), up to the scale at which the target fills the frame */
 	const tries: number[] = [s0];
 	for (let d = 0.02; s0 + d <= sMax + 1e-6 || s0 - d >= sMin - 1e-6; d += 0.02) { if (s0 + d <= sMax + 1e-6) tries.push(+(s0 + d).toFixed(3)); if (s0 - d >= sMin - 1e-6) tries.push(+(s0 - d).toFixed(3)); }
+	/* every text box is inflated: the font box hugs the glyphs, and a frame edge 2 px inside it still shaves ink at 1.6x (the 1920 slices) */
+	rects = rects.map((r) => ({ x: r.x - 2, y: r.y - 3, w: r.w + 4, h: r.h + 6 }));
 	let fallback: { s: number; x: number; y: number; ok: boolean } | null = null;
 	for (const s of tries) {
 		const lenX = vw / s, lenY = vh / s, mg = m / s;

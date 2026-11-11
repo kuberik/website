@@ -169,7 +169,21 @@ import { flipRecord, flipPlay, type Pos } from './flip';
 		}
 		return out;
 	}
-	let refineTimer: ReturnType<typeof setTimeout> | undefined, refine2Timer: ReturnType<typeof setTimeout> | undefined;
+	/** the product's bordered or filled boxes (cards, chips, banners, buttons) in group space, except those that CONTAIN the subject: a frame edge should not slice a neighbour card either (AD r6 P2-3) */
+	function boxRects(T: { x: number; y: number; w: number; h: number }) {
+		const out: { x: number; y: number; w: number; h: number }[] = [];
+		const g = group!.getBoundingClientRect(), u = unit();
+		for (const e of camEl!.querySelectorAll<HTMLElement>('[class*="rounded"]')) {
+			const q = e.getBoundingClientRect(); if (q.width < 40 || q.height < 20) continue;
+			const cs = getComputedStyle(e); if (cs.visibility === 'hidden' || cs.display === 'none') continue;
+			if (!(parseFloat(cs.borderTopWidth) > 0 || (cs.backgroundColor !== 'rgba(0, 0, 0, 0)' && cs.backgroundColor !== 'transparent'))) continue;
+			const b = { x: (q.left - g.left) / u, y: (q.top - g.top) / u, w: q.width / u, h: q.height / u };
+			if (b.x <= T.x + 1 && b.y <= T.y + 1 && b.x + b.w >= T.x + T.w - 1 && b.y + b.h >= T.y + T.h - 1) continue; /* contains the subject */
+			out.push(b);
+		}
+		return out;
+	}
+	let refineTimer: ReturnType<typeof setTimeout> | undefined, refine2Timer: ReturnType<typeof setTimeout> | undefined, refine3Timer: ReturnType<typeof setTimeout> | undefined;
 	function aim(m: Move, jump: boolean, refine = false) {
 		if (!group || !main) return;
 		/* reduced motion: no camera at all (STORYBOARD section 9): every frame is the unzoomed, unscrolled page */
@@ -186,7 +200,9 @@ import { flipRecord, flipPlay, type Pos } from './flip';
 				const need = m.min ? m.min / (minFont(r) * k) : 0;
 				s = Math.max(1, Math.min(Math.max(m.s, need), (vw - 28) / r.w, m.min ? (vh - 28) / r.h : Infinity, 2.4));
 				/* AD r4: a frame edge never slices a word. The origin slides (and the scale gives a little) until both edges sit in a gutter between the product's own text (snap.ts). Dialog beats snap against the dialog's text only. */
-				const sn = snapFrame(r, textRects(m.to.startsWith('modal')), vw, vh, gw, gh, s, Math.max(1, s * (m.min ? 0.93 : 0.86)), Math.min((vw - 28) / r.w, m.min ? (vh - 28) / r.h : Infinity, 2.4));
+				const dlg = m.to.startsWith('modal'), tr = textRects(dlg), args = [vw, vh, gw, gh, s, Math.max(1, s * (m.min ? 0.93 : 0.86)), Math.min((vw - 28) / r.w, m.min ? (vh - 28) / r.h : Infinity, 2.4)] as const;
+				let sn = dlg ? snapFrame(r, tr, ...args) : snapFrame(r, [...tr, ...boxRects(r)], vw, vh, gw, gh, s, Math.max(1, s * 0.9), Math.min(args[6], s * 1.25)); /* cards too, within a hair of the wanted zoom (a frame that only clears every card at 2.4x is a different shot) */
+				if (!sn.ok && !dlg) sn = snapFrame(r, tr, ...args); /* no frame clears every card: words at least */
 				s = sn.s; x = sn.x; y = sn.y;
 				if (m.to === 'modal-fields' && s < 1.12) { s = 1; x = 0; y = 0; } /* a dialog that fills the window anyway: no crop of the page behind it for a 5% zoom */
 				 (globalThis as any).__kfAim = { to: m.to, r, sn, vw, vh, gw, gh, refine }; /* even when no x position clears every word (ok = false) the y found for a clean top edge stands */
@@ -205,14 +221,14 @@ import { flipRecord, flipPlay, type Pos } from './flip';
 		else { /* a pan between two targets: the dim lets go while the camera travels (a hole that rides the old target would spotlight the wrong content), then closes on the new one */
 			holeOn = false; const dd = jump ? 0 : (phone ? 320 : m.dur); holeTimer = setTimeout(() => { hole = next; holeOn = true; }, dd * 0.7);
 		}
-		if (refine && Math.abs(x - cam.x) < 6 && Math.abs(y - cam.y) < 6 && Math.abs(s - cam.s) < 0.02) return;
+		if (refine && Math.abs(x - cam.x) < 0.75 && Math.abs(y - cam.y) < 0.75 && Math.abs(s - cam.s) < 0.004) return; /* a 1-3 px drift is a sliced line at 1920 */
 		const dur = jump || reduced ? 0 : refine ? 260 : phone ? (m.dur ? 320 : 0) : m.dur;
 		cam = { x, y, s, dur, ease: phone ? 'cubic-bezier(0.2, 0.8, 0.2, 1)' : m.ease, moving: dur > 0 };
 		clearTimeout(moveTimer);
 		if (dur > 0) moveTimer = setTimeout(() => { cam = { ...cam, moving: false }; }, dur + 40);
 		/* the product's own enter animations (banners opening, cards collapsing) keep moving the target for ~0.5 s after a move starts: re-aim once they have settled */
-		if (!refine) { clearTimeout(refineTimer); clearTimeout(refine2Timer); }
-		if (!refine && el && !reduced) { refineTimer = setTimeout(() => aim(m, false, true), 650); refine2Timer = setTimeout(() => aim(m, false, true), 1500); } /* twice: the page keeps settling a little after the product's enter animations */
+		if (!refine) { clearTimeout(refineTimer); clearTimeout(refine2Timer); clearTimeout(refine3Timer); }
+		if (!refine && el && !reduced) { refineTimer = setTimeout(() => aim(m, false, true), 650); refine2Timer = setTimeout(() => aim(m, false, true), 1500); refine3Timer = setTimeout(() => aim(m, false, true), 2700); } /* twice: the page keeps settling a little after the product's enter animations */
 	}
 	/* a move starts when the story reaches its keyframe, or the surface under it changed (re-aim once its layout has settled) */
 	$effect(() => {
@@ -232,7 +248,8 @@ import { flipRecord, flipPlay, type Pos } from './flip';
 	function CAMERA_INDEX(m: Move) { return m.at; }
 	/* the transform sits on the CAMERA wrapper (group + overlays): a fixed child (the approve popover, the rollback dialog) anchors to the wrapper and zooms with the page. On desktop the wrapper always carries a transform so the dialog's containing block never changes mid-move. */
 	const camStyle = $derived(phone && cam.s === 1 && cam.x === 0 && cam.y === 0 && !cam.moving ? 'transform:none' : cam.s === 1 && cam.x === 0 && cam.y === 0 && !cam.moving ? 'transform: translate(0, 0)' : `transform: translate3d(${cam.x}px, ${cam.y}px, 0) scale(${cam.s}); transition: transform ${cam.dur}ms ${cam.ease}; will-change: ${cam.moving ? 'transform' : 'auto'}`);
-	const shellDim = $derived(shadeOn && !reduced);
+	/* the sidebar is outside the camera: while the frame is zoomed it would stay at 1x beside a 1.6x main pane (two type scales in one shot), so it recedes */
+	const shellDim = $derived((shadeOn || (!phone && cam.s > 1.05)) && !reduced);
 
 	/* ---- the cursor: canvas px; the real click is dispatched at `press` ---- */
 	let canvas: HTMLElement | undefined = $state();
@@ -357,7 +374,8 @@ import { flipRecord, flipPlay, type Pos } from './flip';
 	.film-cam { position: absolute; left: 0; top: 0; width: 100%; height: 100%; transform-origin: 0 0; }
 	.film-group { position: relative; min-width: 0; }
 	/* THE dim (one value in every theme and width): the product's ink at 38%. The hole (.film-hole) is a box whose spread shadow dims everything round it, so its own rect and corner radius are the target's; the shell is dimmed by a plain layer of the same colour. */
-	.film-frame { --film-dim: rgb(12 20 26 / 0.38); }
+	.film-frame { --film-dim: rgb(12 20 26 / 0.34); }
+	:global(.dark) .film-frame { --film-dim: rgb(0 0 0 / 0.58); } /* ink on a dark page is invisible at 38%: the same perceived drop needs black, stronger */
 	.film-hole { position: absolute; z-index: 4; pointer-events: none; box-shadow: 0 0 0 4000px var(--film-dim); opacity: 0; transition: opacity 0.2s ease-out; }
 	.film-hole-on { opacity: 1; }
 	.film-side, .film-top { position: relative; }
