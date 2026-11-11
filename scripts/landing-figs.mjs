@@ -325,8 +325,8 @@ function depsGraph(name, { compact = false } = {}) {
 	}
 	svg(name, '', b);
 }
-depsGraph('dependencies');
-depsGraph('dependencies-compact', { compact: true });
+// The cube dependency graph left the page (landing v5 page: dependencies are one gate among six peers).
+// depsGraph('dependencies'); depsGraph('dependencies-compact', { compact: true });
 
 // ---- the stylesheet half: the keyframes the drawings above need ------------------------------------
 writeFileSync(join(ROOT, 'assets', 'css', 'landing-figs.gen.css'),
