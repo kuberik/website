@@ -140,6 +140,8 @@ export function worldAt(t: number): { fleet: FleetSource; github: Record<string,
 			const inFlight = prev.find((q) => { const ph = phaseOf(q, t); return ph === 'deploying' || ph === 'checking' || ph === 'failed' || ph === 'rolling'; });
 			if (inFlight) blocker = { reason: 'WaitingFor', environment: inFlight.env, site: inFlight.site ?? 'default', waitingOn: 'Bake', revision: SHA[46] };
 		}
+		/* a FOLLOWER that has not deployed waits on its wave leader's selection record (environment-controller internal/wave/wave.go decideFollower, ~358-362: {reason: WaitingFor, waitingOn: Selection, site: <leader>}). A wave-2 LEADER's blocker above is {WaitingFor, waitingOn: Bake, site: <wave-1 site>} with NO outcome (fleet.go 368-377, wave.go 381-385): only followers of a failed leader would carry outcome Failed, and no such follower exists in this story. */
+		if (lead !== p && !deployed(p)) blocker = { reason: 'WaitingFor', environment: p.env, site: lead.site ?? 'default', waitingOn: 'Selection', revision: SHA[46] };
 		const cond = (type: string, status: string, reason: string, message: string) => ({ type, status, reason, message, lastTransitionTime: at(0) });
 		return {
 			apiVersion: 'environments.kuberik.com/v1alpha1', kind: 'Environment',
