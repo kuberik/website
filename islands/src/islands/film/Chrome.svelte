@@ -22,7 +22,7 @@
 	$effect(() => {
 		if (!narrow || !scroller) return;
 		const el = scroller.children[lit] as HTMLElement | undefined;
-		if (el) scroller.scrollTo({ left: el.offsetLeft - Math.max(0, (scroller.clientWidth - el.offsetWidth) / 2), behavior: reduced ? 'auto' : 'smooth' });
+		if (el) { const sr = scroller.getBoundingClientRect(), er = el.getBoundingClientRect(); /* rects, not offsetLeft: the tab's offsetParent is the panel, not the scroller (the lit tab was centred 60 px too far right and clipped by the clock) */ scroller.scrollTo({ left: Math.max(0, scroller.scrollLeft + (er.left - sr.left) - (sr.width - er.width) / 2), behavior: reduced ? 'auto' : 'smooth' }); }
 	});
 </script>
 <div class="fc" class:fc-narrow={narrow}>
