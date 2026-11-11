@@ -317,7 +317,7 @@ import { flipRecord, flipPlay, type Pos } from './flip';
 	});
 	/** The two confirms are the product's REAL dialogs, opened by pressing the real buttons, and their open state is a pure function of `t` (so a seek lands on them too):
 	 *  the approval confirm between the two Approve presses (anchored in canvas px), the rollback dialog between the banner's Roll back and Continue.
-	 *  Neither dialog's own confirm is clicked: the story's CRs carry the outcome (grantApproval would write an optimistic "Deploying" row, TRUTH defect). */
+	 *  The approval confirm is never clicked (grantApproval would write an optimistic "Deploying" row, TRUTH defect; the story's CRs carry the outcome); the rollback dialog's own Roll back IS clicked at 38.7, which closes it the product's way. */
 	let lastGoal: HTMLElement | null = null, scrollAt = 0;
 	let rbOpen = false, pressedGo = false, pressedWarn = false, dlgTick = $state(0);
 	$effect(() => { if (t < 34.4 || t >= 38.75) { pressedGo = false; pressedWarn = false; } }); /* re-armed whenever the dialog window is out of reach, so a paused seek back into it walks the whole way again */
