@@ -13,7 +13,7 @@ thesis:
   rest: "Every build goes through the same five phases. You write a Rollout and a ReleaseSource, add gates and health checks when you want them, and Kuberik runs the rest."
   phases:
     - { fig: release, name: release, own: "Yours",    q: "Which versions are available?" }
-    - { fig: guard,   name: guard,   own: "Kuberik",  q: "Is this environment safe to deploy to?" }
+    - { fig: guard,   name: guard,   own: "Kuberik",  q: "Is it safe to deploy here?" }
     - { fig: gates,   name: gates,   own: "Optional", q: "Which version may go now?" }
     - { fig: update,  name: update,  own: "Kuberik",  q: "How does it reach the cluster?" }
     - { fig: health,  name: health,  own: "Optional", q: "Did it actually work?" }

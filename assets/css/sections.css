@@ -148,7 +148,7 @@ html.dark .vendor-mark{background-image:var(--logo-dark);opacity:.72}
 @media(min-width:1024px) and (max-width:1199px){.figs .fig-cell{padding-top:8px}} /* A14: the upper plate's ring clears the frame edge */
 
 /* everything you write: four file windows */
-.manifests{display:grid;grid-template-columns:minmax(0,1.25fr) minmax(0,1fr);gap:16px;margin-top:40px}
+.manifests{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:24px;margin-top:40px}
 .mf{margin:0;min-width:0;border-radius:12px;background:var(--page);border:1px solid var(--win-border);box-shadow:0 1px 2px oklch(.195 .014 222/.05);overflow:hidden;height:100%}
 html.dark .mf{box-shadow:none}
 .mf figcaption{display:flex;align-items:center;justify-content:space-between;height:47px;padding:0 16px;border-bottom:1px solid var(--line);font:500 13px/20px var(--mono);color:var(--ink-muted)}
@@ -187,11 +187,10 @@ html.dark .mf{box-shadow:none}
 .closing-art .fig-label{font-size:24px}
 .closing-compact{display:none}
 @media(min-width:1200px){
-  .closing-inner{grid-template-columns:minmax(0,1.5fr) minmax(0,1fr);column-gap:48px}
-  .closing-art{order:2;padding-right:32px}
+  .closing-art{order:2}
   .closing-art .fig{max-height:460px}
 }
-@media(min-width:1024px) and (max-width:1199px){.closing-wide{max-width:560px}.closing-art .fig-label{font-size:20px}}
+@media(min-width:1024px) and (max-width:1199px){.closing-wide{max-width:560px}}
 @media(max-width:1023px){.closing-wide{display:none}.closing-compact{display:block;width:300px;max-width:100%;margin-top:8px}}
 @media(max-width:640px){
   .sec{margin-top:80px}
@@ -293,7 +292,6 @@ html.dark .fv-card{background:var(--page-alt);box-shadow:0 12px 32px -16px rgba(
 /* install band clears the footer by the section rhythm (AD r1 #3) */
 main{padding-bottom:128px}
 @media(max-width:640px){main{padding-bottom:80px}}
-.code .c{color:var(--ink-subtle);user-select:none}
 /* phone tap targets >= 44 (AD r1 #12) */
 @media(max-width:640px){
   .feat .link-arrow{min-height:44px;padding-top:8px}
@@ -316,10 +314,25 @@ main{padding-bottom:128px}
   .figs .fig-cell:nth-child(n+4) .fig-art{max-width:none}
   .fig-cap{flex-wrap:wrap;gap:4px 8px}
   .fig-q{font-size:16px;line-height:22px}
-  .closing-inner{grid-template-columns:minmax(0,1.4fr) minmax(0,1fr);column-gap:40px}
-  .closing-art{order:2}
+  .closing-art .fig-label{display:none}
 }
 /* 3000+: the panels frame the content column instead of spanning the screen (AD r2 #4, owner: no lone column at 4K) */
 @media(min-width:3000px){.sec>.stage{max-width:calc(var(--cont) + 240px);margin-inline:auto}}
 /* every section starts with its heading: the staircase follows the copy at every width (AD r2 #3) */
 .closing-art{order:2}
+
+/* ---- landing v5 page, AD round 3 ---- */
+/* one midline: every two-part composition (section head, YAML pairs, install) splits on the same line, the
+   feature grid's 24px gutter; at 2400+ the four files sit in one row whose third column starts on it too */
+@media(min-width:1024px){
+  .head{column-gap:24px}
+  .head .title-body{justify-self:start}
+  .closing-inner{grid-template-columns:repeat(2,minmax(0,1fr));column-gap:24px}
+  .closing-art{justify-self:center;width:100%}
+  .closing-copy .code{max-width:none}
+}
+@media(min-width:2400px){.manifests{grid-template-columns:repeat(4,minmax(0,1fr))}}
+/* phones: the longest YAML key fits the fold at 390 (AD r3 #1) */
+@media(max-width:400px){.mf pre{font-size:11px;line-height:20px;padding:12px 10px 12px 12px;letter-spacing:-.02em}}
+/* proof row: the logos follow their label instead of drifting to the far edge on wide screens */
+@media(min-width:641px){.proof{justify-content:flex-start;column-gap:56px}}

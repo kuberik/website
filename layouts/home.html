@@ -136,7 +136,7 @@
         <details class="mf-fold" open>
           <summary class="mf-sum"><span class="mf-name">rollout.yaml</span><b>Yours</b><span class="mf-hint"></span></summary>
           <figure class="mf mf-kuberik"><figcaption><span>rollout.yaml</span><b>Yours</b></figcaption>
-<pre><code>apiVersion: kuberik.com/v1alpha1
+<pre tabindex="0" role="region" aria-label="rollout.yaml"><code>apiVersion: kuberik.com/v1alpha1
 kind: <span class="a">Rollout</span>
 metadata:
   name: my-app
@@ -148,8 +148,8 @@ spec:
         <details class="mf-fold" open data-mp-fold>
           <summary class="mf-sum"><span class="mf-name">releasesource.yaml</span><b>Yours</b><span class="mf-hint"></span></summary>
           <figure class="mf mf-kuberik"><figcaption><span>releasesource.yaml</span><b>Yours</b></figcaption>
-<pre><code>apiVersion: kuberik.com/v1alpha1
-kind: <span class="k">ReleaseSource</span>
+<pre tabindex="0" role="region" aria-label="releasesource.yaml"><code>apiVersion: kuberik.com/v1alpha1
+kind: <span class="a">ReleaseSource</span>
 metadata:
   name: my-app
 spec:
@@ -162,12 +162,13 @@ spec:
         <details class="mf-fold" open data-mp-fold>
           <summary class="mf-sum"><span class="mf-name">kustomization.yaml</span><b>+1 annotation</b><span class="mf-hint"></span></summary>
           <figure class="mf"><figcaption><span>kustomization.yaml</span><b>+1 annotation</b></figcaption>
-<pre><code>apiVersion: kustomize.toolkit.fluxcd.io/v1
+<pre tabindex="0" role="region" aria-label="kustomization.yaml"><code>apiVersion: kustomize.toolkit.fluxcd.io/v1
 kind: <span class="k">Kustomization</span>
 metadata:
   name: my-app
   annotations:
-    <span class="a">rollout.kuberik.com/substitute.VERSION.from:</span> my-app
+    <span class="a">rollout.kuberik.com/substitute.VERSION.from:</span>
+      my-app
 spec:
   interval: 10m
   prune: true
@@ -178,7 +179,7 @@ spec:
         <details class="mf-fold" open data-mp-fold>
           <summary class="mf-sum"><span class="mf-name">deployment.yaml</span><b>+1 placeholder</b><span class="mf-hint"></span></summary>
           <figure class="mf"><figcaption><span>deployment.yaml</span><b>+1 placeholder</b></figcaption>
-<pre><code>apiVersion: apps/v1
+<pre tabindex="0" role="region" aria-label="deployment.yaml"><code>apiVersion: apps/v1
 kind: <span class="k">Deployment</span>
 metadata: { name: my-app }
 spec:
@@ -203,7 +204,7 @@ spec:
         <p class="title-body reveal">The controller runs in your cluster, next to the thing it gates. No hosted service, no agent to register.</p>
         <div class="code reveal">
           <div class="code-head"><span>Terminal</span><button class="copy" id="copy" type="button"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="9" y="9" width="12" height="12" rx="2"/><path d="M5 15V5a2 2 0 0 1 2-2h10"/></svg><span id="copy-l">Copy</span></button></div>
-<pre tabindex="0" aria-label="Install command"><code id="install-cmd"><span class="p">$ </span>helm install kuberik \
+<pre tabindex="0" role="region" aria-label="Install command"><code id="install-cmd"><span class="p">$ </span>helm install kuberik \
     oci://ghcr.io/kuberik/charts/kuberik \
     --version 0.8.0 \
     --namespace kuberik-system \
