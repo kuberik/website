@@ -73,7 +73,7 @@ import { flipRecord, flipPlay, type Pos } from './flip';
 		if (!swapOpacity) setTimeout(() => (fadeIn = false), 300);
 		swapOpacity = 1;
 		onshown?.();
-		if (pre) void settleThenReveal(pre, null, 420); /* the wrap is a real cross-fade */
+		if (pre) void settleThenReveal(pre, null, 300); /* the wrap is a real cross-fade, short: two pages superimposed read as a ghost */
 		else if (copy) void settleThenReveal(copy);
 		if (seq === swapSeq) swapping = null;
 	}
