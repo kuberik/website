@@ -94,8 +94,8 @@ html.dark .fv-card{background:var(--page-alt);box-shadow:0 12px 32px -16px rgba(
 .gg-runs{margin:2px 0 0;font:400 12px/20px var(--sans);color:var(--ink-subtle);white-space:nowrap}
 .gg-runs b{font:500 15px/20px var(--mono);color:var(--ink);margin-left:4px}
 @container (min-width:560px){.gg{grid-template-columns:minmax(0,264px) minmax(36px,1fr) minmax(0,232px)}}
-@container (max-width:380px){.gg-plus{display:none}.gg{grid-template-columns:minmax(0,1.15fr) 30px minmax(0,1fr)}.gg .chip-opt{display:none}.gg-focus{padding:10px}.gg-focus .gg-t{font-size:13px}}
-.gg-focus .chip-j{max-width:100%}.gg-focus .chip-place{flex:0 1 auto;min-width:0;overflow:hidden;text-overflow:ellipsis;display:block;line-height:18px}
+@container (max-width:380px){.gg-plus{display:none}.gg .gg-n{display:inline}.gg .chip-place{display:none}.gg .chip-j .chip:first-child{border-radius:4px}.gg{grid-template-columns:minmax(0,1.15fr) 30px minmax(0,1fr)}.gg .chip-opt{display:none}.gg-focus{padding:10px}.gg-focus .gg-t{font-size:13px}}
+.gg-n{display:none}
 @container (max-width:340px){.gg .chip-opt,.gg .chip-place{display:none}.gg .chip-j .chip:first-child{border-radius:4px}}
 
 /* ---- Health: bake meter + checks ---- */
@@ -176,8 +176,7 @@ html.dark .fv-card{background:var(--page-alt);box-shadow:0 12px 32px -16px rgba(
 .fv-diff .del{color:var(--ink-subtle)}
 .fv-diff .add{margin:0 -16px;padding:0 16px;background:color-mix(in oklab,var(--mint) 14%,transparent);color:var(--mint-ink);font-weight:500}
 
-/* phones: a header keeps its rollup and drops what it can't fit (AD r1 #4, r5) */
-@media(max-width:640px){.fv-wide{display:none}}
-@media(max-width:380px){.fv-roomy{display:none}}
+/* a narrow card (phones, and two columns at 768-1199) keeps its header rollup and drops what it can't fit whole */
+@container (max-width:380px){.fv-wide,.fv-roomy,.fv-ctx-more{display:none}}
 /* between phone and 760 two columns leave a card under 330px, too narrow for the gate graph: one column there */
 @media(min-width:641px) and (max-width:759px){.feats{grid-template-columns:minmax(0,1fr)}}
