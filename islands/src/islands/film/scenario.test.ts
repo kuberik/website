@@ -35,11 +35,11 @@ describe('film scenario (lane 33: release, staging, approve, canary, waves)', ()
 			expect(rolloutOf(EV.us1Done - 0.1, p.ns).status.history[0].version.tag).toBe('b-45');
 			expect(rolloutOf((p.wave === 2 ? EV.w2Deploy : EV.w3Deploy) + 0.1, p.ns).status.history[0].version.tag).toBe('b-46');
 			if (p.wave === 3) expect(rolloutOf(EV.w2Deploy + 0.1, p.ns).status.history[0].version.tag).toBe('b-45');
-			expect(rolloutOf(40, p.ns).status.history[0].bakeStatus).toBe('Succeeded');
+			expect(rolloutOf(35, p.ns).status.history[0].bakeStatus).toBe('Succeeded');
 		}
 		const leader = (worldAt(EV.us1Done - 0.1).fleet.environments as any[]).find((e) => e.metadata.namespace === 'checkout-api-prod-eu-west-1');
 		expect(leader.status.wave.blocker?.site).toBe('us-east-1');
-		for (let t = 0; t < 40; t += 0.5) for (const p of PLACES) expect(rolloutOf(t, p.ns).status.history[0].bakeStatus).not.toBe('Failed');
+		for (let t = 0; t < 35.5; t += 0.5) for (const p of PLACES) expect(rolloutOf(t, p.ns).status.history[0].bakeStatus).not.toBe('Failed');
 	});
 	it('event indices only move at event times', () => {
 		expect(eventIndexAt(EV.w2Deploy - 0.01) + 1).toBe(eventIndexAt(EV.w2Deploy));

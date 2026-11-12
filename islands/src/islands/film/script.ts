@@ -10,8 +10,8 @@
  *   App 0-2.2         the release is there from the first frame: the newest build on the Builds card, the NEW tag shines
  *   Change 2.2-7      #112's strip: staging takes the build at once (ring, checking, green)
  *   Rollouts 7-10.7   a person approves production (the attention card, framed at the cut); the cut lands on the confirm, before the list re-sorts
- *   Overview 10.7-23.2  the canary in us-east-1 (wave 1): stage 1, the test passes, stage 2, the health checks pass; the cut lands as it finishes
- *   Change 23.2-40    wave 1 green; waves 2 and 3 (two regions each) step onto the release by themselves, sped up; the loop dissolves into the opening
+ *   Overview 10.7-19.9  the canary in us-east-1 (wave 1): stage 1, the test passes, stage 2, the health checks pass; the cut lands as it finishes
+ *   Change 19.9-35.5  wave 1 green; waves 2 and 3 (two regions each) step onto the release by themselves, sped up; the loop dissolves into the opening
  */
 import { LOOP } from './clock';
 import { EV } from './scenario';
@@ -24,11 +24,11 @@ export const CHAPTERS = [
 	{ key: 'release', label: 'Release', from: 0, to: 2.2, settled: 1.9 },
 	{ key: 'staging', label: 'Staging', from: 2.2, to: 7, settled: 6.2 },
 	{ key: 'approve', label: 'Approve', from: 7, to: EV.approved, settled: 9.6 },
-	{ key: 'canary', label: 'Canary', from: EV.approved, to: EV.us1Done, settled: 17.4 },
-	{ key: 'waves', label: 'Waves', from: EV.us1Done, to: 40, settled: 34 }
+	{ key: 'canary', label: 'Canary', from: EV.approved, to: EV.us1Done, settled: 15.4 },
+	{ key: 'waves', label: 'Waves', from: EV.us1Done, to: LOOP, settled: 29.5 }
 ] as const;
 /** reduced motion rests on the whole fleet on the new build (the Change page's strip, every site green on 4.46.0-46) */
-export const REST_T = 34;
+export const REST_T = 29.5;
 export const chapterAt = (t: number) => Math.max(0, CHAPTERS.findIndex((c) => t >= c.from && t < c.to));
 export const chapterFill = (t: number) => { const c = CHAPTERS[chapterAt(t)]; return Math.min(1, Math.max(0, (t - c.from) / (c.to - c.from))); };
 
@@ -38,7 +38,7 @@ export const surfAt = (t: number): Surf => [...SURF].reverse().find(([at]) => t 
 /** surfaces whose cut comes within `ahead` story seconds (their chunks are fetched before the beat) */
 export const upcoming = (t: number, ahead = 3): Surf[] => SURF.filter(([at]) => at > t && at - t <= ahead).map(([, s]) => s);
 /** (retired) the loop end no longer fades to empty ground: the wrap cross-fades into the opening */
-export const FADE_AT = 39.0;
+export const FADE_AT = LOOP - 1;
 
 /** camera: a keyframe is a framing that STARTS at `at`. `to` names a target the film resolves in the surface's DOM ('rest' = scale 1, origin). `dur` in ms; 0 = set at a cut, under the cross-fade (never seen moving). */
 export type Move = { at: number; to: string; s: number; dur: number; ease: string; dim?: string; min?: number; desk?: boolean /* desktop only */; hole?: string /* the dim's hole when it is not the camera target */; dimOff?: number /* the light lifts at this second, the frame stays */; beside?: string /* the frame's right edge stays left of this element */; rows?: string /* the frame's foot lands on a boundary of these fixed-pitch rows */; h?: number /* canvas px: frame the target as if it were this tall (a card that grows step by step frames the same at every second) */ };
@@ -56,11 +56,11 @@ export const moveAt = (t: number, phone = false): Move => [...CAMERA].reverse().
 export type Press = { id: 'approve' | 'confirm'; target: string; go: number; press: number; off: number };
 export const PRESSES: Press[] = [
 	{ id: 'approve', target: 'approve', go: 8.0, press: 8.8, off: 9.1 },
-	{ id: 'confirm', target: 'approve-confirm', go: 9.8, press: 10.6, off: 10.85 }
+	{ id: 'confirm', target: 'approve-confirm', go: 9.7, press: 10.4, off: 10.6 } /* lane 36 (AD r1 P1-1): the dot is gone 0.15 s after the press, before the cut at EV.approved (10.7) */
 ];
 export const pressAt = (t: number): Press | null => PRESSES.find((p) => t >= p.go && t < p.off) ?? null;
 /** the approval confirm (ApprovalLayer) is open between the first press and the second */
-export const confirmOpen = (t: number) => t >= 8.95 && t < 10.65; /* closes with the press, before the card leaves (10.7) */
+export const confirmOpen = (t: number) => t >= 8.95 && t < EV.approved; /* lane 36 (AD r1 P1-1): open through the press up to the cut; the cut's still carries it (Film.svelte takeSnap), so the shot ends on the pressed confirm, never on the card asking again */
 
 /** the tally: checks passed and decisions by a person. Each entry is the second its CR passes. */
 const PASSED = [EV.hcStagingErr, EV.hcStagingLat, EV.testPassed, EV.hcLat, EV.hcErr, ...[EV.w2Check0, EV.w2Check1, EV.w3Check0, EV.w3Check1].flatMap((x) => [x, x])];

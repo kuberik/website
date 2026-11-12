@@ -3,9 +3,9 @@
  * the wait for a person is fast, the catch plays in near real time. Every CR timestamp is placed through this one map, so every age
  * or timer the product prints agrees with the chrome clock. Pure; no display strings except the clock face.
  */
-export const LOOP = 40;
+export const LOOP = 35.5;
 /** [story second, minutes after 00:00]. 10:11 as the release lands, staging in minutes, the approval wait and the canary compressed, the waves fastest (lane 33) */
-const PTS: [number, number][] = [[0, 10 * 60 + 11], [7, 10 * 60 + 19], [11.8, 10 * 60 + 40], [24.5, 10 * 60 + 52], [34, 11 * 60 + 38], [40, 11 * 60 + 41]];
+const PTS: [number, number][] = [[0, 10 * 60 + 11], [7, 10 * 60 + 19], [11.3, 10 * 60 + 40], [20.6, 10 * 60 + 52], [29.5, 11 * 60 + 38], [35.5, 11 * 60 + 41]];
 
 /** seconds after 00:00 at story second `t` (extrapolated linearly outside 0..LOOP) */
 export function clockSeconds(t: number): number {

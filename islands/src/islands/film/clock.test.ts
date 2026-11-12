@@ -9,6 +9,6 @@ describe('hero clock', () => {
 		for (let t = 0; t <= LOOP; t += 0.25) { const s = clockSeconds(t); expect(s).toBeGreaterThan(last); last = s; }
 	});
 	it('the waves are the fastest stretch (a time-lapse)', () => {
-		expect((clockSeconds(34) - clockSeconds(24.5)) / 9.5).toBeGreaterThan((clockSeconds(24.5) - clockSeconds(13.5)) / 11);
+		expect((clockSeconds(29.5) - clockSeconds(20.6)) / 8.9).toBeGreaterThan((clockSeconds(20.6) - clockSeconds(11.5)) / 9.1);
 	});
 });

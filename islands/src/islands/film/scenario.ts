@@ -1,5 +1,5 @@
 /**
- * HERO SCENARIO (40 s, lane 33): release 4.46.0-46 of checkout-api ("Add Apple Pay to checkout") appears, staging takes it at once, a person approves
+ * HERO SCENARIO (35.5 s, lanes 33-36): release 4.46.0-46 of checkout-api ("Add Apple Pay to checkout") appears, staging takes it at once, a person approves
  * production, the canary in prod us-east-1 (wave 1) passes its test and health checks, and waves 2 and 3 (two regions each) then take the build by themselves.
  * No failure: the owner's rule is at most one, and late; the calm cut has none.
  *
@@ -22,13 +22,13 @@ const DAY_MS = Date.parse('2026-11-10T00:00:00Z');
 export const AUTHOR = 'olivia-bennett';
 type Any = any;
 
-/** story seconds at which a CR changes (script.ts shots: App 0-7, Rollouts 7-11.3, Overview 11.3-24.5, App 24.5-40) */
+/** story seconds at which a CR changes (script.ts shots: App 0-2.2, Change 2.2-7, Rollouts 7-10.7, Overview 10.7-19.9, Change 19.9-35.5) */
 export const EV = {
 	release: 0, stagingGo: 2.2, check: 3.2, hcStagingErr: 3.8, hcStagingLat: 4.2, stagingDone: 5.4,
 	promo: 7.0, approved: 10.7, /* the cut to the Overview lands on this second: the approved card never leaves on screen */ /* the promotion gate opens a sync after staging's bake, on the Rollouts cut (7.0): the approval asks there, not as a banner pushing the App page down */
-	deploy: 10.7, /* on the Overview cut: the In flight row is not added under the Rollouts frame */ paused1: 14.0, testPending: 14.4, testRunning: 14.8, testPassed: 16.6, step2Go: 18.6, step2Done: 19.2, /* lane 35: stage 2 (100 %) is brief: its pane holds one row in the steady-height card (a half-empty card for 1 s) */ hcLat: 20.4, hcErr: 20.8, us1Done: 23.2,
-	w2Deploy: 26.0, w2Check0: 27.6, w2Check1: 27.9, w2Done0: 28.8, w2Done1: 29.2,
-	w3Deploy: 30.4, w3Check0: 31.8, w3Check1: 32.1, w3Done0: 33.0, w3Done1: 33.4
+	deploy: 10.7, /* on the Overview cut: the In flight row is not added under the Rollouts frame */ paused1: 12.5, testPending: 12.8, testRunning: 13.1, testPassed: 14.7, step2Go: 16.3, step2Done: 16.3, /* lane 36 (AD r1 P2-1): stage 2 (100 %) is over within the time-lapse's step: its one-row pane left the card two-thirds empty; was lane 35: stage 2 (100 %) is brief: its pane holds one row in the steady-height card (a half-empty card for 1 s) */ /* lane 36 (AD r1 P3-1): the canary holds trimmed to ~1.5 s, the loop 40 -> 35.5 s */ hcLat: 18.0, hcErr: 18.4, us1Done: 19.9,
+	w2Deploy: 21.5, w2Check0: 23.1, w2Check1: 23.4, w2Done0: 24.3, w2Done1: 24.7,
+	w3Deploy: 25.9, w3Check0: 27.3, w3Check1: 27.6, w3Done0: 28.5, w3Done1: 28.9
 } as const;
 /** every story second a CR changes at: the film re-derives its (heavy) data snapshot only when one of these is passed */
 export const EVENT_TIMES = [0, ...Object.values(EV)].sort((a, b) => a - b);

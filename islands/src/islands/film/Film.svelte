@@ -18,7 +18,7 @@
 	import Chip from '$lib/components/Chip.svelte';
 	import { loadSurface, surfaceProps, SURFACE_PATH } from './surfaces';
 	import { resolveTarget } from './targets';
-import { snapFrame } from './snap';
+import { snapFrame, freeStart, spansIn } from './snap';
 import { flipRecord, flipPlay, type Pos } from './flip';
 	import { page } from '../../stubs/app-state';
 	import { page as pageStore } from '../../stubs/app-stores';
@@ -99,14 +99,28 @@ import { flipRecord, flipPlay, type Pos } from './flip';
 		const src = group.querySelectorAll('*'), dst = c.querySelectorAll('*'), sc: [Element, number, number][] = [];
 		for (let i = 0; i < src.length; i++) if (src[i].scrollTop || src[i].scrollLeft) sc.push([dst[i], src[i].scrollTop, src[i].scrollLeft]);
 		(c as any).__scroll = sc;
+		/* lane 36 (AD r1 P1-1): the approval confirm (the product's ApprovalLayer: a popover in the camera on desktop, a sheet + scrim over the canvas on the phone)
+		   lives OUTSIDE the group, so a still of the group alone dropped it: for the length of the cut's dissolve the card sat there again asking for approval.
+		   A cut's still carries a copy of it, so the cut lands on the pressed confirm and dissolves from it. */
+		if (kind === 'cut' && canvas) {
+			const ex: HTMLElement[] = [];
+			for (const d of canvas.querySelectorAll<HTMLElement>('[data-approve-confirm]')) {
+				const sc0 = d.previousElementSibling as HTMLElement | null;
+				for (const e of [sc0 && sc0.classList.contains('inset-0') ? sc0 : null, d]) if (e) { const k2 = e.cloneNode(true) as HTMLElement; k2.removeAttribute('data-approve-confirm'); k2.setAttribute('aria-hidden', 'true'); k2.style.pointerEvents = 'none'; ex.push(k2); }
+			}
+			(c as any).__extra = ex;
+		}
 		return c;
 	}
+	/** a still and the overlay copies it carries (on the phone they sit over the canvas, beside the real layer) */
+	function dropSnap(c: HTMLElement) { c.remove(); for (const e of (c as any).__extra ?? []) e.remove(); }
 	/* `frozen`: a CUT's still sits OUTSIDE the camera, carrying the outgoing shot's transform, so the incoming shot's framing is set under it (lane 33: a shot
 	   arrives framed; the camera never zooms in front of the viewer) */
 	function coverWith(c: HTMLElement, frozen = false) {
-		snapEl?.remove(); snapEl = c; hid = true;
+		if (snapEl) dropSnap(snapEl); snapEl = c; hid = true;
 		if (frozen && camEl) { c.style.transformOrigin = '0 0'; c.style.transform = getComputedStyle(camEl).transform.replace('none', ''); camEl.parentElement!.appendChild(c); }
 		else camEl!.insertBefore(c, group!.nextSibling);
+		for (const e of (c as any).__extra ?? []) (phone ? canvas! : c).appendChild(e); /* desktop: the popover is camera space, so it rides in the still (same transform); phone: the sheet is canvas space */
 		for (const [e, y, x] of (c as any).__scroll ?? []) { e.scrollTop = y; e.scrollLeft = x; }
 	}
 	async function settleThenReveal(c: HTMLElement, rec: Pos | null = null, fade = 80) {
@@ -124,8 +138,9 @@ import { flipRecord, flipPlay, type Pos } from './flip';
 		if (rec && d) for (const v of rec.values()) v.y -= d;
 		hid = false; snapEl = null;
 		/* a covered reflow on the phone: the still is dropped in one frame (no two layouts superimposed: the ghost) and what moved SLIDES from where it was to where it is (flip.ts, transform only: no layout shift) */
-		if (rec) { c.remove(); void tick().then(() => { if (group && !swapping && !hid) flipPlay(group, rec, unit(), 300); }); return; }
-		const done = () => c.remove();
+		if (rec) { dropSnap(c); void tick().then(() => { if (group && !swapping && !hid) flipPlay(group, rec, unit(), 300); }); return; }
+		const done = () => dropSnap(c);
+		for (const e of phone ? (c as any).__extra ?? [] : []) e.animate([{ opacity: 1 }, { opacity: 0 }], { duration: fade, easing: "ease-out", fill: "forwards" });
 		c.animate([{ opacity: 1 }, { opacity: 0 }], { duration: fade, easing: "ease-out", fill: "forwards" }).finished.then(done, done);
 	}
 	let preEi = -2, preSnap: { el: HTMLElement | null; h: number; flip: Pos | null; rec: Pos | null } | null = null;
@@ -245,10 +260,22 @@ import { flipRecord, flipPlay, type Pos } from './flip';
 		const m = mv; if (m.to === 'rest' || shown !== surfAt(m.at)) return 0;
 		const el = resolveTarget(m.to, camEl, true); if (!el) return 0; /* the subject left (the approved card): the frame stays */
 		const r = relRect(el), vh = main.clientHeight, gh = group.offsetHeight;
-		const y = Math.min(0, Math.max(Math.min(0, vh - gh), -Math.max(0, r.y - 10))), d = y - cam.y;
+		const y = Math.min(0, Math.max(Math.min(0, vh - gh), -(phoneOff !== null ? Math.max(0, r.y + phoneOff) : phoneTop(r)))), d = y - cam.y; /* the subject stays where the move's aim put it (a re-snapped foot would slide the whole page) */
 		if (Math.abs(d) < 3 || cam.s !== 1) return 0;
 		cam = { ...cam, y, dur: 0, moving: false };
 		return d;
+	}
+	/** lane 36 (AD r1 P2-4): the phone frame's top, in group px: the subject 10 px under the bar, moved down by up to 100 px when that leaves a row sliced by
+	 *  the tab bar (the frame's real foot: a sliver of the Health checks row, History cut mid-row). Both edges in a gap between the product's text and small boxes. */
+	const PHONE_OFF = new Map<string, number>();
+	let phoneOff: number | null = null; /* the frame top minus the subject's top, set by aim() for the length of a move */
+	function phoneTop(r: { x: number; y: number; w: number; h: number }): number {
+		const pref = Math.max(0, r.y - 10);
+		if (!main || !group || !canvas) return pref;
+		const nav = canvas.querySelector<HTMLElement>('.film-tabs nav')?.offsetHeight ?? 0, /* the product's MobileTabBar is fixed inside the canvas: its wrapper has no height */ len = main.clientHeight - nav, gh = group.offsetHeight, vw = main.clientWidth;
+		const rects = [...textRects(false), ...boxRects({ x: -1, y: -1, w: 0, h: 0 }).filter((b) => b.h < 56)].map((q) => ({ x: q.x, y: q.y - 3, w: q.w, h: q.h + 6 }));
+		const p = freeStart(Math.max(0, pref - 100), Math.min(pref, Math.max(0, gh - main.clientHeight)), len, spansIn(rects, 'y', 0, vw), pref);
+		return p ?? pref;
 	}
 	let refineTimer: ReturnType<typeof setTimeout> | undefined, refine2Timer: ReturnType<typeof setTimeout> | undefined, refine3Timer: ReturnType<typeof setTimeout> | undefined;
 	/* lane 35: a desktop HOLD is framed once per window size and then reused: natural play (aimed at the cut, refined while the page settles) and a seek that
@@ -265,7 +292,7 @@ import { flipRecord, flipPlay, type Pos } from './flip';
 		if (memo) { ({ x, y, s } = memo); }
 		else if (el) {
 			const r0 = relRect(el), r = m.h ? { ...r0, h: m.h } : r0; /* Move.h: the frame is worked out as if the target were this tall, so it does not depend on the step the story is at */
-			if (phone) { s = 1; y = -Math.max(0, r.y - 10); }
+			if (phone) { s = 1; const pk = `${m.at}|${CW}`; if (!refine && !PHONE_OFF.has(pk)) PHONE_OFF.set(pk, phoneTop(r) - Math.max(0, r.y - 10)); phoneOff = PHONE_OFF.get(pk)! - 10; y = -Math.max(0, r.y + phoneOff); } /* the foot's nudge is worked out once per move (a seek frames the way play does) */
 			else if (s === 1) { y = -Math.max(0, Math.min(r.y - 24, gh - vh)); }
 			else {
 				/* fit with a 14 px margin: the product's gap between cards is >= 12 px x scale, so a neighbour never peeks into the frame mid-word. The PERSON beats (m.min) zoom until their smallest text renders at m.min px, bounded by the window (both axes) and 2.4x. */
@@ -292,7 +319,8 @@ import { flipRecord, flipPlay, type Pos } from './flip';
 						const nb = m.beside ? camEl!.querySelector<HTMLElement>(m.beside) : null, nbx = nb && nb.offsetWidth ? relRect(nb).x : Infinity;
 						const sMin = Math.max(s * 0.8, isFinite(nbx) ? vw / (nbx - 6 - left) : 0);
 						let best: number | null = null;
-						for (let n = 1; n < 40; n++) { const b = li[0].y + n * pitch, sn = vh / (b - top); if (sn <= sMax && sn >= sMin) { best = sn; break; } }
+						const pad = Math.max(0, (parseFloat(getComputedStyle((camEl!.querySelector<HTMLElement>(m.rows)!.firstElementChild as HTMLElement | null) ?? camEl!.querySelector<HTMLElement>(m.rows)!).paddingTop) || 0) - 3) /* the row's padding sits on its inner .cdh-row */; /* lane 36 (AD r1 P2-4): the foot sits just above the next row's ink, not on the boundary (the last row's ink sat flush on the window's foot) */
+						for (let n = 1; n < 40; n++) { const b = li[0].y + n * pitch + pad, sn = vh / (b - top); if (sn <= sMax && sn >= sMin) { best = sn; break; } }
 						if (!best && sMin <= sMax) best = sMin;
 						if (best) { x = (x / s) * best; y = -top * best; s = best; }
 						else if (sMin > sMax) { s = 1; x = 0; y = 0; } /* a wide canvas whose main column cannot fill the frame under the zoom cap: the whole page, rail included, at 1x (no card sliced) */
@@ -344,7 +372,7 @@ import { flipRecord, flipPlay, type Pos } from './flip';
 	/* the transform sits on the CAMERA wrapper (group + overlays): a fixed child (the approve popover, the rollback dialog) anchors to the wrapper and zooms with the page. On desktop the wrapper always carries a transform so the dialog's containing block never changes mid-move. */
 	const camStyle = $derived(phone && cam.s === 1 && cam.x === 0 && cam.y === 0 && !cam.moving ? 'transform:none' : cam.s === 1 && cam.x === 0 && cam.y === 0 && !cam.moving ? 'transform: translate(0, 0)' : `transform: translate3d(${cam.x}px, ${cam.y}px, 0) scale(${cam.s}); transition: transform ${cam.dur}ms ${cam.ease}; will-change: ${cam.moving ? 'transform' : 'auto'}`);
 	/* the sidebar is outside the camera: while the frame is zoomed it would stay at 1x beside a 1.6x main pane (two type scales in one shot), so it recedes */
-	const lifted = $derived(mv.dimOff !== undefined && t >= mv.dimOff);
+	const lifted = $derived((mv.dimOff !== undefined && t >= mv.dimOff) || (phone && confirmOpen(t))); /* lane 36 (AD r1 P2-2): on the phone the product's own sheet brings its scrim; the film's dim on top of it darkened the asking card twice */
 	const shellDim = $derived(((shadeOn && !lifted) || (!phone && cam.s > 1.05)) && !reduced);
 
 	/* ---- the cursor: canvas px; the real click is dispatched at `press` ---- */
@@ -390,13 +418,15 @@ import { flipRecord, flipPlay, type Pos } from './flip';
 	   Builds card, from the release to the loop's end. Landing chrome placed against the product's DOM (nothing injected into it); it shines once as it lands. ---- */
 	const NEW_BUILD = '4.46.0-46';
 	let tag = $state<{ x: number; y: number } | null>(null);
+	let newRow = $state<{ x: number; y: number; w: number; h: number } | null>(null); /* lane 36 (AD r1 P2-3): the release's row carries a soft mint wash (landing chrome, like the tag): the protagonist was the quietest row on the card */
 	$effect(() => {
 		const tt = t; void shown; void eventIdx; void hid;
 		untrack(() => {
-			if (tt < NEW_AT || shown !== 'app' || !group) { tag = null; return; }
+			if (tt < NEW_AT || shown !== 'app' || !group) { tag = null; newRow = null; return; }
 			/* on the release's own line, after its title (the id's 96 px column has no room for a chip: beside the id it covered the title) */
 			const li = group.querySelector<HTMLElement>(`li[data-truth-build="${NEW_BUILD}"]`), el = li?.querySelector<HTMLElement>('.s-ttl') ?? li?.querySelector<HTMLElement>('.s-id');
-			if (!el) { tag = null; return; }
+			if (!el) { tag = null; newRow = null; return; }
+			{ const lr = relRect(li!), head = li!.firstElementChild ? relRect(li!.firstElementChild) : lr; const nr = { x: lr.x - 6, y: lr.y - 2, w: lr.w + 12, h: Math.min(lr.h, head.h) + 4 }; if (!newRow || Math.abs(newRow.y - nr.y) > 0.5 || Math.abs(newRow.w - nr.w) > 0.5 || Math.abs(newRow.h - nr.h) > 0.5) newRow = nr; }
 			const rg = document.createRange(); rg.selectNodeContents(el); const q = [...rg.getClientRects()].filter((b) => b.width > 2).pop();
 			if (!q) { tag = null; return; }
 			const g = group.getBoundingClientRect(), u = unit(), x = (q.right - g.left) / u + 8, y = (q.top - g.top) / u + q.height / u / 2 - 10;
@@ -411,7 +441,7 @@ import { flipRecord, flipPlay, type Pos } from './flip';
 	void CHAPTERS;
 </script>
 
-<div class="film" bind:this={host} bind:clientWidth={W} bind:clientHeight={H}>
+<div class="film" class:film-noconfirm={surf !== 'rollouts'} bind:this={host} bind:clientWidth={W} bind:clientHeight={H}>
 	<div class="film-frame">
 		<div class="film-canvas" inert aria-hidden="true" bind:this={canvas} style="width:{CW}px;height:{CH}px;zoom:{k}">
 			<div class="film-app">
@@ -422,6 +452,7 @@ import { flipRecord, flipPlay, type Pos } from './flip';
 						<div class="film-cam" bind:this={camEl} style={camStyle}>
 							<div class="film-group" bind:this={group} data-hid={hid ? '1' : null} style="opacity:{hid ? 0 : swapOpacity}; transition:{fadeIn && !hid ? 'opacity .2s ease-out' : 'none'}">
 								{#if Comp}<Comp {...props} />{/if}
+								{#if tag && newRow}<i class="film-new-row" style="left:{newRow.x}px;top:{newRow.y}px;width:{newRow.w}px;height:{newRow.h}px"></i>{/if}
 								{#if tag}<span class="film-new" class:film-new-fresh={tagFresh && !reduced} style="left:{tag.x}px;top:{tag.y}px"><Chip role="newest" label="New" dot={false} /></span>{/if}
 								{#if hole}<div class="film-hole" class:film-hole-on={holeOn && !lifted} style="left:{hole.x}px;top:{hole.y}px;width:{hole.w}px;height:{hole.h}px;border-radius:{hole.r}px"></div>{/if}
 							</div>
@@ -452,8 +483,8 @@ import { flipRecord, flipPlay, type Pos } from './flip';
 	.film-cam { position: absolute; left: 0; top: 0; width: 100%; height: 100%; transform-origin: 0 0; }
 	.film-group { position: relative; min-width: 0; }
 	/* THE dim (one value in every theme and width): the product's ink at 38%. The hole (.film-hole) is a box whose spread shadow dims everything round it, so its own rect and corner radius are the target's; the shell is dimmed by a plain layer of the same colour. */
-	.film-frame { --film-dim: rgb(12 20 26 / 0.34); }
-	:global(.dark) .film-frame { --film-dim: rgb(0 0 0 / 0.58); } /* ink on a dark page is invisible at 38%: the same perceived drop needs black, stronger */
+	.film-frame { --film-dim: rgb(12 20 26 / 0.13); } /* lane 36 (AD r1 P2-2): at 0.34 the light page read as a muddy, disabled grey slab round the lit card */
+	:global(.dark) .film-frame { --film-dim: rgb(0 0 0 / 0.45); } /* ink on a dark page is invisible at 38%: the same perceived drop needs black, stronger */
 	.film-hole { position: absolute; z-index: 4; pointer-events: none; box-shadow: 0 0 0 4000px var(--film-dim); opacity: 0; transition: opacity 0.2s ease-out; }
 	.film-hole-on { opacity: 1; }
 	.film-side, .film-top { position: relative; }
@@ -466,7 +497,15 @@ import { flipRecord, flipPlay, type Pos } from './flip';
 	.film-canvas :global([role="status"][class*="z-[60]"]) { display: none !important; }
 	/* the NEW tag: lands with a short rise and one light sweep across it (the shine), then sits still */
 	.film-new { position: absolute; z-index: 2; pointer-events: none; display: inline-flex; overflow: hidden; border-radius: 4px; }
-	.film-new-fresh::after { content: ''; position: absolute; inset: 0; background: linear-gradient(100deg, transparent 20%, rgb(255 255 255 / 0.75) 45%, transparent 70%); transform: translateX(-120%); animation: film-new-shine 0.9s ease-in-out both; }
+	/* lane 36 (AD r1 P2-3): the chip is an outline (no fill), so a white sweep was invisible; the sweep is the chip's own success ink, slower, and the tag glows once (readable at 390 and at 10 fps) */
+	.film-new-fresh { animation: film-new-glow 1.3s ease-out both; }
+	.film-new-fresh::after { content: ''; position: absolute; inset: 0; background: linear-gradient(100deg, transparent 15%, color-mix(in srgb, var(--k-success-fg) 45%, transparent) 45%, transparent 75%); transform: translateX(-120%); animation: film-new-shine 1.1s ease-in-out both; }
 	@keyframes film-new-shine { to { transform: translateX(120%); } }
+	@keyframes film-new-glow { 0% { box-shadow: 0 0 0 0 color-mix(in srgb, var(--k-success-fg) 0%, transparent); } 35% { box-shadow: 0 0 0 4px color-mix(in srgb, var(--k-success-fg) 30%, transparent); } 100% { box-shadow: 0 0 0 7px color-mix(in srgb, var(--k-success-fg) 0%, transparent); } }
+	.film-new-row { position: absolute; z-index: 1; pointer-events: none; border-radius: 6px; background: color-mix(in srgb, var(--k-success-fg) 7%, transparent); }
+	/* lane 36 (AD r1 P3-2): the Holding card's held-HERE count waits on a per-place detail the film's App surface never asks for; its pending bar read as a stuck skeleton under Builds */
+	.film-canvas :global([data-held-pending]) { visibility: hidden; }
+	/* lane 36: once the cut to the Overview has started, the real confirm (and its phone scrim) is gone at once: the still carries its copy, and its own fly-out ran over the incoming page */
+	.film-noconfirm :global([data-approve-confirm]), .film-noconfirm :global(:has(+ [data-approve-confirm])) { display: none !important; }
 	.film-tabs { position: absolute; left: 0; right: 0; bottom: 0; z-index: 5; }
 </style>
