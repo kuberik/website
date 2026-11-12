@@ -44,7 +44,9 @@ function bez(x1, y1, x2, y2) {
 	return (u) => { let lo = 0, hi = 1; for (let i = 0; i < 40; i++) { const m = (lo + hi) / 2; if (X(m) < u) lo = m; else hi = m; } return Y((lo + hi) / 2); };
 }
 // EXPO is the hero's move curve (90% of the travel in the first 45%); fall is gravity (impact = the stop)
-const EASE = { expo: bez(0.16, 1, 0.3, 1), fall: bez(0.55, 0, 1, 0.45) };
+// calm is the climb curve (AD r2 #1): EXPO along a long polyline covered 80% in the first 150 ms and read as a
+// teleport then a creep; calm covers <= 35% of the distance in the first 25% of the time.
+const EASE = { expo: bez(0.16, 1, 0.3, 1), fall: bez(0.55, 0, 1, 0.45), calm: bez(0.45, 0, 0.2, 1) };
 function along(pts, p) { // pts: screen points; p 0..1 by arc length
 	const seg = []; let L = 0;
 	for (let i = 1; i < pts.length; i++) { const l = Math.hypot(pts[i][0] - pts[i - 1][0], pts[i][1] - pts[i - 1][1]); seg.push(l); L += l; }
@@ -131,9 +133,11 @@ function stairs({ x0, y0, z0, n, wd = SW }) {
 		out.push(`<path class="fig-st-top" ${NS} d="${poly([[xa, yb, zt], [xb, yb, zt], [xb, yf, zt], [xa, yf, zt]])}"/>`);
 		out.push(`<path class="fig-st-side" ${NS} d="${poly([[xa, yf, zt], [xb, yf, zt], [xb, yf, zt - T], [xa, yf, zt - T]])}"/>`);
 	}
-	const prof = [[xb, y0, z0]]; // underside: a constant T below the nosing line, cut vertical on the lower plate's top face (AD r1 #1)
+	const WA = 3; // underside: parallel to the nosing line with a 3-unit waist under each inner corner, cut on the near plate's top face (AD r1 #1, r2 #4)
+	const prof = [[xb, y0, z0]];
 	for (let i = 0; i < n; i++) prof.push([xb, y0 - i * T, z0 + (i + 1) * T], [xb, y0 - (i + 1) * T, z0 + (i + 1) * T]);
 	
+	prof.push([xb, y0 - n * T, z0 + n * T - WA], [xb, y0 - WA, z0]);
 	out.push(`<path class="fig-st-side" ${NS} d="${poly(prof)}"/>`);
 	return `<g class="fig-stairs">${out.join('')}</g>`;
 }
@@ -175,13 +179,13 @@ const scr = (A, pts) => pts.map((q) => d(A, P(...q)));
 	// release: "a new version arrives". The builds wait in a queue in the air; the front one drops onto
 	// the plate and the queue steps down. Rest pose: front build hovering, dotted drop, two ghosts.
 	begin(); const cx = W / 2, cy = W / 2; let b = plate({ px: 0, py: 0, w: W, tiles: T4 });
-	const land = P(cx, cy, 0), hover = P(cx, cy, 64), g1 = P(cx, cy - 30, 92), g2 = P(cx, cy - 60, 120); // one straight queue, equal steps (AD r1 #3)
-	b += `<path class="fig-drop" ${NS} d="M${P(cx, cy, 4).join(' ')}L${P(cx, cy, 60).join(' ')}"/>`;
-	b += `<g class="m m-rel-g2">${ghost({ px: cx, py: cy - 60, z: 120, e: E })}</g>`;
-	b += `<g class="m m-rel-g3">${ghost({ px: cx, py: cy - 60, z: 120, e: E })}</g>`;
-	b += `<g class="m m-rel-g1">${ghost({ px: cx, py: cy - 30, z: 92, e: E })}</g>`;
-	b += `<g class="m m-rel-next">${cube({ px: cx, py: cy - 30, z: 92, e: E })}</g>`;
-	b += `<g class="m m-rel-cube">${cube({ px: cx, py: cy, z: 64, e: E })}</g>`;
+	const land = P(cx, cy, 0), hover = P(cx, cy, 56), g1 = P(cx, cy - 30, 84), g2 = P(cx, cy - 60, 112); // lowered 8: headroom (AD r2 #3) // one straight queue, equal steps (AD r1 #3)
+	b += `<path class="fig-drop" ${NS} d="M${P(cx, cy, 4).join(' ')}L${P(cx, cy, 52).join(' ')}"/>`;
+	b += `<g class="m m-rel-g2">${ghost({ px: cx, py: cy - 60, z: 112, e: E })}</g>`;
+	b += `<g class="m m-rel-g3">${ghost({ px: cx, py: cy - 60, z: 112, e: E })}</g>`;
+	b += `<g class="m m-rel-g1">${ghost({ px: cx, py: cy - 30, z: 84, e: E })}</g>`;
+	b += `<g class="m m-rel-next">${cube({ px: cx, py: cy - 30, z: 84, e: E })}</g>`;
+	b += `<g class="m m-rel-cube">${cube({ px: cx, py: cy, z: 56, e: E })}</g>`;
 	const fall = d(hover, land), up1 = d(g1, hover), up2 = d(g2, g1);
 	track('rel-cube', CYCLE, [{ t: 0, o: 1 }, { t: 0, dur: 320, pts: [[0, 0], fall], ease: 'fall' }, { t: 5500, x: fall[0], y: fall[1], o: 1 }, { t: 5700, x: fall[0], y: fall[1], o: 0 }, { t: 5999, x: fall[0], y: fall[1], o: 0 }, { t: 6000, o: 1 }]);
 	track('rel-next', CYCLE, [{ t: 0, o: 0 }, { t: 520, o: 0 }, { t: 520, dur: 434, pts: [[0, 0], up1], o: [0, 1], ofast: 2 }, { t: 5999, x: up1[0], y: up1[1], o: 1 }, { t: 6000, o: 0 }]);
@@ -217,7 +221,7 @@ function twoPlates() {
 {
 	// gates: "your gate decides which version may go now". Two posts stand on the near plate's top face at
 	// the stair foot, straddling the flight (stair half-width + 4); the dashed bar (the only "yours" mark)
-	// spans them. The bar lifts, the waiting build climbs to the middle of the flight, the gate drops back,
+	// spans them. The bar lifts, the waiting build moves into the gateway, the gate drops back,
 	// the next build arrives. The gate is drawn after the build: once the build is past it, the posts are nearer.
 	begin(); let b = twoPlates();
 	const gx = SW / 2 + 4, gy = 6, ph = 26, bz = 18;
@@ -226,23 +230,23 @@ function twoPlates() {
 	const pl = P(W / 2 - gx, gy, 0), pr = P(W / 2 + gx, gy, 0), plt = P(W / 2 - gx, gy, ph), prt = P(W / 2 + gx, gy, ph);
 	b += `<path class="fig-gate" ${NS} d="M${pl.join(' ')}L${plt.join(' ')}M${pr.join(' ')}L${prt.join(' ')}"/>`;
 	b += `<g class="m m-gate-bar"><path class="fig-gate fig-dash" ${NS} d="M${P(W / 2 - gx, gy, bz).join(' ')}L${P(W / 2 + gx, gy, bz).join(' ')}"/></g>`;
-	const c = climb(W / 2, 0, 0), mid = [W / 2, E / 2 - 2 * T, 2 * T]; // on the second tread
-	const path = scr(A, [wait, c[1], mid]), up = path[2];
+	const c = climb(W / 2, 0, 0); // the build stops inside the gateway, on the plate (AD r2 #2); climbing is Fig 4's job
+	const path = scr(A, [wait, c[1]]), up = path[1];
 	track('gate-bar', CYCLE, [{ t: 0, o: 1 }, { t: 0, x: 0, y: 0 }, { t: 240, x: 0, y: -8, o: 0 }, { t: 3500, x: 0, y: -8, o: 0 }, { t: 3740, x: 0, y: 0, o: 1 }, { t: 6000, o: 1 }]);
-	track('gate-cube', CYCLE, [{ t: 0, o: 1 }, { t: 160, o: 1 }, { t: 160, dur: 700, pts: path, o: [1, 1] }, { t: 3300, x: up[0], y: up[1], o: 1 }, { t: 3500, x: up[0], y: up[1], o: 0 }, { t: 3600, o: 0 }, { t: 3800, o: 1 }, { t: 6000, o: 1 }]);
+	track('gate-cube', CYCLE, [{ t: 0, o: 1 }, { t: 160, o: 1 }, { t: 160, dur: 700, pts: path, o: [1, 1], ease: 'calm' }, { t: 3300, x: up[0], y: up[1], o: 1 }, { t: 3500, x: up[0], y: up[1], o: 0 }, { t: 3600, o: 0 }, { t: 3800, o: 1 }, { t: 6000, o: 1 }]);
 	svg('gates', 'shelf', b);
 }
 {
 	// update: "it reaches the next environment". One continuous climb, plate centre -> stair foot -> up the
 	// nosing line -> next plate centre (EXPO sampled over the polyline); the upper plate's rim answers.
-	// Rest pose (reduced motion / before live): on the second tread, from --rest emitted here.
+	// Rest pose (reduced motion / before live): arrived on the next plate, from --rest emitted here.
 	begin(); let b = twoPlates();
 	const c = climb(W / 2, 0, 0), A = P(...c[0]);
-	const rest = d(A, P(W / 2, E / 2 - 2 * T, 2 * T));
+	const rest = d(A, P(...c[3])); // arrived on the upper plate: a cube perched across two treads read as wonky (AD r2 #2)
 	b += `<g class="m m-upd-cube" style="--rest:translate(${rest[0]}px,${rest[1]}px)">${cube({ px: c[0][0], py: c[0][1], z: 0, e: E })}</g>`;
 	const path = scr(A, c), end = path[3];
-	track('upd-cube', CYCLE, [{ t: 0, o: 1 }, { t: 0, dur: 900, pts: path, o: [1, 1] }, { t: 2200, x: end[0], y: end[1], o: 1 }, { t: 2400, x: end[0], y: end[1], o: 0 }, { t: 2500, o: 0 }, { t: 2700, o: 1 }, { t: 6000, o: 1 }]);
-	CSS.push('@keyframes upd-flash{0%,7.9%{opacity:0}8%{opacity:1}19%{opacity:0}100%{opacity:0}}'); // arrival ~480 ms (900 ms, 660 ms fade)
+	track('upd-cube', CYCLE, [{ t: 0, o: 1 }, { t: 0, dur: 800, pts: path, o: [1, 1], ease: 'calm' }, { t: 2200, x: end[0], y: end[1], o: 1 }, { t: 2400, x: end[0], y: end[1], o: 0 }, { t: 2500, o: 0 }, { t: 2700, o: 1 }, { t: 6000, o: 1 }]);
+	CSS.push('@keyframes upd-flash{0%,11.6%{opacity:0}11.7%{opacity:1}22.7%{opacity:0}100%{opacity:0}}'); // arrival ~700 ms (800 ms calm), 660 ms fade
 	svg('update', 'shelf', b);
 }
 {
@@ -278,7 +282,7 @@ function staircase(name, k, { labels }) {
 	const A = P(W / 2, W / 2, 0), leg = (i) => scr(A, climb(W / 2, E3[i].py, E3[i].z));
 	const T42 = 4200, s1 = leg(0)[3], s2 = leg(1)[3];
 	// hold 400 -> dev..staging 1000 -> hold 600 -> staging..prod 1000 -> prod pulse
-	track(`${k}-t`, T42, [{ t: 0, o: 1 }, { t: 400, o: 1 }, { t: 400, dur: 1000, pts: leg(0) }, { t: 2000, x: s1[0], y: s1[1] }, { t: 2000, dur: 1000, pts: leg(1) }, { t: 4200, x: s2[0], y: s2[1] }]);
+	track(`${k}-t`, T42, [{ t: 0, o: 1 }, { t: 400, o: 1 }, { t: 400, dur: 1000, pts: leg(0), ease: 'calm' }, { t: 2000, x: s1[0], y: s1[1] }, { t: 2000, dur: 1000, pts: leg(1), ease: 'calm' }, { t: 4200, x: s2[0], y: s2[1] }]);
 	CSS.push(`@keyframes ${k}-s{0%,33.3%{opacity:0}33.4%,100%{opacity:1}}@keyframes ${k}-p{0%,71.3%{opacity:0}71.4%,100%{opacity:1}}@keyframes ${k}-pulse{0%,71.4%{transform:scale(.4);opacity:0}74%{opacity:.9}92%,100%{transform:scale(1);opacity:0}}`);
 	svg(name, '', b);
 }
