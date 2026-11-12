@@ -2,7 +2,7 @@
 # hero.h1 is THE swappable headline: <title>, og:title and the h1 read this one string.
 hero:
   eyebrow: "Open source · Apache 2.0 · Works with Flux"
-  h1: "Kubernetes releases you don't have to watch."
+  h1: "Safe, hands-off deployments for Kubernetes."
   sub: "Every new release walks through your environments on its own. Kuberik checks its health at each step, stops it when something fails, and asks you only when a person has to decide."
   proof: "Runs in your cluster · no agent to install"
 
