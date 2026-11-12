@@ -1,6 +1,6 @@
 /* Landing sections below the hero (v4 behaviour, minimal):
    - .reveal fade-up on first view (everything shown at once under prefers-reduced-motion)
-   - the isometric figs are still: the hero is the page's one animation
+   - the isometric figs animate only while on screen (.is-live on .fig-cell), never under reduced motion
    - the three non-rollout YAML files fold on phones (same breakpoint as sections.css .mf-fold, 1023)
    The hero window has its own loader (islands/); nothing here touches it. */
 (function () {
@@ -13,6 +13,17 @@
       en.forEach(function (x) { if (x.isIntersecting) { x.target.classList.add('is-in'); io.unobserve(x.target); } });
     }, { threshold: 0.12 });
     els.forEach(function (e) { io.observe(e); });
+  }
+  var cells = [].slice.call(document.querySelectorAll('.fig-cell'));
+  if ('IntersectionObserver' in window) {
+    var live = new IntersectionObserver(function (en) {
+      en.forEach(function (x) {
+        // --clk keeps every fig on one page clock (6 s cycle): the row plays as one sequence however each cell entered
+        if (x.isIntersecting) x.target.style.setProperty('--clk', Math.round(performance.now() % 6000) + 'ms');
+        x.target.classList.toggle('is-live', x.isIntersecting);
+      });
+    }, { rootMargin: '0px', threshold: 0.05 });
+    cells.forEach(function (c) { live.observe(c); });
   }
   var folds = [].slice.call(document.querySelectorAll('[data-mp-fold]'));
   var phone = matchMedia('(max-width: 1023px)');

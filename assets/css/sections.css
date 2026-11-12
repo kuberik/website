@@ -81,7 +81,7 @@ html.dark .vendor-mark{background-image:var(--logo-dark);opacity:.72}
 .statement-claim{color:var(--ink)}
 .statement-rest{color:var(--statement-rest)}
 
-/* the drawings are still (rest pose): the hero is the page's one animation (owner, landing v5). Strokes: three weights only (FIGS-SPEC s3): 1 structure, 1.5 teal active, 2 the answer mark.
+/* the drawings animate while on screen (owner, landing v5), at rest under reduced motion. Strokes: three weights only (FIGS-SPEC s3): 1 structure, 1.5 teal active, 2 the answer mark.
    Dashes: 4 3 = "yours" (gate bar, health's outer ring); 0 4 round cap = trajectory (the release drop). */
 .fig{display:block;width:100%;height:auto;overflow:visible}
 .fig-top{fill:var(--fig-ground);stroke:var(--fig-top-line);stroke-width:1}
@@ -107,12 +107,42 @@ html.dark .vendor-mark{background-image:var(--logo-dark);opacity:.72}
 .fig-label{fill:var(--fig-label);font:500 13px/1 var(--mono);letter-spacing:.02em}
 /* motion groups: animate the <g>, never an element that carries a transform attribute (A5) */
 .m{transform-box:fill-box;transform-origin:center}
-/* REST POSE: each fig tells its story alone. */
-.m-rel-next,.m-rel-g3{opacity:0}
+/* REST POSE (reduced motion, or before the cell is live): each fig tells its story alone. */
+.m-rel-next,.m-rel-g3,.m-dp{opacity:0}
 .m-hp1{opacity:.5;transform:scale(.5)}.m-hp2{opacity:.22}   /* health: ring A at r 23, ring B at r 46 */
 .m-upd-cube{transform:var(--rest)}                           /* update: mid-ramp */
 .m-st-t,.m-stc-t{display:none}                               /* staircase: the finished picture */
 .m-st-pulse,.m-stc-pulse{opacity:0}
+/* ambient: runs only while the cell is on screen (sections.js sets .is-live, and --clk = the page clock so the
+   five figs stay in one sequence however they entered), never under reduced motion. One 6 s clock for the
+   row; fig n bursts at n x 1.1 s; the staircase plays once. Keyframes: landing-figs.gen.css. */
+@media(prefers-reduced-motion:no-preference){
+  .fig-cell.is-live{--d:calc(var(--i,0) * 1100ms - var(--clk,0ms))}
+  .is-live .m-rel-cube{animation:rel-cube 6s linear var(--d) infinite both}
+  .is-live .m-rel-next{animation:rel-next 6s linear var(--d) infinite both}
+  .is-live .m-rel-g1{animation:rel-g1 6s linear var(--d) infinite both}
+  .is-live .m-rel-g2{animation:rel-g2 6s linear var(--d) infinite both}
+  .is-live .m-rel-g3{animation:rel-g3 6s linear var(--d) infinite both}
+  .is-live .fig-release .fig-plate .fig-flash{animation:rel-flash 6s linear var(--d) infinite both}
+  .is-live .fig-scan{animation:scan 6s linear var(--d) infinite both}
+  .is-live .fig-check{animation:check 6s linear var(--d) infinite both}
+  .is-live .m-gate-bar{animation:gate-bar 6s linear var(--d) infinite both}
+  .is-live .m-gate-cube{animation:gate-cube 6s linear var(--d) infinite both}
+  .is-live .m-upd-cube{animation:upd-cube 6s linear var(--d) infinite both}
+  .is-live .fig-update .fig-up .fig-flash{animation:upd-flash 6s linear var(--d) infinite both}
+  .is-live .m-hp1{animation:hp 6s cubic-bezier(.16,1,.3,1) var(--d) infinite both}
+  .is-live .m-hp2{animation:hp 6s cubic-bezier(.16,1,.3,1) calc(var(--d) + 180ms) infinite both}
+  .is-live .m-dp{animation:hp 6s cubic-bezier(.16,1,.3,1) var(--d) infinite both}
+  .closing-art.is-live .m-st-t{display:block;animation:st-t 4.2s linear 0s 1 both}
+  .closing-art.is-live .m-st-s{animation:st-s 4.2s linear 0s 1 both}
+  .closing-art.is-live .m-st-p,.closing-art.is-live .st-ring{animation:st-p 4.2s linear 0s 1 both}
+  .closing-art.is-live .m-st-pulse{animation:st-pulse 4.2s cubic-bezier(.16,1,.3,1) 0s 1 both}
+  .closing-art.is-live .m-stc-t{display:block;animation:stc-t 4.2s linear 0s 1 both}
+  .closing-art.is-live .m-stc-s{animation:stc-s 4.2s linear 0s 1 both}
+  .closing-art.is-live .m-stc-p,.closing-art.is-live .stc-ring{animation:stc-p 4.2s linear 0s 1 both}
+  .closing-art.is-live .m-stc-pulse{animation:stc-pulse 4.2s cubic-bezier(.16,1,.3,1) 0s 1 both}
+}
+
 /* the loop: five figures */
 .figs{list-style:none;margin:64px calc(-1*var(--fig-gap,20px)) 0;padding:0;display:grid;grid-template-columns:repeat(5,minmax(0,1fr))}
 .fig-cell{display:flex;flex-direction:column;padding:0 20px;border-left:1px solid var(--fig-sep);min-width:0}
