@@ -62,7 +62,9 @@ function resolve(name: string, root: ParentNode, phone: boolean): HTMLElement | 
 		/* scene lane 4: the standalone Health checks card (the pipeline's Check panel has its own "Health checks" row, which is not this) */
 		case 'health-checks': { const pc = cardOf(root, /Deployment pipeline/i); const hs = [...root.querySelectorAll<HTMLElement>('h2,h3')].filter((h) => /^Health checks/i.test(text(h)) && !pc?.contains(h)); return (hs[0]?.closest('section, [data-card], .card, [class*="rounded"]') as HTMLElement | null) ?? null; }
 		/* scene lane 4 (phone): the Check step's bake, its sentence ("Bake started, monitoring for errors.") and the card under it (Health checks, Check timer and its bar) */
-		case 'bake': { const line = byText(root, 'div,p,span', /^Bake (started|time completed)/i), card = byText(root, 'div,span,p,h3,h4', /^Check timer$/)?.closest<HTMLElement>('[class*="rounded"]') ?? null; return line && card ? union([line, card]) : card; }
+		case 'bake': return byText(root, 'div,span,p,h3,h4', /^Check timer$/)?.closest<HTMLElement>('[class*="rounded"]') ?? null; /* the card under the bake sentence: Health checks, Check timer and its bar (the frame's top nudges up onto the sentence) */
+		/* scene lane 4 (phone): the Release approval gate card, the subject from the Approve press to every gate passing (it stays when its button leaves) */
+		case 'gate-release': return byText(root, 'div,span,p,h3,h4', /^Release approval$/)?.closest<HTMLElement>('[class*="rounded"]') ?? null;
 		/* scene lane 4: the Gates tab's graph: every gate card (staging's promotion, Release approval, Business hours) and this rollout, as one rect (the frame's foot is the lowest gate) */
 		case 'gates-graph': { const cards = ['Release approval', 'Business hours'].map((t) => byText(root, 'div,span,p,h3,h4', new RegExp('^' + t + '$'))?.closest<HTMLElement>('[class*="rounded"]') ?? null); const node = byText(root, 'div,span,p', /^This rollout$/i); return cards.every(Boolean) ? union([...(cards as HTMLElement[]), ...(node ? [node] : [])]) : null; }
 		case 'gates-card': return cardOf(root, /^Gates$/); /* scene lane 3: the Gates tab's gate graph card */

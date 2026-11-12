@@ -48,7 +48,8 @@ const EXPO = 'cubic-bezier(0.16, 1, 0.3, 1)';
 export const CAMERA: Move[] = [ /* scene lane 3: one fixed scale; a framing is set AT a cut or a chapter boundary (dur 0) and holds */
 	{ at: 0, to: 'rest', s: 1, dur: 0, ease: EXPO },
 	{ at: EV.devGo, to: 'rest', s: 1, dur: 0, ease: EXPO }, /* staging's rollout page: its strip and pipeline, quickly */
-	{ at: EV.gatesCut, to: 'attention', s: 1, dur: 0, ease: EXPO }, /* the phone: the Release approval card at the top of the frame, the confirm opens as a sheet */
+	{ at: EV.stagingGo - 0.02, to: 'pipeline', s: 1, pad: 68 /* the strip above it */, desk: true, dur: 0, ease: EXPO }, /* scene lane 4: as staging takes the build its header grows two lines (the PR, the namespace); the frame cuts to the strip and the pipeline under it, so neither moves on screen */
+	{ at: EV.gatesCut, to: 'gate-release', s: 1, dur: 0, ease: EXPO }, /* the phone: the Release approval card at the top of the frame, the confirm opens as a sheet */
 	{ at: EV.gatesCut, to: 'gates-graph', s: 1, foot: true, desk: true, dur: 0, ease: EXPO }, /* the prod rollout's Gates tab: every gate (staging's promotion, Release approval, Business hours) and this rollout, whole, at the frame's foot */
 	{ at: EV.ovCut, to: 'pipeline', s: 1, foot: true, dur: 0, ease: EXPO }, /* its Overview: the pipeline card through the canary */
 	{ at: EV.step2Done, to: 'health-checks', s: 1, pad: 10, dur: 0, ease: EXPO }, /* scene lane 4: the same page, cut to its Health checks card: kustomization, error-rate, latency-p99 pass one by one */
