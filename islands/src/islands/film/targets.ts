@@ -55,6 +55,8 @@ function resolve(name: string, root: ParentNode, phone: boolean): HTMLElement | 
 			return gates.length && node ? union([...gates, node]) : null;
 		}
 		case 'pipeline': return cardOf(root, /Deployment pipeline/i);
+		/* scene lane 2: the page header's environment strip (EnvRow, #137 wave dots and pies), lit with a 6 px margin round its boxes */
+		case 'env-strip': { const e = q('[data-env-row] .env-row') ?? q('[data-env-row]'); if (!e) return null; return { __r: 10, getBoundingClientRect() { const r = e.getBoundingClientRect(), u = (e.offsetWidth ? r.width / e.offsetWidth : 1) * 6; return new DOMRect(r.left - u, r.top - u, r.width + 2 * u, r.height + 2 * u); } } as unknown as HTMLElement; }
 		case 'health-checks': return cardOf(root, /^Health checks/i);
 		case 'banner': return q('.ap-cq');
 		/* the catch: the WHOLE failure banner (AD r4: lit as a banner with its own radius, not as a text box) */

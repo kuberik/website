@@ -1,0 +1,1 @@
+function i(e){return e.some(n=>n==="checking")?"finish checking":e.some(n=>n==="deploying")?"finish deploying":"deploy"}function r(e,n){return`to ${i(e)} ${n}`}function u(e,n,t){return`Waiting for ${e} ${r(n,t)}`}function o(e,n,t){return e?e.wave?{stage:e.stage,text:e.wave}:e.heldCause||!t?null:{stage:e.stage,text:u(e.stage,[n],t)}:null}export{o as c,r as w};

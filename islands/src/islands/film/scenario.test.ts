@@ -1,19 +1,24 @@
 import { describe, expect, it } from 'vitest';
 import { EV, EVENT_TIMES, eventIndexAt, phaseOf, PLACES, worldAt } from './scenario';
-const us1 = PLACES[1];
+const us1 = PLACES.find((p) => p.site === 'us-east-1')!;
+const stg = PLACES.find((p) => p.env === 'staging')!, dev = PLACES.find((p) => p.env === 'dev')!;
 const rolloutOf = (t: number, ns = us1.ns) => (worldAt(t).fleet.rollouts as any[]).find((r) => r.metadata.namespace === ns);
 /* the catalogue the place reads (release-controller ReleaseSlices, dashboard #69): the Rollout carries no release list of its own */
 const tags = (t: number, ns: string) => ((worldAt(t).fleet as any).releaseSlices.items as any[]).filter((s) => s.metadata.namespace === ns).flatMap((s) => s.releases.map((r: any) => r.tag));
-describe('film scenario (lane 33: release, staging, approve, canary, waves)', () => {
+describe('film scenario (scene lane 2: release, dev, staging, approve, canary, waves)', () => {
 	it('opens on the release: 4.46.0-46 is catalogued from the first frame, every place still runs 4.45.0-45', () => {
 		expect(tags(EV.release, PLACES[0].ns)).toEqual(['b-44', 'b-45', 'b-46']);
 		expect(rolloutOf(0).status.candidates.map((c: any) => c.tag)).toEqual(['b-46']);
 		expect(rolloutOf(0).status.availableReleases).toBeUndefined();
 		for (const p of PLACES) expect(phaseOf(p, 0.5)).toBe('old');
 	});
-	it('staging takes the release at once and finishes before the approval', () => {
-		expect(phaseOf(PLACES[0], EV.stagingGo)).toBe('deploying');
-		expect(rolloutOf(EV.stagingDone, PLACES[0].ns).status.history[0].bakeStatus).toBe('Succeeded');
+	it('dev, then staging, take the release and finish before the approval', () => {
+		expect(phaseOf(dev, EV.devGo)).toBe('deploying');
+		expect(phaseOf(stg, EV.devDone)).toBe('old');
+		expect(rolloutOf(EV.devDone, dev.ns).status.history[0].bakeStatus).toBe('Succeeded');
+		expect(EV.devDone).toBeLessThan(EV.stagingGo);
+		expect(phaseOf(stg, EV.stagingGo)).toBe('deploying');
+		expect(rolloutOf(EV.stagingDone, stg.ns).status.history[0].bakeStatus).toBe('Succeeded');
 		expect(EV.stagingDone).toBeLessThan(EV.approved);
 	});
 	it('the release-approval gate flips at the press; the deploy window is open throughout', () => {
@@ -23,7 +28,7 @@ describe('film scenario (lane 33: release, staging, approve, canary, waves)', ()
 		expect(g(0, 'deploy-window').passing).toBe(true);
 		expect(g(0, 'release-approval').kind).toBe('approval');
 		expect(rolloutOf(EV.promo).status.candidates[0].blockedBy).toEqual(['release-approval']);
-		expect(rolloutOf(EV.approved).status.history[0].approval).toEqual({ name: 'checkout-api-b-46', by: 'oidc:noah-carter' });
+		expect(rolloutOf(EV.deploy).status.history[0].approval).toEqual({ name: 'checkout-api-b-46', by: 'oidc:noah-carter' });
 		expect(worldAt(EV.approved).detail.approvals.approvals[0].version).toBe('b-46');
 	});
 	it('tests: Pending -> Running -> Succeeded while the canary pauses on stage 1', () => {
@@ -31,15 +36,15 @@ describe('film scenario (lane 33: release, staging, approve, canary, waves)', ()
 		expect([ph(EV.testPending - 0.1), ph(EV.testPending + 0.1), ph(EV.testRunning + 0.1), ph(EV.testPassed + 0.1)]).toEqual(['WaitingForStep', 'Pending', 'Running', 'Succeeded']);
 	});
 	it('waves 2 and 3 wait on the wave before, then take the build by themselves; nothing fails', () => {
-		for (const p of PLACES.slice(2)) {
+		for (const p of PLACES.filter((q) => q.env === 'prod' && q !== us1)) {
 			expect(rolloutOf(EV.us1Done - 0.1, p.ns).status.history[0].version.tag).toBe('b-45');
 			expect(rolloutOf((p.wave === 2 ? EV.w2Deploy : EV.w3Deploy) + 0.1, p.ns).status.history[0].version.tag).toBe('b-46');
 			if (p.wave === 3) expect(rolloutOf(EV.w2Deploy + 0.1, p.ns).status.history[0].version.tag).toBe('b-45');
-			expect(rolloutOf(35, p.ns).status.history[0].bakeStatus).toBe('Succeeded');
+			expect(rolloutOf(29.9, p.ns).status.history[0].bakeStatus).toBe('Succeeded');
 		}
 		const leader = (worldAt(EV.us1Done - 0.1).fleet.environments as any[]).find((e) => e.metadata.namespace === 'checkout-api-prod-eu-west-1');
 		expect(leader.status.wave.blocker?.site).toBe('us-east-1');
-		for (let t = 0; t < 35.5; t += 0.5) for (const p of PLACES) expect(rolloutOf(t, p.ns).status.history[0].bakeStatus).not.toBe('Failed');
+		for (let t = 0; t < 30; t += 0.5) for (const p of PLACES) expect(rolloutOf(t, p.ns).status.history[0].bakeStatus).not.toBe('Failed');
 	});
 	it('event indices only move at event times', () => {
 		expect(eventIndexAt(EV.w2Deploy - 0.01) + 1).toBe(eventIndexAt(EV.w2Deploy));

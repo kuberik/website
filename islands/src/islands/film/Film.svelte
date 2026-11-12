@@ -14,7 +14,7 @@
 	import WindowBar from '../shared/WindowBar.svelte';
 	import Chrome from './Chrome.svelte';
 	import Cursor from './Cursor.svelte';
-	import { CHAPTERS, LOOP, chapterAt, chapterFill, surfAt, moveAt, pressAt, confirmOpen, tallyShown, NEW_AT, NEW_SHINE, type Surf, type Move } from './script';
+	import { CHAPTERS, LOOP, chapterAt, chapterFill, surfAt, moveAt, pressAt, confirmOpen, CONFIRM_SURF, tallyShown, NEW_AT, NEW_SHINE, type Surf, type Move } from './script';
 	import Chip from '$lib/components/Chip.svelte';
 	import { loadSurface, surfaceProps, SURFACE_PATH } from './surfaces';
 	import { resolveTarget } from './targets';
@@ -293,7 +293,7 @@ import { flipRecord, flipPlay, type Pos } from './flip';
 		else if (el) {
 			const r0 = relRect(el), r = m.h ? { ...r0, h: m.h } : r0; /* Move.h: the frame is worked out as if the target were this tall, so it does not depend on the step the story is at */
 			if (phone) { s = 1; const pk = `${m.at}|${CW}`; if (!refine && !PHONE_OFF.has(pk)) PHONE_OFF.set(pk, phoneTop(r) - Math.max(0, r.y - 10)); phoneOff = PHONE_OFF.get(pk)! - 10; y = -Math.max(0, r.y + phoneOff); } /* the foot's nudge is worked out once per move (a seek frames the way play does) */
-			else if (s === 1) { y = -Math.max(0, Math.min(r.y - 24, gh - vh)); }
+			else if (s === 1) { y = m.stay ? 0 : -Math.max(0, Math.min(r.y - 24, gh - vh)); }
 			else {
 				/* fit with a 14 px margin: the product's gap between cards is >= 12 px x scale, so a neighbour never peeks into the frame mid-word. The PERSON beats (m.min) zoom until their smallest text renders at m.min px, bounded by the window (both axes) and 2.4x. */
 				const need = m.min ? m.min / (minFont(r) * k) : 0;
@@ -407,7 +407,7 @@ import { flipRecord, flipPlay, type Pos } from './flip';
 		untrack(() => {
 			if (!canvas) return;
 			/* only on the surface that owns the button: a seek lands here before the new surface is shown */
-			if (want && !approvalUi.ask && shown === 'rollouts') {
+			if (want && !approvalUi.ask && shown === CONFIRM_SURF) {
 				const el = resolveTarget('approve', canvas, phone) as HTMLElement | null;
 				if (el) { el.click(); const a = approvalUi.ask; if (a) { if (phone) { const c = canvas.getBoundingClientRect(), r = el.getBoundingClientRect(); a.anchor = { top: (r.top - c.top) / k, left: (r.left - c.left) / k, right: (r.right - c.left) / k, bottom: (r.bottom - c.top) / k }; } else { const r = relRect(el); /* the layer lives in the camera wrapper: group space, so it sits under ITS button at any zoom; the 320 px panel is left-aligned to the button (right = left + 320) */ a.anchor = { top: r.y, left: r.x, right: r.x + 320, bottom: r.y + r.h }; } } }
 			} else if (!want && approvalUi.ask) approvalUi.ask = null;
@@ -441,7 +441,7 @@ import { flipRecord, flipPlay, type Pos } from './flip';
 	void CHAPTERS;
 </script>
 
-<div class="film" class:film-noconfirm={surf !== 'rollouts'} bind:this={host} bind:clientWidth={W} bind:clientHeight={H}>
+<div class="film" class:film-noconfirm={surf !== CONFIRM_SURF} bind:this={host} bind:clientWidth={W} bind:clientHeight={H}>
 	<div class="film-frame">
 		<div class="film-canvas" inert aria-hidden="true" bind:this={canvas} style="width:{CW}px;height:{CH}px;zoom:{k}">
 			<div class="film-app">

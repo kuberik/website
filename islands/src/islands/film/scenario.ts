@@ -24,11 +24,14 @@ type Any = any;
 
 /** story seconds at which a CR changes (script.ts shots: App 0-2.2, Change 2.2-7, Rollouts 7-10.7, Overview 10.7-19.9, Change 19.9-35.5) */
 export const EV = {
-	release: 0, stagingGo: 2.2, check: 3.2, hcStagingErr: 3.8, hcStagingLat: 4.2, stagingDone: 5.4,
-	promo: 7.0, approved: 10.7, /* the cut to the Overview lands on this second: the approved card never leaves on screen */ /* the promotion gate opens a sync after staging's bake, on the Rollouts cut (7.0): the approval asks there, not as a banner pushing the App page down */
-	deploy: 10.7, /* on the Overview cut: the In flight row is not added under the Rollouts frame */ paused1: 12.5, testPending: 12.8, testRunning: 13.1, testPassed: 14.7, step2Go: 16.3, step2Done: 16.3, /* lane 36 (AD r1 P2-1): stage 2 (100 %) is over within the time-lapse's step: its one-row pane left the card two-thirds empty; was lane 35: stage 2 (100 %) is brief: its pane holds one row in the steady-height card (a half-empty card for 1 s) */ /* lane 36 (AD r1 P3-1): the canary holds trimmed to ~1.5 s, the loop 40 -> 35.5 s */ hcLat: 18.0, hcErr: 18.4, us1Done: 19.9,
-	w2Deploy: 21.5, w2Check0: 23.1, w2Check1: 23.4, w2Done0: 24.3, w2Done1: 24.7,
-	w3Deploy: 25.9, w3Check0: 27.3, w3Check1: 27.6, w3Done0: 28.5, w3Done1: 28.9
+	/* scene lane 2 (owner 2026-11-12, "calm, like Railway"): two views, the App page and the prod us-east-1 Overview. One state change at a time, then a hold */
+	release: 0, devGo: 2.6, devCheck: 3.1, hcDevErr: 3.5, hcDevLat: 3.7, devDone: 4.1, /* dev takes the release at once (RAILWAY.md: a state change every 0.6-1.0 s, then a hold) */
+	stagingGo: 4.5, check: 5.0, hcStagingErr: 5.5, hcStagingLat: 5.8, stagingDone: 6.3,
+	promo: 7.0, /* the promotion gate opens a sync after staging's bake: prod us-east-1 asks for the release approval (the App page's own banner) */
+	approved: 11.0, deploy: 11.0, /* the confirm is pressed at 10.7; the cut to the Overview lands on 11.0 with the approval: the banner never leaves on screen, the build moves by itself */
+	paused1: 12.3, testPending: 12.6, testRunning: 13.0, testPassed: 15.0, step2Go: 16.2, step2Done: 17.1, hcLat: 17.8, hcErr: 18.2, us1Done: 19.1,
+	w2Deploy: 20.4, w2Check0: 21.6, w2Check1: 21.9, w2Done0: 22.6, w2Done1: 23.0,
+	w3Deploy: 23.8, w3Check0: 24.9, w3Check1: 25.2, w3Done0: 25.9, w3Done1: 26.3
 } as const;
 /** every story second a CR changes at: the film re-derives its (heavy) data snapshot only when one of these is passed */
 export const EVENT_TIMES = [0, ...Object.values(EV)].sort((a, b) => a - b);
@@ -38,8 +41,9 @@ const H = 3600_000;
 const SHA = { 44: 'b44d3e19a0c7e5a1f2b8c9d04e6a7b1c2d3e4f50', 45: 'b45a7c2e9d1f03b4a5c6d7e8f9a0b1c2d3e4f561', 46: 'e1c7a04b8d2f19a3c5e7091b3d5f7a9c1e3b5d72' };
 const short = (sha: string) => sha.slice(0, 7);
 
-type Place = { ns: string; env: 'staging' | 'prod'; site?: string; wave?: number };
+type Place = { ns: string; env: 'dev' | 'staging' | 'prod'; site?: string; wave?: number };
 export const PLACES: Place[] = [
+	{ ns: 'checkout-api-dev', env: 'dev' },
 	{ ns: 'checkout-api-staging', env: 'staging' },
 	{ ns: 'checkout-api-prod-us-east-1', env: 'prod', site: 'us-east-1', wave: 1 },
 	{ ns: 'checkout-api-prod-us-east-2', env: 'prod', site: 'us-east-2', wave: 2 },
@@ -61,8 +65,14 @@ const LATE: Record<string, { go: number; check: number; done: number }> = {
 	'ap-southeast-2': { go: EV.w3Deploy, check: EV.w3Check0, done: EV.w3Done0 }, 'eu-central-1': { go: EV.w3Deploy, check: EV.w3Check1, done: EV.w3Done1 }
 };
 export const lateOf = (site: string) => LATE[site];
+/** scene lane 2: the two environments before production (dev, then staging), each one deploy + two health checks */
+const PRE: Record<'dev' | 'staging', { go: number; check: number; hcErr: number; hcLat: number; done: number }> = {
+	dev: { go: EV.devGo, check: EV.devCheck, hcErr: EV.hcDevErr, hcLat: EV.hcDevLat, done: EV.devDone },
+	staging: { go: EV.stagingGo, check: EV.check, hcErr: EV.hcStagingErr, hcLat: EV.hcStagingLat, done: EV.stagingDone }
+};
+const preOf = (p: Place) => (p.env === 'prod' ? null : PRE[p.env]);
 export function phaseOf(p: Place, t: number): Phase {
-	if (p.env === 'staging') return t < EV.stagingGo ? 'old' : t < EV.check ? 'deploying' : t < EV.stagingDone ? 'checking' : 'done';
+	const e = preOf(p); if (e) return t < e.go ? 'old' : t < e.check ? 'deploying' : t < e.done ? 'checking' : 'done';
 	if (isUS1(p)) return t < EV.deploy ? 'old' : t < EV.step2Done ? 'deploying' : t < EV.us1Done ? 'checking' : 'done';
 	const L = LATE[p.site!];
 	return t < L.go ? 'old' : t < L.check ? 'deploying' : t < L.done ? 'checking' : 'done';
@@ -90,9 +100,9 @@ export function worldAt(t: number): { fleet: FleetSource; github: Record<string,
 	const auto = 'Automatic deployment';
 	const base = { id: 1, version: R45, timestamp: new Date(ago(3 * H)).toISOString(), message: auto, bakeStatus: 'Succeeded', bakeStatusMessage: DONE_MSG, bakeStartTime: new Date(ago(3 * H)).toISOString(), bakeEndTime: new Date(ago(3 * H) + 600_000).toISOString(), triggeredBy: sys };
 	/* the controller starts a bake (bakeStartTime, InProgress, "Bake started...") only once EVERY health check is Healthy with a fresh lastChangeTime (rollout_controller.go ~1950-1984); until then the entry is Deploying and "Waiting for health checks to become healthy before starting bake." */
-	const startOf = (p: Place) => (p.env === 'staging' ? EV.stagingGo : isUS1(p) ? EV.deploy : LATE[p.site!].go);
-	const bakeAt = (p: Place) => (p.env === 'staging' ? EV.hcStagingLat : isUS1(p) ? EV.hcErr : LATE[p.site!].check);
-	const doneAt = (p: Place) => (p.env === 'staging' ? EV.stagingDone : isUS1(p) ? EV.us1Done : LATE[p.site!].done);
+	const startOf = (p: Place) => (preOf(p) ? preOf(p)!.go : isUS1(p) ? EV.deploy : LATE[p.site!].go);
+	const bakeAt = (p: Place) => (preOf(p) ? preOf(p)!.hcLat : isUS1(p) ? EV.hcErr : LATE[p.site!].check);
+	const doneAt = (p: Place) => (preOf(p) ? preOf(p)!.done : isUS1(p) ? EV.us1Done : LATE[p.site!].done);
 	const baking = (p: Place) => t >= bakeAt(p);
 	function history(p: Place): Any[] {
 		const ph = phaseOf(p, t);
@@ -106,7 +116,7 @@ export function worldAt(t: number): { fleet: FleetSource; github: Record<string,
 	/* ---- gates (environment-controller wave.go / the dependency + schedule controllers) ---- */
 	const old = ['b-44', 'b-45'], withNew = out46 ? ['b-44', 'b-45', 'b-46'] : old;
 	function gates(p: Place): Any[] {
-		if (p.env === 'staging') return [];
+		if (p.env !== 'prod') return [];
 		/* wave 1 (us-east-1) may take what staging finished; each later wave what the wave before finished baking (environment-controller wave.go) */
 		const promoOpen = out46 && (isUS1(p) ? t >= EV.promo : p.wave === 2 ? t >= EV.us1Done : t >= EV.w2Done1);
 		/* `kind` and `displayName` are the dashboard API's own additions to each gate summary (pkg/kubernetes/gatekind.go: by the gate object's owner / labels; the pretty-name annotation) */
@@ -138,7 +148,7 @@ export function worldAt(t: number): { fleet: FleetSource; github: Record<string,
 	const revOf = (q: Place) => (deployed(q) ? SHA[46] : SHA[45]);
 	const bakeOf = (q: Place) => { const ph = phaseOf(q, t); return ph === 'deploying' ? 'Deploying' : ph === 'checking' ? (baking(q) ? 'InProgress' : 'Deploying') : 'Succeeded'; };
 	function environment(p: Place): Any {
-		const lead = leaderOf(p), w = p.wave ?? 1, upEnv = p.env === 'prod' ? 'staging' : null;
+		const lead = leaderOf(p), w = p.wave ?? 1, upEnv = p.env === 'prod' ? 'staging' : p.env === 'staging' ? 'dev' : null;
 		const members = PLACES.filter((q) => q.env === p.env || q.env === upEnv).map((q) => ({ environment: q.env, site: q.site ?? 'default', wave: q.wave ?? 1, revision: revOf(q), bakeStatus: bakeOf(q) }))
 			.sort((a, b) => a.environment.localeCompare(b.environment) || a.wave - b.wave || a.site.localeCompare(b.site));
 		let blocker: Any = null;
@@ -154,8 +164,8 @@ export function worldAt(t: number): { fleet: FleetSource; github: Record<string,
 			metadata: { name: APP, namespace: p.ns, annotations: { 'rollout-dashboard.kuberik.com/source-cluster': p.env } },
 			spec: { environment: p.env, name: 'checkout-api-service', rolloutRef: { name: APP }, backend: { type: 'github', project: 'exampleco/checkout-api', secret: 'github-token' }, ...(p.site ? { site: p.site, wave: p.wave } : {}) },
 			status: {
-				...(p.env === 'staging' ? {} : { rolloutGateRef: { name: `promotion-prod-${p.site}` } }),
-				currentVersion: deployed(p) ? 'b-46' : 'b-45', lastStatusChangeTime: deployed(p) ? at(p.env === 'staging' ? 0 : EV.deploy) : new Date(ago(3 * H)).toISOString(),
+				...(p.env !== 'prod' ? {} : { rolloutGateRef: { name: `promotion-prod-${p.site}` } }),
+				currentVersion: deployed(p) ? 'b-46' : 'b-45', lastStatusChangeTime: deployed(p) ? at(startOf(p)) : new Date(ago(3 * H)).toISOString(),
 				wave: { site: p.site ?? 'default', environment: p.env, name: 'kuberik-checkout-api-service', wave: w, role: lead === p ? 'Leader' : 'Follower', leader: lead.site ?? 'default', selectedRevision: revOf(lead), members, ...(blocker ? { blocker } : {}) },
 				conditions: [blocker ? cond('WaveReady', 'False', 'WaitingFor', `${blocker.environment}/${blocker.site} bake on ${short(blocker.revision)}`) : cond('WaveReady', 'True', 'Ready', 'site may deploy the allowed versions'), cond('LockstepConsistent', 'True', 'Consistent', 'all members agree on lockstep')]
 			}
@@ -168,7 +178,7 @@ export function worldAt(t: number): { fleet: FleetSource; github: Record<string,
 		let idx = 2, st = 'Completed', upd = at(-1);
 		if (ph !== 'old' && !isUS1(p)) {
 			/* staging and wave 2: 25 % then 100 %, no test; the check (bake) follows the last step */
-			const go = startOf(p), mid = go + (p.env === 'staging' ? 0.5 : 0.8), end = p.env === 'staging' ? EV.check : LATE[p.site!].check;
+			const go = startOf(p), mid = go + (preOf(p) ? 0.25 : 0.8), end = preOf(p) ? preOf(p)!.check : LATE[p.site!].check;
 			idx = t < mid ? 1 : 2; st = t < end ? 'StepInProgress' : 'Completed'; upd = at(t < mid ? go : t < end ? mid : end);
 		}
 		const KR = `checkout-api-canary-${key(p)}`;
@@ -203,7 +213,7 @@ export function worldAt(t: number): { fleet: FleetSource; github: Record<string,
 			let status = 'Healthy', since = -1; /* story second of the latest status transition (the check's lastChangeTime) */
 			const message = `No alerts firing for labels map[alertname:${name === 'error-rate' ? 'HighErrorRate' : 'HighLatencyP99'} app:${APP}]`;
 			if (ph !== 'old') {
-				const turn = p.env === 'staging' ? (name === 'error-rate' ? EV.hcStagingErr : EV.hcStagingLat) : isUS1(p) ? (name === 'error-rate' ? EV.hcErr : EV.hcLat) : LATE[p.site!].check;
+				const turn = preOf(p) ? (name === 'error-rate' ? preOf(p)!.hcErr : preOf(p)!.hcLat) : isUS1(p) ? (name === 'error-rate' ? EV.hcErr : EV.hcLat) : LATE[p.site!].check;
 				if (t < turn) { status = 'Pending'; since = startOf(p); } else since = turn;
 			}
 			return { apiVersion: 'kuberik.com/v1alpha1', kind: 'HealthCheck', metadata: { name: `${APP}-${name}`, namespace: p.ns, labels: { app: APP }, annotations: { 'kuberik.com/display-name': name } }, spec: { class: 'prometheus-alert' },
