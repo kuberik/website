@@ -76,7 +76,7 @@ export const tallyAt = (t: number) => ({ passed: PASSED.filter((x) => t >= x).le
 export const tallyShown = (t: number) => tallyAt(t);
 
 /** Product reflows hidden under a still of the page before them (desktop: none; on the phone every reflow is covered and slides, Film.svelte) */
-export const COVER_DESKTOP_AT: number[] = [];
+export const COVER_DESKTOP_AT: number[] = [EV.hcLat]; /* scene lane 4: the bake starting grows the pipeline ABOVE the framed Health checks card: covered by a still while the camera takes it up */
 /** the reflows that PLAY as a slide (flip.ts, by transform: no layout shift): the release's stop entering the Builds card, staging stepping onto it,
  *  and its pipeline closing again, the approved card leaving the Rollouts list, each wave's regions stepping onto the release (rows travel, flip.ts) */
 export const FLIP_AT: number[] = []; /* scene lane 3: the only reflow on screen: History logs dev's then staging's deploy at its top, and the rows under it slide down one row (flip.ts) */ /* lane 35: the release is there at t=0, staging plays on the Change page's fixed strip, the approve beat cuts before its list re-sorts; only a wave starting adds its event at the top of History (newest first), and the rows under it slide down one row */

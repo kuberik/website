@@ -256,8 +256,14 @@ import { flipRecord, flipPlay, type Pos } from './flip';
 	}
 	/** the phone's frame is the page scrolled to its subject (no zoom): put the subject back 10 px under the top after a reflow; returns how far the camera moved (canvas px) */
 	function phoneAnchor(): number {
-		if (!phone || reduced || !group || !main || !camEl) return 0;
+		if (reduced || !group || !main || !camEl) return 0;
 		const m = mv; if (m.to === 'rest' || shown !== surfAt(m.at)) return 0;
+		if (!phone) { /* scene lane 4: a desktop top-framed hold (s = 1) keeps its subject where the cut put it: a reflow ABOVE it (the pipeline growing as the bake starts) is taken up by the camera, off screen */
+			if (m.s !== 1 || m.foot || m.stay || cam.s !== 1) return 0;
+			const el = resolveTarget(m.to, camEl, false); if (!el) return 0;
+			const r = relRect(el), y = -Math.max(0, Math.min(r.y - (m.pad ?? 24), group.offsetHeight - main.clientHeight)), d = y - cam.y;
+			if (Math.abs(d) < 1) return 0; cam = { ...cam, y, dur: 0, moving: false }; return d;
+		}
 		const el = resolveTarget(m.to, camEl, true); if (!el) return 0; /* the subject left (the approved card): the frame stays */
 		const r = relRect(el), vh = main.clientHeight, gh = group.offsetHeight;
 		const y = Math.min(0, Math.max(Math.min(0, vh - gh), -(phoneOff !== null ? Math.max(0, r.y + phoneOff) : phoneTop(r)))), d = y - cam.y; /* the subject stays where the move's aim put it (a re-snapped foot would slide the whole page) */
