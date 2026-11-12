@@ -3,7 +3,7 @@
 hero:
   eyebrow: "Open source · Apache 2.0 · Works with Flux"
   h1: "Kubernetes releases you don't have to watch."
-  sub: "Merge, and Kuberik walks each build through your environments, checks its health at every step, and only asks you when a person has to decide."
+  sub: "Every new release walks through your environments on its own. Kuberik checks its health at each step, stops it when something fails, and asks you only when a person has to decide."
   proof: "Runs in your cluster · no agent to install"
 
 # THESIS: the two-tone statement (Linear) and the loop drawn below it. The only "special" section: it is the
