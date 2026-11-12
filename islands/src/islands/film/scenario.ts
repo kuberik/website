@@ -26,7 +26,7 @@ type Any = any;
 export const EV = {
 	release: 0, stagingGo: 2.2, check: 3.2, hcStagingErr: 3.8, hcStagingLat: 4.2, stagingDone: 5.4,
 	promo: 7.0, approved: 10.7, /* the cut to the Overview lands on this second: the approved card never leaves on screen */ /* the promotion gate opens a sync after staging's bake, on the Rollouts cut (7.0): the approval asks there, not as a banner pushing the App page down */
-	deploy: 10.7, /* on the Overview cut: the In flight row is not added under the Rollouts frame */ paused1: 14.0, testPending: 14.4, testRunning: 14.8, testPassed: 16.6, step2Go: 18.6, step2Done: 19.6, hcLat: 20.4, hcErr: 20.8, us1Done: 23.2,
+	deploy: 10.7, /* on the Overview cut: the In flight row is not added under the Rollouts frame */ paused1: 14.0, testPending: 14.4, testRunning: 14.8, testPassed: 16.6, step2Go: 18.6, step2Done: 19.2, /* lane 35: stage 2 (100 %) is brief: its pane holds one row in the steady-height card (a half-empty card for 1 s) */ hcLat: 20.4, hcErr: 20.8, us1Done: 23.2,
 	w2Deploy: 26.0, w2Check0: 27.6, w2Check1: 27.9, w2Done0: 28.8, w2Done1: 29.2,
 	w3Deploy: 30.4, w3Check0: 31.8, w3Check1: 32.1, w3Done0: 33.0, w3Done1: 33.4
 } as const;
