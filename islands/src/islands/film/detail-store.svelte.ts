@@ -12,7 +12,7 @@ let current = $state.raw<Detail | null>(null);
 /** the kustomization's managed resources (both Current: the Resources card must not say "2 not ready"), as the API serves them */
 const managedList = (d: Detail) => [
 				{ groupVersionKind: 'rollouts.kruise.io/v1beta1/Rollout', name: d.kr.metadata.name, namespace: d.ns, status: 'Current', message: '', lastModified: d.kr.status.canaryStatus.lastUpdateTime, object: d.kr },
-				{ groupVersionKind: 'rollout.kuberik.com/v1alpha1/RolloutTest', name: 'integration-test', namespace: d.ns, status: 'Current', message: '', lastModified: d.kr.status.canaryStatus.lastUpdateTime, object: d.test },
+				...(d.test ? [{ groupVersionKind: 'rollout.kuberik.com/v1alpha1/RolloutTest', name: 'integration-test', namespace: d.ns, status: 'Current', message: '', lastModified: d.kr.status.canaryStatus.lastUpdateTime, object: d.test }] : []), /* staging runs no test */
 				{ groupVersionKind: 'apps/v1/Deployment', name: APP, namespace: d.ns, status: 'Current', message: '', lastModified: d.kr.status.canaryStatus.lastUpdateTime, object: { apiVersion: 'apps/v1', kind: 'Deployment', metadata: { name: APP, namespace: d.ns }, spec: { replicas: 4 }, status: { readyReplicas: 4, replicas: 4 } } }];
 export const setDetail = (d: Detail) => { current = d; };
 
@@ -29,7 +29,7 @@ export function installAnswers(fleetRollouts: () => unknown[], github: () => Rec
 		if (!d) return undefined;
 		const KUST = d.kustomization.metadata.name;
 		switch (key[0]) {
-			case 'rollout': return key[1] === d.ns && key[2] === APP ? { rollout: d.rollout, kustomizations: { items: [d.kustomization] }, ociRepositories: { items: [] }, rolloutGates: { items: d.gates }, environment: d.environment, kruiseRollout: d.kr, rolloutTests: { items: [d.test] } } : undefined;
+			case 'rollout': return key[1] === d.ns && key[2] === APP ? { rollout: d.rollout, kustomizations: { items: [d.kustomization] }, ociRepositories: { items: [] }, rolloutGates: { items: d.gates }, environment: d.environment, kruiseRollout: d.kr, rolloutTests: { items: d.test ? [d.test] : [] } } : undefined;
 			case 'rollout-permissions': return { permissions: { update: true, patch: true, approve: true }, resource: { apiGroup: 'kuberik.com', kind: 'Rollout', name: APP, namespace: d.ns } };
 			/* both resources Current: the Resources card must not say "2 not ready" (probe nit) */
 			case 'managed-resources': return { [KUST]: managedList(d) };

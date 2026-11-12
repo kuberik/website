@@ -5,7 +5,7 @@
  */
 export const LOOP = 30;
 /** [story second, minutes after 00:00]. 10:11 as the release lands, staging in minutes, the approval wait and the canary compressed, the waves fastest (lane 33) */
-const PTS: [number, number][] = [[0, 10 * 60 + 11], [7, 10 * 60 + 19], [11.0, 10 * 60 + 40], [19.1, 10 * 60 + 52], [26.3, 11 * 60 + 38], [30, 11 * 60 + 41]];
+const PTS: [number, number][] = [[0, 10 * 60 + 11], [7.6, 10 * 60 + 19], [12.2, 10 * 60 + 40], [19.4, 10 * 60 + 52], [26.6, 11 * 60 + 38], [30, 11 * 60 + 41]];
 
 /** seconds after 00:00 at story second `t` (extrapolated linearly outside 0..LOOP) */
 export function clockSeconds(t: number): number {

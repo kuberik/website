@@ -18,16 +18,18 @@ const loaders: Record<Surf, () => Promise<Component<any>>> = {
 	app: () => import('$lib/components/new/app/AppDetail.svelte').then((m) => m.default),
 	gates: () => import('./RolloutShell.svelte').then((m) => m.default),
 	overview: () => import('./RolloutShell.svelte').then((m) => m.default),
+	stg: () => import('./RolloutShell.svelte').then((m) => m.default), /* scene lane 3: staging's rollout page (its Overview: pipeline + health checks) */
 	history: () => import('./RolloutShell.svelte').then((m) => m.default)
 };
 const tabs: Record<string, () => Promise<Component<any>>> = {
 	gates: () => import('$lib/../routes/rollouts/[cluster]/[namespace]/[name]/gates/+page.svelte').then((m) => m.default),
 	overview: () => import('$lib/../routes/rollouts/[cluster]/[namespace]/[name]/+page.svelte').then((m) => m.default),
+	stg: () => import('$lib/../routes/rollouts/[cluster]/[namespace]/[name]/+page.svelte').then((m) => m.default),
 	history: () => import('$lib/../routes/rollouts/[cluster]/[namespace]/[name]/history/+page.svelte').then((m) => m.default)
 };
 const cache = new Map<Surf, Promise<Component<any>>>();
 const tabComp: Partial<Record<Surf, Component<any>>> = {};
-export const isRollout = (s: Surf) => s === 'gates' || s === 'overview' || s === 'history';
+export const isRollout = (s: Surf) => s === 'gates' || s === 'overview' || s === 'history' || s === 'stg';
 /** fetches (once) the surface's chunks; resolves to the component the film renders */
 export function loadSurface(s: Surf): Promise<Component<any>> {
 	let p = cache.get(s);
@@ -56,6 +58,7 @@ export const SURFACE_PATH: Record<Surf, { url: URL; route: { id: string }; param
 	envs: at('/environments', '/environments'),
 	app: at(`/apps/${APP}`, '/apps/[name]', { name: APP }),
 	overview: at(base, '/rollouts/[cluster]/[namespace]/[name]', R),
+	stg: at(`/rollouts/${CLUSTER}/checkout-api-staging/${APP}`, '/rollouts/[cluster]/[namespace]/[name]', { ...R, namespace: 'checkout-api-staging' }),
 	gates: at(`${base}/gates`, '/rollouts/[cluster]/[namespace]/[name]/gates', R),
 	history: at(`${base}/history`, '/rollouts/[cluster]/[namespace]/[name]/history', R)
 };

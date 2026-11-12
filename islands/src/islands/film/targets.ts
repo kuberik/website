@@ -64,6 +64,7 @@ function resolve(name: string, root: ParentNode, phone: boolean): HTMLElement | 
 		/* the prod box with its open site picker under it: one lit shape */
 		case 'sites': { const b = q('[data-env-row] button[data-env-box][aria-haspopup]'), p = q('[data-site-picker]'); return b && p ? pad(union([b, p]), 6, 10) : b; }
 		case 'health-checks': return cardOf(root, /^Health checks/i);
+		case 'gates-card': return cardOf(root, /^Gates$/); /* scene lane 3: the Gates tab's gate graph card */
 		case 'banner': return q('.ap-cq');
 		/* the catch: the WHOLE failure banner (AD r4: lit as a banner with its own radius, not as a text box) */
 		case 'figure': return q('.ap-cq');

@@ -31,7 +31,7 @@ import { flipRecord, flipPlay, type Pos } from './flip';
 	let host: HTMLElement | undefined = $state();
 	let W = $state(1120), H = $state(640);
 	/* the canvas: a real dashboard at a real width. Phone 390 (the bottom nav layout), tablet 800, desktop 1440; scaled into the window */
-	const CW = $derived(W >= 1000 ? 1440 : W >= 600 ? 800 : 390);
+	const CW = $derived(W >= 600 ? 1000 : 390); /* scene lane 3 (owner item 12): every view is the dashboard just below its lg (1024) breakpoint, in its single-column layout, scaled up to fill the window: one fixed scale for the whole film */
 	const k = $derived(W / CW);
 	const CH = $derived(H / k);
 	const phone = $derived(CW < 640);

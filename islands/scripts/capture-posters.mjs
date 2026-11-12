@@ -13,7 +13,7 @@ for (const theme of ['light', 'dark']) for (const [vw] of SIZES) for (let attemp
 	await ctx.addInitScript((t) => { try { localStorage.setItem('color-theme', t); } catch {} }, theme);
 	const p = await ctx.newPage();
 	await p.goto(PAGE + '?capture=1', { waitUntil: 'load' });
-	await p.waitForFunction(() => document.querySelector('[data-island="hero"]')?.shadowRoot?.querySelector('.sc') && !document.querySelector('.ph-poster'), null, { timeout: 30000 });
+	await p.waitForFunction(() => document.querySelector('[data-island="hero"]')?.shadowRoot?.querySelector('.film-canvas') && !document.querySelector('.ph-poster'), null, { timeout: 30000 });
 	await p.evaluate(() => { const r = document.getElementById('hero-window').getBoundingClientRect(); scrollTo(0, scrollY + r.top - 160); });
 	await p.waitForTimeout(300);
 	await p.evaluate(() => document.querySelector('[data-island="hero"]').__story.at(0));

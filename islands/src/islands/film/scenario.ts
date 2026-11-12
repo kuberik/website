@@ -25,12 +25,14 @@ type Any = any;
 /** story seconds at which a CR changes (script.ts shots: App 0-2.2, Change 2.2-7, Rollouts 7-10.7, Overview 10.7-19.9, Change 19.9-35.5) */
 export const EV = {
 	/* scene lane 2 (owner 2026-11-12, "calm, like Railway"): two views, the App page and the prod us-east-1 Overview. One state change at a time, then a hold */
-	release: 0, devGo: 2.6, devCheck: 3.1, hcDevErr: 3.5, hcDevLat: 3.7, devDone: 4.1, /* dev takes the release at once (RAILWAY.md: a state change every 0.6-1.0 s, then a hold) */
-	stagingGo: 4.5, check: 5.0, hcStagingErr: 5.5, hcStagingLat: 5.8, stagingDone: 6.3,
-	promo: 7.0, /* the promotion gate opens a sync after staging's bake: prod us-east-1 asks for the release approval (the App page's own banner) */
-	approved: 11.0, deploy: 11.0, /* the confirm is pressed at 10.7; the cut to the Overview lands on 11.0 with the approval: the banner never leaves on screen, the build moves by itself */
-	paused1: 12.3, testPending: 12.6, testRunning: 13.0, testPassed: 15.0, step2Go: 16.2, step2Done: 17.1, hcLat: 17.8, hcErr: 18.2, us1Done: 19.1,
-	w2Deploy: 21.0, w2Check0: 22.0, w2Check1: 22.3, w2Done0: 23.0, w2Done1: 23.4, /* scene lane 3: after the prod box is pressed (20.1) and its site list is open */
+	/* scene lane 3 (owner checklist 2026-11-12): six beats on three views. Release (App) | staging, quickly | health checks on the staging rollout page |
+	   gates on the prod rollout's Gates tab (the cursor approves there) | canary + tests on its Overview | every site on the Change page */
+	release: 0, devGo: 2.4, devCheck: 2.6, hcDevErr: 2.8, hcDevLat: 2.9, devDone: 3.1,
+	stagingGo: 3.2, check: 3.9, hcStagingErr: 4.8, hcStagingLat: 5.4, stagingDone: 7.6, /* staging's bake holds from 5.4 to 7.6 (2.5 min on the clock, bakeTime 1m) */
+	gatesCut: 7.8, promo: 8.3, /* the promotion gate opens a sync after staging's bake, on screen */
+	approved: 11.6, deploy: 12.2, ovCut: 13.0, /* the confirm is pressed at 11.4; every gate passes, then the build moves by itself */
+	paused1: 13.6, testPending: 13.9, testRunning: 14.3, testPassed: 16.0, step2Go: 17.0, step2Done: 17.8, hcLat: 18.3, hcErr: 18.6, us1Done: 19.4, changeCut: 19.6,
+	w2Deploy: 21.0, w2Check0: 22.0, w2Check1: 22.3, w2Done0: 23.0, w2Done1: 23.4,
 	w3Deploy: 24.2, w3Check0: 25.2, w3Check1: 25.5, w3Done0: 26.2, w3Done1: 26.6
 } as const;
 /** every story second a CR changes at: the film re-derives its (heavy) data snapshot only when one of these is passed */
@@ -270,9 +272,10 @@ export function worldAt(t: number): { fleet: FleetSource; github: Record<string,
 	github[`/api/github/repos/exampleco/${APP}/commits/${SHA[44]}`] = { subject: '#101 Fix tax rounding on refunds', author: 'sophia-reed' };
 
 	/* ---- what the rollout page's queries are answered with: the prod us-east-1 place ---- */
-	const i1 = PLACES.findIndex(isUS1);
+	/* scene lane 3: the rollout page is staging's until the cut to the prod Gates tab, then prod us-east-1's */
+	const i1 = t < EV.gatesCut - 0.05 ? PLACES.findIndex((p) => p.env === 'staging') : PLACES.findIndex(isUS1);
 	const NS = PLACES[i1].ns;
-	const rGates = (rolloutsAll[i1].status.gates as Any[]).map((g) => ({
+	const rGates = ((rolloutsAll[i1].status.gates ?? []) as Any[]).map((g) => ({
 		apiVersion: 'kuberik.com/v1alpha1', kind: 'RolloutGate',
 		metadata: { name: g.name, namespace: NS,
 			...(g.name.startsWith('dependency-') ? { ownerReferences: [{ apiVersion: 'kuberik.com/v1alpha1', kind: 'RolloutDependency', name: DEP_NAME, uid: 'dep-uid' }] } : {}),
@@ -285,7 +288,7 @@ export function worldAt(t: number): { fleet: FleetSource; github: Record<string,
 	/* GET .../approvals: the place's RolloutApprovals (the viewer's, from the press on), `by` verified on this cluster */
 	const approvals = { byVerified: true, approvals: t >= EV.approved ? [{ name: APPROVAL_NAME, version: 'b-46', by: APPROVER, createdAt: at(EV.approved) }] : [] };
 	const detail: Detail = {
-		ns: NS, approvals, catalogue: cats[i1], rollout: rolloutsAll[i1], kustomization: kustomization(PLACES[i1]), environment: envsAll[i1], kr: krs[i1].kr, test: krs[i1].test!, gates: rGates, healthChecks: hcs[i1].healthChecks,
+		ns: NS, approvals, catalogue: cats[i1], rollout: rolloutsAll[i1], kustomization: kustomization(PLACES[i1]), environment: envsAll[i1], kr: krs[i1].kr, test: krs[i1].test, gates: rGates, healthChecks: hcs[i1].healthChecks,
 		schedules: [{ metadata: { name: 'business-hours', namespace: NS, annotations: { 'gate.kuberik.com/pretty-name': 'Business hours' } },
 			spec: { action: 'Allow', timezone: 'UTC', rolloutSelector: { matchLabels: { environment: 'prod' } }, rules: [{ name: 'weekdays', timeRange: { start: '10:00', end: '14:00' }, daysOfWeek: ['Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday'] }] },
 			status: { active: true, nextTransition: new Date(DAY_MS + 14 * 3600_000).toISOString(), managedGates: ['deploy-window'] } }]
