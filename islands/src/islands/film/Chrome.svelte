@@ -92,7 +92,7 @@
 	/* phone: the SAME panel, still one 44 px line and the same 12 px inset: clock | tabs (the lit chapter keeps its label, the others are dots) + play | tally. The tabs scroll if the tally grows. */
 	.fc-narrow { top: -60px; height: 48px; }
 	.fc-narrow .fc-panel { grid-template-columns: auto minmax(0, 1fr) auto; gap: 6px; height: 48px; padding: 0 0 0 10px; }
-	.fc-narrow .fc-clock { font-size: 13px; }
+	.fc-narrow .fc-clock { display: none; } /* scene lane 6: the phone's bar carries the dev · staging · prod strip (item 17a) in the clock's place; with the clock all three chips did not fit (the last one sat under Play) */
 	.fc-narrow .fc-tab { font-size: 13px; }
 	.fc-ic { flex: none; }
 	.fc-bit { display: inline-flex; align-items: center; gap: 0.3em; white-space: nowrap; }

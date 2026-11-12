@@ -54,15 +54,16 @@ export const upcoming = (t: number, ahead = 3): Surf[] => SURF.filter(([at]) => 
 export const FADE_AT = LOOP - 1;
 
 /** camera: a keyframe is a framing that STARTS at `at`. Scene lane 2: NO zoom (s = 1 always; RAILWAY.md section 3). A keyframe only says where the page is scrolled, set at a cut. */
-export type Move = { at: number; to: string; s: number; dur: number; ease: string; dim?: string; min?: number; desk?: boolean; hole?: string; dimOff?: number; beside?: string; rows?: string; h?: number; foot?: boolean /* scene lane 4: frame so the target is the window's foot */; pad?: number /* the room above a top-framed target (default 24) */; stay?: boolean /* scene lane 2: s = 1 and the page is not scrolled; only the dim's hole moves */ };
+export type Move = { at: number; to: string; s: number; dur: number; ease: string; dim?: string; min?: number; desk?: boolean; hole?: string; dimOff?: number; beside?: string; rows?: string; h?: number; foot?: boolean /* scene lane 4: frame so the target is the window's foot */; pad?: number /* the room above a top-framed target (default 24) */; keep?: boolean /* scene lane 6: keep the subject where the previous framing of the same subject on this view put it (0 px) */; stay?: boolean /* scene lane 2: s = 1 and the page is not scrolled; only the dim's hole moves */ };
 const EXPO = 'cubic-bezier(0.16, 1, 0.3, 1)';
 export const CAMERA: Move[] = [ /* scene lane 3: one fixed scale; a framing is set AT a cut or a chapter boundary (dur 0) and holds */
 	{ at: 0, to: 'rest', s: 1, dur: 0, ease: EXPO },
 	{ at: EV.devGo, to: 'rest', s: 1, dur: 0, ease: EXPO }, /* staging's rollout page: its strip and pipeline, quickly */
 	{ at: EV.stagingGo - 0.02, to: 'pipeline', s: 1, pad: 68 /* the strip above it */, desk: true, dur: 0, ease: EXPO }, /* scene lane 4: as staging takes the build its header grows two lines (the PR, the namespace); the frame cuts to the strip and the pipeline under it, so neither moves on screen */
-	{ at: EV.gatesCut, to: 'gates-card', s: 1, pad: 10, dur: 0, ease: EXPO }, /* the phone: the Gates card at 390 (the product's list form), from its title */
+	{ at: EV.gatesCut, to: 'gates-phone', s: 1, dur: 0, ease: EXPO }, /* the phone: the Gates card at 390 (the product's list form, owner ruling), its banner and every gate tile whole */
+	{ at: EV.approved, to: 'gates-phone', s: 1, dur: 0, ease: EXPO }, /* re-framed under the cover as the banner shortens */
 	{ at: EV.gatesCut, to: 'gates-card', s: 1, pad: 10, desk: true, dur: 0, ease: EXPO }, /* scene lane 5 (item 14): the whole Gates card, title to the graph's foot, at the frame's top */
-	{ at: EV.approved, to: 'gates-card', s: 1, pad: 10 /* the card's title where the cut put it: only the card's inside changes */, desk: true, dur: 0, ease: EXPO }, /* the approval lands, the banner shortens and the passed approval tile sorts under the others (#141): re-framed under the cover */
+	{ at: EV.approved, to: 'gates-card', s: 1, pad: 10, keep: true /* the card's title where the cut put it: only the card's inside changes */, desk: true, dur: 0, ease: EXPO }, /* the approval lands, the banner shortens and the passed approval tile sorts under the others (#141): re-framed under the cover */
 	{ at: EV.ovCut, to: 'pipeline', s: 1, foot: true, dur: 0, ease: EXPO }, /* its Overview: the pipeline card through the canary */
 	{ at: EV.step2Done, to: 'health-checks', s: 1, pad: 10, dur: 0, ease: EXPO }, /* scene lane 4: the same page, cut to its Health checks card: kustomization, error-rate, latency-p99 pass one by one */
 	{ at: EV.bakeCut, to: 'pipeline', s: 1, foot: true, dur: 0, ease: EXPO }, /* then back to the pipeline: its Check step holds the bake (the timer bar) to the end */

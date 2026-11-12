@@ -72,6 +72,6 @@ export function mountFilm(ctx: CustomCtx) {
 	ctx.host.addEventListener('pointermove', (e) => { if ((e as PointerEvent).pointerType === 'mouse') setHover((e.composedPath() as Element[]).some((n) => n.classList?.contains('film-frame'))); });
 	ctx.host.addEventListener('pointerleave', () => setHover(false));
 	/* QA hook: freeze the story on second `t` (screenshot harness; harmless in the page) */
-	(ctx.host as any).__story = { phone, at: (t: number) => { seek(t); player!.pause(); props.playing = player!.playing; }, player };
+	(ctx.host as any).__story = { phone, get t() { return props.t; }, at: (t: number) => { seek(t); player!.pause(); props.playing = player!.playing; }, player };
 	return () => player!.destroy();
 }

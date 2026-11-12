@@ -73,7 +73,14 @@ function resolve(name: string, root: ParentNode, phone: boolean): HTMLElement | 
 			const card = [...root.querySelectorAll<HTMLElement>('div,span,h2,h3')].filter((e) => text(e) === 'Pipeline' && !e.closest('a, .film-snap')).pop()?.closest<HTMLElement>('[class*="rounded"]'); /* scene lane 6: not the App page's Pipeline TAB (its label is the same word) */ const lab = card?.querySelector<HTMLElement>('[data-stage-col="prod"]') ?? null; /* scene lane 6: the stage column's own key (its chip's text is lower case, drawn upper case by CSS) */
 			if (!card || !lab) return null;
 			return { getBoundingClientRect() { const c = card.getBoundingClientRect(), l = lab.getBoundingClientRect(); return new DOMRect(c.left, l.top, c.width, c.bottom - l.top); } } as unknown as HTMLElement; }
-		case 'gates-card': return root.querySelector<HTMLElement>('[data-tour="dependency-graph"]'); /* scene lane 5: the phone's Gates beat frames the whole Gates card from its title */
+		case 'gates-card': return root.querySelector<HTMLElement>('[data-tour="dependency-graph"]');
+		/* scene lane 6 (the phone, the product's list form at 390): the Gates card from its banner ("Needs your approval in prod" / "Nothing is holding this rollout")
+		   to its last gate tile: the card's title row does not fit above four whole tiles in the phone's window */
+		case 'gates-phone': {
+			const card = root.querySelector<HTMLElement>('[data-tour="dependency-graph"]'); if (!card || card.closest('.film-snap')) return null;
+			const ban = byText(card, 'p,div', /^(Needs your approval|Nothing is holding)/), tiles = [...card.querySelectorAll<HTMLElement>('[data-hood-link="upstream"]')];
+			return ban && tiles.length ? union([ban, ...tiles]) : card;
+		} /* scene lane 5: the phone's Gates beat frames the whole Gates card from its title */
 		case 'gates-graph': { const cards = ['Release approval', 'Business hours'].map((t) => byText(root, 'div,span,p,h3,h4', new RegExp('^' + t + '$'))?.closest<HTMLElement>('[class*="rounded"]') ?? null); const node = byText(root, 'div,span,p', /^This rollout$/i); return cards.every(Boolean) ? union([...(cards as HTMLElement[]), ...(node ? [node] : [])]) : null; }
 		case 'gates-card': return cardOf(root, /^Gates$/); /* scene lane 3: the Gates tab's gate graph card */
 		case 'banner': return q('.ap-cq');

@@ -283,10 +283,15 @@ import { flipRecord, flipPlay, type Pos } from './flip';
 	 *  then lifts the frame up to 48 px (the subject only moves down) until its FOOT sits in a gap between the product's text and small boxes too */
 	function deskTop(r: { x: number; y: number; w: number; h: number }, m: Move): number {
 		const vh = main!.clientHeight, vw = main!.clientWidth, gh = group!.offsetHeight;
+		const key = `${m.to}|${surfAt(m.at)}|${CW}|${Math.round(vh)}`, kept = m.keep ? DESK_OFF.get(key) : undefined;
+		if (kept !== undefined) return Math.max(0, Math.min(r.y + kept, gh - vh));
 		const pref = Math.max(0, Math.min(r.y - (m.pad ?? 24), gh - vh));
 		const rects = [...textRects(false), ...boxRects({ x: -1, y: -1, w: 0, h: 0 }).filter((b) => b.h < 56)].map((q) => ({ x: q.x, y: q.y - 2, w: q.w, h: q.h + 4 }));
-		return freeStart(Math.max(0, pref - 48), pref, vh, spansIn(rects, 'y', 0, vw), pref) ?? pref;
+		const top = freeStart(Math.max(0, pref - 48), pref, vh, spansIn(rects, 'y', 0, vw), pref) ?? pref;
+		if (!m.keep) DESK_OFF.set(key, top - r.y);
+		return top;
 	}
+	const DESK_OFF = new Map<string, number>();
 	/** lane 36 (AD r1 P2-4): the phone frame's top, in group px: the subject 10 px under the bar, moved down by up to 100 px when that leaves a row sliced by
 	 *  the tab bar (the frame's real foot: a sliver of the Health checks row, History cut mid-row). Both edges in a gap between the product's text and small boxes. */
 	const PHONE_OFF = new Map<string, number>();
@@ -295,7 +300,9 @@ import { flipRecord, flipPlay, type Pos } from './flip';
 		const pref = Math.max(0, r.y - 10);
 		if (!main || !group || !canvas) return pref;
 		const nav = canvas.querySelector<HTMLElement>('.film-tabs nav')?.offsetHeight ?? 0, /* the product's MobileTabBar is fixed inside the canvas: its wrapper has no height */ len = main.clientHeight - nav, gh = group.offsetHeight, vw = main.clientWidth;
-		const rects = [...textRects(false), ...boxRects({ x: -1, y: -1, w: 0, h: 0 }).filter((b) => b.h < 56)].map((q) => ({ x: q.x, y: q.y - 3, w: q.w, h: q.h + 6 }));
+		const bx = boxRects({ x: -1, y: -1, w: 0, h: 0 });
+		/* scene lane 6: a frame edge never shows the first (or last) few px of a box either: the sliver of a card's top border under the Gates card (each box's two edge bands) */
+		const rects = [...textRects(false), ...bx.filter((b) => b.h < 56), ...bx.filter((b) => b.h >= 56).flatMap((b) => [{ x: b.x, y: b.y, w: b.w, h: 14 }, { x: b.x, y: b.y + b.h - 14, w: b.w, h: 14 }])].map((q) => ({ x: q.x, y: q.y - 3, w: q.w, h: q.h + 6 }));
 		const p = freeStart(Math.max(0, pref - 100), Math.min(pref, Math.max(0, gh - main.clientHeight)), len, spansIn(rects, 'y', 0, vw), pref);
 		return p ?? pref;
 	}
@@ -430,7 +437,7 @@ import { flipRecord, flipPlay, type Pos } from './flip';
 	}
 	$effect(() => {
 		const p = press, tt = t, live = playing;
-		void shown; void swapOpacity; void eventIdx; void Comp; void hid; /* re-aim once the surface under the cursor has been shown and laid out (a seek lands before it) */
+		void shown; void swapOpacity; void eventIdx; void Comp; void hid; void cam.x; void cam.y; void cam.s; /* scene lane 6: and once the camera has framed the view (a seek: the cursor was placed on the page as the previous frame had it scrolled) */ /* re-aim once the surface under the cursor has been shown and laid out (a seek lands before it) */
 		untrack(() => {
 			if (!p || !canvas) { ptr.on = false; ptr.press = false; return; }
 			const el = resolveTarget(p.target, canvas, phone);
