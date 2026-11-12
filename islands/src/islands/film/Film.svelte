@@ -194,7 +194,7 @@ import { flipRecord, flipPlay, type Pos } from './flip';
 					await new Promise((r) => requestAnimationFrame(r));
 					if (!group || swapping || hid) return;
 				}
-				coverWith(p.el!); void settleThenReveal(p.el!, p.rec);
+				coverWith(p.el!, true); void settleThenReveal(p.el!, p.rec, 200); /* scene lane 6 (item 16): every still is FROZEN outside the camera (a re-frame under it is never seen) and dissolves over 200 ms (80 ms read as a pop) */
 			});
 		});
 	});
@@ -311,7 +311,7 @@ import { flipRecord, flipPlay, type Pos } from './flip';
 	   lands inside the hold (which used to aim at that second's layout: the pipeline grows step by step) show the same frame. Keyed by the move and the canvas. */
 	const AIM_MEMO = new Map<string, { x: number; y: number; s: number }>();
 	const AIM_RETRY = new Map<Move, number>();
-	function aim(m: Move, jump: boolean, refine = false, final = false) {
+	function aim(m: Move, jump: boolean, refine = false, final = false, coverMove = false) {
 		if (!group || !main) return;
 		if (phone) jump = true; /* scene lane 3: the phone's frame is a scroll; inside a chapter the camera cuts, it never glides */
 		/* reduced motion: no camera at all (STORYBOARD section 9): every frame is the unzoomed, unscrolled page */
@@ -383,8 +383,13 @@ import { flipRecord, flipPlay, type Pos } from './flip';
 		else { /* a pan between two targets: the dim lets go while the camera travels (a hole that rides the old target would spotlight the wrong content), then closes on the new one */
 			holeOn = false; const dd = jump ? 0 : (phone ? 320 : m.dur); holeTimer = setTimeout(() => { hole = next; holeOn = true; }, dd * 0.7);
 		}
-		if (refine && Math.abs(x - cam.x) < 3 && Math.abs(y - cam.y) < 3 && Math.abs(s - cam.s) < 0.01) return; /* QA r7: 0.75 px let every re-layout move the canary hold (y -398 <-> -279); 3 px keeps it still */
-		const dur = jump || reduced ? 0 : refine ? 260 : phone ? (m.dur ? 320 : 0) : m.dur;
+		const moved = Math.abs(x - cam.x) >= 3 || Math.abs(y - cam.y) >= 3 || Math.abs(s - cam.s) >= 0.01;
+		if (refine && !moved) return; /* QA r7: 3 px keeps a hold still */
+		/* scene lane 6 (owner item 16, "transitions are jittery"): the camera never glides and never snaps in front of the reader. A new framing on the SAME view
+		   (staging's strip -> its pipeline, the pipeline -> Health checks -> the bake) and a late refine are set under a still of the frame as it was, which then
+		   dissolves (the same 220 ms as a cut); under a still that is already up (a cut, a covered reflow) the frame is simply set */
+		if (moved && !jump && !reduced && !hid && (refine || coverMove) && group && camEl) { const c = takeSnap('cut'); if (c) { coverWith(c, true); void settleThenReveal(c, null, 220); } }
+		const dur = 0;
 		cam = { x, y, s, dur, ease: phone ? 'cubic-bezier(0.2, 0.8, 0.2, 1)' : m.ease, moving: dur > 0 };
 		clearTimeout(moveTimer);
 		if (dur > 0) moveTimer = setTimeout(() => { cam = { ...cam, moving: false }; }, dur + 40);
@@ -406,10 +411,11 @@ import { flipRecord, flipPlay, type Pos } from './flip';
 			const first = !moveKey.startsWith(`${CAMERA_INDEX(m)}|`);
 			moveKey = kk;
 			void first;
-			void tick().then(() => requestAnimationFrame(() => requestAnimationFrame(() => aim(m, seek))));
+			const sameView = !seek && lastMoveSurf === s; lastMoveSurf = s; /* scene lane 6: a new framing on the view already on screen is dissolved to */
+			void tick().then(() => requestAnimationFrame(() => requestAnimationFrame(() => aim(m, seek, false, false, sameView))));
 		});
 	});
-	let prevT = -1, camSeek = 0;
+	let prevT = -1, camSeek = 0, lastMoveSurf: Surf | null = null;
 	function CAMERA_INDEX(m: Move) { return m.at; }
 	/* the transform sits on the CAMERA wrapper (group + overlays): a fixed child (the approve popover, the rollback dialog) anchors to the wrapper and zooms with the page. On desktop the wrapper always carries a transform so the dialog's containing block never changes mid-move. */
 	const camStyle = $derived(phone && cam.s === 1 && cam.x === 0 && cam.y === 0 && !cam.moving ? 'transform:none' : cam.s === 1 && cam.x === 0 && cam.y === 0 && !cam.moving ? 'transform: translate(0, 0)' : `transform: translate3d(${cam.x}px, ${cam.y}px, 0) scale(${cam.s}); transition: transform ${cam.dur}ms ${cam.ease}; will-change: ${cam.moving ? 'transform' : 'auto'}`);

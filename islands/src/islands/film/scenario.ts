@@ -36,7 +36,7 @@ export const EV = {
 	gatesCut: 5.0, promo: 5.5, /* the cursor pressed prod in staging's strip at 4.85; the promotion gate opens a sync after staging's bake, on screen */
 	approved: 8.7, deploy: 9.3, ovCut: 9.9, /* the confirm is pressed at 8.5; the approver's avatar lands, then the build moves by itself */
 	paused1: 10.2, testPending: 10.3, testRunning: 10.5, testPassed: 11.5, step2Go: 12.0, step3Go: 12.8, step2Done: 13.6, /* 10% -> test -> 50% -> 100% (step2Done = the canary completed) */
-	hcKust: 14.1, hcErr: 14.5, hcLat: 14.9, bakeCut: 15.2, us1Done: 17.2, appCut: 17.4, pipeCut: 18.3, /* the App page; the cursor presses its Pipeline tab at 18.15 */
+	hcKust: 14.1, hcErr: 14.5, hcLat: 14.9, bakeCut: 15.2, us1Done: 17.4, appCut: 17.4, /* scene lane 6 (item 16): the bake completes ON the cut, so the pipeline card collapsing is under the cut still, not on screen */ pipeCut: 18.3, /* the App page; the cursor presses its Pipeline tab at 18.15 */
 	w2Deploy: 19.1, w2Check0: 20.3, w2Check1: 20.5, w2Done0: 21.4, w2Done1: 21.6,
 	w3Deploy: 22.4, w3Check0: 23.6, w3Check1: 23.8, w3Done0: 24.7, w3Done1: 24.9
 } as const;
