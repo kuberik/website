@@ -235,12 +235,12 @@ function twoPlates() {
 			+ `<path class="fig-post-r" ${NS} d="M${q(pw, -pw, ph)}L${q(pw, pw, ph)}L${q(pw, pw, 0)}L${q(pw, -pw, 0)}Z"/>`
 			+ `<path class="fig-post-t" ${NS} d="M${q(-pw, -pw, ph)}L${q(pw, -pw, ph)}L${q(pw, pw, ph)}L${q(-pw, pw, ph)}Z"/>`;
 	};
-	// painter's order: the left post is always behind the build (smaller x + y), the right post and the bar in front
+	// painter's order: left post (behind the build, smaller x + y), build, bar, right post (in front of both)
 	b += `<g class="fig-posts">${post(W / 2 - gx)}</g>`;
 	b += `<g class="m m-gate-cube">${cube({ px: wait[0], py: wait[1], z: 0, e: E })}</g>`;
-	b += `<g class="fig-posts">${post(W / 2 + gx)}</g>`;
 	const bar = `M${P(W / 2 - gx + pw, gy, bz).join(' ')}L${P(W / 2 + gx - pw, gy, bz).join(' ')}`;
 	b += `<g class="m m-gate-bar"><path class="fig-bar-ko" ${NS} d="${bar}"/><path class="fig-gate fig-dash" ${NS} d="${bar}"/></g>`;
+	b += `<g class="fig-posts">${post(W / 2 + gx)}</g>`; // after the bar: its near face hides the bar's end (AD r3 #1)
 	const c = climb(W / 2, 0, 0); // the build stops inside the gateway, on the plate (AD r2 #2); climbing is Fig 4's job
 	const path = scr(A, [wait, c[1]]), up = path[1];
 	track('gate-bar', CYCLE, [{ t: 0, o: 1 }, { t: 0, x: 0, y: 0 }, { t: 240, x: 0, y: -8, o: 0 }, { t: 3500, x: 0, y: -8, o: 0 }, { t: 3740, x: 0, y: 0, o: 1 }, { t: 6000, o: 1 }]);
