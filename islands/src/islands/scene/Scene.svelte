@@ -131,7 +131,7 @@
 			if (p === shownPhase) return;
 			if (reduced || !playing) { shownPhase = p; fade = 1; return; }
 			fade = 0;
-			setTimeout(() => { shownPhase = p; fade = 1; }, 160);
+			setTimeout(() => { shownPhase = p; fade = 1; }, 110);
 		});
 	});
 
@@ -187,7 +187,7 @@
 				<Card icon={PANEL[shownPhase].icon} title={phone ? PANEL_PHONE[shownPhase] : PANEL[shownPhase].title} padded={false} class="h-full" bodyClass="sc-body">
 					{#snippet rollup()}
 						<span class="sc-roll t-ui-sm tabular-nums" style="opacity:{fade}">
-							{#if shownPhase === 'release'}<span class={devSt === 'done' ? 'text-success' : 'text-progress'}>{devSt === 'done' ? 'Healthy in dev' : devSt === 'notreached' ? 'Just now' : devSt === 'deploying' ? 'Deploying to dev' : 'Checking dev'}</span>
+							{#if shownPhase === 'release'}<span class={devSt === 'done' ? 'text-success' : 'text-progress'}>{devSt === 'done' ? 'Healthy in dev' : devSt === 'notreached' ? 'Next: dev' : devSt === 'deploying' ? 'Deploying to dev' : 'Checking dev'}</span>
 							{:else if shownPhase === 'health'}{#if stgDone}<span class="text-success">3/3 healthy</span>{:else if passingN < 3}<span class="text-progress">{3 - passingN} pending · {passingN} passing</span>{:else}<span class="text-progress">Baking · 3/3 passing</span>{/if}
 							{:else if shownPhase === 'gates'}{#if gatesN === 3}<span class="text-success">All 3 gates passed</span>{:else}<span class="text-held">{3 - gatesN} of 3 holding</span>{/if}
 							{:else if shownPhase === 'canary'}{#if t >= EV.w1Done}<span class="text-success">Healthy at 100%</span>{:else}<span class="text-progress">Step {canaryStep(t)} of 3 · {pct}%</span>{/if}

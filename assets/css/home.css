@@ -59,7 +59,7 @@ html.dark{
 @media(min-width:2400px){:root{--cont:1920px;--gut:64px;--win-w:1600px;--win-h:914px}}
 /* hero window = a fixed viewport onto the page (640 desktop/tablet, 600 phone): the page scrolls INSIDE it per beat (Hero.svelte). Story window S1 = the tallest beat (its content fits), measured by .work/landing-v5/build/r4/measure.mjs */
 @media(max-width:1023px){:root{--win-h:640px;--win-w:696px;--stage-r:20px;--stage-inset:12px;--stage-pad:24px;--gut:36px}}
-@media(max-width:640px){:root{--win-w:350px;--win-h:620px;--stage-r:16px;--stage-inset:8px;--stage-pad:12px;--gut:20px}}
+@media(max-width:640px){:root{--win-w:350px;--win-h:500px;--stage-r:16px;--stage-inset:8px;--stage-pad:12px;--gut:20px}}
 
 *{box-sizing:border-box}
 html{background:var(--page);scroll-behavior:smooth}
