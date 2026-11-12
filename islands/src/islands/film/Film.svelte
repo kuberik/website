@@ -110,7 +110,7 @@ import { flipRecord, flipPlay, type Pos } from './flip';
 		/* lane 36 (AD r1 P1-1): the approval confirm (the product's ApprovalLayer: a popover in the camera on desktop, a sheet + scrim over the canvas on the phone)
 		   lives OUTSIDE the group, so a still of the group alone dropped it: for the length of the cut's dissolve the card sat there again asking for approval.
 		   A cut's still carries a copy of it, so the cut lands on the pressed confirm and dissolves from it. */
-		if (kind === 'cut' && canvas) {
+		if ((kind === 'cut' || approvalUi.ask) && canvas) { /* scene lane 6: an event still taken while the confirm is open (the approval landing) carries it too, so the phone's scrim dissolves with it instead of vanishing in one frame */
 			const ex: HTMLElement[] = [];
 			for (const d of canvas.querySelectorAll<HTMLElement>('[data-approve-confirm]')) {
 				const sc0 = d.previousElementSibling as HTMLElement | null;
@@ -166,7 +166,12 @@ import { flipRecord, flipPlay, type Pos } from './flip';
 			/* lane 33: every PLAYED cut takes its still here too, before the DOM re-renders: a CR that changes on the cut's own tick (the approval asked at 7.0)
 			   would otherwise be drawn on the outgoing page for a frame (the App page grew an approval banner under the still) */
 			const cutting = !wrapping && preT >= 0 && seekN === preSeek && surfAt(tt) !== shown && surfAt(tt) !== swapping;
+			/* scene lane 6 (item 16): a new framing on the view already on screen (staging's strip -> its pipeline, Health checks -> the bake, the Gates card after
+			   the approval) takes its still HERE too, before the DOM re-renders with the second's data: taken later, the reflow that comes with it (staging's header
+			   growing two lines at 3.2) was on screen for a frame or two before the still. The camera is set under it (aim) and it dissolves (220 ms) */
+			const reframing = !wrapping && !cutting && preT >= 0 && seekN === preSeek && tt > preT && surfAt(tt) === shown && !swapping && moveAt(tt, phone) !== moveAt(preT, phone) && surfAt(moveAt(tt, phone).at) === shown;
 			preT = tt; preSeek = seekN;
+			if (reframing && group && camEl && !reduced && !hid) { const c = takeSnap('event'); if (c) { coverWith(c, true); preEi = ei; preSnap = null; void settleThenReveal(c, null, 220); } return; }
 			if ((!wrapping && !cutting) || !group || !camEl || !shown || reduced || hid) return;
 			const c = takeSnap(); if (!c) return;
 			coverWith(c, true);
@@ -316,6 +321,7 @@ import { flipRecord, flipPlay, type Pos } from './flip';
 	const AIM_RETRY = new Map<Move, number>();
 	function aim(m: Move, jump: boolean, refine = false, final = false, coverMove = false) {
 		if (!group || !main) return;
+		const played = !jump; /* scene lane 6: a played re-frame dissolves on the phone too */
 		if (phone) jump = true; /* scene lane 3: the phone's frame is a scroll; inside a chapter the camera cuts, it never glides */
 		/* reduced motion: no camera at all (STORYBOARD section 9): every frame is the unzoomed, unscrolled page */
 		if (reduced) { cam = { x: 0, y: 0, s: 1, dur: 0, ease: 'ease', moving: false }; holeOn = false; shadeOn = false; return; }
@@ -391,7 +397,7 @@ import { flipRecord, flipPlay, type Pos } from './flip';
 		/* scene lane 6 (owner item 16, "transitions are jittery"): the camera never glides and never snaps in front of the reader. A new framing on the SAME view
 		   (staging's strip -> its pipeline, the pipeline -> Health checks -> the bake) and a late refine are set under a still of the frame as it was, which then
 		   dissolves (the same 220 ms as a cut); under a still that is already up (a cut, a covered reflow) the frame is simply set */
-		if (moved && !jump && !reduced && !hid && (refine || coverMove) && group && camEl) { const c = takeSnap('cut'); if (c) { coverWith(c, true); void settleThenReveal(c, null, 220); } }
+		if (moved && played && !reduced && !hid && (refine || coverMove) && group && camEl) { const c = takeSnap('cut'); if (c) { coverWith(c, true); void settleThenReveal(c, null, 220); } }
 		const dur = 0;
 		cam = { x, y, s, dur, ease: phone ? 'cubic-bezier(0.2, 0.8, 0.2, 1)' : m.ease, moving: dur > 0 };
 		clearTimeout(moveTimer);
@@ -579,5 +585,8 @@ import { flipRecord, flipPlay, type Pos } from './flip';
 	.film-canvas :global([data-held-pending]) { visibility: hidden; }
 	/* lane 36: once the cut to the Overview has started, the real confirm (and its phone scrim) is gone at once: the still carries its copy, and its own fly-out ran over the incoming page */
 	.film-noconfirm :global([data-approve-confirm]), .film-noconfirm :global(:has(+ [data-approve-confirm])) { display: none !important; }
+	/* scene lane 6 (item 16): the phone confirm's scrim (the product's, no transition of its own) fades in rather than dimming the window in one frame */
+	.film-canvas :global(.inset-0:has(+ [data-approve-confirm])) { animation: film-scrim-in 0.2s ease-out both; }
+	@keyframes film-scrim-in { from { opacity: 0; } }
 	.film-tabs { position: absolute; left: 0; right: 0; bottom: 0; z-index: 5; }
 </style>
