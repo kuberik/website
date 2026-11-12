@@ -96,7 +96,10 @@ html.dark .vendor-mark{background-image:var(--logo-dark);opacity:.72}
 .fig-check{fill:none;stroke:var(--fig-teal);stroke-width:2;stroke-linecap:round;stroke-linejoin:round;stroke-dasharray:1 1;stroke-dashoffset:0}
 .fig-st-top{fill:var(--fig-ground);stroke:var(--fig-top-line);stroke-width:1;stroke-linejoin:round}
 .fig-st-side{fill:var(--fig-side);stroke:var(--fig-side-line);stroke-width:1;stroke-linejoin:round}
-.fig-gate{fill:none;stroke:var(--fig-teal);stroke-width:1.5;stroke-linecap:round}
+.fig-gate{fill:none;stroke:var(--fig-teal);stroke-width:2;stroke-linecap:round}
+.fig-bar-ko{fill:none;stroke:var(--fig-ground);stroke-width:5;stroke-linecap:butt}
+.fig-post-l,.fig-post-r{fill:var(--fig-side);stroke:var(--fig-side-line);stroke-width:1;stroke-linejoin:round}.fig-post-r{fill:var(--fig-ground)}
+.fig-post-t{fill:var(--fig-teal);stroke:var(--fig-teal);stroke-width:1;stroke-linejoin:round}
 .fig-dash{stroke-dasharray:4 3;stroke-linecap:butt}   /* butt caps: the gate bar and health's ring both measure a true 4/3 (AD r1 #2) */
 .fig-pulse{fill:none;stroke:var(--fig-teal);stroke-width:1.5}
 .fig-ring-rest .fig-pulse{opacity:.9}

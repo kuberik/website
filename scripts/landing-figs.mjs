@@ -222,14 +222,25 @@ function twoPlates() {
 	// gates: "your gate decides which version may go now". Two posts stand on the near plate's top face at
 	// the stair foot, straddling the flight (stair half-width + 4); the dashed bar (the only "yours" mark)
 	// spans them. The bar lifts, the waiting build moves into the gateway, the gate drops back,
-	// the next build arrives. The gate is drawn after the build: once the build is past it, the posts are nearer.
+	// the next build arrives. Posts and bar stand in front of or behind the build by plan depth (x + y).
 	begin(); let b = twoPlates();
-	const gx = SW / 2 + 4, gy = 6, ph = 26, bz = 18;
+	// Gate r3 (legible at 1440): the posts are solid pillars of the plate's own material (6 x 6, 30 tall, a teal
+	// cap = "yours"), 3 outside the flight; the bar is the 2-unit answer weight, dashed 4/3, on a ground-coloured
+	// knock-out so it reads in front of the stair lines it crosses.
+	const gx = SW / 2 + 6, gy = 6, pw = 3, ph = 30, bz = 22;
 	const wait = [W / 2, 40, 0], A = P(...wait);
+	const post = (x) => {
+		const q = (a, c, z) => P(x + a, gy + c, z).join(' ');
+		return `<path class="fig-post-l" ${NS} d="M${q(-pw, pw, ph)}L${q(pw, pw, ph)}L${q(pw, pw, 0)}L${q(-pw, pw, 0)}Z"/>`
+			+ `<path class="fig-post-r" ${NS} d="M${q(pw, -pw, ph)}L${q(pw, pw, ph)}L${q(pw, pw, 0)}L${q(pw, -pw, 0)}Z"/>`
+			+ `<path class="fig-post-t" ${NS} d="M${q(-pw, -pw, ph)}L${q(pw, -pw, ph)}L${q(pw, pw, ph)}L${q(-pw, pw, ph)}Z"/>`;
+	};
+	// painter's order: the left post is always behind the build (smaller x + y), the right post and the bar in front
+	b += `<g class="fig-posts">${post(W / 2 - gx)}</g>`;
 	b += `<g class="m m-gate-cube">${cube({ px: wait[0], py: wait[1], z: 0, e: E })}</g>`;
-	const pl = P(W / 2 - gx, gy, 0), pr = P(W / 2 + gx, gy, 0), plt = P(W / 2 - gx, gy, ph), prt = P(W / 2 + gx, gy, ph);
-	b += `<path class="fig-gate" ${NS} d="M${pl.join(' ')}L${plt.join(' ')}M${pr.join(' ')}L${prt.join(' ')}"/>`;
-	b += `<g class="m m-gate-bar"><path class="fig-gate fig-dash" ${NS} d="M${P(W / 2 - gx, gy, bz).join(' ')}L${P(W / 2 + gx, gy, bz).join(' ')}"/></g>`;
+	b += `<g class="fig-posts">${post(W / 2 + gx)}</g>`;
+	const bar = `M${P(W / 2 - gx + pw, gy, bz).join(' ')}L${P(W / 2 + gx - pw, gy, bz).join(' ')}`;
+	b += `<g class="m m-gate-bar"><path class="fig-bar-ko" ${NS} d="${bar}"/><path class="fig-gate fig-dash" ${NS} d="${bar}"/></g>`;
 	const c = climb(W / 2, 0, 0); // the build stops inside the gateway, on the plate (AD r2 #2); climbing is Fig 4's job
 	const path = scr(A, [wait, c[1]]), up = path[1];
 	track('gate-bar', CYCLE, [{ t: 0, o: 1 }, { t: 0, x: 0, y: 0 }, { t: 240, x: 0, y: -8, o: 0 }, { t: 3500, x: 0, y: -8, o: 0 }, { t: 3740, x: 0, y: 0, o: 1 }, { t: 6000, o: 1 }]);
