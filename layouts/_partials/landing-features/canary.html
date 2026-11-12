@@ -1,13 +1,22 @@
-{{- /* Canary and waves: one region's traffic steps, then the regions of wave 2 that wait for wave 1 to bake. */ -}}
+{{- /* Canary and waves = the Deployment pipeline strand (MiniPipeline sm: 24px discs on a 56px pitch, 2px connectors,
+       names under) for us-east-1, then the wave lanes: wave 1 checking, wave 2 waiting on it. Same build and same bake
+       as the Health checks card. */ -}}
+{{- $ok := `<svg viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M2 12C2 6.477 6.477 2 12 2s10 4.477 10 10-4.477 10-10 10S2 17.523 2 12Zm13.707-1.293a1 1 0 0 0-1.414-1.414L11 12.586l-1.793-1.793a1 1 0 0 0-1.414 1.414l2.5 2.5a1 1 0 0 0 1.414 0l4-4Z"/></svg>` -}}
 <div class="fv-card">
-  <div class="fv-head">{{ partial "landing-features/icon.html" "canary" }}<span class="fv-title">Canary</span><span class="fv-ctx">us-east-1 · wave 1</span><span class="fv-roll">step 2 of 3</span></div>
-  <ol class="fv-steps">
-    <li class="is-done"><span class="fv-step-bar"></span><span class="fv-step-l">{{ partial "landing-features/mark.html" "ok" }}10%</span><span class="fv-step-s">baked 5m</span></li>
-    <li class="is-run"><span class="fv-step-bar"></span><span class="fv-step-l">{{ partial "landing-features/mark.html" "run" }}50%</span><span class="fv-step-s">baking 2m</span></li>
-    <li><span class="fv-step-bar"></span><span class="fv-step-l">{{ partial "landing-features/mark.html" "idle" }}100%</span><span class="fv-step-s">next</span></li>
-  </ol>
-  <ul class="fv-rows fv-rows-tight">
-    <li>{{ partial "landing-features/mark.html" "run" }}<span class="fv-name">Wave 1</span><span class="fv-id">us-east-1 · us-west-2</span><span class="fv-state">Baking</span></li>
-    <li>{{ partial "landing-features/mark.html" "idle" }}<span class="fv-name">Wave 2</span><span class="fv-id">eu-west-1 · +3</span><span class="fv-state">After wave 1</span></li>
-  </ul>
+  <div class="fv-head">{{ partial "landing-features/icon.html" "canary" }}<span class="fv-title">Canary</span><span class="fv-ctx">payments-svc · us-east-1</span><span class="fv-roll">step 4 of 4</span></div>
+  <div class="fv-body">
+    <ol class="st">
+      <li><span class="st-disc st-done">{{ $ok | safeHTML }}</span><span class="st-name">10%</span></li>
+      <li><span class="st-disc st-done">{{ $ok | safeHTML }}</span><span class="st-name">50%</span></li>
+      <li><span class="st-disc st-done">{{ $ok | safeHTML }}</span><span class="st-name">100%</span></li>
+      <li class="is-on"><span class="st-disc st-chk"><span class="st-spin"></span></span><span class="st-name">Check</span></li>
+      <span class="st-seg"></span><span class="st-seg"></span><span class="st-seg"></span>
+    </ol>
+    <ul class="wl">
+      <li><div class="wl-top">{{ partial "landing-features/mark.html" "check" }}<span class="wl-name">Wave 1</span><span class="wl-state is-prog-ink">Checking</span></div>
+        <div class="wl-chips"><span class="chip chip-region">us-east-1</span><span class="chip chip-region">us-west-2</span></div></li>
+      <li class="is-later"><div class="wl-top">{{ partial "landing-features/mark.html" "idle" }}<span class="wl-name">Wave 2</span><span class="wl-state">After wave 1</span></div>
+        <div class="wl-chips"><span class="chip chip-region">eu-west-1</span><span class="chip chip-region">eu-central-1</span><span class="chip chip-region">ap-south-1</span></div></li>
+    </ul>
+  </div>
 </div>

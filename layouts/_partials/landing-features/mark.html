@@ -1,8 +1,8 @@
-{{- /* 16px status mark, the dashboard's StatusMark family: ok = tinted disc + check, wait = held ring + clock hands,
-       run = neutral ring with a progress arc, idle = hollow ring. Healthy spends the least hue; nothing here is solid. */ -}}
+{{- /* 16px status mark = the dashboard's StatusMark: ok = 6px success dot (the norm spends the least ink), idle = hollow
+       ring, held = held-tint disc + thin pause, check = checking disc with its progress pie (64%, the bake below). */ -}}
 {{- $k := . -}}
-{{- if eq $k "ok" -}}<svg class="mk mk-ok" viewBox="0 0 16 16" aria-hidden="true"><circle cx="8" cy="8" r="7"/><path d="m5.2 8.3 1.9 1.9 3.8-4"/></svg>
-{{- else if eq $k "wait" -}}<svg class="mk mk-wait" viewBox="0 0 16 16" aria-hidden="true"><circle cx="8" cy="8" r="6.5"/><path d="M8 4.8V8l2.2 1.4"/></svg>
-{{- else if eq $k "run" -}}<svg class="mk mk-run" viewBox="0 0 16 16" aria-hidden="true"><circle cx="8" cy="8" r="6.5"/><path d="M8 1.5a6.5 6.5 0 0 1 6.5 6.5"/></svg>
-{{- else -}}<svg class="mk mk-idle" viewBox="0 0 16 16" aria-hidden="true"><circle cx="8" cy="8" r="6.5"/></svg>
+{{- if eq $k "ok" -}}<span class="mk mk-ok" aria-hidden="true"></span>
+{{- else if eq $k "held" -}}<span class="mk mk-held" aria-hidden="true"><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round"><path d="M9 5.5v13M15 5.5v13"/></svg></span>
+{{- else if eq $k "check" -}}<span class="mk mk-pie" aria-hidden="true"><svg width="16" height="16" viewBox="0 0 16 16"><circle class="pm-disc" cx="8" cy="8" r="7.5"/><path class="pm-pie" d="M8 8V3.75A4.25 4.25 0 1 1 4.725 10.709Z"/></svg></span>
+{{- else -}}<span class="mk mk-idle" aria-hidden="true"></span>
 {{- end -}}

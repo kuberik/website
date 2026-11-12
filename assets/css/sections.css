@@ -238,13 +238,6 @@ html.dark .mf{box-shadow:none}
 /* closing labels: 12 units = 12.2-16.7 px rendered (staircase scale 1.02 at 1200 to 1.39 at 1920; 8 units = 14.9 px at 2560) */
 @media(min-width:2400px){.closing-art .fig-label{font-size:8px}}
 
-/* ---- landing v5 page (BRIEF.md): status tokens for the feature visuals = dashboard language.css --k-success-*,
-   --k-warning-* (light / dark), used only inside .fv cards, as marks, never as areas. */
-:root{--ok-tint:oklch(.958 .045 155);--ok-line:oklch(.86 .06 155);--ok-fg:oklch(.47 .11 155);--ok-solid:oklch(.63 .14 155);
-  --wait-tint:oklch(.966 .066 88);--wait-line:oklch(.8 .15 78);--wait-fg:oklch(.5 .1 65);--line-strong:oklch(.862 .012 222)}
-html.dark{--ok-tint:oklch(.305 .062 155);--ok-line:oklch(.46 .1 155);--ok-fg:oklch(.8 .13 155);--ok-solid:oklch(.7 .15 155);
-  --wait-tint:oklch(.328 .07 80);--wait-line:oklch(.8 .15 78);--wait-fg:oklch(.85 .12 82);--line-strong:oklch(.38 .019 222)}
-
 /* thesis */
 .thesis .statement-text{max-width:1120px}
 .thesis .figs{margin-top:64px}
@@ -258,53 +251,6 @@ html.dark{--ok-tint:oklch(.305 .062 155);--ok-line:oklch(.46 .1 155);--ok-fg:okl
 .feat .link-arrow{margin-top:auto;padding-top:16px;min-height:24px}
 @media(max-width:1199px){.feats{grid-template-columns:repeat(2,minmax(0,1fr));row-gap:48px}}
 @media(max-width:640px){.feats{grid-template-columns:minmax(0,1fr);row-gap:40px;margin-top:32px}.feat-copy{padding:20px 0 0}.feat-title{font-size:17px;line-height:24px}}
-
-/* feature visual = a dashboard Card, drawn in HTML so it reads at 1:1 and themes with the page */
-.fv{display:block}
-.fv-card{display:flex;flex-direction:column;min-height:208px;border-radius:12px;background:var(--page);border:1px solid var(--win-border);box-shadow:0 1px 2px oklch(.195 .014 222/.05),0 12px 32px -16px oklch(.195 .014 222/.16);overflow:hidden}
-html.dark .fv-card{background:var(--page-alt);box-shadow:0 12px 32px -16px rgba(0,0,0,.5)}
-.fv-head{display:flex;align-items:center;gap:8px;height:47px;flex:none;padding:0 16px;border-bottom:1px solid var(--line);min-width:0}
-.fv-icon{width:16px;height:16px;flex:none;color:var(--ink-muted)}
-.fv-title{font:600 14px/20px var(--sans);color:var(--ink);white-space:nowrap}
-.fv-ctx{font:400 13px/20px var(--sans);color:var(--ink-subtle);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;min-width:0}
-.fv-roll{margin-left:auto;padding-left:8px;font:500 12px/20px var(--sans);color:var(--ink-subtle);white-space:nowrap;font-variant-numeric:tabular-nums}
-.fv-rows{list-style:none;margin:0;padding:0}
-.fv-rows li{display:grid;grid-template-columns:16px auto minmax(0,1fr) auto;align-items:center;column-gap:10px;height:40px;padding:0 16px;border-top:1px solid var(--line)}
-.fv-rows li:first-child{border-top:0}
-.fv-name{font:500 13px/20px var(--sans);color:var(--ink);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;min-width:0}
-.fv-id{font:400 12px/20px var(--mono);color:var(--ink-subtle);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;min-width:0}
-.fv-state{font:500 12px/20px var(--sans);color:var(--ink-muted);white-space:nowrap;text-align:right}
-.fv-state.is-wait{color:var(--wait-fg)}
-.fv-dim{color:var(--ink-subtle);font-weight:400}
-.fv-num{font-variant-numeric:tabular-nums}
-.mk{width:16px;height:16px;flex:none;display:block}
-.mk circle{stroke-width:1}
-.mk path{fill:none;stroke-width:1.5;stroke-linecap:round;stroke-linejoin:round}
-.mk-ok circle{fill:var(--ok-tint);stroke:var(--ok-line)}.mk-ok path{stroke:var(--ok-fg)}
-.mk-wait circle{fill:var(--wait-tint);stroke:var(--wait-line)}.mk-wait path{stroke:var(--wait-fg)}
-.mk-run circle{fill:none;stroke:var(--line-strong)}.mk-run path{stroke:var(--ink-muted)}
-.mk-idle circle{fill:none;stroke:var(--line-strong)}
-/* bake: the one bar, neutral ink (time, not state) */
-.fv-bar{display:block;height:4px;border-radius:2px;background:var(--line);overflow:hidden;margin:0 4px}
-.fv-bar i{display:block;height:100%;width:calc(var(--p) * 100%);background:var(--ink-muted);border-radius:2px}
-/* canary steps */
-.fv-steps{list-style:none;margin:0;padding:12px 16px 11px;display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:10px;border-bottom:1px solid var(--line)}
-.fv-steps li{display:flex;flex-direction:column;gap:8px;min-width:0}
-.fv-step-bar{display:block;height:4px;border-radius:2px;background:var(--line)}
-.fv-steps .is-done .fv-step-bar{background:var(--ok-solid)}
-.fv-steps .is-run .fv-step-bar{background:linear-gradient(90deg,var(--ink-muted) 40%,var(--line) 40%)}
-.fv-step-l{display:flex;align-items:center;gap:6px;font:600 13px/20px var(--mono);color:var(--ink)}
-.fv-step-s{font:400 12px/16px var(--sans);color:var(--ink-subtle)}
-.fv-rows-tight li{height:40px}
-/* releases */
-.fv-rel li{grid-template-columns:48px 60px minmax(0,1fr) auto}
-.fv-ver{font:500 13px/20px var(--mono);color:var(--ink)}
-.fv-rel .fv-name{font-weight:400;color:var(--ink-muted)}
-/* gitops diff: the one line kuberik writes, in the brand mint (the .mf .var grammar) */
-.fv-diff{margin:0;padding:10px 16px 9px;flex:1;font:400 12px/20px var(--mono);color:var(--ink-subtle);border-bottom:1px solid var(--line);overflow:hidden;white-space:pre}
-.fv-diff span{display:block}
-.fv-diff .del{color:var(--ink-subtle)}
-.fv-diff .add{margin:0 -16px;padding:0 16px;background:color-mix(in oklab,var(--mint) 14%,transparent);color:var(--mint-ink);font-weight:500}
 
 /* footer: brand + three link columns (Railway/Linear footers, sized to what we have) */
 .foot{padding:56px 0 64px}
@@ -330,8 +276,6 @@ main{padding-bottom:128px}
   .closing-copy .copy{height:44px;padding:0 12px}
 }
 @media(max-width:640px){.foot-brand .logo{min-height:44px;display:inline-flex;align-items:center}}
-/* phones: a card drops its least useful fact rather than ellipsising (AD r1 #4 follow-through) */
-@media(max-width:640px){.fv-wide{display:none}.fv-rel li{grid-template-columns:48px minmax(0,1fr) auto}.fv-rel .fv-id{display:none}}
 
 /* ---- landing v5 page, AD round 2 / QA round 1 ---- */
 .code-note{margin:0;padding:10px 16px;border-top:1px solid var(--line);font:400 13px/20px var(--sans);color:var(--ink-subtle)}
@@ -377,9 +321,6 @@ main{padding-bottom:128px}
   .mf pre{padding:12px 6px 12px 10px}
 }
 @media(max-width:340px){.fig-cap{flex-wrap:wrap;white-space:normal}.fig-own{margin-left:0}}
-/* ---- landing v5 page, AD round 5: below 380 a header keeps its rollup and drops the context it can't fit ---- */
-@media(max-width:380px){.fv-roomy{display:none}}
-.fv-step-s{white-space:nowrap}
 /* BEGIN landing-figs keyframes (GENERATED by scripts/landing-figs.mjs, do not edit) */
 @keyframes rel-cube{0%{transform:translate(0px,0px);opacity:1}0%{transform:translate(0px,0px)}0.38%{transform:translate(0px,0.14px)}0.76%{transform:translate(0px,0.57px)}1.14%{transform:translate(0px,1.3px)}1.52%{transform:translate(0px,2.34px)}1.9%{transform:translate(0px,3.71px)}2.29%{transform:translate(0px,5.44px)}2.67%{transform:translate(0px,7.55px)}3.05%{transform:translate(0px,10.11px)}3.43%{transform:translate(0px,13.19px)}3.81%{transform:translate(0px,16.91px)}4.19%{transform:translate(0px,21.46px)}4.57%{transform:translate(0px,27.24px)}4.95%{transform:translate(0px,35.27px)}5.33%{transform:translate(0px,56px)}91.67%{transform:translate(0px,56px);opacity:1}95%{transform:translate(0px,56px);opacity:0}99.98%{transform:translate(0px,56px);opacity:0}100%{transform:translate(0px,0px);opacity:1}}
 @keyframes rel-next{0%{transform:translate(0px,0px);opacity:0}8.67%{transform:translate(0px,0px);opacity:0}8.67%{transform:translate(0px,0px);opacity:0}9.18%{transform:translate(-9.89px,16.37px);opacity:0.14}9.7%{transform:translate(-16.31px,27px);opacity:0.29}10.22%{transform:translate(-20.16px,33.36px);opacity:0.43}10.73%{transform:translate(-22.45px,37.16px);opacity:0.57}11.25%{transform:translate(-23.85px,39.47px);opacity:0.71}11.77%{transform:translate(-24.71px,40.9px);opacity:0.86}12.28%{transform:translate(-25.25px,41.79px);opacity:1}12.8%{transform:translate(-25.58px,42.33px);opacity:1}13.32%{transform:translate(-25.77px,42.66px);opacity:1}13.83%{transform:translate(-25.89px,42.84px);opacity:1}14.35%{transform:translate(-25.94px,42.94px);opacity:1}14.87%{transform:translate(-25.97px,42.98px);opacity:1}15.38%{transform:translate(-25.98px,43px);opacity:1}15.9%{transform:translate(-25.98px,43px);opacity:1}99.98%{transform:translate(-25.98px,43px);opacity:1}100%{transform:translate(0px,0px);opacity:0}}

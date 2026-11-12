@@ -1,12 +1,19 @@
-{{- /* Dashboard: a merged pull request's change, how far it got per service and environment (what a pasted PR link
-       opens). Agrees with the Gates card: payments-svc 3.1.0 is still baking in production, so checkout-api 4.46.0
-       waits for it there. */ -}}
+{{- /* Dashboard = what a pasted PR link opens: the change page's reach, services x tiers, one state mark per place.
+       Agrees with the other cards: payments-svc 3.1.0 is checking in production, so checkout-api 4.46.0 is held there. */ -}}
 <div class="fv-card">
   <div class="fv-head">{{ partial "landing-features/icon.html" "dashboard" }}<span class="fv-title">#412</span><span class="fv-ctx">Retry payments on timeout</span><span class="fv-roll fv-wide">merged 41m ago</span></div>
-  <ul class="fv-rows">
-    <li>{{ partial "landing-features/mark.html" "ok" }}<span class="fv-name">payments-svc</span><span class="fv-id">3.1.0</span><span class="fv-state">staging</span></li>
-    <li>{{ partial "landing-features/mark.html" "run" }}<span class="fv-name">payments-svc</span><span class="fv-id">3.1.0</span><span class="fv-state">production · baking</span></li>
-    <li>{{ partial "landing-features/mark.html" "ok" }}<span class="fv-name">checkout-api</span><span class="fv-id">4.46.0</span><span class="fv-state">staging</span></li>
-    <li>{{ partial "landing-features/mark.html" "wait" }}<span class="fv-name">checkout-api</span><span class="fv-id">4.46.0</span><span class="fv-state is-wait">production · waiting</span></li>
-  </ul>
+  <div class="fv-body">
+    <div class="rg">
+      <span class="rg-h"></span><span class="rg-h"><span class="chip chip-dev">dev</span></span><span class="rg-h"><span class="chip chip-stg">staging</span></span><span class="rg-h"><span class="chip chip-prod">prod</span></span>
+      <span class="rg-svc"><span class="rg-n">payments-svc</span><span class="rg-v">3.1.0</span></span>
+      <span class="rg-c">{{ partial "landing-features/mark.html" "ok" }}<span class="rg-t">32m</span></span>
+      <span class="rg-c">{{ partial "landing-features/mark.html" "ok" }}<span class="rg-t">24m</span></span>
+      <span class="rg-c is-prog-ink">{{ partial "landing-features/mark.html" "check" }}<span>Checking</span></span>
+      <span class="rg-svc"><span class="rg-n">checkout-api</span><span class="rg-v">4.46.0</span></span>
+      <span class="rg-c">{{ partial "landing-features/mark.html" "ok" }}<span class="rg-t">36m</span></span>
+      <span class="rg-c">{{ partial "landing-features/mark.html" "ok" }}<span class="rg-t">27m</span></span>
+      <span class="rg-c is-held-ink">{{ partial "landing-features/mark.html" "held" }}<span>Held</span></span>
+    </div>
+    <div class="rg-foot"><span><b>4 of 6</b> places</span><span>held by payments-svc in prod</span></div>
+  </div>
 </div>

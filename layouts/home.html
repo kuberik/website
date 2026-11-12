@@ -2,7 +2,7 @@
 {{- $getStarted := "/docs/getting-started/" -}}
 {{- $github := "https://github.com/kuberik/kuberik" -}}
 {{- $hero := site.Data.landing.hero -}}
-{{- $css := slice (resources.Get "css/home.css") (resources.Get "css/sections.css") | resources.Concat "css/landing-all.css" | minify | fingerprint -}}
+{{- $css := slice (resources.Get "css/home.css") (resources.Get "css/sections.css") (resources.Get "css/feature-cards.css") | resources.Concat "css/landing-all.css" | minify | fingerprint -}}
 {{- $js := resources.Get "js/sections.js" | minify | fingerprint -}}
 <!DOCTYPE html>
 <html lang="en">

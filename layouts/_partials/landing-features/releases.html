@@ -1,10 +1,14 @@
-{{- /* Releases: the catalogue a ReleaseSource keeps, newest first, each with its git revision; where each one runs. */ -}}
+{{- /* Releases = the app page's Builds card: a rail of builds newest first (a filled dot where a build runs, a hollow
+       ring for one that runs nowhere now), version + title, the commit and when it was released, and tier chips for
+       where it runs. Agrees with the Gates card (4.46.0 in staging, 4.45.2 in production). */ -}}
 <div class="fv-card">
   <div class="fv-head">{{ partial "landing-features/icon.html" "releases" }}<span class="fv-title">Releases</span><span class="fv-ctx">checkout-api</span><span class="fv-roll">semver ≥ 4.0.0</span></div>
-  <ul class="fv-rows fv-rel">
-    <li><span class="fv-ver">4.46.0</span><span class="fv-id">e1c7a04</span><span class="fv-name">Retry payments on timeout</span><span class="fv-state">staging</span></li>
-    <li><span class="fv-ver">4.45.2</span><span class="fv-id">9b02f11</span><span class="fv-name">Tax on order summary</span><span class="fv-state">production</span></li>
-    <li><span class="fv-ver">4.45.1</span><span class="fv-id">51d7a30</span><span class="fv-name">Fix currency rounding</span><span class="fv-state fv-dim">3 days ago</span></li>
-    <li><span class="fv-ver">4.45.0</span><span class="fv-id">c40e9b8</span><span class="fv-name">Apple Pay at checkout</span><span class="fv-state fv-dim">5 days ago</span></li>
-  </ul>
+  <div class="fv-body">
+    <ol class="rl">
+      <li><div class="rl-l"><span class="rl-v">4.46.0</span><span class="rl-t">Retry payments on timeout</span></div><div class="rl-m"><code>e1c7a04</code> · Released 38m ago</div><div class="rl-at"><span class="chip chip-stg">staging</span></div></li>
+      <li><div class="rl-l"><span class="rl-v">4.45.2</span><span class="rl-t">Tax on order summary</span></div><div class="rl-m"><code>9b02f11</code> · Released 2 days ago</div><div class="rl-at"><span class="chip chip-prod">prod</span></div></li>
+      <li class="is-past"><div class="rl-l"><span class="rl-v">4.45.1</span><span class="rl-t">Fix currency rounding</span></div><div class="rl-m"><code>51d7a30</code> · Released 3 days ago</div></li>
+      <li class="is-past"><div class="rl-l"><span class="rl-v">4.45.0</span><span class="rl-t">Apple Pay at checkout</span></div><div class="rl-m"><code>c40e9b8</code> · Released 5 days ago</div></li>
+    </ol>
+  </div>
 </div>

@@ -1,0 +1,180 @@
+/* ---- landing v5: the six feature cards ("Every step of a release, declared.") ----
+   Owner 2026-11-12: "the visuals are monotonic. gates clearly could be shown similar to how we show them on the actual
+   dashboard". One frame for all six (the dashboard Card: 47px header, 16px icon, title, context, right rollup), six
+   different bodies, each the drawing the dashboard itself uses for that object:
+     Gates      = the rollout Gates tab's gate graph (RolloutNeighbourhood): dotted canvas, "Gated by" column of tiles,
+                  curved wires, the raised "This rollout" tile, the held wire in held ink with its arrowhead.
+     Health     = the bake meter (the Check step's progress, checking yellow) over the Health checks card's rows.
+     Canary     = the Deployment pipeline strand (MiniPipeline sm: 24px discs, 56px pitch, 2px connectors) + wave lanes.
+     Releases   = the app page's Builds card: a rail of build dots, version + title, tier chips where it runs.
+     #412       = the change page's reach: services x tiers grid with tier chips and one state mark per place.
+     GitOps     = the Flux diff (unchanged).
+   Colours = the dashboard's language.css tokens (--k-*), mapped to the page's own --page/--ink/--line tokens; tier chips
+   = the dashboard Chip env colours (dev teal, staging violet, prod fuchsia), measured off the running dashboard. */
+:root{
+  --ok-solid:oklch(.63 .14 155);--ok-fg:oklch(.47 .11 155);--ok-tint:oklch(.958 .045 155);--ok-line:oklch(.86 .06 155);
+  --held-solid:oklch(.69 .16 48);--held-fg:oklch(.52 .15 42);--held-tint:oklch(.96 .058 55);--held-line:oklch(.84 .095 45);--held-wire:#ca3500;
+  --prog-solid:oklch(.82 .16 98);--prog-fg:oklch(.51 .1 95);--prog-tint:oklch(.975 .08 112);--prog-line:oklch(.88 .09 100);--prog-pie:var(--prog-fg);
+  --line-strong:oklch(.862 .012 222);--line-subtle:oklch(.945 .007 222);--ink-disabled:oklch(.71 .016 222);--wire:#d1d5dc;
+  --fv-canvas:var(--page-alt);--fv-tile:var(--page);--fv-raised:var(--page);--fv-raised-line:var(--line);
+  --fv-raised-shadow:0 0 0 1px oklch(.195 .014 222/.06),0 2px 4px oklch(.195 .014 222/.04),0 8px 24px -4px oklch(.195 .014 222/.1);
+  --fv-dot:color-mix(in oklab,var(--ink-subtle) 32%,transparent);
+  --c-prod-bg:#fdf4ff;--c-prod-line:#f4a8ff;--c-prod-ink:#a800b7;
+  --c-stg-bg:#f5f3ff;--c-stg-line:#c4b4ff;--c-stg-ink:#5d0ec0;
+  --c-dev-bg:#f0fdfa;--c-dev-line:#46ecd5;--c-dev-ink:#00786f;
+}
+html.dark{
+  --ok-solid:oklch(.7 .15 155);--ok-fg:oklch(.8 .13 155);--ok-tint:oklch(.305 .062 155);--ok-line:oklch(.46 .1 155);
+  --held-solid:oklch(.72 .16 50);--held-fg:oklch(.8 .13 50);--held-tint:oklch(.318 .068 50);--held-line:oklch(.48 .12 50);--held-wire:#ff8904;
+  --prog-solid:oklch(.84 .15 98);--prog-fg:oklch(.87 .12 98);--prog-tint:oklch(.352 .07 102);--prog-line:oklch(.52 .11 102);--prog-pie:var(--prog-solid);
+  --line-strong:oklch(.38 .019 222);--line-subtle:oklch(.262 .017 222);--ink-disabled:oklch(.5 .016 222);--wire:#4a5565;
+  --fv-canvas:var(--page);--fv-tile:var(--page-alt);--fv-raised:oklch(.29 .017 222);--fv-raised-line:oklch(.339 .018 222);
+  --fv-raised-shadow:0 0 0 1px oklch(1 0 0/.06),0 8px 24px -4px oklch(0 0 0/.5);
+  --c-prod-bg:rgb(75 0 79/.75);--c-prod-line:#8a0194;--c-prod-ink:#f6cfff;
+  --c-stg-bg:rgb(47 13 104/.75);--c-stg-line:#4d179a;--c-stg-ink:#ddd6ff;
+  --c-dev-bg:rgb(2 47 46/.75);--c-dev-line:#005f5a;--c-dev-ink:#96f7e4;
+}
+
+/* ---- the frame: one for all six ---- */
+.fv{display:block}
+.fv-card{display:flex;flex-direction:column;border-radius:12px;background:var(--page);border:1px solid var(--win-border);box-shadow:0 1px 2px oklch(.195 .014 222/.05),0 12px 32px -16px oklch(.195 .014 222/.16);overflow:hidden;container-type:inline-size}
+html.dark .fv-card{background:var(--page-alt);box-shadow:0 12px 32px -16px rgba(0,0,0,.5)}
+.fv-head{display:flex;align-items:center;gap:8px;height:47px;flex:none;padding:0 16px;border-bottom:1px solid var(--line);min-width:0}
+.fv-icon{width:16px;height:16px;flex:none;color:var(--ink-muted)}
+.fv-title{font:600 14px/20px var(--sans);color:var(--ink);white-space:nowrap}
+.fv-ctx{font:400 13px/20px var(--sans);color:var(--ink-subtle);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;min-width:0}
+.fv-roll{margin-left:auto;padding-left:8px;font:500 12px/20px var(--sans);color:var(--ink-subtle);white-space:nowrap;font-variant-numeric:tabular-nums}
+.fv-body{height:224px;min-height:0;position:relative;display:flex;flex-direction:column}
+.fv-num{font-variant-numeric:tabular-nums}
+
+/* ---- shared atoms: tier chips (dashboard Chip role=env), marks (StatusMark) ---- */
+.chip{display:inline-flex;align-items:center;height:20px;padding:0 6px;border:1px solid;border-radius:4px;font:600 11px/16px var(--sans);letter-spacing:.06em;text-transform:uppercase;white-space:nowrap;flex:none}
+.chip-prod{background:var(--c-prod-bg);border-color:var(--c-prod-line);color:var(--c-prod-ink)}
+.chip-stg{background:var(--c-stg-bg);border-color:var(--c-stg-line);color:var(--c-stg-ink)}
+.chip-dev{background:var(--c-dev-bg);border-color:var(--c-dev-line);color:var(--c-dev-ink)}
+.chip-j{display:inline-flex;flex:none;min-width:0}
+.chip-j .chip:first-child{border-radius:4px 0 0 4px}
+.chip-place{border-radius:0 4px 4px 0;margin-left:-1px;border-color:var(--line);background:var(--fv-tile);color:var(--ink-muted);font:500 12px/16px var(--sans);letter-spacing:0;text-transform:none}
+.chip-region{border-color:var(--line);background:var(--fv-tile);color:var(--ink-muted);font:500 12px/16px var(--sans);letter-spacing:0;text-transform:none}
+.mk{width:16px;height:16px;flex:none;display:inline-flex;align-items:center;justify-content:center}
+.mk-ok::before{content:"";width:6px;height:6px;border-radius:50%;background:var(--ok-solid)}
+.mk-idle::before{content:"";width:8px;height:8px;border-radius:50%;box-shadow:inset 0 0 0 1.5px var(--ink-subtle)}
+.mk-held{border-radius:50%;background:var(--held-tint);box-shadow:inset 0 0 0 1px var(--held-line);color:var(--held-fg)}
+.mk svg{display:block}
+.mk-pie .pm-disc{fill:var(--prog-tint);stroke:var(--prog-solid);stroke-width:1}
+.mk-pie .pm-pie{fill:var(--prog-pie)}
+.is-held-ink{color:var(--held-fg)}
+.is-prog-ink{color:var(--prog-fg)}
+
+/* ---- Gates: the gate graph ---- */
+.gg-canvas{flex:1;padding:12px;background-color:var(--fv-canvas);background-image:radial-gradient(circle at 1px 1px,var(--fv-dot) 1px,transparent 0);background-size:16px 16px}
+.gg{display:grid;grid-template-columns:minmax(0,1.3fr) minmax(36px,.35fr) minmax(0,1fr);height:200px}
+.gg-label{margin:0;height:16px;font:600 11px/16px var(--sans);letter-spacing:.06em;text-transform:uppercase;color:var(--ink-subtle);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.gg-up{display:flex;flex-direction:column;gap:8px;min-width:0}
+.gg-up .gg-label{margin-bottom:-2px}
+.gg-tile{display:flex;flex-direction:column;justify-content:center;gap:2px;height:54px;padding:0 10px;border:1px solid var(--line);border-radius:8px;background:var(--fv-tile);min-width:0}
+.gg-tile.is-held{border-color:var(--held-line)}
+.gg-t{display:flex;align-items:center;gap:6px;min-width:0;height:20px;font:600 13px/20px var(--sans);color:var(--ink);white-space:nowrap}
+.gg-t > span:not(.chip){overflow:hidden;text-overflow:ellipsis;min-width:0}
+.gg-t svg{width:14px;height:14px;flex:none;color:var(--ink-muted)}
+.gg-s{display:flex;align-items:center;gap:6px;min-width:0;font:400 12px/16px var(--sans);color:var(--ink-subtle);white-space:nowrap}
+.gg-s > span:last-child{overflow:hidden;text-overflow:ellipsis;min-width:0}
+.gg-wire-col{position:relative;min-width:0}
+.gg-wires{position:absolute;inset:0 7px 0 0;display:block;width:calc(100% - 7px);height:200px;overflow:visible}
+.gg-wires path{vector-effect:non-scaling-stroke}
+.gg-heads{position:absolute;top:0;right:0;width:8px;height:200px;overflow:visible}
+.gg-wires path{fill:none}
+.gg-wires .w{stroke:var(--wire);stroke-width:1}
+.gg-wires .w-held{stroke:var(--held-wire);stroke-width:2}
+.gg-heads .a{fill:var(--wire)}
+.gg-heads .a-held{fill:var(--held-wire)}
+.gg-down{display:flex;flex-direction:column;justify-content:center;gap:6px;min-width:0}
+.gg-focus{display:flex;flex-direction:column;gap:4px;padding:10px 12px;border:1px solid var(--fv-raised-line);border-radius:8px;background:var(--fv-raised);box-shadow:var(--fv-raised-shadow);min-width:0}
+.gg-focus .gg-t{font-size:14px}
+.gg-runs{margin:2px 0 0;font:400 12px/20px var(--sans);color:var(--ink-subtle);white-space:nowrap}
+.gg-runs b{font:500 15px/20px var(--mono);color:var(--ink);margin-left:4px}
+@container (max-width:380px){.gg .chip-opt{display:none}.gg-focus{padding:10px}.gg-focus .gg-t{font-size:13px}}
+@container (max-width:340px){.gg .chip-opt,.gg .chip-place{display:none}.gg .chip-j .chip:first-child{border-radius:4px}}
+
+/* ---- Health: bake meter + checks ---- */
+.hm{padding:16px 16px 14px;border-bottom:1px solid var(--line)}
+.hm-top{display:flex;align-items:center;gap:8px;min-width:0}
+.hm-word{font:600 13px/20px var(--sans);color:var(--prog-fg)}
+.hm-time{margin-left:auto;font:500 13px/20px var(--sans);color:var(--ink);font-variant-numeric:tabular-nums;white-space:nowrap}
+.hm-time span{color:var(--ink-subtle);font-weight:400}
+.hm-bar{position:relative;display:block;height:6px;margin:10px 0 0;border-radius:3px;background:var(--line)}
+.hm-bar i{position:absolute;inset:0 auto 0 0;width:calc(var(--p) * 100%);border-radius:3px;background:var(--prog-solid)}
+.hm-axis{display:flex;justify-content:space-between;margin-top:6px;font:400 12px/16px var(--sans);color:var(--ink-subtle);font-variant-numeric:tabular-nums}
+.fv-rows{list-style:none;margin:0;padding:0}
+.fv-rows li{display:grid;grid-template-columns:16px auto minmax(0,1fr) auto;align-items:center;column-gap:10px;height:40px;padding:0 16px;border-top:1px solid var(--line-subtle)}
+.fv-rows li:first-child{border-top:0}
+.fv-name{font:500 13px/20px var(--sans);color:var(--ink);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;min-width:0}
+.fv-id{font:400 12px/20px var(--mono);color:var(--ink-subtle);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;min-width:0}
+.fv-state{font:500 12px/20px var(--sans);color:var(--ink-muted);white-space:nowrap;text-align:right}
+
+/* ---- Canary: the pipeline strand + wave lanes ---- */
+.st{position:relative;height:48px;margin:16px 16px 0;list-style:none;padding:0}
+.st li{position:absolute;top:0;width:24px;display:flex;flex-direction:column;align-items:center}
+.st li:nth-child(1){left:14px}.st li:nth-child(2){left:70px}.st li:nth-child(3){left:126px}.st li:nth-child(4){left:182px}
+.st-seg{position:absolute;top:11px;height:2px;width:32px;background:var(--line-strong)}
+.st-seg:nth-of-type(1){left:38px}.st-seg:nth-of-type(2){left:94px}.st-seg:nth-of-type(3){left:150px}
+.st-disc{display:flex;align-items:center;justify-content:center;width:24px;height:24px;border-radius:50%}
+.st-disc svg{width:16px;height:16px}
+.st-done{background:var(--ok-tint);color:var(--ok-fg)}
+.st-chk{background:var(--prog-tint);color:var(--prog-fg)}
+.st-spin{width:16px;height:16px;border-radius:50%;border:2px solid color-mix(in oklab,var(--prog-solid) 40%,transparent);border-top-color:var(--prog-solid);animation:st-spin 1.2s linear infinite}
+@keyframes st-spin{to{transform:rotate(360deg)}}
+@media(prefers-reduced-motion:reduce){.st-spin{animation:none}}
+.st-name{position:absolute;top:30px;left:50%;transform:translateX(-50%);font:400 12px/16px var(--sans);color:var(--ink-subtle);white-space:nowrap;font-variant-numeric:tabular-nums}
+.st .is-on .st-name{color:var(--ink);font-weight:500}
+.st-note{position:absolute;right:0;top:2px;font:500 12px/20px var(--sans);color:var(--prog-fg);white-space:nowrap}
+.wl{list-style:none;margin:14px 0 0;padding:0;border-top:1px solid var(--line);flex:1}
+.wl li{display:flex;flex-direction:column;justify-content:center;gap:6px;height:66px;padding:0 16px;border-top:1px solid var(--line-subtle)}
+.wl li:first-child{border-top:0}
+.wl-top{display:flex;align-items:center;gap:8px;min-width:0}
+.wl-name{font:500 13px/20px var(--sans);color:var(--ink);white-space:nowrap}
+.wl-state{margin-left:auto;font:500 12px/20px var(--sans);color:var(--ink-subtle);white-space:nowrap}
+.wl-chips{display:flex;gap:6px;padding-left:24px;min-width:0;overflow:hidden}
+.wl .is-later .chip-region{color:var(--ink-subtle)}
+
+/* ---- Releases: the Builds card's rail ---- */
+.rl{list-style:none;margin:0;padding:8px 0;flex:1}
+.rl li{position:relative;display:grid;grid-template-columns:minmax(0,1fr) auto;grid-template-rows:20px 16px;column-gap:12px;row-gap:2px;align-content:center;height:52px;padding:0 16px 0 40px}
+.rl li::before{content:"";position:absolute;left:21px;top:14px;width:6px;height:6px;border-radius:50%;background:var(--ink)}
+.rl li.is-past::before{left:20px;width:8px;height:8px;top:13px;background:none;box-shadow:inset 0 0 0 1.5px var(--line-strong)}
+.rl li:not(:last-child)::after{content:"";position:absolute;left:23.5px;top:26px;bottom:-12px;width:1px;background:var(--line-strong)}
+.rl-l{display:flex;align-items:baseline;gap:10px;min-width:0}
+.rl-v{font:500 13px/20px var(--mono);color:var(--ink);white-space:nowrap}
+.rl-t{font:400 13px/20px var(--sans);color:var(--ink-muted);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;min-width:0}
+.rl-m{grid-column:1/-1;font:400 12px/16px var(--sans);color:var(--ink-subtle);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.rl-m code{font:400 12px/16px var(--mono)}
+.rl-at{align-self:center;display:flex;gap:4px}
+.rl li{grid-template-areas:"l at" "m at"}.rl-l{grid-area:l}.rl-m{grid-area:m;grid-column:auto}.rl-at{grid-area:at}
+
+/* ---- #412: services x tiers reach grid ---- */
+.rg{display:grid;grid-template-columns:minmax(0,1.2fr) minmax(0,.8fr) minmax(0,.9fr) minmax(0,1.2fr);align-content:start;flex:1}
+.rg > *{display:flex;align-items:center;min-width:0;padding:0 8px;border-top:1px solid var(--line-subtle)}
+.rg > :nth-child(4n+1){padding-left:16px}.rg > :nth-child(4n){padding-right:16px}
+.rg .rg-h{height:44px;border-top:0}
+.rg .rg-svc{height:64px;flex-direction:column;align-items:flex-start;justify-content:center;gap:2px}
+.rg-n{font:500 13px/20px var(--sans);color:var(--ink);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;max-width:100%}
+.rg-v{font:400 12px/16px var(--mono);color:var(--ink-subtle)}
+.rg .rg-c{height:64px;gap:6px;font:500 12px/16px var(--sans);color:var(--ink-muted);white-space:nowrap}
+.rg .rg-c span{overflow:hidden;text-overflow:ellipsis}
+.rg .rg-c .rg-t{color:var(--ink-subtle);font-weight:400;font-variant-numeric:tabular-nums}
+.rg-foot{display:flex;align-items:center;justify-content:space-between;gap:8px;height:40px;padding:0 16px;border-top:1px solid var(--line);font:400 12px/16px var(--sans);color:var(--ink-subtle);white-space:nowrap}
+.rg-foot b{font-weight:500;color:var(--ink-muted)}
+@container (max-width:400px){.rg{grid-template-columns:minmax(0,1.1fr) 44px 76px minmax(0,.9fr)}.rg > *{padding:0 4px}.rg > :nth-child(4n+1){padding-left:16px}.rg > :nth-child(4n){padding-right:12px}.rg .rg-c .rg-t{display:none}}
+@container (max-width:320px){.rg .rg-c > span:not(.mk){display:none}}
+
+/* ---- GitOps: the Flux diff ---- */
+.fv-diff{margin:0;padding:12px 16px 11px;flex:1;font:400 12px/20px var(--mono);color:var(--ink-subtle);border-bottom:1px solid var(--line);overflow:hidden;white-space:pre}
+.fv-diff span{display:block}
+.fv-diff .del{color:var(--ink-subtle)}
+.fv-diff .add{margin:0 -16px;padding:0 16px;background:color-mix(in oklab,var(--mint) 14%,transparent);color:var(--mint-ink);font-weight:500}
+
+/* phones: a header keeps its rollup and drops what it can't fit (AD r1 #4, r5) */
+@media(max-width:640px){.fv-wide{display:none}}
+@media(max-width:380px){.fv-roomy{display:none}}
+/* between phone and 760 two columns leave a card under 330px, too narrow for the gate graph: one column there */
+@media(min-width:641px) and (max-width:759px){.feats{grid-template-columns:minmax(0,1fr)}}
