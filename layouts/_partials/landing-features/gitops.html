@@ -2,7 +2,7 @@
 <div class="fv-card">
   <div class="fv-head">{{ partial "landing-features/icon.html" "gitops" }}<span class="fv-title">kustomization.yaml</span><span class="fv-ctx fv-wide">production</span><span class="fv-roll">set by Kuberik</span></div>
   <div class="fv-body">
-<pre class="fv-diff"><span>spec:</span><span>  postBuild:</span><span>    substitute:</span><span class="del">-     VERSION: "4.45.1"</span><span class="add">+     VERSION: "4.45.2"</span></pre>
+<pre class="fv-diff"><span>kind: Kustomization</span><span>metadata:</span><span>  name: checkout-api</span><span>spec:</span><span>  postBuild:</span><span>    substitute:</span><span class="del">-     VERSION: "4.45.1"</span><span class="add">+     VERSION: "4.45.2"</span></pre>
     <ul class="fv-rows">
       <li>{{ partial "landing-features/mark.html" "ok" }}<span class="fv-name">GitHub deployment</span><span class="fv-id">production</span><span class="fv-state">Success</span></li>
     </ul>

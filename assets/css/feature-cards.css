@@ -13,7 +13,7 @@
    = the dashboard Chip env colours (dev teal, staging violet, prod fuchsia), measured off the running dashboard. */
 :root{
   --ok-solid:oklch(.63 .14 155);--ok-fg:oklch(.47 .11 155);--ok-tint:oklch(.958 .045 155);--ok-line:oklch(.86 .06 155);
-  --held-solid:oklch(.69 .16 48);--held-fg:oklch(.52 .15 42);--held-tint:oklch(.96 .058 55);--held-line:oklch(.84 .095 45);--held-wire:#ca3500;
+  --held-solid:oklch(.69 .16 48);--held-fg:oklch(.52 .15 42);--held-tint:oklch(.96 .058 55);--held-line:oklch(.84 .095 45);--held-wire:oklch(.6 .16 44);
   --prog-solid:oklch(.82 .16 98);--prog-fg:oklch(.51 .1 95);--prog-tint:oklch(.975 .08 112);--prog-line:oklch(.88 .09 100);--prog-pie:var(--prog-fg);
   --line-strong:oklch(.862 .012 222);--line-subtle:oklch(.945 .007 222);--ink-disabled:oklch(.71 .016 222);--wire:#d1d5dc;
   --fv-canvas:var(--page-alt);--fv-tile:var(--page);--fv-raised:var(--page);--fv-raised-line:var(--line);
@@ -67,8 +67,8 @@ html.dark .fv-card{background:var(--page-alt);box-shadow:0 12px 32px -16px rgba(
 .is-prog-ink{color:var(--prog-fg)}
 
 /* ---- Gates: the gate graph ---- */
-.gg-canvas{flex:1;padding:12px;background-color:var(--fv-canvas);background-image:radial-gradient(circle at 1px 1px,var(--fv-dot) 1px,transparent 0);background-size:16px 16px}
-.gg{display:grid;grid-template-columns:minmax(0,1.3fr) minmax(36px,.35fr) minmax(0,1fr);height:200px}
+.gg-canvas{flex:1;padding:12px 12px 12px 16px;background-color:var(--fv-canvas);background-image:radial-gradient(circle at 1px 1px,var(--fv-dot) 1px,transparent 0);background-size:16px 16px}
+.gg{display:grid;grid-template-columns:minmax(0,1.25fr) 36px minmax(0,1fr);height:200px}
 .gg-label{margin:0;height:16px;font:600 11px/16px var(--sans);letter-spacing:.06em;text-transform:uppercase;color:var(--ink-subtle);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
 .gg-up{display:flex;flex-direction:column;gap:8px;min-width:0}
 .gg-up .gg-label{margin-bottom:-2px}
@@ -89,11 +89,13 @@ html.dark .fv-card{background:var(--page-alt);box-shadow:0 12px 32px -16px rgba(
 .gg-heads .a{fill:var(--wire)}
 .gg-heads .a-held{fill:var(--held-wire)}
 .gg-down{display:flex;flex-direction:column;justify-content:center;gap:6px;min-width:0}
-.gg-focus{display:flex;flex-direction:column;gap:4px;padding:10px 12px;border:1px solid var(--fv-raised-line);border-radius:8px;background:var(--fv-raised);box-shadow:var(--fv-raised-shadow);min-width:0}
+.gg-focus{display:flex;flex-direction:column;gap:4px;padding:10px;border:1px solid var(--fv-raised-line);border-radius:8px;background:var(--fv-raised);box-shadow:var(--fv-raised-shadow);min-width:0}
 .gg-focus .gg-t{font-size:14px}
 .gg-runs{margin:2px 0 0;font:400 12px/20px var(--sans);color:var(--ink-subtle);white-space:nowrap}
 .gg-runs b{font:500 15px/20px var(--mono);color:var(--ink);margin-left:4px}
-@container (max-width:380px){.gg .chip-opt{display:none}.gg-focus{padding:10px}.gg-focus .gg-t{font-size:13px}}
+@container (min-width:560px){.gg{grid-template-columns:minmax(0,264px) minmax(36px,1fr) minmax(0,232px)}}
+@container (max-width:380px){.gg-plus{display:none}.gg{grid-template-columns:minmax(0,1.15fr) 30px minmax(0,1fr)}.gg .chip-opt{display:none}.gg-focus{padding:10px}.gg-focus .gg-t{font-size:13px}}
+.gg-focus .chip-j{max-width:100%}.gg-focus .chip-place{flex:0 1 auto;min-width:0;overflow:hidden;text-overflow:ellipsis;display:block;line-height:18px}
 @container (max-width:340px){.gg .chip-opt,.gg .chip-place{display:none}.gg .chip-j .chip:first-child{border-radius:4px}}
 
 /* ---- Health: bake meter + checks ---- */
@@ -156,6 +158,7 @@ html.dark .fv-card{background:var(--page-alt);box-shadow:0 12px 32px -16px rgba(
 .rg > *{display:flex;align-items:center;min-width:0;padding:0 8px;border-top:1px solid var(--line-subtle)}
 .rg > :nth-child(4n+1){padding-left:16px}.rg > :nth-child(4n){padding-right:16px}
 .rg .rg-h{height:44px;border-top:0}
+.rg > :not(:nth-child(4n+1)){justify-content:center}
 .rg .rg-svc{height:64px;flex-direction:column;align-items:flex-start;justify-content:center;gap:2px}
 .rg-n{font:500 13px/20px var(--sans);color:var(--ink);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;max-width:100%}
 .rg-v{font:400 12px/16px var(--mono);color:var(--ink-subtle)}
