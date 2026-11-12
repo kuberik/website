@@ -51,13 +51,13 @@ export const CAMERA: Move[] = [ /* scene lane 3: one fixed scale; a framing is s
 	{ at: EV.stagingGo - 0.02, to: 'pipeline', s: 1, pad: 68 /* the strip above it */, desk: true, dur: 0, ease: EXPO }, /* scene lane 4: as staging takes the build its header grows two lines (the PR, the namespace); the frame cuts to the strip and the pipeline under it, so neither moves on screen */
 	{ at: EV.gatesCut, to: 'gates-card', s: 1, pad: 10, dur: 0, ease: EXPO }, /* scene lane 5: the phone's Gates beat is a 704 px canvas (the two-column graph): the whole Gates card from its title */
 	{ at: EV.gatesCut, to: 'gates-card', s: 1, pad: 10, desk: true, dur: 0, ease: EXPO }, /* scene lane 5 (item 14): the whole Gates card, title to the graph's foot, at the frame's top */
-	{ at: EV.approved, to: 'gates-card', s: 1, pad: 10, dur: 0, ease: EXPO },
 	{ at: EV.approved, to: 'gates-card', s: 1, pad: 10 /* the card's title where the cut put it: only the card's inside changes */, desk: true, dur: 0, ease: EXPO }, /* scene lane 5: the approval lands, the banner shortens and the passed approval tile sorts under the others (#141): re-framed under the cover */ /* the prod rollout's Gates tab: every gate (staging's promotion, Release approval, Business hours) and this rollout, whole, at the frame's foot */
 	{ at: EV.ovCut, to: 'pipeline', s: 1, foot: true, dur: 0, ease: EXPO }, /* its Overview: the pipeline card through the canary */
 	{ at: EV.step2Done, to: 'health-checks', s: 1, pad: 10, dur: 0, ease: EXPO }, /* scene lane 4: the same page, cut to its Health checks card: kustomization, error-rate, latency-p99 pass one by one */
 	{ at: EV.bakeCut, to: 'bake', s: 1, dur: 0, ease: EXPO }, /* the phone: the Check step's bake line and its timer card */
 	{ at: EV.bakeCut, to: 'pipeline', s: 1, foot: true, desk: true, dur: 0, ease: EXPO }, /* then back to the pipeline: its Check step holds the bake (the timer bar) to the end */
-	{ at: EV.pipeCut, to: 'rest', s: 1, dur: 0, ease: EXPO }, /* scene lane 5: the App page's Pipeline tab */
+	{ at: EV.pipeCut, to: 'pipe-prod', s: 1, dur: 0, ease: EXPO }, /* scene lane 5, the phone: the Pipeline card stacks its stages; the frame holds its prod lane (three waves) */
+	{ at: EV.pipeCut, to: 'rest', s: 1, desk: true, dur: 0, ease: EXPO }, /* scene lane 5: the App page's Pipeline tab, the whole page (header, Pipeline card, In this release) */
 ];
 export const moveAt = (t: number, phone = false): Move => [...CAMERA].reverse().find((m) => t >= m.at && !(phone && m.desk))!;
 

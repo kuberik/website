@@ -19,5 +19,5 @@ html:not(.dark) .ph-poster{background-image:url({{ $p }}p-1440-light.webp?v={{ $
 @media(min-width:2400px){html:not(.dark) .ph-poster{background-image:url({{ $p }}p-2560-light.webp?v={{ $v }})}html.dark .ph-poster{background-image:url({{ $p }}p-2560-dark.webp?v={{ $v }})}}
 .ph-chapters{position:absolute;left:0;top:-56px;margin:0;padding:0;list-style:none;display:flex;gap:12px;font:500 14px/1 var(--sans);opacity:0}
 </style>{{ end -}}
-<div data-island="{{ $name }}" data-theme-sync{{ if .Get "eager" }} data-eager{{ end }} style="min-height:{{ $h }}px">{{ if .Get "eager" }}<div class="ph-poster" aria-hidden="true"></div><ol class="ph-chapters" aria-label="The demo, chapter by chapter"><li>New release</li><li>Staging</li><li>Gates</li><li>Canary</li><li>Health checks</li></ol>{{ end }}</div>
+<div data-island="{{ $name }}" data-theme-sync{{ if .Get "eager" }} data-eager{{ end }} style="min-height:{{ $h }}px">{{ if .Get "eager" }}<div class="ph-poster" aria-hidden="true"></div><ol class="ph-chapters" aria-label="The demo, chapter by chapter"><li>New release</li><li>Staging</li><li>Gates</li><li>Canary</li><li>Health checks</li><li>All sites</li></ol>{{ end }}</div>
 <script type="module" src="{{ "islands/islands.js" | relURL }}"></script>

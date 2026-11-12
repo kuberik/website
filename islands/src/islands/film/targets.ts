@@ -7,7 +7,7 @@ const text = (e: Element | null) => (e?.textContent ?? '').replace(/\s+/g, ' ').
 /** the smallest element matching `sel` whose own text matches `re` */
 function byText(root: ParentNode, sel: string, re: RegExp): HTMLElement | null {
 	let best: HTMLElement | null = null;
-	for (const e of root.querySelectorAll<HTMLElement>(sel)) if (re.test(text(e)) && (!best || best.contains(e))) best = e;
+	for (const e of root.querySelectorAll<HTMLElement>(sel)) if (re.test(text(e)) && (!best || best.contains(e)) && !e.closest('.film-snap')) best = e; /* scene lane 5: never the cover's still (a still first in the DOM hid the live subject: the phone's bake frame stayed at the top) */
 	return best;
 }
 /** the card (rounded bordered box) that contains the heading matching `re` */
@@ -66,6 +66,10 @@ function resolve(name: string, root: ParentNode, phone: boolean): HTMLElement | 
 		/* scene lane 4 (phone): the Release approval gate card, the subject from the Approve press to every gate passing (it stays when its button leaves) */
 		case 'gate-release': return byText(root, 'div,span,p,h3,h4', /^Release approval$/)?.closest<HTMLElement>('[class*="rounded"]') ?? null;
 		/* scene lane 4: the Gates tab's graph: every gate card (staging's promotion, Release approval, Business hours) and this rollout, as one rect (the frame's foot is the lowest gate) */
+		case 'pipe-prod': { /* scene lane 5: the App Pipeline card's prod lane, from its PROD label to the card's foot (the phone stacks the stages: dev and staging above, scrolled past) */
+			const card = byText(root, 'div,span,h2,h3', /^Pipeline$/)?.closest<HTMLElement>('[class*="rounded"]'); const lab = card ? [...card.querySelectorAll<HTMLElement>('span,div')].find((e) => text(e) === 'PROD' && !e.children.length) : null;
+			if (!card || !lab) return null;
+			return { getBoundingClientRect() { const c = card.getBoundingClientRect(), l = lab.getBoundingClientRect(); return new DOMRect(c.left, l.top, c.width, c.bottom - l.top); } } as unknown as HTMLElement; }
 		case 'gates-card': return root.querySelector<HTMLElement>('[data-tour="dependency-graph"]'); /* scene lane 5: the phone's Gates beat frames the whole Gates card from its title */
 		case 'gates-graph': { const cards = ['Release approval', 'Business hours'].map((t) => byText(root, 'div,span,p,h3,h4', new RegExp('^' + t + '$'))?.closest<HTMLElement>('[class*="rounded"]') ?? null); const node = byText(root, 'div,span,p', /^This rollout$/i); return cards.every(Boolean) ? union([...(cards as HTMLElement[]), ...(node ? [node] : [])]) : null; }
 		case 'gates-card': return cardOf(root, /^Gates$/); /* scene lane 3: the Gates tab's gate graph card */

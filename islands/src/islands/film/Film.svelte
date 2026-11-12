@@ -291,6 +291,7 @@ import { flipRecord, flipPlay, type Pos } from './flip';
 	/* lane 35: a desktop HOLD is framed once per window size and then reused: natural play (aimed at the cut, refined while the page settles) and a seek that
 	   lands inside the hold (which used to aim at that second's layout: the pipeline grows step by step) show the same frame. Keyed by the move and the canvas. */
 	const AIM_MEMO = new Map<string, { x: number; y: number; s: number }>();
+	const AIM_RETRY = new Map<Move, number>();
 	function aim(m: Move, jump: boolean, refine = false, final = false) {
 		if (!group || !main) return;
 		if (phone) jump = true; /* scene lane 3: the phone's frame is a scroll; inside a chapter the camera cuts, it never glides */
@@ -304,7 +305,7 @@ import { flipRecord, flipPlay, type Pos } from './flip';
 		else if (el) {
 			const r0 = relRect(el), r = m.h ? { ...r0, h: m.h } : r0; /* Move.h: the frame is worked out as if the target were this tall, so it does not depend on the step the story is at */
 			if (phone && m.stay && r.y < vh * 0.4) { s = 1; phoneOff = -1e6; y = 0; } /* scene lane 3: a subject near the page top (the header strip) keeps the page unscrolled: the title stays in frame */
-			else if (phone) { s = 1; const pk = `${m.at}|${CW}`; if (!refine && !PHONE_OFF.has(pk)) PHONE_OFF.set(pk, phoneTop(r) - Math.max(0, r.y - 10)); phoneOff = PHONE_OFF.get(pk)! - 10; y = -Math.max(0, r.y + phoneOff); } /* the foot's nudge is worked out once per move (a seek frames the way play does) */
+			else if (phone) { s = 1; const pk = `${m.at}|${CW}`; let off = PHONE_OFF.get(pk); if (off === undefined) { off = phoneTop(r) - Math.max(0, r.y - 10); /* scene lane 5: memoised only once the page is tall enough to scroll to the subject (a seek measured the half-built page: the offset clamped to the top for good) */ if (!refine && off >= -100) PHONE_OFF.set(pk, off); else if (!refine) { clearTimeout(refineTimer); refineTimer = setTimeout(() => { if (mv === m) aim(m, true); }, 300); } } phoneOff = off - 10; y = -Math.max(0, r.y + phoneOff); } /* the foot's nudge is worked out once per move (a seek frames the way play does) */
 			else if (s === 1 && m.foot) {
 				/* scene lane 4: a FOOT framing: the frame ends just under the target (its whole card and everything above it that fits), and both edges sit in a gap between the
 				   product's text and small boxes (buttons, chips): the window is shorter than the single-column page, so the subject is the frame's foot, not its top */
@@ -370,6 +371,8 @@ import { flipRecord, flipPlay, type Pos } from './flip';
 		if (dur > 0) moveTimer = setTimeout(() => { cam = { ...cam, moving: false }; }, dur + 40);
 		/* the product's own enter animations (banners opening, cards collapsing) keep moving the target for ~0.5 s after a move starts: re-aim once they have settled */
 		if (!refine) { clearTimeout(refineTimer); clearTimeout(refine2Timer); clearTimeout(refine3Timer); }
+		/* scene lane 5: a seek can land before its subject is drawn (the Check step's timer card arrives with the pipeline's next data pass): aim again, a few times, until it is there */
+		if (!refine && !el && !reduced && m.to !== 'rest') { const n = (AIM_RETRY.get(m) ?? 0) + 1; if (n <= 6) { AIM_RETRY.set(m, n); clearTimeout(refineTimer); refineTimer = setTimeout(() => { if (mv === m) aim(m, true); }, 250); } } else if (el) AIM_RETRY.delete(m);
 		if (!refine && el && !reduced && !memo) { refineTimer = setTimeout(() => aim(m, false, true), 650); refine2Timer = setTimeout(() => aim(m, false, true, true), 1500); } /* twice: the page keeps settling a little after the product's enter animations */
 	}
 	/* a move starts when the story reaches its keyframe, or the surface under it changed (re-aim once its layout has settled) */
