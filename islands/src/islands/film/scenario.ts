@@ -4,12 +4,13 @@
  * No failure: the owner's rule is at most one, and late; the calm cut has none.
  *
  * `worldAt(t)` returns what the dashboard's own API would answer at story second `t`: raw Rollout / Environment / Kruise Rollout / RolloutTest /
- * Kustomization / HealthCheck / RolloutGate / RolloutDependency / RolloutSchedule CRs. Nothing in this file is a display string except GitHub's
+ * Kustomization / HealthCheck / RolloutGate / RolloutDependency / RolloutSchedule CRs, and release-controller's catalogue (ReleaseSource + ReleaseSlice per place;
+ * a Rollout carries only `spec.releaseSourceRef`, `status.releaseSource` and `status.candidates`, dashboard 07348479 #69/#120). Nothing in this file is a display string except GitHub's
  * own data (PR titles, people). The product's own view-models draw every word.
  * `EV` is the event table: the story seconds at which a CR changes (also what the film's data snapshots key on, see eventIndexAt()).
  */
 import type { FleetSource } from '$lib/components/home/sketch/fleet-source.svelte';
-import { release, gate, prChange } from '../shared/cr';
+import { release, gate, prChange, catalogue, slicesStatus } from '../shared/cr';
 import { extras } from '../surfaces/fleet';
 import { clockSeconds } from './clock';
 
@@ -23,9 +24,9 @@ type Any = any;
 
 /** story seconds at which a CR changes (script.ts shots: App 0-7, Rollouts 7-11.3, Overview 11.3-24.5, App 24.5-40) */
 export const EV = {
-	release: 1.0, stagingGo: 2.2, check: 3.2, hcStagingErr: 3.8, hcStagingLat: 4.2, stagingDone: 5.4,
-	promo: 7.0, approved: 10.7, /* the promotion gate opens a sync after staging's bake, on the Rollouts cut (7.0): the approval asks there, not as a banner pushing the App page down */
-	deploy: 11.3, /* on the Overview cut: the In flight row is not added under the Rollouts frame */ paused1: 14.0, testPending: 14.4, testRunning: 14.8, testPassed: 16.6, step2Go: 18.6, step2Done: 19.6, hcLat: 20.4, hcErr: 20.8, us1Done: 23.2,
+	release: 0, stagingGo: 2.2, check: 3.2, hcStagingErr: 3.8, hcStagingLat: 4.2, stagingDone: 5.4,
+	promo: 7.0, approved: 10.7, /* the cut to the Overview lands on this second: the approved card never leaves on screen */ /* the promotion gate opens a sync after staging's bake, on the Rollouts cut (7.0): the approval asks there, not as a banner pushing the App page down */
+	deploy: 10.7, /* on the Overview cut: the In flight row is not added under the Rollouts frame */ paused1: 14.0, testPending: 14.4, testRunning: 14.8, testPassed: 16.6, step2Go: 18.6, step2Done: 19.6, hcLat: 20.4, hcErr: 20.8, us1Done: 23.2,
 	w2Deploy: 26.0, w2Check0: 27.6, w2Check1: 27.9, w2Done0: 28.8, w2Done1: 29.2,
 	w3Deploy: 30.4, w3Check0: 31.8, w3Check1: 32.1, w3Done0: 33.0, w3Done1: 33.4
 } as const;
@@ -49,6 +50,8 @@ export const PLACES: Place[] = [
 const key = (p: Place) => p.site ?? p.env;
 const isUS1 = (p: Place) => p.site === 'us-east-1';
 const DEP_NAME = 'checkout-api-needs-payments';
+/** the ApprovalPolicy that owns prod's approval gate, the RolloutApproval the viewer's press creates (dashboard approve endpoint: `<rollout>-<version>`), and its approver (the Kubernetes username) */
+const APPROVAL_POLICY = 'prod-needs-approval', APPROVAL_NAME = `${APP}-b-46`, APPROVER = `oidc:${VIEWER}`;
 
 /** where a place is, at `t`: which build it runs and what its newest history entry says */
 export type Phase = 'old' | 'deploying' | 'checking' | 'done';
@@ -66,7 +69,7 @@ export function phaseOf(p: Place, t: number): Phase {
 }
 const onNewBuild = (ph: Phase) => ph !== 'old';
 
-export type Detail = { ns: string; rollout: Any; kustomization: Any; environment: Any; kr: Any; test: Any; gates: Any[]; healthChecks: Any[]; schedules: Any[] };
+export type Detail = { approvals: Any; catalogue: { source: Any; slices: Any[] }; ns: string; rollout: Any; kustomization: Any; environment: Any; kr: Any; test: Any; gates: Any[]; healthChecks: Any[]; schedules: Any[] };
 
 export function worldAt(t: number): { fleet: FleetSource; github: Record<string, unknown>; detail: Detail } {
 	/* THE CLOCK: `now` is the story clock (a Tuesday, UTC), so every absolute time the product prints ("reopens 10:00 UTC", "closes 14:00 UTC") agrees with the chrome clock;
@@ -78,7 +81,7 @@ export function worldAt(t: number): { fleet: FleetSource; github: Record<string,
 	const rel = (n: number, sha: string, createdMs: number) => release(`b-${n}`, `4.${n}.0-${n}`, sha, createdMs);
 	const R44 = rel(44, SHA[44], ago(30 * H)), R45 = rel(45, SHA[45], ago(4 * H));
 	const R46 = { ...rel(46, SHA[46], atMs(EV.release)), requires: { payments: '^3.1.0' } };
-	const out46 = t >= EV.release; /* the release appears at 1.0 s: before it the app's stream ends at 4.45.0-45 */
+	const out46 = t >= EV.release; /* lane 35: the release exists from the first frame (an inserted row pushed the 4.45 group down) */
 	const deployed = (p: Place) => onNewBuild(phaseOf(p, t));
 
 	/* ---- history: the API's own entry shape (rollout-controller api/v1alpha1 DeploymentHistoryEntry + rollout_controller.go): `message` = generateDeploymentMessage ("Automatic deployment", or the person's explanation), `bakeStatusMessage` = the bake's own sentence, `bakeStartTime` is nil until the health checks first turn healthy, `triggeredBy` System is named "rollout-controller", a failed bake carries failedHealthChecks {name, namespace, message, observations} ---- */
@@ -95,7 +98,9 @@ export function worldAt(t: number): { fleet: FleetSource; github: Record<string,
 		const ph = phaseOf(p, t);
 		if (ph === 'old') return [base];
 		const bk = baking(p), done = ph === 'done';
-		return [{ id: 2, version: R46, timestamp: at(startOf(p)), message: auto, bakeStatus: done ? 'Succeeded' : bk ? 'InProgress' : 'Deploying', bakeStatusMessage: done ? DONE_MSG : bk ? START_MSG : WAIT_MSG, ...(bk ? { bakeStartTime: at(bakeAt(p)) } : {}), ...(done ? { bakeEndTime: at(doneAt(p)) } : {}), triggeredBy: sys }, base];
+		/* a prod place took b-46 through its approval gate: the entry names the RolloutApproval that let it through (rollout-controller history[].approval, `by` = the approval.kuberik.com/by annotation the dashboard's approve endpoint writes) */
+		const approval = p.env === 'prod' ? { approval: { name: APPROVAL_NAME, by: APPROVER } } : {};
+		return [{ id: 2, version: R46, timestamp: at(startOf(p)), message: auto, ...approval, bakeStatus: done ? 'Succeeded' : bk ? 'InProgress' : 'Deploying', bakeStatusMessage: done ? DONE_MSG : bk ? START_MSG : WAIT_MSG, ...(bk ? { bakeStartTime: at(bakeAt(p)) } : {}), ...(done ? { bakeEndTime: at(doneAt(p)) } : {}), triggeredBy: sys }, base];
 	}
 
 	/* ---- gates (environment-controller wave.go / the dependency + schedule controllers) ---- */
@@ -104,24 +109,26 @@ export function worldAt(t: number): { fleet: FleetSource; github: Record<string,
 		if (p.env === 'staging') return [];
 		/* wave 1 (us-east-1) may take what staging finished; each later wave what the wave before finished baking (environment-controller wave.go) */
 		const promoOpen = out46 && (isUS1(p) ? t >= EV.promo : p.wave === 2 ? t >= EV.us1Done : t >= EV.w2Done1);
+		/* `kind` and `displayName` are the dashboard API's own additions to each gate summary (pkg/kubernetes/gatekind.go: by the gate object's owner / labels; the pretty-name annotation) */
 		return [
-			gate(`dependency-${DEP_NAME}`, withNew),
-			{ name: 'deploy-window', passing: true, allowedVersions: null, message: 'Gate is passing' },
-			gate(`promotion-prod-${p.site}`, promoOpen ? ['b-46', 'b-45'] : ['b-45']),
-			gate('release-approval', t >= EV.approved ? withNew : old)
+			{ ...gate(`dependency-${DEP_NAME}`, withNew), kind: 'dependency' },
+			{ name: 'deploy-window', passing: true, allowedVersions: null, message: 'Gate is passing', kind: 'schedule', displayName: 'Business hours' },
+			{ ...gate(`promotion-prod-${p.site}`, promoOpen ? ['b-46', 'b-45'] : ['b-45']), kind: 'promotion' },
+			/* the ApprovalPolicy's gate: its allow-list is the versions a RolloutApproval names (the approval controller), b-46 from the viewer's approval on */
+			{ ...gate('release-approval', t >= EV.approved ? withNew : old), kind: 'approval', displayName: 'Release approval' }
 		];
 	}
 
 	function rollout(p: Place): Any {
-		const nw = deployed(p);
-		const heldCandidate = out46 && !nw && p.env !== 'staging';
+		const rels = out46 ? [R44, R45, R46] : [R44, R45];
+		const gs = gates(p);
 		return {
 			apiVersion: 'kuberik.com/v1alpha1', kind: 'Rollout',
 			metadata: { name: APP, namespace: p.ns, labels: { environment: p.site ? `${p.env}-${p.site}` : p.env }, annotations: { 'rollout-dashboard.kuberik.com/source-cluster': p.env } },
 			spec: { releaseSourceRef: { name: APP }, versionHistoryLimit: 20, bakeTime: isUS1(p) ? '50s' : '1m', healthCheckSelector: { matchLabels: { app: APP, env: p.site ? `${p.env}-${p.site}` : p.env } } },
 			status: {
 				source: 'github.com/exampleco/checkout-api',
-				availableReleases: out46 ? [R44, R45, R46] : [R44, R45], releaseCandidates: heldCandidate ? [R46] : [], history: history(p), gates: gates(p)
+				...slicesStatus(APP, rels, history(p)[0].version.tag, gs), history: history(p), gates: gs
 			}
 		};
 	}
@@ -220,11 +227,15 @@ export function worldAt(t: number): { fleet: FleetSource; github: Record<string,
 		}));
 	}
 
+	const cats = PLACES.map((p) => catalogue(p.ns, p.env, APP, 'ghcr.io/exampleco/checkout-api', out46 ? [R44, R45, R46] : [R44, R45]));
 	const rolloutsAll = PLACES.map(rollout), envsAll = PLACES.map(environment), krs = PLACES.map(kruise), hcs = PLACES.map(healthChecks);
 	const ex = extras({ failing: false, only: (a) => a.state === 'rest' || a.name === 'billing-api' });
 	const change = (n: number, title: string, author: string, mergedMs: number, sha: string, files: number) => prChange('exampleco', APP, n, title, author, mergedMs, sha, files);
 	const fleet = {
 		rollouts: [...rolloutsAll, ...ex.rollouts] as never,
+		/* the rollouts list's catalogue siblings (dashboard api/rollouts.ts: `releaseSources` / `releaseSlices`, stamped with the source cluster) */
+		releaseSources: { items: [...cats.map((c) => c.source), ...ex.sources] },
+		releaseSlices: { items: [...cats.flatMap((c) => c.slices), ...ex.slices] },
 		environments: [...envsAll, ...ex.environments] as never,
 		rolloutDependencies: { items: dependencies() as never },
 		kustomizations: PLACES.map(kustomization) as never,
@@ -256,11 +267,15 @@ export function worldAt(t: number): { fleet: FleetSource; github: Record<string,
 		metadata: { name: g.name, namespace: NS,
 			...(g.name.startsWith('dependency-') ? { ownerReferences: [{ apiVersion: 'kuberik.com/v1alpha1', kind: 'RolloutDependency', name: DEP_NAME, uid: 'dep-uid' }] } : {}),
 			...(g.name === 'deploy-window' ? { labels: { 'gate.kuberik.com/schedule-name': 'business-hours', 'gate.kuberik.com/schedule-kind': 'RolloutSchedule', 'gate.kuberik.com/rollout-name': APP }, annotations: { 'gate.kuberik.com/pretty-name': 'Business hours' }, ownerReferences: [{ apiVersion: 'kuberik.com/v1alpha1', kind: 'RolloutSchedule', name: 'business-hours', uid: 'sched-uid' }] } : {}),
-			...(g.name === 'release-approval' ? { annotations: { 'gate.kuberik.com/pretty-name': 'Release approval' } } : {}) },
+			...(g.name.startsWith('promotion-') ? { ownerReferences: [{ apiVersion: 'environments.kuberik.com/v1alpha1', kind: 'Environment', name: APP, uid: 'env-uid', controller: true }] } : {}),
+			/* the approval controller's gate (design/APPROVALS-API.md §5.1): owned by an ApprovalPolicy, labelled with it */
+			...(g.name === 'release-approval' ? { labels: { 'gate.kuberik.com/approval-policy-name': APPROVAL_POLICY, 'gate.kuberik.com/approval-policy-namespace': NS, 'gate.kuberik.com/approval-policy-kind': 'ApprovalPolicy', 'gate.kuberik.com/rollout-name': APP }, annotations: { 'gate.kuberik.com/pretty-name': 'Release approval' }, ownerReferences: [{ apiVersion: 'kuberik.com/v1alpha1', kind: 'ApprovalPolicy', name: APPROVAL_POLICY, uid: 'policy-uid', controller: true, blockOwnerDeletion: true }] } : {}) },
 		spec: { rolloutRef: { name: APP }, ...(g.passing !== undefined ? { passing: g.passing } : {}), ...(g.allowedVersions ? { allowedVersions: g.allowedVersions } : {}) }, status: { message: g.message }
 	}));
+	/* GET .../approvals: the place's RolloutApprovals (the viewer's, from the press on), `by` verified on this cluster */
+	const approvals = { byVerified: true, approvals: t >= EV.approved ? [{ name: APPROVAL_NAME, version: 'b-46', by: APPROVER, createdAt: at(EV.approved) }] : [] };
 	const detail: Detail = {
-		ns: NS, rollout: rolloutsAll[i1], kustomization: kustomization(PLACES[i1]), environment: envsAll[i1], kr: krs[i1].kr, test: krs[i1].test!, gates: rGates, healthChecks: hcs[i1].healthChecks,
+		ns: NS, approvals, catalogue: cats[i1], rollout: rolloutsAll[i1], kustomization: kustomization(PLACES[i1]), environment: envsAll[i1], kr: krs[i1].kr, test: krs[i1].test!, gates: rGates, healthChecks: hcs[i1].healthChecks,
 		schedules: [{ metadata: { name: 'business-hours', namespace: NS, annotations: { 'gate.kuberik.com/pretty-name': 'Business hours' } },
 			spec: { action: 'Allow', timezone: 'UTC', rolloutSelector: { matchLabels: { environment: 'prod' } }, rules: [{ name: 'weekdays', timeRange: { start: '10:00', end: '14:00' }, daysOfWeek: ['Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday'] }] },
 			status: { active: true, nextTransition: new Date(DAY_MS + 14 * 3600_000).toISOString(), managedGates: ['deploy-window'] } }]

@@ -17,7 +17,8 @@ const STUBBED_MODULES: Record<string, string> = {
 	'lib/components/new/github-read.svelte.ts': 'github-read.svelte.ts',
 	'lib/view-models/home/fixtures/incident-input.json': 'incident-input.json',
 	'lib/demo/github-data.ts': 'demo-github-data.ts',
-	'lib/stores/time.ts': 'time-store.ts'
+	'lib/stores/time.ts': 'time-store.ts',
+	'lib/components/new/FleetGate.svelte': 'fleet-gate.svelte'
 };
 
 function stubModules(): Plugin {

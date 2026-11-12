@@ -2,7 +2,7 @@
  * Answers the rollout page's queries from the film's current snapshot (raw CRs, as the dashboard's API serves them). The svelte-query stub reads
  * `answers()` inside the page's own derivations, so replacing `current` re-derives the page in place: nothing is fetched, nothing is drawn here.
  * NAMED STUB (see stubs/svelte-query.svelte.ts): rollout (RolloutResponse), rollout-permissions, managed-resources, health-checks, events,
- * github-status, cluster-info, rollout-schedule-window, rollouts/namespace.
+ * github-status, cluster-info, rollout-schedule-window, rollouts/namespace, rollout-approvals.
  */
 import { setQueryAnswers } from '../../stubs/svelte-query.svelte';
 import { APP, VIEWER, type Detail } from './scenario';
@@ -30,7 +30,7 @@ export function installAnswers(fleetRollouts: () => unknown[], github: () => Rec
 		const KUST = d.kustomization.metadata.name;
 		switch (key[0]) {
 			case 'rollout': return key[1] === d.ns && key[2] === APP ? { rollout: d.rollout, kustomizations: { items: [d.kustomization] }, ociRepositories: { items: [] }, rolloutGates: { items: d.gates }, environment: d.environment, kruiseRollout: d.kr, rolloutTests: { items: [d.test] } } : undefined;
-			case 'rollout-permissions': return { permissions: { update: true, patch: true }, resource: { apiGroup: 'kuberik.com', kind: 'Rollout', name: APP, namespace: d.ns } };
+			case 'rollout-permissions': return { permissions: { update: true, patch: true, approve: true }, resource: { apiGroup: 'kuberik.com', kind: 'Rollout', name: APP, namespace: d.ns } };
 			/* both resources Current: the Resources card must not say "2 not ready" (probe nit) */
 			case 'managed-resources': return { [KUST]: managedList(d) };
 			case 'health-checks': return { healthChecks: d.healthChecks };
@@ -41,7 +41,9 @@ export function installAnswers(fleetRollouts: () => unknown[], github: () => Rec
 			case 'github-status': return { configured: true, connected: true, login: VIEWER };
 			case 'cluster-info': return { url: 'https://hub.example', name: CLUSTER };
 			case 'rollout-schedule-window': return d.schedules;
-			case 'rollouts': return key[1] === 'namespace' ? { rollouts: { items: fleetRollouts().filter((r: any) => r.metadata.namespace === d.ns) }, environments: { items: [d.environment] }, kustomizations: { items: [d.kustomization] } } : undefined;
+			case 'rollouts': return key[1] === 'namespace' ? { rollouts: { items: fleetRollouts().filter((r: any) => r.metadata.namespace === d.ns) }, environments: { items: [d.environment] }, kustomizations: { items: [d.kustomization] }, releaseSources: { items: [d.catalogue.source] }, releaseSlices: { items: d.catalogue.slices } } : undefined;
+			/* GET .../approvals (dashboard #132): the place's RolloutApprovals and whether their `by` is verified */
+			case 'rollout-approvals': return key[1] === d.ns && key[2] === APP ? d.approvals : undefined;
 			default: return undefined;
 		}
 	});
@@ -63,12 +65,15 @@ export function installFetch(list: () => { rollouts: unknown[]; environments: un
 		if (mr && current) return Promise.resolve(new Response(JSON.stringify({ managedResources: managedList(current) }), { status: 200, headers: { 'content-type': 'application/json' } }));
 		/* the dialog's confirm POSTs the change of version: accepted (the story's own CRs carry the outcome; nothing is written here) */
 		if (init?.method === 'POST' && /^\/api\/(?:clusters\/[^/]+\/)?rollouts\/[^/]+\/[^/]+\/change-version$/.test(u.pathname)) return Promise.resolve(new Response('{}', { status: 200, headers: { 'content-type': 'application/json' } }));
+		/* the approve endpoint (dashboard #132): never confirmed in the film; answered as the server would (the story's CRs carry the outcome, nothing is written) */
+		const ap = init?.method === 'POST' ? /^\/api\/(?:clusters\/[^/]+\/)?rollouts\/[^/]+\/([^/]+)\/approve$/.exec(u.pathname) : null;
+		if (ap) { let b: any = {}; try { b = JSON.parse(String(init?.body ?? '{}')); } catch { /* empty */ } return Promise.resolve(new Response(JSON.stringify(b.revoke ? {} : { approval: { name: `${ap[1]}-${String(b.version ?? '')}`, version: b.version, by: `oidc:${VIEWER}` } }), { status: 200, headers: { 'content-type': 'application/json' } })); }
 		const m = /^\/api\/(?:clusters\/[^/]+\/)?rollouts$/.exec(u.pathname);
 		const s = m ? list() : null;
 		if (!m || !s) return real(input, init);
 		const ns = u.searchParams.get('namespace');
 		const rollouts = ns ? s.rollouts.filter((r: any) => r.metadata.namespace === ns) : s.rollouts;
-		return Promise.resolve(new Response(JSON.stringify({ rollouts: { items: rollouts }, environments: { items: s.environments }, rolloutDependencies: s.rolloutDependencies, kustomizations: { items: s.kustomizations }, kruiseRollouts: { items: s.kruiseRollouts } }), { status: 200, headers: { 'content-type': 'application/json' } }));
+		return Promise.resolve(new Response(JSON.stringify({ rollouts: { items: rollouts }, environments: { items: s.environments }, rolloutDependencies: s.rolloutDependencies, kustomizations: { items: s.kustomizations }, kruiseRollouts: { items: s.kruiseRollouts }, releaseSources: (s as any).releaseSources, releaseSlices: (s as any).releaseSlices }), { status: 200, headers: { 'content-type': 'application/json' } }));
 	};
 	(wrapped as any).__film = true;
 	window.fetch = wrapped as typeof fetch;

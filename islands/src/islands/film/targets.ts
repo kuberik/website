@@ -102,6 +102,15 @@ function resolve(name: string, root: ParentNode, phone: boolean): HTMLElement | 
 			return { __r: 8, getBoundingClientRect() { const c = card.getBoundingClientRect(), h = hb.getBoundingClientRect(); return new DOMRect(c.left, h.top, c.width, c.bottom - h.top); } } as unknown as HTMLElement;
 		}
 		case 'prod-card': return cardOf(root, /Production/i);
+		/* lane 35 (dashboard #135): the Change page's header (title, meta line) with the environment strip under it; the strip's boxes keep their slots as
+		   state changes, so this frame holds while only the marks turn */
+		/* desktop: the frame is the page's MAIN column (the header's left side, the strip, History under it) from the page top, so the rail's cards are not
+		   cut and the strip's marks read; the rect is the header's height so the frame never depends on how long History has grown */
+		case 'change-strip': {
+			const hd = q<HTMLElement>('[data-change-detail] header.page-header') ?? q<HTMLElement>('[data-change-strip]'); if (!hd || phone) return hd;
+			const col = q<HTMLElement>('[data-change-detail] .cd-main'); if (!col) return hd;
+			return { __r: 8, getBoundingClientRect() { const h = hd.getBoundingClientRect(), c = col.getBoundingClientRect(); return new DOMRect(c.left, h.top, c.width, h.height); } } as unknown as HTMLElement;
+		}
 		/* the History cadence strip (bar, hour ticks, the "shown wider" note): the nearest ancestor of the note that also holds the ticks */
 		case 'timeline': { let e: HTMLElement | null = byText(root, 'span,div,p', /shown wider than its real time/i); for (let i = 0; e && i < 5; i++, e = e.parentElement) if (/07:00|08:00/.test(text(e)) && /\d\.\d+\.\d+-\d+/.test(text(e))) return e; return null; }
 		default: void phone; return null;

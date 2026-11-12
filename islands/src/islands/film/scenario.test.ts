@@ -2,11 +2,13 @@ import { describe, expect, it } from 'vitest';
 import { EV, EVENT_TIMES, eventIndexAt, phaseOf, PLACES, worldAt } from './scenario';
 const us1 = PLACES[1];
 const rolloutOf = (t: number, ns = us1.ns) => (worldAt(t).fleet.rollouts as any[]).find((r) => r.metadata.namespace === ns);
-const tags = (t: number, ns: string) => rolloutOf(t, ns).status.availableReleases.map((r: any) => r.tag);
+/* the catalogue the place reads (release-controller ReleaseSlices, dashboard #69): the Rollout carries no release list of its own */
+const tags = (t: number, ns: string) => ((worldAt(t).fleet as any).releaseSlices.items as any[]).filter((s) => s.metadata.namespace === ns).flatMap((s) => s.releases.map((r: any) => r.tag));
 describe('film scenario (lane 33: release, staging, approve, canary, waves)', () => {
-	it('opens before the release: 4.46.0-46 does not exist yet, every place runs 4.45.0-45', () => {
-		expect(tags(0, PLACES[0].ns)).not.toContain('b-46');
-		expect(tags(EV.release, PLACES[0].ns)).toContain('b-46');
+	it('opens on the release: 4.46.0-46 is catalogued from the first frame, every place still runs 4.45.0-45', () => {
+		expect(tags(EV.release, PLACES[0].ns)).toEqual(['b-44', 'b-45', 'b-46']);
+		expect(rolloutOf(0).status.candidates.map((c: any) => c.tag)).toEqual(['b-46']);
+		expect(rolloutOf(0).status.availableReleases).toBeUndefined();
 		for (const p of PLACES) expect(phaseOf(p, 0.5)).toBe('old');
 	});
 	it('staging takes the release at once and finishes before the approval', () => {
@@ -19,6 +21,10 @@ describe('film scenario (lane 33: release, staging, approve, canary, waves)', ()
 		expect(g(EV.approved - 0.05, 'release-approval').allowedVersions).not.toContain('b-46');
 		expect(g(EV.approved, 'release-approval').allowedVersions).toContain('b-46');
 		expect(g(0, 'deploy-window').passing).toBe(true);
+		expect(g(0, 'release-approval').kind).toBe('approval');
+		expect(rolloutOf(EV.promo).status.candidates[0].blockedBy).toEqual(['release-approval']);
+		expect(rolloutOf(EV.approved).status.history[0].approval).toEqual({ name: 'checkout-api-b-46', by: 'oidc:noah-carter' });
+		expect(worldAt(EV.approved).detail.approvals.approvals[0].version).toBe('b-46');
 	});
 	it('tests: Pending -> Running -> Succeeded while the canary pauses on stage 1', () => {
 		const ph = (t: number) => worldAt(t).detail.test.status.phase;

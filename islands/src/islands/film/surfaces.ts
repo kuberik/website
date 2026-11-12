@@ -35,12 +35,17 @@ export function loadSurface(s: Surf): Promise<Component<any>> {
 	return p;
 }
 /** what the surface's route would pass it. `ei` (the data snapshot index) re-reads the change from the live source. */
+let lastChange: unknown = null;
 export function surfaceProps(s: Surf, ei: number): Record<string, unknown> {
 	void ei;
-	if (s === 'change') return { change: findChange(SLUG, 'incident'), scenario: 'incident', checks: null };
-	if (isRollout(s)) return { Tab: tabComp[s] };
-	if (s === 'app') return { state: 'incident', name: APP };
-	return { state: 'incident' };
+	/* lane 35: the outgoing Change page re-derives once with the incoming surface's props before it is torn down, so every surface's props carry the
+	   change too (it crashed on 'repo' of undefined); the other pages ignore it */
+	const found = cache.has('change') ? findChange(SLUG, 'incident') : null; if (found) lastChange = found;
+	const keep = lastChange ? { change: lastChange, checks: null } : {};
+	if (s === 'change') return { ...keep, scenario: 'incident', checks: null };
+	if (isRollout(s)) return { ...keep, Tab: tabComp[s] };
+	if (s === 'app') return { ...keep, state: 'incident', name: APP };
+	return { ...keep, state: 'incident' };
 }
 const base = `/rollouts/${CLUSTER}/${NS}/${APP}`;
 const at = (path: string, id: string, params: Record<string, string> = {}) => ({ url: new URL('https://kuberik.com' + path), route: { id }, params });

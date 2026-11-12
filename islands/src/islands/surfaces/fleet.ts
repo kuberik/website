@@ -3,7 +3,7 @@
  * `failing` flips one prod region (eu-central-1) to a failed bake with an Unhealthy check carrying observation figures.
  */
 import type { FleetSource } from '$lib/components/home/sketch/fleet-source.svelte';
-import { release, gate, prChange, CLOCK_MS } from '../shared/cr';
+import { release, gate, prChange, CLOCK_MS, catalogue, slicesStatus } from '../shared/cr';
 
 const H = 3600_000;
 type State = 'rest' | 'approval' | 'deploying' | 'failed' | 'stagingDeploying';
@@ -23,7 +23,7 @@ const sha = (i: number, k: number) => `${(i + 10).toString(16)}${k}c4e91a07b3d5f
 const iso = (ms: number) => new Date(ms).toISOString();
 
 export function extras(opt: { failing: boolean; only?: (a: (typeof APPS)[number]) => boolean; settled?: string[]; settledAtMs?: number }) {
-	const rollouts: unknown[] = [], environments: unknown[] = [], changes: unknown[] = [], hcs: unknown[] = [], gh: Record<string, unknown> = {};
+	const sources: unknown[] = [], slices: unknown[] = [], rollouts: unknown[] = [], environments: unknown[] = [], changes: unknown[] = [], hcs: unknown[] = [], gh: Record<string, unknown> = {};
 	APPS.forEach((a0, i) => {
 		if (opt.only && !opt.only(a0)) return;
 		/* `settled`: an app the story has let through (its approval was granted off-screen): it sits at rest on the new build */
@@ -50,14 +50,16 @@ export function extras(opt: { failing: boolean; only?: (a: (typeof APPS)[number]
 			});
 			hist.push({ id: 1, version: oldR, timestamp: iso(CLOCK_MS - 19 * H), bakeStatus: 'Succeeded', bakeStartTime: iso(CLOCK_MS - 19 * H), bakeEndTime: iso(CLOCK_MS - 19 * H + 600_000), triggeredBy: { kind: 'System', name: 'System' } });
 			const awaiting = env === 'prod' && a.state === 'approval';
+			const gs = env === 'prod' ? [{ ...gate('promotion-prod', [newR.tag, oldR.tag]), kind: 'promotion' }, { ...gate('release-approval', awaiting ? [oldR.tag] : [newR.tag, oldR.tag]), kind: 'approval', displayName: 'Release approval' }] : [];
+			const cat = catalogue(ns, env, a.name, `ghcr.io/${a.owner}/${a.name}`, [oldR, newR]);
+			sources.push(cat.source); slices.push(...cat.slices);
 			rollouts.push({
 				apiVersion: 'kuberik.com/v1alpha1', kind: 'Rollout',
 				metadata: { name: a.name, namespace: ns, labels: { environment: env }, annotations: { 'rollout-dashboard.kuberik.com/source-cluster': env } },
 				spec: { releaseSourceRef: { name: a.name }, versionHistoryLimit: 20, minBakeTime: '2m', bakeTime: '1m', healthCheckSelector: { matchLabels: { app: a.name, env } } },
 				status: {
-					source: `github.com/${a.owner}/${a.name}`, wantedVersion: cur.tag, currentVersion: cur.tag, previousVersion: oldR.tag, availableReleases: [oldR, newR],
-					releaseCandidates: awaiting || (env === 'staging' && !onNew && !inFlightNew) ? [newR] : [], history: hist,
-					gates: env === 'prod' ? [gate('promotion-prod', [newR.tag, oldR.tag]), gate('release-approval', awaiting ? [oldR.tag] : [newR.tag, oldR.tag])] : []
+					source: `github.com/${a.owner}/${a.name}`, wantedVersion: cur.tag, currentVersion: cur.tag, previousVersion: oldR.tag,
+					...slicesStatus(a.name, [oldR, newR], (hist[0] as { version: { tag: string } }).version.tag, gs), history: hist, gates: gs
 				}
 			});
 			environments.push({ apiVersion: 'environments.kuberik.com/v1alpha1', kind: 'Environment', metadata: { name: a.name, namespace: ns, annotations: { 'rollout-dashboard.kuberik.com/source-cluster': env } }, spec: { environment: env, name: `${a.name}-service`, rolloutRef: { name: a.name } }, status: { currentVersion: cur.tag, lastStatusChangeTime: iso(t0), conditions: [] } });
@@ -69,5 +71,5 @@ export function extras(opt: { failing: boolean; only?: (a: (typeof APPS)[number]
 		gh[`/api/github/repos/${a.owner}/${a.name}/commits/${sha(i, 2)}`] = { subject: `#${a.n * 2} ${a.title}`, author: a.author };
 	});
 	void opt;
-	return { rollouts, environments, changes, hcs, gh };
+	return { rollouts, environments, changes, hcs, gh, sources, slices };
 }

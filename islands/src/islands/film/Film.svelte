@@ -14,7 +14,7 @@
 	import WindowBar from '../shared/WindowBar.svelte';
 	import Chrome from './Chrome.svelte';
 	import Cursor from './Cursor.svelte';
-	import { CHAPTERS, LOOP, chapterAt, chapterFill, surfAt, moveAt, pressAt, confirmOpen, tallyShown, NEW_AT, type Surf, type Move } from './script';
+	import { CHAPTERS, LOOP, chapterAt, chapterFill, surfAt, moveAt, pressAt, confirmOpen, tallyShown, NEW_AT, NEW_SHINE, type Surf, type Move } from './script';
 	import Chip from '$lib/components/Chip.svelte';
 	import { loadSurface, surfaceProps, SURFACE_PATH } from './surfaces';
 	import { resolveTarget } from './targets';
@@ -251,32 +251,57 @@ import { flipRecord, flipPlay, type Pos } from './flip';
 		return d;
 	}
 	let refineTimer: ReturnType<typeof setTimeout> | undefined, refine2Timer: ReturnType<typeof setTimeout> | undefined, refine3Timer: ReturnType<typeof setTimeout> | undefined;
-	function aim(m: Move, jump: boolean, refine = false) {
+	/* lane 35: a desktop HOLD is framed once per window size and then reused: natural play (aimed at the cut, refined while the page settles) and a seek that
+	   lands inside the hold (which used to aim at that second's layout: the pipeline grows step by step) show the same frame. Keyed by the move and the canvas. */
+	const AIM_MEMO = new Map<string, { x: number; y: number; s: number }>();
+	function aim(m: Move, jump: boolean, refine = false, final = false) {
 		if (!group || !main) return;
 		/* reduced motion: no camera at all (STORYBOARD section 9): every frame is the unzoomed, unscrolled page */
 		if (reduced) { cam = { x: 0, y: 0, s: 1, dur: 0, ease: 'ease', moving: false }; holeOn = false; shadeOn = false; return; }
 		const vw = main.clientWidth, vh = main.clientHeight, gw = group.offsetWidth, gh = group.offsetHeight;
 		const el = m.to === 'rest' || (phone && (m.to === 'modal-fields' || m.to === 'modal-top')) ? null : resolveTarget(m.to, camEl!, phone); /* phone: the rollback dialog is a full-screen sheet, there is nothing to zoom */
 		let x = 0, y = 0, s = el ? m.s : 1; /* a target that is not on the page rests (never a blind zoom at the origin) */
-		if (el) {
-			const r = relRect(el);
+		const mk = el && !phone && m.dur === 0 && s !== 1 ? `${m.at}|${CW}|${CH}` : null, memo = mk ? AIM_MEMO.get(mk) : undefined;
+		if (memo) { ({ x, y, s } = memo); }
+		else if (el) {
+			const r0 = relRect(el), r = m.h ? { ...r0, h: m.h } : r0; /* Move.h: the frame is worked out as if the target were this tall, so it does not depend on the step the story is at */
 			if (phone) { s = 1; y = -Math.max(0, r.y - 10); }
 			else if (s === 1) { y = -Math.max(0, Math.min(r.y - 24, gh - vh)); }
 			else {
 				/* fit with a 14 px margin: the product's gap between cards is >= 12 px x scale, so a neighbour never peeks into the frame mid-word. The PERSON beats (m.min) zoom until their smallest text renders at m.min px, bounded by the window (both axes) and 2.4x. */
 				const need = m.min ? m.min / (minFont(r) * k) : 0;
-				s = Math.max(1, Math.min(Math.max(m.s, need), (vw - 28) / r.w, m.min ? (vh - 28) / r.h : Infinity, Math.max(2.4, m.s))); /* 2.4x, or a move's own wanted scale above it (the History card: 2.5x) */
+				/* lane 35: the 1.5x cap (product pixels) bounds the scale BEFORE the frame is snapped: capping after the snap kept the frame's top and shrank it round it
+				   (the canary's frame started on the page header's commit line with a loose foot) */
+				const cap = 1.5 / k;
+				s = Math.max(1, Math.min(Math.max(m.s, need), (vw - 28) / r.w, m.min ? (vh - 28) / r.h : Infinity, Math.max(2.4, m.s), Math.max(1, cap))); /* 2.4x, or a move's own wanted scale above it (the History card: 2.5x) */
 				/* AD r4: a frame edge never slices a word. The origin slides (and the scale gives a little) until both edges sit in a gutter between the product's own text (snap.ts). Dialog beats snap against the dialog's text only. */
 				const dlg = m.to.startsWith('modal');
 					if (dlg && CW < 1000 && s < 1.12) { cam = { x: 0, y: 0, s: 1, dur: jump ? 0 : m.dur, ease: m.ease, moving: !jump }; holeOn = false; shadeOn = true; return; } /* a tablet canvas: the dialog fits the frame whole, nothing to zoom (the pan cut its title) */
-					const tr = textRects(dlg), args = [vw, vh, gw, gh, s, Math.max(1, s * (m.min ? 0.93 : 0.86)), Math.min((vw - 28) / r.w, m.min ? (vh - 28) / r.h : Infinity, Math.max(2.4, m.s))] as const;
-				let sn = dlg ? snapFrame(r, tr, ...args) : snapFrame(r, [...tr, ...boxRects(r)], vw, vh, gw, gh, s, Math.max(1, s * 0.9), Math.min(args[6], s * 1.25)); /* cards too, within a hair of the wanted zoom (a frame that only clears every card at 2.4x is a different shot) */
+					const tr = textRects(dlg), args = [vw, vh, gw, gh, s, Math.max(1, s * (m.min ? 0.93 : 0.86)), Math.max(s, Math.min((vw - 28) / r.w, m.min ? (vh - 28) / r.h : Infinity, Math.max(2.4, m.s), cap))] as const;
+				let sn = dlg ? snapFrame(r, tr, ...args) : snapFrame(r, [...tr, ...boxRects(r)], vw, vh, gw, gh, s, Math.max(1, s * 0.9), Math.max(s, Math.min(args[6], s * 1.25))); /* cards too, within a hair of the wanted zoom (a frame that only clears every card at 2.4x is a different shot) */
 				if (!sn.ok && !dlg) sn = snapFrame(r, tr, ...args); /* no frame clears every card: words at least */
 				s = sn.s; x = sn.x; y = sn.y;
 				if (s * k > 1.5) { const c = 1.5 / k / s; s *= c; x *= c; y *= c; } /* owner: product footage never above 1.5x of its own pixels (the canvas is already scaled by k) */
+				/* lane 35: Move.rows names a list of fixed-pitch rows under the target (History on the Change page): the frame's FOOT lands on a row boundary, extrapolated by
+				   the pitch, so it never slices a row however long the list grows (the frame is set once and the list grows into it) */
+				if (m.rows) {
+					const li = [...camEl!.querySelectorAll<HTMLElement>(m.rows)].map(relRect);
+					if (li.length >= 2) {
+						const pitch = li[1].y - li[0].y, top = -y / s, left = -x / s, sMax = Math.min(cap, (vw - 28) / r.w) + 1e-6;
+						/* and its right edge stays in the gutter before the neighbour column (the rail's cards were sliced at 1920) */
+						const nb = m.beside ? camEl!.querySelector<HTMLElement>(m.beside) : null, nbx = nb && nb.offsetWidth ? relRect(nb).x : Infinity;
+						const sMin = Math.max(s * 0.8, isFinite(nbx) ? vw / (nbx - 6 - left) : 0);
+						let best: number | null = null;
+						for (let n = 1; n < 40; n++) { const b = li[0].y + n * pitch, sn = vh / (b - top); if (sn <= sMax && sn >= sMin) { best = sn; break; } }
+						if (!best && sMin <= sMax) best = sMin;
+						if (best) { x = (x / s) * best; y = -top * best; s = best; }
+						else if (sMin > sMax) { s = 1; x = 0; y = 0; } /* a wide canvas whose main column cannot fill the frame under the zoom cap: the whole page, rail included, at 1x (no card sliced) */
+					}
+				}
 				 (globalThis as any).__kfAim = { to: m.to, r, sn, vw, vh, gw, gh, refine }; /* even when no x position clears every word (ok = false) the y found for a clean top edge stands */
 			}
 		}
+		if (mk && !memo && final) AIM_MEMO.set(mk, { x, y, s });
 		x = Math.min(0, Math.max(Math.min(0, vw - s * gw), x));
 		y = Math.min(0, Math.max(Math.min(0, vh - s * gh), y));
 		/* the ONE dim (L1/L2): the product's ink at 38% over everything but the target, shell included. The hole is the target's own rect and corner radius. */
@@ -297,7 +322,7 @@ import { flipRecord, flipPlay, type Pos } from './flip';
 		if (dur > 0) moveTimer = setTimeout(() => { cam = { ...cam, moving: false }; }, dur + 40);
 		/* the product's own enter animations (banners opening, cards collapsing) keep moving the target for ~0.5 s after a move starts: re-aim once they have settled */
 		if (!refine) { clearTimeout(refineTimer); clearTimeout(refine2Timer); clearTimeout(refine3Timer); }
-		if (!refine && el && !reduced) { refineTimer = setTimeout(() => aim(m, false, true), 650); refine2Timer = setTimeout(() => aim(m, false, true), 1500); } /* twice: the page keeps settling a little after the product's enter animations */
+		if (!refine && el && !reduced && !memo) { refineTimer = setTimeout(() => aim(m, false, true), 650); refine2Timer = setTimeout(() => aim(m, false, true, true), 1500); } /* twice: the page keeps settling a little after the product's enter animations */
 	}
 	/* a move starts when the story reaches its keyframe, or the surface under it changed (re-aim once its layout has settled) */
 	$effect(() => {
@@ -307,7 +332,7 @@ import { flipRecord, flipPlay, type Pos } from './flip';
 		untrack(() => {
 			if (s !== surfAt(m.at)) return; /* the cut has not landed yet: the framing waits for its own page (aiming it at the outgoing page moved that page) */
 			const kk = `${CAMERA_INDEX(m)}|${s}|${phone}`; /* the camera is LOCKED for the length of a move: a CR change inside a hold re-lays the page but never re-aims (it drifted 5x on the pipeline) */
-			if (kk === moveKey && !(seek && phone)) return; /* the phone re-anchors on a seek: the second a seek lands on frames the page the way natural play reaches it (lane 34) */
+			if (kk === moveKey && !seek) return; /* a seek re-aims (phone: re-anchors; desktop: the hold's memoised frame), so the second a seek lands on is framed the way natural play reaches it (lanes 34, 35) */
 			const first = !moveKey.startsWith(`${CAMERA_INDEX(m)}|`);
 			moveKey = kk;
 			void first;
@@ -378,7 +403,7 @@ import { flipRecord, flipPlay, type Pos } from './flip';
 			if (!tag || Math.abs(tag.x - x) > 0.5 || Math.abs(tag.y - y) > 0.5) tag = { x, y };
 		});
 	});
-	const tagFresh = $derived(t >= NEW_AT && t < NEW_AT + 1.2);
+	const tagFresh = $derived(t >= NEW_SHINE && t < NEW_SHINE + 1.3); /* lane 35: the tag is there from the first frame; it shines once after the wrap dissolve */
 
 	const crumbs = $derived(surf === 'change' ? ['Changes', 'checkout-api #112'] : surf === 'rollouts' ? ['Rollouts'] : surf === 'envs' ? ['Environments'] : surf === 'app' ? ['Apps', 'checkout-api'] : ['Rollouts', 'checkout-api']);
 	const tally = $derived(tallyShown(t));
@@ -441,9 +466,7 @@ import { flipRecord, flipPlay, type Pos } from './flip';
 	.film-canvas :global([role="status"][class*="z-[60]"]) { display: none !important; }
 	/* the NEW tag: lands with a short rise and one light sweep across it (the shine), then sits still */
 	.film-new { position: absolute; z-index: 2; pointer-events: none; display: inline-flex; overflow: hidden; border-radius: 4px; }
-	.film-new-fresh { animation: film-new-in 0.42s cubic-bezier(0.16, 1, 0.3, 1) both; }
-	.film-new-fresh::after { content: ''; position: absolute; inset: 0; background: linear-gradient(100deg, transparent 20%, rgb(255 255 255 / 0.75) 45%, transparent 70%); transform: translateX(-120%); animation: film-new-shine 0.9s 0.25s ease-in-out both; }
-	@keyframes film-new-in { from { opacity: 0; transform: translateY(3px) scale(0.92); } to { opacity: 1; transform: none; } }
+	.film-new-fresh::after { content: ''; position: absolute; inset: 0; background: linear-gradient(100deg, transparent 20%, rgb(255 255 255 / 0.75) 45%, transparent 70%); transform: translateX(-120%); animation: film-new-shine 0.9s ease-in-out both; }
 	@keyframes film-new-shine { to { transform: translateX(120%); } }
 	.film-tabs { position: absolute; left: 0; right: 0; bottom: 0; z-index: 5; }
 </style>

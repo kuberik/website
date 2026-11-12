@@ -5,7 +5,7 @@ import { liveSource } from '$lib/components/home/sketch/fleet-source.svelte';
 type Opts = { queryKey?: readonly unknown[] };
 const listPayload = () => {
 	const s = liveSource();
-	return s ? { rollouts: { items: s.rollouts }, environments: { items: s.environments }, rolloutDependencies: s.rolloutDependencies, kustomizations: { items: s.kustomizations }, kruiseRollouts: { items: s.kruiseRollouts } } : undefined;
+	return s ? { rollouts: { items: s.rollouts }, environments: { items: s.environments }, rolloutDependencies: s.rolloutDependencies, kustomizations: { items: s.kustomizations }, kruiseRollouts: { items: s.kruiseRollouts }, releaseSources: (s as any).releaseSources, releaseSlices: (s as any).releaseSlices } : undefined; /* the catalogue siblings (dashboard #69) */
 };
 const idle = (data: unknown) => ({ get data() { return data; }, isLoading: false, isFetching: false, isError: false, error: null, failureCount: 0, refetch: async () => ({}) });
 /** SPIKE seam for the rollout-detail surfaces: an island hands the stub a function answering a query key with the payload the API would
