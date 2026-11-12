@@ -14,7 +14,10 @@
 	import WindowBar from '../shared/WindowBar.svelte';
 	import Chrome from './Chrome.svelte';
 	import Cursor from './Cursor.svelte';
-	import { CHAPTERS, LOOP, chapterAt, chapterFill, surfAt, moveAt, pressAt, confirmOpen, CONFIRM_SURF, tallyShown, NEW_AT, NEW_SHINE, type Surf, type Move } from './script';
+	import { CHAPTERS, LOOP, chapterAt, chapterFill, chaptersFor, surfAt, moveAt, pressAt, confirmOpen, CONFIRM_SURF, tallyShown, NEW_AT, NEW_SHINE, type Surf, type Move } from './script';
+	import { PLACES, phaseOf, AUTHOR, type Phase } from './scenario';
+	import { waveMark } from '$lib/view-models/wave-mark';
+	import Toast from '$lib/components/Toast.svelte';
 	import Chip from '$lib/components/Chip.svelte';
 	import { loadSurface, surfaceProps, SURFACE_PATH } from './surfaces';
 	import { resolveTarget } from './targets';
@@ -26,7 +29,9 @@ import { flipRecord, flipPlay, type Pos } from './flip';
 	import { coverEvent, flipEvent } from './script';
 	setDisplayTimeZone('utc'); // the chrome clock is UTC, and so is every absolute time the product prints
 
-	let { t, playing, userPlaying, reduced, onseek, ontoggle, onshown, eventIdx }: { t: number; playing: boolean; reduced: boolean; onseek: (chip: number) => void; ontoggle: () => void; onshown?: () => void; eventIdx: number; userPlaying: boolean } = $props();
+	let { t, playing, userPlaying, reduced, onseek, ontoggle, onshown, eventIdx, seekN = 0 }: { t: number; playing: boolean; reduced: boolean; onseek: (chip: number) => void; ontoggle: () => void; onshown?: () => void; eventIdx: number; userPlaying: boolean; seekN?: number } = $props();
+	/* scene lane 6: `seekN` counts the reader's (and the harness's) seeks. A change of `t` without a new seek is PLAYED, however far it jumps: the phone's
+	   shorter story (item 17h) plays its kept chapters back to back, so its story clock jumps 2.4 -> 5.0 and 9.9 -> 17.4 on a played cut */
 
 	let host: HTMLElement | undefined = $state();
 	let W = $state(1120), H = $state(640);
@@ -34,11 +39,10 @@ import { flipRecord, flipPlay, type Pos } from './flip';
 	/* scene lane 5 (owner 2026-11-12: "two columns is actually nice"): the phone's Gates beat lays the dashboard out at 620 px, still below sm (640, the
 	   phone shell: bottom nav), so the Gates card's container is in the graph's compact two-column band (560-959 px): "Gated by" left, the focus card and
 	   its downstream right. Its scale is set at the cut (a cut, never a camera move) */
-	const PHONE_GATES_CW = 704;
-	const CW = $derived(W >= 600 ? 1000 : surfAt(t) === 'gates' ? PHONE_GATES_CW : 390); /* scene lane 3 (owner item 12): every view is the dashboard just below its lg (1024) breakpoint, in its single-column layout, scaled up to fill the window: one fixed scale for the whole film */
+	const CW = $derived(W >= 600 ? 1000 : 390); /* scene lane 3 (owner item 12): every view is the dashboard just below its lg (1024) breakpoint, in its single-column layout, scaled up to fill the window. Scene lane 6: the phone is 390 throughout (its Gates card is the product's list form, owner ruling) */
 	const k = $derived(W / CW);
 	const CH = $derived(H / k);
-	const phone = $derived(W < 600); /* the phone shell (bottom nav) follows the WINDOW: the Gates beat's wider canvas keeps it */
+	const phone = $derived(W < 600);
 
 	const surf = $derived<Surf>(surfAt(t));
 	const lit = $derived(chapterAt(t));
@@ -151,15 +155,15 @@ import { flipRecord, flipPlay, type Pos } from './flip';
 	/* the loop wrap (AD r8 P3-1): a still of the finale AS IT IS, taken before the DOM re-renders with the opening's data, keeps the finale's framing on itself
 	   while the camera goes home at once; the opening page then lays out at rest under it and the still fades (show() reveals it). Easing the camera home over
 	   the incoming page showed it mid-move (the chip row's foot under the top bar at 47.5) */
-	let wrapCover: HTMLElement | null = null, preT = -1;
+	let wrapCover: HTMLElement | null = null, preT = -1, preSeek = 0;
 	$effect.pre(() => {
 		const ei = eventIdx, tt = t;
 		untrack(() => {
 			const wrapping = preT > LOOP - 3 && tt < 2;
 			/* lane 33: every PLAYED cut takes its still here too, before the DOM re-renders: a CR that changes on the cut's own tick (the approval asked at 7.0)
 			   would otherwise be drawn on the outgoing page for a frame (the App page grew an approval banner under the still) */
-			const cutting = !wrapping && preT >= 0 && Math.abs(tt - preT) < 0.4 && surfAt(tt) !== shown && surfAt(tt) !== swapping;
-			preT = tt;
+			const cutting = !wrapping && preT >= 0 && seekN === preSeek && surfAt(tt) !== shown && surfAt(tt) !== swapping;
+			preT = tt; preSeek = seekN;
 			if ((!wrapping && !cutting) || !group || !camEl || !shown || reduced || hid) return;
 			const c = takeSnap(); if (!c) return;
 			coverWith(c, true);
@@ -194,12 +198,12 @@ import { flipRecord, flipPlay, type Pos } from './flip';
 			});
 		});
 	});
-	let lastT = -1;
+	let lastT = -1, lastSeek = 0;
 	$effect(() => {
 		const s = surf, tt = t;
 		const wrap = lastT > LOOP - 3 && tt < 2; /* the loop's end into its start: animated, not a seek */
-		const jumped = (Math.abs(tt - lastT) > 0.4 && !wrap) || lastT < 0;
-		lastT = tt;
+		const jumped = (seekN !== lastSeek && !wrap) || lastT < 0;
+		lastT = tt; lastSeek = seekN;
 		untrack(() => { if (s !== shown && s !== swapping) void show(s, jumped || reduced, wrap && !reduced); });
 	});
 	const props = $derived(shown ? surfaceProps(shown, eventIdx) : {});
@@ -265,7 +269,7 @@ import { flipRecord, flipPlay, type Pos } from './flip';
 		if (!phone) { /* scene lane 4: a desktop top-framed hold (s = 1) keeps its subject where the cut put it: a reflow ABOVE it (the pipeline growing as the bake starts) is taken up by the camera, off screen */
 			if (m.s !== 1 || m.foot || m.stay || cam.s !== 1) return 0;
 			const el = resolveTarget(m.to, camEl, false); if (!el) return 0;
-			const r = relRect(el), y = -Math.max(0, Math.min(r.y - (m.pad ?? 24), group.offsetHeight - main.clientHeight)), d = y - cam.y;
+			const r = relRect(el), y = -deskTop(r, m), d = y - cam.y;
 			if (Math.abs(d) < 1) return 0; cam = { ...cam, y, dur: 0, moving: false }; return d;
 		}
 		const el = resolveTarget(m.to, camEl, true); if (!el) return 0; /* the subject left (the approved card): the frame stays */
@@ -274,6 +278,14 @@ import { flipRecord, flipPlay, type Pos } from './flip';
 		if (Math.abs(d) < 3 || cam.s !== 1) return 0;
 		cam = { ...cam, y, dur: 0, moving: false };
 		return d;
+	}
+	/** scene lane 6 (owner: "a sliver of the Waiting on heading at the foot"): a desktop top-framed hold puts its subject `pad` px under the frame's top, and
+	 *  then lifts the frame up to 48 px (the subject only moves down) until its FOOT sits in a gap between the product's text and small boxes too */
+	function deskTop(r: { x: number; y: number; w: number; h: number }, m: Move): number {
+		const vh = main!.clientHeight, vw = main!.clientWidth, gh = group!.offsetHeight;
+		const pref = Math.max(0, Math.min(r.y - (m.pad ?? 24), gh - vh));
+		const rects = [...textRects(false), ...boxRects({ x: -1, y: -1, w: 0, h: 0 }).filter((b) => b.h < 56)].map((q) => ({ x: q.x, y: q.y - 2, w: q.w, h: q.h + 4 }));
+		return freeStart(Math.max(0, pref - 48), pref, vh, spansIn(rects, 'y', 0, vw), pref) ?? pref;
 	}
 	/** lane 36 (AD r1 P2-4): the phone frame's top, in group px: the subject 10 px under the bar, moved down by up to 100 px when that leaves a row sliced by
 	 *  the tab bar (the frame's real foot: a sliver of the Health checks row, History cut mid-row). Both edges in a gap between the product's text and small boxes. */
@@ -314,7 +326,7 @@ import { flipRecord, flipPlay, type Pos } from './flip';
 				const top = freeStart(lo, hi, vh, sp, end + 8 - vh) ?? freeStart(lo, hi, vh, sp, end + 8 - vh, true) ?? end + 8 - vh;
 				y = -Math.max(0, Math.min(top, gh - vh));
 			}
-			else if (s === 1) { y = m.stay ? 0 : -Math.max(0, Math.min(r.y - (m.pad ?? 24), gh - vh)); }
+			else if (s === 1) { y = m.stay ? 0 : -deskTop(r, m); }
 			else {
 				/* fit with a 14 px margin: the product's gap between cards is >= 12 px x scale, so a neighbour never peeks into the frame mid-word. The PERSON beats (m.min) zoom until their smallest text renders at m.min px, bounded by the window (both axes) and 2.4x. */
 				const need = m.min ? m.min / (minFont(r) * k) : 0;
@@ -379,7 +391,7 @@ import { flipRecord, flipPlay, type Pos } from './flip';
 	$effect(() => {
 		const m = mv, s = shown, ei = eventIdx, tt = t;
 		void s; void ei;
-		const seek = Math.abs(tt - prevT) > 0.4 && !(prevT > LOOP - 3 && tt < 2); prevT = tt; /* a jump is a seek, never a move the story plays itself (it was a hard cut every time: no transition ran) */
+		const seek = seekN !== camSeek && !(prevT > LOOP - 3 && tt < 2); prevT = tt; camSeek = seekN; /* a jump is a seek, never a move the story plays itself (it was a hard cut every time: no transition ran) */
 		untrack(() => {
 			if (s !== surfAt(m.at)) return; /* the cut has not landed yet: the framing waits for its own page (aiming it at the outgoing page moved that page) */
 			const kk = `${CAMERA_INDEX(m)}|${s}|${phone}`; /* the camera is LOCKED for the length of a move: a CR change inside a hold re-lays the page but never re-aims (it drifted 5x on the pipeline) */
@@ -390,7 +402,7 @@ import { flipRecord, flipPlay, type Pos } from './flip';
 			void tick().then(() => requestAnimationFrame(() => requestAnimationFrame(() => aim(m, seek))));
 		});
 	});
-	let prevT = -1;
+	let prevT = -1, camSeek = 0;
 	function CAMERA_INDEX(m: Move) { return m.at; }
 	/* the transform sits on the CAMERA wrapper (group + overlays): a fixed child (the approve popover, the rollback dialog) anchors to the wrapper and zooms with the page. On desktop the wrapper always carries a transform so the dialog's containing block never changes mid-move. */
 	const camStyle = $derived(phone && cam.s === 1 && cam.x === 0 && cam.y === 0 && !cam.moving ? 'transform:none' : cam.s === 1 && cam.x === 0 && cam.y === 0 && !cam.moving ? 'transform: translate(0, 0)' : `transform: translate3d(${cam.x}px, ${cam.y}px, 0) scale(${cam.s}); transition: transform ${cam.dur}ms ${cam.ease}; will-change: ${cam.moving ? 'transform' : 'auto'}`);
@@ -470,7 +482,14 @@ import { flipRecord, flipPlay, type Pos } from './flip';
 	const tagFresh = $derived(t >= NEW_SHINE && t < NEW_SHINE + 1.3); /* lane 35: the tag is there from the first frame; it shines once after the wrap dissolve */
 
 	const crumbs = $derived(surf === 'change' ? ['Changes', 'checkout-api #112'] : surf === 'rollouts' ? ['Rollouts'] : surf === 'envs' ? ['Environments'] : surf === 'app' || surf === 'pipe' ? ['Apps', 'checkout-api'] : ['Rollouts', 'checkout-api']);
-	const tally = $derived(tallyShown(t));
+	const tally = $derived(tallyShown(t, phone));
+	/* scene lane 6 (owner item 17a): the chapter bar's dev · staging · prod strip, drawn with the product's own WaveMark (the environment strip's mark): a
+	   dot per tier, a pie for prod's five regions; it fills as the story's places take the build. Re-derived only when a CR changes */
+	const KIND: Record<Phase, 'notreached' | 'deploying' | 'checking' | 'done'> = { old: 'notreached', deploying: 'deploying', checking: 'checking', done: 'done' };
+	const marks = $derived.by(() => { void eventIdx; const tt = untrack(() => t); return (['dev', 'staging', 'prod'] as const).map((env) => ({ env, mark: waveMark(PLACES.filter((p) => p.env === env).map((p) => ({ state: KIND[phaseOf(p, tt)] }))) })); });
+	const chips = $derived(chaptersFor(phone));
+	/* scene lane 6 (owner item 17c): the film opens on the product's own toast for the release, then the NEW tag shines */
+	const toastOn = $derived(!reduced && t >= 0.25 && t < 2.05);
 	const fill = $derived(chapterFill(t));
 	void CHAPTERS;
 </script>
@@ -497,10 +516,11 @@ import { flipRecord, flipPlay, type Pos } from './flip';
 				{#if phone}<div class="film-tabs">{#if Tabs}<Tabs />{/if}<i class="film-shade" class:film-shade-on={shellDim}></i></div>{/if}
 			</div>
 			{#if Layer && phone}<Layer />{/if}
+			<div class="film-toast"><Toast open={toastOn} tone="success" message="4.46.0-46 released" description={AUTHOR} dismissable={false} /></div>
 			<Cursor x={ptr.x} y={ptr.y} on={ptr.on} press={ptr.press} touch={phone} />
 		</div>
 	</div>
-	<Chrome {t} {lit} {fill} {reduced} playing={userPlaying} narrow={phone} tight={!phone && W < 1000} {tally} {onseek} {ontoggle} />
+	<Chrome {t} {lit} {fill} {reduced} playing={userPlaying} narrow={phone} tight={!phone && W < 1000} {tally} {onseek} {ontoggle} {chips} {marks} />
 </div>
 
 <style>
@@ -530,7 +550,7 @@ import { flipRecord, flipPlay, type Pos } from './flip';
 	.film-shade-on { opacity: 1; }
 	:global(.fm-panel header) { position: sticky; top: 0; z-index: 5; background-color: var(--k-surface); } /* the sheet's title stays while its body scrolls */
 	/* the product's own toast ("Successfully pinned and deployed version", fixed bottom-right / top on a phone) rides the camera over the page the story is about to show: the dialog's close is the confirmation here */
-	.film-canvas :global([role="status"][class*="z-[60]"]) { display: none !important; }
+	.film-canvas :global(:not(.film-toast) > [role="status"][class*="z-[60]"]) { display: none !important; } /* scene lane 6: except the film's own release toast (item 17c) */
 	/* the NEW tag: lands with a short rise and one light sweep across it (the shine), then sits still */
 	.film-new { position: absolute; z-index: 2; pointer-events: none; display: inline-flex; overflow: hidden; border-radius: 4px; }
 	/* lane 36 (AD r1 P2-3): the chip is an outline (no fill), so a white sweep was invisible; the sweep is the chip's own success ink, slower, and the tag glows once (readable at 390 and at 10 fps) */

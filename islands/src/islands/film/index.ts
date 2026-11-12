@@ -8,7 +8,7 @@ import type { CustomCtx } from '../../registry';
 import { Player } from '../shared/player';
 import { setPart } from '../shared/world';
 import { driveNow } from '../../stubs/time-store';
-import { LOOP, CHAPTERS, REST_T, upcoming, surfAt } from './script';
+import { CHAPTERS, REST_T, upcoming, surfAt, storyOf, playerOf, loopOf } from './script';
 import { eventIndexAt, worldAt } from './scenario';
 import { installAnswers, installFetch, setDetail } from './detail-store.svelte';
 import { loadSurface } from './surfaces';
@@ -20,7 +20,7 @@ export function mountFilm(ctx: CustomCtx) {
 	   (owner 2026-11-12, a glitch). The landing keeps its own name: writes to document.title are dropped while the film is on the page. */
 	const titleOf = Object.getOwnPropertyDescriptor(Document.prototype, 'title');
 	if (titleOf?.get) Object.defineProperty(document, 'title', { configurable: true, get: () => titleOf.get!.call(document), set: () => {} });
-	const props = reactive({ t: 0, playing: false, userPlaying: true, reduced: false, eventIdx: -1, onseek: (_: number) => {}, ontoggle: () => {}, onshown: () => {} });
+	const props = reactive({ t: 0, seekN: 0, playing: false, userPlaying: true, reduced: false, eventIdx: -1, onseek: (_: number) => {}, ontoggle: () => {}, onshown: () => {} });
 	let world: ReturnType<typeof worldAt> | null = null;
 	installAnswers(() => (world?.fleet.rollouts as unknown[]) ?? [], () => world?.github ?? null);
 	containScroll();
@@ -28,7 +28,10 @@ export function mountFilm(ctx: CustomCtx) {
 	let last = NaN;
 	let evT = 0, tickAt = -9;
 	let player: Player | undefined;
-	const apply = (t: number) => {
+	/* scene lane 6 (owner item 17h): the phone plays a shorter story (release -> gates -> pipeline); the Player counts PLAYER seconds, the film STORY seconds */
+	const phone = ctx.host.clientWidth < 600;
+	const apply = (pt: number) => {
+		const t = storyOf(pt, phone);
 		if (t === last) return;
 		const ei = eventIndexAt(t);
 		if (ei !== props.eventIdx) {
@@ -45,11 +48,12 @@ export function mountFilm(ctx: CustomCtx) {
 		for (const s of upcoming(t)) void loadSurface(s);
 		if (player) { props.playing = player.playing; props.userPlaying = !player.paused; props.reduced = player.reduced; }
 	};
-	player = new Player({ loop: LOOP, rest: REST_T, quantum: 0.05, onTime: apply });
+	player = new Player({ loop: loopOf(phone), rest: playerOf(REST_T, phone), quantum: 0.05, onTime: apply });
 	apply(0);
+	const seek = (t: number) => { props.seekN++; player!.seek(playerOf(t, phone)); };
 	/* reduced motion rests on REST_T (the motion gate arrives after mount and jumps there): start on that frame, or the first surface mounted is the Change page and the jump to the Overview leaves the window blank while its chunk loads (the blank start) */
-	if (matchMedia('(prefers-reduced-motion: reduce)').matches) apply(REST_T);
-	props.onseek = (i) => { player!.gate('hover', true); player!.seek(player!.reduced ? CHAPTERS[i].settled : CHAPTERS[i].from); props.playing = player!.playing; props.userPlaying = !player!.paused; };
+	if (matchMedia('(prefers-reduced-motion: reduce)').matches) apply(playerOf(REST_T, phone));
+	props.onseek = (i) => { player!.gate('hover', true); seek(player!.reduced ? CHAPTERS[i].settled : CHAPTERS[i].from); props.playing = player!.playing; props.userPlaying = !player!.paused; };
 	props.ontoggle = () => { player!.gate('hover', true); player!.toggle(); props.playing = player!.playing; props.userPlaying = !player!.paused; };
 	/* the first frame is real once the surface, the shell and the fonts are in and painted: only then does the static poster leave (no blank gap, no shift) */
 	const shell = ctx.host.clientWidth < 600 ? import('$lib/MobileTabBar.svelte') : import('$lib/Sidebar.svelte'); // fetched in parallel with the first surface, same chunk Film asks for
@@ -68,6 +72,6 @@ export function mountFilm(ctx: CustomCtx) {
 	ctx.host.addEventListener('pointermove', (e) => { if ((e as PointerEvent).pointerType === 'mouse') setHover((e.composedPath() as Element[]).some((n) => n.classList?.contains('film-frame'))); });
 	ctx.host.addEventListener('pointerleave', () => setHover(false));
 	/* QA hook: freeze the story on second `t` (screenshot harness; harmless in the page) */
-	(ctx.host as any).__story = { at: (t: number) => { player!.seek(t); player!.pause(); props.playing = player!.playing; }, player };
+	(ctx.host as any).__story = { phone, at: (t: number) => { seek(t); player!.pause(); props.playing = player!.playing; }, player };
 	return () => player!.destroy();
 }

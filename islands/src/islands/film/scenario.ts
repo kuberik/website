@@ -29,15 +29,16 @@ export const EV = {
 	   gates on the prod rollout's Gates tab (the cursor approves there) | canary + tests on its Overview | every site on the Change page */
 	/* scene lane 4 (owner 2026-11-12, item 13: health checks come AFTER the canary): release | staging, quickly | gates + approve | canary + tests | prod's
 	   health checks and bake on the same Overview, as its pipeline runs them | every site */
+	/* scene lane 6 (owner item 17, 2026-11-12): the cursor causes every view change (prod in staging's strip -> the Gates tab; the App page's Pipeline tab),
+	   the canary goes 10% -> test -> 50% -> 100% in ~4 s, the approval lands ~0.6 s before the build moves, the all-green Pipeline tab holds ~3 s; loop 28.2 s */
 	release: 0, devGo: 2.4, devCheck: 2.6, hcDevErr: 2.8, hcDevLat: 2.9, devDone: 3.1,
 	stagingGo: 3.2, check: 3.5, hcStagingErr: 3.7, hcStagingLat: 3.8, stagingDone: 4.4, /* staging rolls out quickly: deploy, checks, a short bake */
-	gatesCut: 4.8, promo: 5.3, /* the promotion gate opens a sync after staging's bake, on screen */
-	approved: 8.6, deploy: 9.2, ovCut: 10.0, /* the confirm is pressed at 8.4; every gate passes, then the build moves by itself */
-	paused1: 10.6, testPending: 10.9, testRunning: 11.3, testPassed: 13.0, step2Go: 14.0, step2Done: 14.8,
-	hcKust: 15.4, hcErr: 16.0, hcLat: 16.6, bakeCut: 16.9, us1Done: 19.4, pipeCut: 19.6, /* scene lane 5: the App page's Pipeline tab */ /* prod's health checks pass one by one, then the bake holds to its end */
-	/* scene lane 5: the Pipeline tab fills wave by wave, each state held ~1.2-1.4 s (rings while deploying, pies while checking, then green) */
-	w2Deploy: 20.9, w2Check0: 22.3, w2Check1: 22.5, w2Done0: 23.6, w2Done1: 23.8,
-	w3Deploy: 24.8, w3Check0: 26.2, w3Check1: 26.4, w3Done0: 27.4, w3Done1: 27.6
+	gatesCut: 5.0, promo: 5.5, /* the cursor pressed prod in staging's strip at 4.85; the promotion gate opens a sync after staging's bake, on screen */
+	approved: 8.7, deploy: 9.3, ovCut: 9.9, /* the confirm is pressed at 8.5; the approver's avatar lands, then the build moves by itself */
+	paused1: 10.2, testPending: 10.3, testRunning: 10.5, testPassed: 11.5, step2Go: 12.0, step3Go: 12.8, step2Done: 13.6, /* 10% -> test -> 50% -> 100% (step2Done = the canary completed) */
+	hcKust: 14.1, hcErr: 14.5, hcLat: 14.9, bakeCut: 15.2, us1Done: 17.2, appCut: 17.4, pipeCut: 18.3, /* the App page; the cursor presses its Pipeline tab at 18.15 */
+	w2Deploy: 19.1, w2Check0: 20.3, w2Check1: 20.5, w2Done0: 21.4, w2Done1: 21.6,
+	w3Deploy: 22.4, w3Check0: 23.6, w3Check1: 23.8, w3Done0: 24.7, w3Done1: 24.9
 } as const;
 /** every story second a CR changes at: the film re-derives its (heavy) data snapshot only when one of these is passed */
 export const EVENT_TIMES = [0, ...Object.values(EV)].sort((a, b) => a - b);
@@ -181,7 +182,7 @@ export function worldAt(t: number): { fleet: FleetSource; github: Record<string,
 	/* ---- the canary (Kruise Rollout) and its RolloutTest, per place ---- */
 	function kruise(p: Place): { kr: Any; test: Any | null } {
 		const ph = phaseOf(p, t);
-		let idx = 2, st = 'Completed', upd = at(-1);
+		let idx = isUS1(p) ? 3 : 2, st = 'Completed', upd = at(-1);
 		if (ph !== 'old' && !isUS1(p)) {
 			/* staging and wave 2: 25 % then 100 %, no test; the check (bake) follows the last step */
 			const go = startOf(p), mid = go + (preOf(p) ? 0.25 : 0.8), end = preOf(p) ? preOf(p)!.check : LATE[p.site!].check;
@@ -191,16 +192,16 @@ export function worldAt(t: number): { fleet: FleetSource; github: Record<string,
 		let testPhase = 'WaitingForStep';
 		if (isUS1(p)) {
 			if (t >= EV.deploy) {
-				idx = t < EV.step2Go ? 1 : 2;
+				idx = t < EV.step2Go ? 1 : t < EV.step3Go ? 2 : 3; /* scene lane 6 (item 17g): 10 %, then 50 %, then 100 % */
 				st = t < EV.paused1 ? 'StepInProgress' : t < EV.step2Go ? 'StepPaused' : t < EV.step2Done ? 'StepInProgress' : 'Completed';
-				upd = at(t < EV.paused1 ? EV.deploy : t < EV.step2Go ? EV.paused1 : t < EV.step2Done ? EV.step2Go : EV.step2Done);
+				upd = at(t < EV.paused1 ? EV.deploy : t < EV.step2Go ? EV.paused1 : t < EV.step3Go ? EV.step2Go : t < EV.step2Done ? EV.step3Go : EV.step2Done);
 			}
 			testPhase = t < EV.testPending ? 'WaitingForStep' : t < EV.testRunning ? 'Pending' : t < EV.testPassed ? 'Running' : 'Succeeded';
 		}
 		/* TRUTH R11: no pause duration; the step-1 bake time (20 s) runs from the moment the tests passed (stepgate writes step-1-ready-at) */
 		const bake = isUS1(p) ? { 'rollout.kuberik.io/step-1-bake-time': '20s', ...(t >= EV.testPassed && t < EV.step2Go ? { 'internal.rollout.kuberik.io/step-1-ready-at': new Date(atMs(t) - 8_000).toISOString() } : {}) } : {};
 		const kr = { apiVersion: 'rollouts.kruise.io/v1beta1', kind: 'Rollout', metadata: { name: KR, namespace: p.ns, annotations: { 'rollout-dashboard.kuberik.com/source-cluster': p.env, ...bake } },
-			spec: { strategy: { canary: { steps: [{ traffic: '10%', replicas: '25%' }, { traffic: '100%', replicas: '100%' }] } } },
+			spec: { strategy: { canary: { steps: isUS1(p) ? [{ traffic: '10%', replicas: '10%' }, { traffic: '50%', replicas: '50%' }, { traffic: '100%', replicas: '100%' }] : [{ traffic: '10%', replicas: '25%' }, { traffic: '100%', replicas: '100%' }] } } },
 			status: { canaryStatus: { currentStepIndex: idx, currentStepState: st, lastUpdateTime: upd }, conditions: [] } };
 		const test = isUS1(p) ? { apiVersion: 'rollout.kuberik.com/v1alpha1', kind: 'RolloutTest', metadata: { name: 'integration-test', namespace: p.ns },
 			spec: { rolloutName: KR, stepIndex: 1, jobTemplate: { template: { spec: { containers: [{ name: 'run', image: 'ghcr.io/exampleco/checkout-api-it:b-46' }], restartPolicy: 'Never' } } } }, status: { phase: testPhase } } : null;
@@ -232,13 +233,13 @@ export function worldAt(t: number): { fleet: FleetSource; github: Record<string,
 		const open = true; /* payments already serves 3.1.0: the contract never holds this release */
 		return PLACES.filter((p) => p.env === 'prod').map((p) => ({
 			apiVersion: 'kuberik.com/v1alpha1', kind: 'RolloutDependency', metadata: { name: DEP_NAME, namespace: p.ns, annotations: { 'rollout-dashboard.kuberik.com/source-cluster': p.env } },
-			spec: { contract: 'payments', providerRef: { name: 'payments-svc', namespace: 'platform-prod' }, rolloutRef: { name: APP } },
+			spec: { contract: 'payments', providerRef: { name: 'payments-svc', namespace: 'payments-svc-prod' } /* scene lane 6: the fleet's payments-svc (surfaces/fleet.ts), so the Gates tile shows the version it runs */, rolloutRef: { name: APP } },
 			status: {
 				providedVersion: open ? '3.1.0' : '3.0.2', providedTag: open ? 'pay-310' : 'pay-302', admittedVersions: open ? withNew : old,
 				blockedReleases: open ? [] : [{ tag: 'b-46', requiredVersion: '^3.1.0', reason: 'ConstraintNotSatisfied' }], gateName: `dependency-${DEP_NAME}`,
 				conditions: [{ type: 'Ready', status: 'True', lastTransitionTime: at(0), reason: 'GateSynced', message: `Gate dependency-${DEP_NAME} allows ${open ? 3 : 2} release(s)` },
 					open ? { type: 'Satisfied', status: 'True', lastTransitionTime: at(-1), reason: 'DependencySatisfied', message: 'No release is waiting on contract "payments"' }
-						: { type: 'Satisfied', status: 'False', lastTransitionTime: at(0), reason: 'WaitingForProvider', message: 'Waiting for platform-prod/payments-svc to serve contract "payments" at a version satisfying release(s) [b-46] (deployed: 3.0.2)' }]
+						: { type: 'Satisfied', status: 'False', lastTransitionTime: at(0), reason: 'WaitingForProvider', message: 'Waiting for payments-svc-prod/payments-svc to serve contract "payments" at a version satisfying release(s) [b-46] (deployed: 3.0.2)' }]
 			}
 		}));
 	}

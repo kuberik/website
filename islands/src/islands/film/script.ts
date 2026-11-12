@@ -20,23 +20,34 @@ export { LOOP };
 export type Surf = 'change' | 'rollouts' | 'gates' | 'overview' | 'history' | 'envs' | 'app' | 'stg' | 'pipe';
 
 /** the chapters (chips): label, [from, to), and the settled frame reduced motion seeks to */
-export const CHAPTERS = [ /* scene lane 4 (owner item 13): health checks come after the canary */
+export const CHAPTERS = [ /* scene lane 4 (owner item 13): health checks come after the canary. Scene lane 6 (item 17): the cursor's press opens each next view */
 	{ key: 'release', label: 'New release', from: 0, to: EV.devGo, settled: 1.9 },
 	{ key: 'staging', label: 'Staging', from: EV.devGo, to: EV.gatesCut, settled: 4.6 },
-	{ key: 'gates', label: 'Gates', from: EV.gatesCut, to: EV.ovCut, settled: 9.7 },
-	{ key: 'canary', label: 'Canary', from: EV.ovCut, to: EV.step2Done, settled: 14.6 },
-	{ key: 'health', label: 'Health checks', from: EV.step2Done, to: EV.pipeCut, settled: 19.5 },
-	{ key: 'sites', label: 'All sites', from: EV.pipeCut, to: LOOP, settled: 29.2 } /* scene lane 5 (owner item 8): the App page's Pipeline tab (#142), waves 2 and 3 fill it */
+	{ key: 'gates', label: 'Gates', from: EV.gatesCut, to: EV.ovCut, settled: 9.6 },
+	{ key: 'canary', label: 'Canary', from: EV.ovCut, to: EV.step2Done, settled: 13.4 },
+	{ key: 'health', label: 'Health checks', from: EV.step2Done, to: EV.appCut, settled: 17.1 },
+	{ key: 'sites', label: 'All sites', from: EV.appCut, to: LOOP, settled: 26 } /* the App page, its Pipeline tab pressed, waves 2 and 3 fill it; all green from 24.9 */
 ] as const;
-/** reduced motion rests on the whole fleet on the new build (the App page: every environment green on 4.46.0-46) */
-export const REST_T = 29.2; /* scene lane 4: prod's bake has completed (the last beat's end) */
+/** reduced motion rests on the whole fleet on the new build (the App page's Pipeline tab: every place green, "7 of 7 places") */
+export const REST_T = 26;
+/* scene lane 6 (owner item 17h): the PHONE tells a shorter story, release -> gates -> pipeline: its player time runs over these story segments back to back
+   (each kept chapter whole), so a phone never shows staging, the canary or the health beat. A jump between two kept segments is a played cut, not a seek. */
+export const PHONE_KEEP = ['release', 'gates', 'sites'] as const;
+const SEGS = (phone: boolean): [number, number][] => (phone ? CHAPTERS.filter((c) => (PHONE_KEEP as readonly string[]).includes(c.key)).map((c) => [c.from, c.to] as [number, number]) : [[0, LOOP]]);
+export const loopOf = (phone: boolean) => SEGS(phone).reduce((n, [a, b]) => n + b - a, 0);
+/** story second at player second `p` */
+export function storyOf(p: number, phone: boolean): number { let q = p; for (const [a, b] of SEGS(phone)) { if (q < b - a) return +(a + q).toFixed(3); q -= b - a; } return LOOP - 0.001; }
+/** player second at story second `t` (a story second outside the phone's segments maps to the next kept one's start) */
+export function playerOf(t: number, phone: boolean): number { let n = 0; for (const [a, b] of SEGS(phone)) { if (t < b) return n + Math.max(0, t - a); n += b - a; } return 0; }
+/** the chapters the chip bar offers (the phone: three) */
+export const chaptersFor = (phone: boolean) => CHAPTERS.map((c, i) => ({ ...c, i })).filter((c) => !phone || (PHONE_KEEP as readonly string[]).includes(c.key));
 export const chapterAt = (t: number) => Math.max(0, CHAPTERS.findIndex((c) => t >= c.from && t < c.to));
 export const chapterFill = (t: number) => { const c = CHAPTERS[chapterAt(t)]; return Math.min(1, Math.max(0, (t - c.from) / (c.to - c.from))); };
 
 /** which surface the window shows: two views (RAILWAY.md: one app, few views, the full-view swap is a short cross-fade) */
 /* scene lane 3 (owner checklist): the App page (the release, NEW), staging's rollout page (staging deploys quickly, then its health checks hold for the whole
    bake), the prod rollout's Gates tab (the person approves there) and its Overview (canary and tests), then the change's page (every site, wave by wave) */
-const SURF: [number, Surf][] = [[0, 'app'], [EV.devGo, 'stg'], [EV.gatesCut, 'gates'], [EV.ovCut, 'overview'], [EV.pipeCut, 'pipe']];
+const SURF: [number, Surf][] = [[0, 'app'], [EV.devGo, 'stg'], [EV.gatesCut, 'gates'], [EV.ovCut, 'overview'], [EV.appCut, 'app'], [EV.pipeCut, 'pipe']]; /* scene lane 6: the App page again, where the cursor presses its Pipeline tab */
 export const surfAt = (t: number): Surf => [...SURF].reverse().find(([at]) => t >= at)![1];
 /** surfaces whose cut comes within `ahead` story seconds (their chunks are fetched before the beat) */
 export const upcoming = (t: number, ahead = 3): Surf[] => SURF.filter(([at]) => at > t && at - t <= ahead).map(([, s]) => s);
@@ -49,34 +60,41 @@ export const CAMERA: Move[] = [ /* scene lane 3: one fixed scale; a framing is s
 	{ at: 0, to: 'rest', s: 1, dur: 0, ease: EXPO },
 	{ at: EV.devGo, to: 'rest', s: 1, dur: 0, ease: EXPO }, /* staging's rollout page: its strip and pipeline, quickly */
 	{ at: EV.stagingGo - 0.02, to: 'pipeline', s: 1, pad: 68 /* the strip above it */, desk: true, dur: 0, ease: EXPO }, /* scene lane 4: as staging takes the build its header grows two lines (the PR, the namespace); the frame cuts to the strip and the pipeline under it, so neither moves on screen */
-	{ at: EV.gatesCut, to: 'gates-card', s: 1, pad: 10, dur: 0, ease: EXPO }, /* scene lane 5: the phone's Gates beat is a 704 px canvas (the two-column graph): the whole Gates card from its title */
+	{ at: EV.gatesCut, to: 'gates-card', s: 1, pad: 10, dur: 0, ease: EXPO }, /* the phone: the Gates card at 390 (the product's list form), from its title */
 	{ at: EV.gatesCut, to: 'gates-card', s: 1, pad: 10, desk: true, dur: 0, ease: EXPO }, /* scene lane 5 (item 14): the whole Gates card, title to the graph's foot, at the frame's top */
-	{ at: EV.approved, to: 'gates-card', s: 1, pad: 10 /* the card's title where the cut put it: only the card's inside changes */, desk: true, dur: 0, ease: EXPO }, /* scene lane 5: the approval lands, the banner shortens and the passed approval tile sorts under the others (#141): re-framed under the cover */ /* the prod rollout's Gates tab: every gate (staging's promotion, Release approval, Business hours) and this rollout, whole, at the frame's foot */
+	{ at: EV.approved, to: 'gates-card', s: 1, pad: 10 /* the card's title where the cut put it: only the card's inside changes */, desk: true, dur: 0, ease: EXPO }, /* the approval lands, the banner shortens and the passed approval tile sorts under the others (#141): re-framed under the cover */
 	{ at: EV.ovCut, to: 'pipeline', s: 1, foot: true, dur: 0, ease: EXPO }, /* its Overview: the pipeline card through the canary */
 	{ at: EV.step2Done, to: 'health-checks', s: 1, pad: 10, dur: 0, ease: EXPO }, /* scene lane 4: the same page, cut to its Health checks card: kustomization, error-rate, latency-p99 pass one by one */
-	{ at: EV.bakeCut, to: 'bake', s: 1, dur: 0, ease: EXPO }, /* the phone: the Check step's bake line and its timer card */
-	{ at: EV.bakeCut, to: 'pipeline', s: 1, foot: true, desk: true, dur: 0, ease: EXPO }, /* then back to the pipeline: its Check step holds the bake (the timer bar) to the end */
+	{ at: EV.bakeCut, to: 'pipeline', s: 1, foot: true, dur: 0, ease: EXPO }, /* then back to the pipeline: its Check step holds the bake (the timer bar) to the end */
+	{ at: EV.appCut, to: 'rest', s: 1, dur: 0, ease: EXPO }, /* scene lane 6: the App page from its top (the tab strip the cursor presses) */
 	{ at: EV.pipeCut, to: 'pipe-prod', s: 1, dur: 0, ease: EXPO }, /* scene lane 5, the phone: the Pipeline card stacks its stages; the frame holds its prod lane (three waves) */
 	{ at: EV.pipeCut, to: 'rest', s: 1, desk: true, dur: 0, ease: EXPO }, /* scene lane 5: the App page's Pipeline tab, the whole page (header, Pipeline card, In this release) */
 ];
 export const moveAt = (t: number, phone = false): Move => [...CAMERA].reverse().find((m) => t >= m.at && !(phone && m.desk))!;
 
 /** the presses: a person decides. `go` = cursor appears, `press` = the real click, `off` = it fades. */
-export type Press = { id: 'approve' | 'confirm'; target: string; go: number; press: number; off: number };
+export type Press = { id: 'prod' | 'approve' | 'confirm' | 'pipeline'; target: string; go: number; press: number; off: number; click?: boolean };
+/* scene lane 6 (owner item 17b): the cursor causes the view changes. 'prod' and 'pipeline' are presses only (the cut is the film's: a real click on the
+   product's link would navigate the landing page); Approve is the product's real click (its confirm opens). No press while a check is pending. */
 export const PRESSES: Press[] = [
-	{ id: 'approve', target: 'approve', go: 6.3, press: 7.0, off: 7.3 },
-	{ id: 'confirm', target: 'approve-confirm', go: 7.7, press: 8.4, off: 8.6 }
+	{ id: 'prod', target: 'env-prod', go: 4.45, press: 4.85, off: 5.0 },
+	{ id: 'approve', target: 'approve', go: 6.4, press: 7.1, off: 7.4 },
+	{ id: 'confirm', target: 'approve-confirm', go: 7.8, press: 8.5, off: 8.7 },
+	{ id: 'pipeline', target: 'tab-pipeline', go: 17.65, press: 18.15, off: 18.3 }
 ];
 export const pressAt = (t: number): Press | null => PRESSES.find((p) => t >= p.go && t < p.off) ?? null;
 /** the approval confirm (ApprovalLayer) is open between the first press and the approval landing */
-export const confirmOpen = (t: number) => t >= 7.15 && t < EV.approved;
+export const confirmOpen = (t: number) => t >= 7.25 && t < EV.approved;
 export const CONFIRM_SURF: Surf = 'gates';
 
-/** the tally: checks passed and decisions by a person. Each entry is the second its CR passes. */
-const PASSED = [EV.hcDevErr, EV.hcDevErr, EV.hcDevLat, EV.hcStagingErr, EV.hcStagingErr, EV.hcStagingLat, EV.testPassed, EV.hcKust, EV.hcErr, EV.hcLat, ...[EV.w2Check0, EV.w2Check1, EV.w3Check0, EV.w3Check1].flatMap((x) => [x, x, x])]; /* three health checks per place (kustomization, error-rate, latency-p99) and the canary's test */
-const PEOPLE = [EV.approved];
-export const tallyAt = (t: number) => ({ passed: PASSED.filter((x) => t >= x).length, failed: 0, people: PEOPLE.filter((x) => t >= x).length });
-export const tallyShown = (t: number) => tallyAt(t);
+/** the tally (owner item 17e): a check counts the second it passes ON SCREEN. Staging's three on its rollout page (the pipeline's Health checks row), the
+ *  canary's test, prod us-east-1's three on its Health checks card, and each later region's three as its node turns green on the Pipeline tab. Dev's
+ *  are never on screen. The phone (17h) sees only the Pipeline tab's. A decision counts at the confirm press. */
+const PASSED = [EV.hcStagingErr, EV.hcStagingErr, EV.hcStagingLat, EV.testPassed, EV.hcKust, EV.hcErr, EV.hcLat];
+const PASSED_SITES = [EV.w2Done0, EV.w2Done1, EV.w3Done0, EV.w3Done1].flatMap((x) => [x, x, x]);
+const PEOPLE = [8.5]; /* PRESSES confirm.press */
+export const tallyAt = (t: number, phone = false) => ({ passed: [...(phone ? [] : PASSED), ...PASSED_SITES].filter((x) => t >= x).length, failed: 0, people: PEOPLE.filter((x) => t >= x).length });
+export const tallyShown = (t: number, phone = false) => tallyAt(t, phone);
 
 /** Product reflows hidden under a still of the page before them (desktop: none; on the phone every reflow is covered and slides, Film.svelte) */
 export const COVER_DESKTOP_AT: number[] = [EV.approved, EV.hcLat]; /* scene lane 5: + the approval landing (the Gates card re-sorts) */ /* scene lane 4: the bake starting grows the pipeline ABOVE the framed Health checks card: covered by a still while the camera takes it up */
@@ -88,4 +106,4 @@ export function coverEvent(t: number, phone: boolean): boolean { return phone ||
 
 /** the NEW tag: on the newest build's line in the Builds card from the first frame; it shines once, after the loop's wrap dissolve has cleared */
 export const NEW_AT = EV.release;
-export const NEW_SHINE = 0.5;
+export const NEW_SHINE = 0.9; /* scene lane 6 (item 17c): after the release toast has landed */

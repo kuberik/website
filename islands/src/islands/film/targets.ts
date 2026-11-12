@@ -34,6 +34,9 @@ function resolve(name: string, root: ParentNode, phone: boolean): HTMLElement | 
 			return { __r: 8, getBoundingClientRect() { const r = c.getBoundingClientRect(), b = btn.getBoundingClientRect(), sc = r.width / (c.offsetWidth || r.width); const bottom = phone ? r.bottom : Math.max(r.bottom, b.bottom + 118 * sc), right = Math.max(r.right, b.left + 330 * sc); return new DOMRect(r.left, r.top, right - r.left, bottom - r.top); } } as unknown as HTMLElement;
 		}
 		case 'approve-confirm': return q('[data-action="approve-confirm"]');
+		/* scene lane 6 (item 17b): the prod box of the page header's environment strip (staging's rollout page), and the App page's Pipeline tab */
+		case 'env-prod': return [...root.querySelectorAll<HTMLElement>('[data-env-row] [data-env-box]')].find((b) => !b.closest('.film-snap') && /^prod$/i.test(text(b.querySelector('.env-name')))) ?? null;
+		case 'tab-pipeline': return [...root.querySelectorAll<HTMLElement>('a[title="Pipeline"]')].find((a) => !a.closest('.film-snap')) ?? null;
 		case 'attention': return q('[data-approve-open]')?.closest<HTMLElement>('[class*="rounded"]') ?? null;
 		case 'banner-rollback': return byText(root, 'button, a', /^Roll back$/);
 		/* the whole dialog, title included (AD r4: the title was off-screen 35.8-38 s); it fits the window at about 1.06x */
@@ -67,7 +70,7 @@ function resolve(name: string, root: ParentNode, phone: boolean): HTMLElement | 
 		case 'gate-release': return byText(root, 'div,span,p,h3,h4', /^Release approval$/)?.closest<HTMLElement>('[class*="rounded"]') ?? null;
 		/* scene lane 4: the Gates tab's graph: every gate card (staging's promotion, Release approval, Business hours) and this rollout, as one rect (the frame's foot is the lowest gate) */
 		case 'pipe-prod': { /* scene lane 5: the App Pipeline card's prod lane, from its PROD label to the card's foot (the phone stacks the stages: dev and staging above, scrolled past) */
-			const card = byText(root, 'div,span,h2,h3', /^Pipeline$/)?.closest<HTMLElement>('[class*="rounded"]'); const lab = card ? [...card.querySelectorAll<HTMLElement>('span,div')].find((e) => text(e) === 'PROD' && !e.children.length) : null;
+			const card = [...root.querySelectorAll<HTMLElement>('div,span,h2,h3')].filter((e) => text(e) === 'Pipeline' && !e.closest('a, .film-snap')).pop()?.closest<HTMLElement>('[class*="rounded"]'); /* scene lane 6: not the App page's Pipeline TAB (its label is the same word) */ const lab = card?.querySelector<HTMLElement>('[data-stage-col="prod"]') ?? null; /* scene lane 6: the stage column's own key (its chip's text is lower case, drawn upper case by CSS) */
 			if (!card || !lab) return null;
 			return { getBoundingClientRect() { const c = card.getBoundingClientRect(), l = lab.getBoundingClientRect(); return new DOMRect(c.left, l.top, c.width, c.bottom - l.top); } } as unknown as HTMLElement; }
 		case 'gates-card': return root.querySelector<HTMLElement>('[data-tour="dependency-graph"]'); /* scene lane 5: the phone's Gates beat frames the whole Gates card from its title */

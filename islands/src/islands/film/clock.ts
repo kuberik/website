@@ -3,9 +3,9 @@
  * the wait for a person is fast, the catch plays in near real time. Every CR timestamp is placed through this one map, so every age
  * or timer the product prints agrees with the chrome clock. Pure; no display strings except the clock face.
  */
-export const LOOP = 30.4; /* scene lane 5: the all-sites beat on the App page's Pipeline tab; the last frame (every site green) holds ~1.8 s before the wrap */ /* scene lane 4: the all-sites beat is out until the App page's Pipeline tab lands (owner item 8): the loop ends as prod us-east-1's bake completes */
+export const LOOP = 28.2; /* scene lane 6 (item 17d/i): the all-green Pipeline tab holds ~3.3 s */ // /* scene lane 5: the all-sites beat on the App page's Pipeline tab; the last frame (every site green) holds ~1.8 s before the wrap */ /* scene lane 4: the all-sites beat is out until the App page's Pipeline tab lands (owner item 8): the loop ends as prod us-east-1's bake completes */
 /** [story second, minutes after 00:00]. 10:11 as the release lands, staging in minutes, the approval wait and the canary compressed, the waves fastest (lane 33) */
-const PTS: [number, number][] = [[0, 10 * 60 + 11], [4.4, 10 * 60 + 19], [9.2, 10 * 60 + 40], [19.4, 10 * 60 + 52], [27.6, 11 * 60 + 38], [30.4, 11 * 60 + 41]];
+const PTS: [number, number][] = [[0, 10 * 60 + 11], [4.4, 10 * 60 + 19], [9.3, 10 * 60 + 40], [17.2, 10 * 60 + 52], [24.9, 11 * 60 + 38], [28.2, 11 * 60 + 41]];
 
 /** seconds after 00:00 at story second `t` (extrapolated linearly outside 0..LOOP) */
 export function clockSeconds(t: number): number {

@@ -5,12 +5,16 @@
 	 * component plays this role (the dashboard has no timeline). It borrows Railway's chapter bar (measured: 5 tabs, a sweeping fill, overlapping the frame edge by ~19 px)
 	 * and the dashboard's own type roles (t-label, t-meta, t-code) and chip family. It sits above the window's top edge, so it is above the fold at 1440 x 900. ONE panel: clock left, the chapter tabs in the middle (the lit tab FILLS with its progress, as Railway's does), tally right; the side cells are equal fixed shares so the tabs never shift as the tally grows. Under reduced motion there is no autoplay and no pause: the tabs are a plain segmented control.
 	 */
-	import { CHAPTERS } from './script';
+	import WaveMark from '$lib/components/WaveMark.svelte';
+	import type { WaveMark as Mark } from '$lib/view-models/wave-mark';
 	import { clockFace } from './clock';
-	let { t, lit, fill, reduced, playing, narrow, tight = false, tally, onseek, ontoggle }: {
+	let { t, lit, fill, reduced, playing, narrow, tight = false, tally, onseek, ontoggle, chips, marks }: {
 		t: number; lit: number; fill: number; reduced: boolean; playing: boolean; narrow: boolean; tight?: boolean;
 		tally: { passed: number; failed: number; people: number }; onseek: (i: number) => void; ontoggle: () => void;
+		/* scene lane 6: the chapters offered (the phone: three, item 17h; `i` = the story's chapter index) and the dev · staging · prod strip (item 17a) */
+		chips: { key: string; label: string; i: number }[]; marks: { env: string; mark: Mark }[];
 	} = $props();
+	const litK = $derived(Math.max(0, chips.findIndex((c) => c.i === lit)));
 	const face = $derived(clockFace(t));
 	/* the digit rolls (200 ms ease-out): a keyed span re-enters on every change */
 	const bits = $derived([
@@ -22,7 +26,7 @@
 	$effect(() => {
 		if (!narrow || !scroller) return;
 		void bits.length; /* the tally growing narrows the scroller: centre again */
-		const el = scroller.children[lit] as HTMLElement | undefined;
+		const el = scroller.children[litK] as HTMLElement | undefined;
 		if (el) {
 			/* rects, not offsetLeft (the tab's offsetParent is the panel). The scroll lands on a tab boundary nearest the centring position, with the lit tab fully inside: no half-dot at the scroller's edge. */
 			const sr = scroller.getBoundingClientRect(), er = el.getBoundingClientRect(), sl = scroller.scrollLeft;
@@ -35,12 +39,13 @@
 </script>
 <div class="fc" class:fc-narrow={narrow} class:fc-tight={tight}>
 	<div class="fc-panel">
-		<span class="fc-clock t-code" role="timer" aria-label="Story time" title="Story time (a time-lapse)">{face}</span>
+		<span class="fc-left"><span class="fc-clock t-code" role="timer" aria-label="Story time" title="Story time (a time-lapse)">{face}</span>
+			<span class="fc-envs t-meta" aria-label={marks.map((m) => `${m.env}: ${m.mark.label}`).join(", ")}>{#each marks as m (m.env)}<span class="fc-env"><WaveMark mark={m.mark} />{#if !narrow}<span class="fc-env-n">{m.env}</span>{/if}</span>{/each}</span></span>
 		<nav class="fc-bar t-label" aria-label="Demo chapters">
 			<div class="fc-scroll" bind:this={scroller}>
-				{#each CHAPTERS as c, i (c.key)}
-					<button type="button" class="fc-tab" class:fc-on={lit === i} aria-current={lit === i ? 'step' : undefined} aria-label={`Demo: ${c.label}`} onclick={() => onseek(i)}>
-						{#if lit === i && !reduced}<i class="fc-fill" style="transform: scaleX({fill})"></i>{/if}
+				{#each chips as c (c.key)}
+					<button type="button" class="fc-tab" class:fc-on={lit === c.i} aria-current={lit === c.i ? 'step' : undefined} aria-label={`Demo: ${c.label}`} onclick={() => onseek(c.i)}>
+						{#if lit === c.i && !reduced}<i class="fc-fill" style="transform: scaleX({fill})"></i>{/if}
 						<span class="fc-dot" aria-hidden="true"></span><span class="fc-lab">{c.label}</span>
 					</button>
 				{/each}
@@ -61,7 +66,12 @@
 <style>
 	.fc { position: absolute; left: 0; right: 0; top: -56px; z-index: 6; height: 44px; display: flex; justify-content: center; pointer-events: none; }
 	.fc-panel { pointer-events: auto; width: calc(100% - 24px); height: 44px; display: grid; grid-template-columns: minmax(0, 1fr) auto minmax(0, 1fr); align-items: center; gap: 12px; padding: 4px 4px 4px 14px; box-sizing: border-box; background: var(--k-surface, #fff); border: 1px solid var(--k-line); border-radius: 12px; box-shadow: 0 6px 20px rgba(14, 20, 24, 0.08); }
-	.fc-clock { justify-self: start; display: inline-flex; align-items: center; color: var(--ink-muted, var(--k-fg-muted)); font-variant-numeric: tabular-nums; font-size: 14px; }
+	.fc-left { justify-self: start; display: inline-flex; align-items: center; gap: 12px; min-width: 0; }
+	.fc-envs { display: inline-flex; align-items: center; gap: 8px; color: var(--k-fg-muted); font-size: 13px; white-space: nowrap; }
+	.fc-env { display: inline-flex; align-items: center; gap: 2px; }
+	.fc-narrow .fc-left { gap: 6px; }
+	.fc-narrow .fc-envs { gap: 0; }
+	.fc-clock { display: inline-flex; align-items: center; color: var(--ink-muted, var(--k-fg-muted)); font-variant-numeric: tabular-nums; font-size: 14px; }
 	.fc-tally { justify-self: end; display: inline-flex; align-items: center; gap: 0; padding-right: 6px; color: var(--k-fg-muted); font-size: 14px; white-space: nowrap; }
 	.fc-bit + .fc-bit::before { content: '\00b7'; margin: 0 6px; color: var(--k-fg-muted); }
 	.fc-n { color: var(--k-fg); font-weight: 600; font-variant-numeric: tabular-nums; display: inline-block; animation: fc-roll 0.2s ease-out; }

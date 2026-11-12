@@ -7,7 +7,7 @@ import { release, gate, prChange, CLOCK_MS, catalogue, slicesStatus } from '../s
 
 const H = 3600_000;
 type State = 'rest' | 'approval' | 'deploying' | 'failed' | 'stagingDeploying';
-const APPS: { name: string; owner: string; state: State; n: number; title: string; author: string }[] = [
+const APPS: { name: string; owner: string; state: State; n: number; title: string; author: string; ver?: [string, string, string, string] }[] = [
 	{ name: 'billing-api', owner: 'exampleco', state: 'approval', n: 8, title: 'Retry failed invoice webhooks', author: 'mason-hayes' },
 	{ name: 'search-api', owner: 'exampleco', state: 'deploying', n: 31, title: 'Rank by recent clicks', author: 'emma-walker' },
 	{ name: 'inventory-svc', owner: 'exampleco', state: 'failed', n: 22, title: 'Batch stock reservations', author: 'olivia-bennett' },
@@ -15,7 +15,7 @@ const APPS: { name: string; owner: string; state: State; n: number; title: strin
 	{ name: 'cart-svc', owner: 'exampleco', state: 'rest', n: 54, title: 'Cache cart totals', author: 'liam-foster' },
 	{ name: 'catalog-api', owner: 'exampleco', state: 'rest', n: 40, title: 'Paginate category listings', author: 'olivia-bennett' },
 	{ name: 'auth-gateway', owner: 'exampleco', state: 'rest', n: 63, title: 'Rotate signing keys weekly', author: 'noah-carter' },
-	{ name: 'payments-svc', owner: 'exampleco', state: 'rest', n: 19, title: 'Serve contract payments 3.1.0', author: 'ava-mitchell' },
+	{ name: 'payments-svc', owner: 'exampleco', state: 'rest', n: 19, title: 'Serve contract payments 3.1.0', author: 'ava-mitchell', ver: ['pay-302', '3.0.2', 'pay-310', '3.1.0'] /* scene lane 6: the provider of checkout-api's dependency (scenario.ts DEP providerRef) runs the contract version the RolloutDependency reports */ },
 	{ name: 'email-worker', owner: 'exampleco', state: 'rest', n: 27, title: 'Template preview endpoint', author: 'ethan-brooks' },
 	{ name: 'web-storefront', owner: 'exampleco', state: 'rest', n: 88, title: 'Faster product images', author: 'isabella-ross' }
 ];
@@ -28,8 +28,8 @@ export function extras(opt: { failing: boolean; only?: (a: (typeof APPS)[number]
 		if (opt.only && !opt.only(a0)) return;
 		/* `settled`: an app the story has let through (its approval was granted off-screen): it sits at rest on the new build */
 		const a = opt.settled?.includes(a0.name) ? { ...a0, state: 'rest' as State } : a0;
-		const oldR = release(`b-${a.n - 1}`, `${a.n - 1}.0.0`, sha(i, 1), CLOCK_MS - 20 * H);
-		const newR = release(`b-${a.n}`, `${a.n}.0.0`, sha(i, 2), CLOCK_MS - (3 + i) * H);
+		const oldR = release(a.ver?.[0] ?? `b-${a.n - 1}`, a.ver?.[1] ?? `${a.n - 1}.0.0`, sha(i, 1), CLOCK_MS - 20 * H);
+		const newR = release(a.ver?.[2] ?? `b-${a.n}`, a.ver?.[3] ?? `${a.n}.0.0`, sha(i, 2), CLOCK_MS - (3 + i) * H);
 		const place = (env: 'staging' | 'prod') => {
 			const ns = `${a.name}-${env}`;
 			const onNew =
