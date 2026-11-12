@@ -24,13 +24,14 @@ describe('film scenario (lane 33: release, staging, approve, canary, waves)', ()
 		const ph = (t: number) => worldAt(t).detail.test.status.phase;
 		expect([ph(EV.testPending - 0.1), ph(EV.testPending + 0.1), ph(EV.testRunning + 0.1), ph(EV.testPassed + 0.1)]).toEqual(['WaitingForStep', 'Pending', 'Running', 'Succeeded']);
 	});
-	it('wave 2 waits on wave 1, then takes the build by itself; nothing fails', () => {
+	it('waves 2 and 3 wait on the wave before, then take the build by themselves; nothing fails', () => {
 		for (const p of PLACES.slice(2)) {
 			expect(rolloutOf(EV.us1Done - 0.1, p.ns).status.history[0].version.tag).toBe('b-45');
-			expect(rolloutOf(EV.w2Deploy + 0.1, p.ns).status.history[0].version.tag).toBe('b-46');
+			expect(rolloutOf((p.wave === 2 ? EV.w2Deploy : EV.w3Deploy) + 0.1, p.ns).status.history[0].version.tag).toBe('b-46');
+			if (p.wave === 3) expect(rolloutOf(EV.w2Deploy + 0.1, p.ns).status.history[0].version.tag).toBe('b-45');
 			expect(rolloutOf(40, p.ns).status.history[0].bakeStatus).toBe('Succeeded');
 		}
-		const leader = (worldAt(EV.us1Done - 0.1).fleet.environments as any[]).find((e) => e.metadata.namespace === 'checkout-api-prod-ap-southeast-2');
+		const leader = (worldAt(EV.us1Done - 0.1).fleet.environments as any[]).find((e) => e.metadata.namespace === 'checkout-api-prod-eu-west-1');
 		expect(leader.status.wave.blocker?.site).toBe('us-east-1');
 		for (let t = 0; t < 40; t += 0.5) for (const p of PLACES) expect(rolloutOf(t, p.ns).status.history[0].bakeStatus).not.toBe('Failed');
 	});

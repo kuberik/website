@@ -8,7 +8,7 @@
  *   App 0-7          the release appears ("Newest" + the NEW tag) and staging takes it at once
  *   Rollouts 7-11.3  a person approves production (the attention card, framed at the cut); the approved card slides out of the list
  *   Overview 11.3-24.5  the canary in us-east-1 (wave 1): stage 1, the test passes, stage 2, the health checks pass
- *   Environments 24.5-40  wave 2 (four regions) takes the build by itself, sped up, on the fleet picture; the loop dissolves into the opening
+ *   App 24.5-40     waves 2 and 3 (two regions each) step onto the release by themselves, sped up, on the Builds card; the loop dissolves into the opening
  */
 import { LOOP } from './clock';
 import { EV } from './scenario';
@@ -24,13 +24,13 @@ export const CHAPTERS = [
 	{ key: 'canary', label: 'Canary', from: 11.3, to: 24.5, settled: 17.4 },
 	{ key: 'waves', label: 'Waves', from: 24.5, to: 40, settled: 34 }
 ] as const;
-/** reduced motion rests on the whole fleet on the new build (the Environments page, every region healthy on 4.46.0-46) */
+/** reduced motion rests on the whole fleet on the new build (the App page's Builds card, every place on 4.46.0-46) */
 export const REST_T = 34;
 export const chapterAt = (t: number) => Math.max(0, CHAPTERS.findIndex((c) => t >= c.from && t < c.to));
 export const chapterFill = (t: number) => { const c = CHAPTERS[chapterAt(t)]; return Math.min(1, Math.max(0, (t - c.from) / (c.to - c.from))); };
 
 /** which surface the window shows */
-const SURF: [number, Surf][] = [[0, 'app'], [7, 'rollouts'], [11.3, 'overview'], [24.5, 'envs']];
+const SURF: [number, Surf][] = [[0, 'app'], [7, 'rollouts'], [11.3, 'overview'], [24.5, 'app']];
 export const surfAt = (t: number): Surf => [...SURF].reverse().find(([at]) => t >= at)![1];
 /** surfaces whose cut comes within `ahead` story seconds (their chunks are fetched before the beat) */
 export const upcoming = (t: number, ahead = 3): Surf[] => SURF.filter(([at]) => at > t && at - t <= ahead).map(([, s]) => s);
@@ -44,7 +44,7 @@ export const CAMERA: Move[] = [
 	{ at: 0, to: 'builds', s: 1.35, dur: 0, ease: EXPO }, /* the App page's Builds card, the release lands in it as its newest stop */
 	{ at: 7, to: 'approve-stage', s: 1.5, dur: 0, ease: EXPO, dim: 'both', min: 15, hole: 'attention', dimOff: EV.approved - 0.03 }, /* the light lifts as the approved card leaves (a lit hole over the empty slot read as a blank card) */ /* the person's beat: the attention card and the room its confirm opens into, framed at the cut; the card is lit */
 	{ at: 11.3, to: 'pipeline', s: 1.5, dur: 0, ease: EXPO }, /* the whole pipeline card, held through the canary */
-	{ at: 24.5, to: 'rest', s: 1, dur: 0, ease: EXPO } /* the waves: the Environments page from its top, the fleet at once (Staging, Production's regions, what arrived in prod) */
+	{ at: 24.5, to: 'builds', s: 1.35, dur: 0, ease: EXPO } /* the waves, back on the App page's Builds card: each region steps from 4.45.0-45 onto the release, a wave at a time */
 ];
 export const moveAt = (t: number, phone = false): Move => [...CAMERA].reverse().find((m) => t >= m.at && !(phone && m.desk))!;
 
@@ -59,7 +59,7 @@ export const pressAt = (t: number): Press | null => PRESSES.find((p) => t >= p.g
 export const confirmOpen = (t: number) => t >= 8.95 && t < 10.65; /* closes with the press, before the card leaves (10.7) */
 
 /** the tally: checks passed and decisions by a person. Each entry is the second its CR passes. */
-const PASSED = [EV.hcStagingErr, EV.hcStagingLat, EV.testPassed, EV.hcLat, EV.hcErr, ...[EV.w2Check0, EV.w2Check1, EV.w2Check2, EV.w2Check3].flatMap((x) => [x, x])];
+const PASSED = [EV.hcStagingErr, EV.hcStagingLat, EV.testPassed, EV.hcLat, EV.hcErr, ...[EV.w2Check0, EV.w2Check1, EV.w3Check0, EV.w3Check1].flatMap((x) => [x, x])];
 const PEOPLE = [EV.approved];
 export const tallyAt = (t: number) => ({ passed: PASSED.filter((x) => t >= x).length, failed: 0, people: PEOPLE.filter((x) => t >= x).length });
 export const tallyShown = (t: number) => tallyAt(t);
@@ -67,8 +67,8 @@ export const tallyShown = (t: number) => tallyAt(t);
 /** Product reflows hidden under a still of the page before them (desktop: none; on the phone every reflow is covered and slides, Film.svelte) */
 export const COVER_DESKTOP_AT: number[] = [];
 /** the reflows that PLAY as a slide (flip.ts, by transform: no layout shift): the release's stop entering the Builds card, staging stepping onto it,
- *  and its pipeline closing again, the approved card leaving the Rollouts list, wave 2's region tiles opening and folding back into "N regions healthy" */
-export const FLIP_AT = [EV.release, EV.stagingGo, EV.stagingDone, EV.approved, EV.w2Deploy, EV.w2Done0, EV.w2Done1, EV.w2Done2, EV.w2Done3];
+ *  and its pipeline closing again, the approved card leaving the Rollouts list, each wave's regions stepping onto the release (rows travel, flip.ts) */
+export const FLIP_AT = [EV.release, EV.stagingGo, EV.stagingDone, EV.approved, EV.w2Deploy, EV.w3Deploy];
 export const flipEvent = (t: number, phone: boolean) => !phone && FLIP_AT.some((c) => Math.abs(t - c) < 0.35);
 export function coverEvent(t: number, phone: boolean): boolean { return phone || COVER_DESKTOP_AT.some((c) => Math.abs(t - c) < 0.35); }
 

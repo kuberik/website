@@ -46,6 +46,8 @@ import { flipRecord, flipPlay, type Pos } from './flip';
 	/* ---- the shell and the approval layer are their own chunks, fetched right after the first surface (the first frame needs only the page): the real Sidebar
 	   / MobileTabBar fill the space reserved for them (.film-side is the product's w-58), the real ApprovalLayer arrives 3 s before the first Approve ---- */
 	let Side = $state<Component<any> | null>(null), Tabs = $state<Component<any> | null>(null), Layer = $state<Component<any> | null>(null);
+	/* the shell's sidebar is COLLAPSED (owner 2026-11-12, as Railway's): the product's own 56 px icon rail, set the way the product remembers it (its 'sidebar-collapsed' key) */
+	try { localStorage.setItem('sidebar-collapsed', '1'); } catch { /* storage off: the rail opens wide, still the product's */ }
 	$effect(() => { void (phone ? import('$lib/MobileTabBar.svelte').then((m) => (Tabs = m.default)) : import('$lib/Sidebar.svelte').then((m) => (Side = m.default))); });
 	$effect(() => { if (t >= 4 && !Layer) void import('$lib/components/new/ApprovalLayer.svelte').then((m) => (Layer = m.default)); });
 
@@ -403,7 +405,7 @@ import { flipRecord, flipPlay, type Pos } from './flip';
 	/* the canvas is a real dashboard viewport: its width answers the compiled `sm:`/`lg:` queries (container "kc"), `fixed` children (confirm, sheet, bottom nav) anchor to it */
 	.film-canvas { position: relative; container-type: inline-size; container-name: kc; overflow: hidden; background: var(--k-ground); contain: layout paint; }
 	.film-app { display: flex; height: 100%; flex-direction: row; background: var(--k-ground); }
-	.film-side { display: flex; flex-shrink: 0; width: 14.5rem; }
+	.film-side { display: flex; flex-shrink: 0; width: 3.5rem; } /* the product's collapsed rail (56 px) */
 	.film-col { display: flex; flex-direction: column; min-width: 0; flex: 1 1 0; }
 	.film-top { flex: none; }
 	.film-main { position: relative; flex: 1 1 0; min-height: 0; overflow: hidden; }

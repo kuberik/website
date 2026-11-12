@@ -1,6 +1,6 @@
 /**
  * HERO SCENARIO (40 s, lane 33): release 4.46.0-46 of checkout-api ("Add Apple Pay to checkout") appears, staging takes it at once, a person approves
- * production, the canary in prod us-east-1 (wave 1) passes its test and health checks, and wave 2 (four regions) then takes the build by itself.
+ * production, the canary in prod us-east-1 (wave 1) passes its test and health checks, and waves 2 and 3 (two regions each) then take the build by themselves.
  * No failure: the owner's rule is at most one, and late; the calm cut has none.
  *
  * `worldAt(t)` returns what the dashboard's own API would answer at story second `t`: raw Rollout / Environment / Kruise Rollout / RolloutTest /
@@ -21,12 +21,13 @@ const DAY_MS = Date.parse('2026-11-10T00:00:00Z');
 export const AUTHOR = 'olivia-bennett';
 type Any = any;
 
-/** story seconds at which a CR changes (script.ts shots: App 0-7, Rollouts 7-11.3, Overview 11.3-24.5, Environments 24.5-40) */
+/** story seconds at which a CR changes (script.ts shots: App 0-7, Rollouts 7-11.3, Overview 11.3-24.5, App 24.5-40) */
 export const EV = {
 	release: 1.0, stagingGo: 2.2, check: 3.2, hcStagingErr: 3.8, hcStagingLat: 4.2, stagingDone: 5.4,
 	promo: 7.0, approved: 10.7, /* the promotion gate opens a sync after staging's bake, on the Rollouts cut (7.0): the approval asks there, not as a banner pushing the App page down */
 	deploy: 11.3, /* on the Overview cut: the In flight row is not added under the Rollouts frame */ paused1: 14.0, testPending: 14.4, testRunning: 14.8, testPassed: 16.6, step2Go: 18.6, step2Done: 19.6, hcLat: 20.4, hcErr: 20.8, us1Done: 23.2,
-	w2Deploy: 26.0, w2Check0: 28.6, w2Check1: 28.9, w2Check2: 29.2, w2Check3: 29.5, w2Done0: 30.6, w2Done1: 31.1, w2Done2: 31.6, w2Done3: 32.1
+	w2Deploy: 26.0, w2Check0: 27.6, w2Check1: 27.9, w2Done0: 28.8, w2Done1: 29.2,
+	w3Deploy: 30.4, w3Check0: 31.8, w3Check1: 32.1, w3Done0: 33.0, w3Done1: 33.4
 } as const;
 /** every story second a CR changes at: the film re-derives its (heavy) data snapshot only when one of these is passed */
 export const EVENT_TIMES = [0, ...Object.values(EV)].sort((a, b) => a - b);
@@ -42,8 +43,8 @@ export const PLACES: Place[] = [
 	{ ns: 'checkout-api-prod-us-east-1', env: 'prod', site: 'us-east-1', wave: 1 },
 	{ ns: 'checkout-api-prod-us-east-2', env: 'prod', site: 'us-east-2', wave: 2 },
 	{ ns: 'checkout-api-prod-eu-west-1', env: 'prod', site: 'eu-west-1', wave: 2 },
-	{ ns: 'checkout-api-prod-eu-central-1', env: 'prod', site: 'eu-central-1', wave: 2 },
-	{ ns: 'checkout-api-prod-ap-southeast-2', env: 'prod', site: 'ap-southeast-2', wave: 2 }
+	{ ns: 'checkout-api-prod-eu-central-1', env: 'prod', site: 'eu-central-1', wave: 3 },
+	{ ns: 'checkout-api-prod-ap-southeast-2', env: 'prod', site: 'ap-southeast-2', wave: 3 }
 ];
 const key = (p: Place) => p.site ?? p.env;
 const isUS1 = (p: Place) => p.site === 'us-east-1';
@@ -51,14 +52,17 @@ const DEP_NAME = 'checkout-api-needs-payments';
 
 /** where a place is, at `t`: which build it runs and what its newest history entry says */
 export type Phase = 'old' | 'deploying' | 'checking' | 'done';
-/** wave 2 takes the build together (one selection) and each region's bake ends on its own */
-const W2 = ['ap-southeast-2', 'eu-central-1', 'eu-west-1', 'us-east-2']; /* the leader first */
-export const w2DoneAt = (site: string) => [EV.w2Done0, EV.w2Done1, EV.w2Done2, EV.w2Done3][W2.indexOf(site)];
-export const w2CheckAt = (site: string) => [EV.w2Check0, EV.w2Check1, EV.w2Check2, EV.w2Check3][W2.indexOf(site)];
+/** waves 2 and 3 (two regions each) take the build together (one selection per wave, the leader first) and each region's bake ends on its own */
+const LATE: Record<string, { go: number; check: number; done: number }> = {
+	'eu-west-1': { go: EV.w2Deploy, check: EV.w2Check0, done: EV.w2Done0 }, 'us-east-2': { go: EV.w2Deploy, check: EV.w2Check1, done: EV.w2Done1 },
+	'ap-southeast-2': { go: EV.w3Deploy, check: EV.w3Check0, done: EV.w3Done0 }, 'eu-central-1': { go: EV.w3Deploy, check: EV.w3Check1, done: EV.w3Done1 }
+};
+export const lateOf = (site: string) => LATE[site];
 export function phaseOf(p: Place, t: number): Phase {
 	if (p.env === 'staging') return t < EV.stagingGo ? 'old' : t < EV.check ? 'deploying' : t < EV.stagingDone ? 'checking' : 'done';
 	if (isUS1(p)) return t < EV.deploy ? 'old' : t < EV.step2Done ? 'deploying' : t < EV.us1Done ? 'checking' : 'done';
-	return t < EV.w2Deploy ? 'old' : t < w2CheckAt(p.site!) ? 'deploying' : t < w2DoneAt(p.site!) ? 'checking' : 'done';
+	const L = LATE[p.site!];
+	return t < L.go ? 'old' : t < L.check ? 'deploying' : t < L.done ? 'checking' : 'done';
 }
 const onNewBuild = (ph: Phase) => ph !== 'old';
 
@@ -83,9 +87,9 @@ export function worldAt(t: number): { fleet: FleetSource; github: Record<string,
 	const auto = 'Automatic deployment';
 	const base = { id: 1, version: R45, timestamp: new Date(ago(3 * H)).toISOString(), message: auto, bakeStatus: 'Succeeded', bakeStatusMessage: DONE_MSG, bakeStartTime: new Date(ago(3 * H)).toISOString(), bakeEndTime: new Date(ago(3 * H) + 600_000).toISOString(), triggeredBy: sys };
 	/* the controller starts a bake (bakeStartTime, InProgress, "Bake started...") only once EVERY health check is Healthy with a fresh lastChangeTime (rollout_controller.go ~1950-1984); until then the entry is Deploying and "Waiting for health checks to become healthy before starting bake." */
-	const startOf = (p: Place) => (p.env === 'staging' ? EV.stagingGo : isUS1(p) ? EV.deploy : EV.w2Deploy);
-	const bakeAt = (p: Place) => (p.env === 'staging' ? EV.hcStagingLat : isUS1(p) ? EV.hcErr : w2CheckAt(p.site!));
-	const doneAt = (p: Place) => (p.env === 'staging' ? EV.stagingDone : isUS1(p) ? EV.us1Done : w2DoneAt(p.site!));
+	const startOf = (p: Place) => (p.env === 'staging' ? EV.stagingGo : isUS1(p) ? EV.deploy : LATE[p.site!].go);
+	const bakeAt = (p: Place) => (p.env === 'staging' ? EV.hcStagingLat : isUS1(p) ? EV.hcErr : LATE[p.site!].check);
+	const doneAt = (p: Place) => (p.env === 'staging' ? EV.stagingDone : isUS1(p) ? EV.us1Done : LATE[p.site!].done);
 	const baking = (p: Place) => t >= bakeAt(p);
 	function history(p: Place): Any[] {
 		const ph = phaseOf(p, t);
@@ -98,8 +102,8 @@ export function worldAt(t: number): { fleet: FleetSource; github: Record<string,
 	const old = ['b-44', 'b-45'], withNew = out46 ? ['b-44', 'b-45', 'b-46'] : old;
 	function gates(p: Place): Any[] {
 		if (p.env === 'staging') return [];
-		/* wave 1 (us-east-1) may take what staging finished; wave 2 what wave 1 finished baking (environment-controller wave.go) */
-		const promoOpen = out46 && (isUS1(p) ? t >= EV.promo : t >= EV.us1Done);
+		/* wave 1 (us-east-1) may take what staging finished; each later wave what the wave before finished baking (environment-controller wave.go) */
+		const promoOpen = out46 && (isUS1(p) ? t >= EV.promo : p.wave === 2 ? t >= EV.us1Done : t >= EV.w2Done1);
 		return [
 			gate(`dependency-${DEP_NAME}`, withNew),
 			{ name: 'deploy-window', passing: true, allowedVersions: null, message: 'Gate is passing' },
@@ -157,7 +161,7 @@ export function worldAt(t: number): { fleet: FleetSource; github: Record<string,
 		let idx = 2, st = 'Completed', upd = at(-1);
 		if (ph !== 'old' && !isUS1(p)) {
 			/* staging and wave 2: 25 % then 100 %, no test; the check (bake) follows the last step */
-			const go = startOf(p), mid = go + (p.env === 'staging' ? 0.5 : 1.4), end = p.env === 'staging' ? EV.check : w2CheckAt(p.site!);
+			const go = startOf(p), mid = go + (p.env === 'staging' ? 0.5 : 0.8), end = p.env === 'staging' ? EV.check : LATE[p.site!].check;
 			idx = t < mid ? 1 : 2; st = t < end ? 'StepInProgress' : 'Completed'; upd = at(t < mid ? go : t < end ? mid : end);
 		}
 		const KR = `checkout-api-canary-${key(p)}`;
@@ -192,7 +196,7 @@ export function worldAt(t: number): { fleet: FleetSource; github: Record<string,
 			let status = 'Healthy', since = -1; /* story second of the latest status transition (the check's lastChangeTime) */
 			const message = `No alerts firing for labels map[alertname:${name === 'error-rate' ? 'HighErrorRate' : 'HighLatencyP99'} app:${APP}]`;
 			if (ph !== 'old') {
-				const turn = p.env === 'staging' ? (name === 'error-rate' ? EV.hcStagingErr : EV.hcStagingLat) : isUS1(p) ? (name === 'error-rate' ? EV.hcErr : EV.hcLat) : w2CheckAt(p.site!);
+				const turn = p.env === 'staging' ? (name === 'error-rate' ? EV.hcStagingErr : EV.hcStagingLat) : isUS1(p) ? (name === 'error-rate' ? EV.hcErr : EV.hcLat) : LATE[p.site!].check;
 				if (t < turn) { status = 'Pending'; since = startOf(p); } else since = turn;
 			}
 			return { apiVersion: 'kuberik.com/v1alpha1', kind: 'HealthCheck', metadata: { name: `${APP}-${name}`, namespace: p.ns, labels: { app: APP }, annotations: { 'kuberik.com/display-name': name } }, spec: { class: 'prometheus-alert' },
