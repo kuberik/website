@@ -35,10 +35,10 @@ export const EV = {
 	stagingGo: 3.2, check: 3.5, hcStagingErr: 3.7, hcStagingLat: 3.8, stagingDone: 4.4, /* staging rolls out quickly: deploy, checks, a short bake */
 	gatesCut: 5.0, promo: 5.5, /* the cursor pressed prod in staging's strip at 4.85; the promotion gate opens a sync after staging's bake, on screen */
 	approved: 8.7, deploy: 9.8, ovCut: 10.4, /* the confirm is pressed at 8.5; the approver's avatar lands, then the build moves by itself */
-	paused1: 10.7, testPending: 10.8, testRunning: 11, testPassed: 12, step2Go: 12.5, step3Go: 13.3, step2Done: 14.1, /* 10% -> test -> 50% -> 100% (step2Done = the canary completed) */
+	paused1: 10.7, testPending: 10.8, testRunning: 11, testPassed: 12, step2Go: 12.5, step3Go: 13.3, step2Done: 13.8, /* 10% -> test -> 50% -> 100% (step2Done = the canary completed) */
 	hcKust: 14.6, hcErr: 15, hcLat: 15.4, bakeCut: 15.7, us1Done: 17.9, appCut: 17.9, /* scene lane 6 (item 16): the bake completes ON the cut, so the pipeline card collapsing is under the cut still, not on screen */ pipeCut: 18.8, /* the App page; the cursor presses its Pipeline tab at 18.65 */
 	w2Deploy: 19.6, w2Check0: 20.8, w2Check1: 21, w2Done0: 21.9, w2Done1: 22.1,
-	w3Deploy: 22.9, w3Check0: 24.1, w3Check1: 24.3, w3Done0: 25.2, w3Done1: 25.4
+	w3Deploy: 22.1, w3Check0: 23.3, w3Check1: 23.5, w3Done0: 24.4, w3Done1: 24.6 /* scene lane 7 (AD r2 P1-3): wave 3 takes the build as wave 2's last region settles, so the App header never falls back to "4.45.0-45 DEPLOYED" between waves */
 } as const;
 /** every story second a CR changes at: the film re-derives its (heavy) data snapshot only when one of these is passed */
 export const EVENT_TIMES = [0, ...Object.values(EV)].sort((a, b) => a - b);

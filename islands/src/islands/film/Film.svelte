@@ -48,7 +48,7 @@ import { flipRecord, flipPlay, type Pos } from './flip';
 	const lit = $derived(chapterAt(t));
 	const mv = $derived<Move>(moveAt(t, phone));
 	/* the loop wrap is a cross-fade from the last frame into b1 (the outgoing page dims, the incoming one fades in): no empty-ground beat, which in dark was a black window */
-	const press = $derived(reduced ? null : pressAt(t));
+	const press = $derived(reduced ? null : pressAt(t, phone));
 	void tallyShown;
 
 	/* ---- the shell and the approval layer are their own chunks, fetched right after the first surface (the first frame needs only the page): the real Sidebar
@@ -152,7 +152,10 @@ import { flipRecord, flipPlay, type Pos } from './flip';
 		if (rec && d) for (const v of rec.values()) v.y -= d;
 		hid = false; snapEl = null;
 		/* a covered reflow on the phone: the still is dropped in one frame (no two layouts superimposed: the ghost) and what moved SLIDES from where it was to where it is (flip.ts, transform only: no layout shift) */
-		if (rec) { dropSnap(c); void tick().then(() => { if (group && !swapping && !hid) flipPlay(group, rec, unit(), 300); }); return; }
+		if (rec) { /* scene lane 7 (AD r2 P0-1): the phone's approval sheet copy (scrim + sheet) fades out over 200 ms instead of vanishing with the still in one frame (a 20-level pop) */
+			const ex: HTMLElement[] = (c as any).__extra ?? []; (c as any).__extra = []; dropSnap(c);
+			for (const e of ex) e.animate([{ opacity: 1 }, { opacity: 0 }], { duration: 200, easing: 'ease-out', fill: 'forwards' }).finished.then(() => e.remove(), () => e.remove());
+			void tick().then(() => { if (group && !swapping && !hid) flipPlay(group, rec, unit(), 300); }); return; }
 		const done = () => dropSnap(c);
 		for (const e of phone ? (c as any).__extra ?? [] : []) e.animate([{ opacity: 1 }, { opacity: 0 }], { duration: fade, easing: "ease-out", fill: "forwards" });
 		c.animate([{ opacity: 1 }, { opacity: 0 }], { duration: fade, easing: "ease-out", fill: "forwards" }).finished.then(done, done);
@@ -194,7 +197,10 @@ import { flipRecord, flipPlay, type Pos } from './flip';
 		void eventIdx;
 		untrack(() => {
 			const p = preSnap; preSnap = null; if (!p || !group) return;
-			if (p.flip) { const rec = p.flip; void tick().then(() => { if (group && !swapping && !hid) flipPlay(group, rec, unit()); }); return; } /* the product's one-step reflow plays as a slide by transform (flip.ts): no layout shift */
+			if (p.flip) { /* scene lane 7: the product's reflow can land a few frames after the event (the approval's own update): wait for it, up to 0.9 s, and release the slide in the same animation frame it is laid out, before it is painted */
+				const rec = p.flip, h0 = p.h, t0 = performance.now();
+				const step = () => { if (!group || swapping || hid) return; if (Math.abs(group.offsetHeight - h0) >= 3 || performance.now() - t0 > 900) { flipPlay(group, rec, unit(), 300); return; } requestAnimationFrame(step); };
+				void tick().then(() => requestAnimationFrame(step)); return; } /* the product's one-step reflow plays as a slide by transform (flip.ts): no layout shift */
 			if (!p.el) return;
 			void tick().then(() => tick()).then(async () => {
 				if (!group || swapping || hid) return;
@@ -299,7 +305,7 @@ import { flipRecord, flipPlay, type Pos } from './flip';
 		const pref = Math.max(0, Math.min(r.y - (m.pad ?? 24), gh - vh));
 		const rects = [...textRects(false), ...boxRects({ x: -1, y: -1, w: 0, h: 0 }).filter((b) => b.h < 56)].map((q) => ({ x: q.x, y: q.y - 2, w: q.w, h: q.h + 4 }));
 		const top = freeStart(Math.max(0, pref - 48), pref, vh, spansIn(rects, 'y', 0, vw), pref) ?? pref;
-		if (!m.keep) DESK_OFF.set(key, top - r.y);
+		if (!m.keep || kept === undefined) DESK_OFF.set(key, top - r.y); /* scene lane 7: a keep framing with nothing kept yet (the Gates cut) sets the offset its own re-anchors hold */
 		return top;
 	}
 	const DESK_OFF = new Map<string, number>();
@@ -484,7 +490,7 @@ import { flipRecord, flipPlay, type Pos } from './flip';
 			/* only on the surface that owns the button: a seek lands here before the new surface is shown */
 			if (want && !approvalUi.ask && shown === CONFIRM_SURF) {
 				const el = resolveTarget('approve', canvas, phone) as HTMLElement | null;
-				if (el) { el.click(); const a = approvalUi.ask; if (a) { if (phone) { const c = canvas.getBoundingClientRect(), r = el.getBoundingClientRect(); a.anchor = { top: (r.top - c.top) / k, left: (r.left - c.left) / k, right: (r.right - c.left) / k, bottom: (r.bottom - c.top) / k }; } else { const r = relRect(el), gw = group?.offsetWidth ?? 1440, l = Math.min(r.x, r.x + r.w - 320, gw - 16 - 320); /* the layer lives in the camera wrapper: group space, so it sits under ITS button at any zoom; the 320 px panel ends at the button's right edge (scene lane 3: left-aligned, the button at the page's right edge pushed it out of the window) */ a.anchor = { top: r.y, left: l, right: l + 320, bottom: r.y + r.h }; } } }
+				if (el) { el.click(); const a = approvalUi.ask; if (a) { if (phone) { const c = canvas.getBoundingClientRect(), r = el.getBoundingClientRect(); a.anchor = { top: (r.top - c.top) / k, left: (r.left - c.left) / k, right: (r.right - c.left) / k, bottom: (r.bottom - c.top) / k }; } else { const r = relRect(el), gw = group?.offsetWidth ?? 1440, l = Math.min(r.x, r.x + r.w - 320, gw - 16 - 320); /* the layer lives in the camera wrapper: group space, so it sits under ITS button at any zoom; the 320 px panel ends at the button's right edge (scene lane 3: left-aligned, the button at the page's right edge pushed it out of the window) */ a.anchor = { top: r.y, left: l, right: l + 320, bottom: r.y + r.h }; (a as { trigger?: unknown }).trigger = null; /* scene lane 7 (AD r2 P1-4): the product fits the panel to its trigger's CARD in viewport px; the film's anchor is group space, so the card's bounds pushed the panel off its button as the window grew (40 px at 1440, 400 px at 2560) */ } } }
 			} else if (!want && approvalUi.ask) approvalUi.ask = null;
 		});
 	});

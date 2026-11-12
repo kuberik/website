@@ -24,9 +24,9 @@ export const CHAPTERS = [ /* scene lane 4 (owner item 13): health checks come af
 	{ key: 'release', label: 'New release', from: 0, to: EV.devGo, settled: 1.9 },
 	{ key: 'staging', label: 'Staging', from: EV.devGo, to: EV.gatesCut, settled: 4.6 },
 	{ key: 'gates', label: 'Gates', from: EV.gatesCut, to: EV.ovCut, settled: 10.1 },
-	{ key: 'canary', label: 'Canary', from: EV.ovCut, to: EV.step2Done, settled: 13.9 },
+	{ key: 'canary', label: 'Canary', from: EV.ovCut, to: EV.step2Done, settled: 13.6 },
 	{ key: 'health', label: 'Health checks', from: EV.step2Done, to: EV.appCut, settled: 17.6 },
-	{ key: 'sites', label: 'All sites', from: EV.appCut, to: LOOP, settled: 26.5 } /* the App page, its Pipeline tab pressed, waves 2 and 3 fill it; all green from 25.4 */
+	{ key: 'sites', label: 'All sites', from: EV.appCut, to: LOOP, settled: 26.5 } /* the App page, its Pipeline tab pressed, waves 2 and 3 fill it; all green from 24.6 */
 ] as const;
 /** reduced motion rests on the whole fleet on the new build (the App page's Pipeline tab: every place green, "7 of 7 places") */
 export const REST_T = 26.5;
@@ -61,9 +61,9 @@ export const CAMERA: Move[] = [ /* scene lane 3: one fixed scale; a framing is s
 	{ at: EV.devGo, to: 'rest', s: 1, dur: 0, ease: EXPO }, /* staging's rollout page: its strip and pipeline, quickly */
 	{ at: EV.stagingGo - 0.02, to: 'pipeline', s: 1, pad: 68 /* the strip above it */, desk: true, dur: 0, ease: EXPO }, /* scene lane 4: as staging takes the build its header grows two lines (the PR, the namespace); the frame cuts to the strip and the pipeline under it, so neither moves on screen */
 	{ at: EV.gatesCut, to: 'gates-phone-node', s: 1, dur: 0, ease: EXPO }, /* the phone: the Gates card at 390 (the product's list form, owner ruling): every gate tile and the rollout they feed, whole. Scene lane 6: one frame for the whole beat (the banner's text changes at 5.5 and 8.7; framed on it the phone re-framed twice) */
-	{ at: EV.approved, to: 'gates-phone-node', s: 1, dur: 0, ease: EXPO }, /* re-framed under the cover: every gate tile passing and the rollout they feed (runs 4.46.0-46 from 9.8) */
-	{ at: EV.gatesCut, to: 'gates-card', s: 1, pad: 10, desk: true, dur: 0, ease: EXPO }, /* scene lane 5 (item 14): the whole Gates card, title to the graph's foot, at the frame's top */
-	{ at: EV.approved, to: 'gates-card', s: 1, pad: 10, keep: true /* the card's title where the cut put it: only the card's inside changes */, desk: true, dur: 0, ease: EXPO }, /* the approval lands, the banner shortens and the passed approval tile sorts under the others (#141): re-framed under the cover */
+	/* scene lane 7 (AD r2 P0-1): no phone re-frame at the approval: the frame holds (phoneAnchor keeps the tiles where they stood) and the reflow under the cover plays as a slide, not a dissolve that printed every row twice */
+	{ at: EV.gatesCut, to: 'gates-card', s: 1, pad: 10, keep: true /* scene lane 7: re-anchors through the approval hold the card's top (0 px) */, desk: true, dur: 0, ease: EXPO }, /* scene lane 5 (item 14): the whole Gates card, title to the graph's foot, at the frame's top */
+	/* scene lane 7 (AD r2 P0-1): no desktop re-frame at the approval either (a same-view re-frame takes a still and dissolves: the double print); the cut's framing holds the card's top and the reflow slides (FLIP_AT) */
 	{ at: EV.ovCut, to: 'pipeline', s: 1, foot: true, dur: 0, ease: EXPO }, /* its Overview: the pipeline card through the canary */
 	{ at: EV.step2Done, to: 'health-checks', s: 1, pad: 10, dur: 0, ease: EXPO }, /* scene lane 4: the same page, cut to its Health checks card: kustomization, error-rate, latency-p99 pass one by one */
 	{ at: EV.bakeCut, to: 'pipeline', s: 1, foot: true, dur: 0, ease: EXPO }, /* then back to the pipeline: its Check step holds the bake (the timer bar) to the end */
@@ -76,16 +76,17 @@ export const CAMERA: Move[] = [ /* scene lane 3: one fixed scale; a framing is s
 export const moveAt = (t: number, phone = false): Move => [...CAMERA].reverse().find((m) => t >= m.at && !(phone && m.desk))!;
 
 /** the presses: a person decides. `go` = cursor appears, `press` = the real click, `off` = it fades. */
-export type Press = { id: 'prod' | 'approve' | 'confirm' | 'pipeline'; target: string; go: number; press: number; off: number; click?: boolean };
+export type Press = { id: 'prod' | 'approve' | 'confirm' | 'pipeline'; target: string; go: number; press: number; off: number; click?: boolean; phone?: boolean /* scene lane 7: the phone only */ };
 /* scene lane 6 (owner item 17b): the cursor causes the view changes. 'prod' and 'pipeline' are presses only (the cut is the film's: a real click on the
    product's link would navigate the landing page); Approve is the product's real click (its confirm opens). No press while a check is pending. */
 export const PRESSES: Press[] = [
+	{ id: 'prod', target: 'env-prod', go: 1.75, press: 2.2, off: 2.4, phone: true }, /* scene lane 7 (AD r2 P0-2, 17b): the phone skips staging's page, so it taps prod in the App page's strip as the release beat ends; the cut to Gates lands on the tap */
 	{ id: 'prod', target: 'env-prod', go: 4.45, press: 4.85, off: 5.0 },
 	{ id: 'approve', target: 'approve', go: 6.4, press: 7.1, off: 7.4 },
 	{ id: 'confirm', target: 'approve-confirm', go: 7.8, press: 8.5, off: 8.7 },
 	{ id: 'pipeline', target: 'tab-pipeline', go: 18.15, press: 18.65, off: 18.8 }
 ];
-export const pressAt = (t: number): Press | null => PRESSES.find((p) => t >= p.go && t < p.off) ?? null;
+export const pressAt = (t: number, phone = false): Press | null => PRESSES.find((p) => t >= p.go && t < p.off && (phone || !p.phone)) ?? null;
 /** the approval confirm (ApprovalLayer) is open between the first press and the approval landing */
 export const confirmOpen = (t: number) => t >= 7.25 && t < EV.approved;
 export const CONFIRM_SURF: Surf = 'gates';
@@ -100,10 +101,10 @@ export const tallyAt = (t: number, phone = false) => ({ passed: [...(phone ? [] 
 export const tallyShown = (t: number, phone = false) => tallyAt(t, phone);
 
 /** Product reflows hidden under a still of the page before them (desktop: none; on the phone every reflow is covered and slides, Film.svelte) */
-export const COVER_DESKTOP_AT: number[] = [EV.approved, EV.hcLat]; /* scene lane 5: + the approval landing (the Gates card re-sorts) */ /* scene lane 4: the bake starting grows the pipeline ABOVE the framed Health checks card: covered by a still while the camera takes it up */
+export const COVER_DESKTOP_AT: number[] = [EV.hcLat]; /* scene lane 7 (AD r2 P0-1): the approval is no longer covered on desktop: it slides (FLIP_AT) */ /* scene lane 5: + the approval landing (the Gates card re-sorts) */ /* scene lane 4: the bake starting grows the pipeline ABOVE the framed Health checks card: covered by a still while the camera takes it up */
 /** the reflows that PLAY as a slide (flip.ts, by transform: no layout shift): the release's stop entering the Builds card, staging stepping onto it,
  *  and its pipeline closing again, the approved card leaving the Rollouts list, each wave's regions stepping onto the release (rows travel, flip.ts) */
-export const FLIP_AT: number[] = []; /* scene lane 3: the only reflow on screen: History logs dev's then staging's deploy at its top, and the rows under it slide down one row (flip.ts) */ /* lane 35: the release is there at t=0, staging plays on the Change page's fixed strip, the approve beat cuts before its list re-sorts; only a wave starting adds its event at the top of History (newest first), and the rows under it slide down one row */
+export const FLIP_AT: number[] = [EV.approved]; /* scene lane 7 (AD r2 P0-1, items 10/16): the approval landing (the banner loses a line, the graph rises 24 px, the passed tile re-sorts) plays live as a 300 ms slide: no still that does not match, no double print */ /* scene lane 3: the only reflow on screen: History logs dev's then staging's deploy at its top, and the rows under it slide down one row (flip.ts) */ /* lane 35: the release is there at t=0, staging plays on the Change page's fixed strip, the approve beat cuts before its list re-sorts; only a wave starting adds its event at the top of History (newest first), and the rows under it slide down one row */
 export const flipEvent = (t: number, phone: boolean) => !phone && FLIP_AT.some((c) => Math.abs(t - c) < 0.35);
 export function coverEvent(t: number, phone: boolean): boolean { return phone || COVER_DESKTOP_AT.some((c) => Math.abs(t - c) < 0.35); }
 

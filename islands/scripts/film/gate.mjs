@@ -102,7 +102,7 @@ const phoneRun = +w < 500;
 const B = {};
 const W = { 14.8: ['kustomization.*', 'error-rate.*', 'latency-p99.*'], 17.0: ['Check timer.*'], ...(phoneRun ? { 5.6: ['Release approval', 'Business hours', 'payments-svc.*'], 10.1: ['Release approval', 'Business hours', 'payments-svc.*'] } : {}) };
 /* scene lane 6 (owner item 17): new times. The phone plays release -> gates -> all sites only (17h): its probes skip the other chapters */
-const TS = phoneRun ? [0.8, 1.9, 5.6, 7.6, 8.4, 8.6, 9.4, 10.1, 18.45, 19.1, 20.1, 21.3, 22.5, 23.3, 24.5, 26.5, 28.0] : [0.8, 1.9, 3.3, 4.6, 4.86, 5.6, 7.6, 8.4, 8.6, 9.4, 10.1, 10.9, 11.5, 11.9, 12.2, 12.9, 13.7, 14.8, 15.55, 17.0, 18.45, 19.1, 20.1, 21.3, 22.5, 23.3, 24.5, 26.5, 28.0];
+const TS = phoneRun ? [0.8, 1.9, 2.25, 5.6, 7.6, 8.4, 8.6, 9.4, 10.1, 18.45, 19.1, 20.1, 21.3, 22.5, 22.8, 23.8, 26.5, 28.0] : [0.8, 1.9, 3.3, 4.6, 4.86, 5.6, 7.6, 8.4, 8.6, 9.4, 10.1, 10.9, 11.5, 11.9, 12.2, 12.9, 13.7, 14.8, 15.55, 17.0, 18.45, 19.1, 20.1, 21.3, 22.5, 22.8, 23.8, 26.5, 28.0];
 for (const t of TS) B[t] = await probe(t, W[t] ?? []);
 const on46 = (s) => /4\.46\.0-46/.test(s ?? '') && /Up to date/.test(s ?? '');
 const wholeOk = (t) => Object.entries(B[t].whole).every(([, v]) => v === 'whole');
@@ -147,16 +147,17 @@ if (!phoneRun) {
 }
 // all sites: the cursor presses the App page's Pipeline tab (17b); waves 2 and 3 fill it by themselves; it ends all green, held ~3 s (17d)
 ok(B[18.45].curPipe && B[18.45].surfTab !== 'Pipeline', `17b: on the App page the cursor goes to its Pipeline tab (${B[18.45].surfTab})`);
-const A = [19.1, 20.1, 21.3, 22.5, 23.3, 24.5, 26.5];
+const A = [19.1, 20.1, 21.3, 22.5, 22.8, 23.8, 26.5];
 ok(A.every((t) => B[t].surfTab === 'Pipeline'), `All sites: the App page's Pipeline tab (${A.map((t) => B[t].surfTab).join('|')})`);
-const AW = A.filter((t) => !phoneRun || t < 25.7); /* scene lane 7: from 25.7 the phone frames the card's header (17d) */
+const AW = A.filter((t) => !phoneRun || t < 24.9); /* scene lane 7: from 24.9 the phone frames the card's header (17d) */
 ok(AW.every((t) => (phoneRun ? B[t].prodWhole : B[t].apWhole) === 'whole'), `All sites: the Pipeline card (phone: its prod lane, until the end frame) is whole in frame (${AW.map((t) => phoneRun ? B[t].prodWhole : B[t].apWhole).join(' ')})`);
 ok(/3 of 7 places/.test(B[19.1].apipe), `All sites: wave 1 done, waves 2 and 3 not yet (${B[19.1].apipe.slice(0, 40)})`);
-ok(/deploying/.test(B[20.1].apipe) && /checking/.test(B[21.3].apipe) && /5 of 7 places/.test(B[22.5].apipe), 'All sites: wave 2 deploys, checks, then is green');
-ok(/deploying/.test(B[23.3].apipe) && /checking/.test(B[24.5].apipe) && /7 of 7 places/.test(B[26.5].apipe) && !/deploying|checking/.test(B[26.5].apipe), 'All sites: wave 3 the same; the end is every place green, "7 of 7 places"');
+ok(/deploying/.test(B[20.1].apipe) && /checking/.test(B[21.3].apipe) && /[57] of 7 places/.test(B[22.5].apipe), 'All sites: wave 2 deploys, checks, then is green (scene lane 7: wave 3 takes the build as wave 2 settles, so the count is 7 assigned from 22.1)');
+ok(/deploying/.test(B[22.8].apipe) && /checking/.test(B[23.8].apipe) && /7 of 7 places/.test(B[26.5].apipe) && !/deploying|checking/.test(B[26.5].apipe), 'All sites: wave 3 the same; the end is every place green, "7 of 7 places"');
 ok(!/[Mm]erged/.test(B[26.5].all), 'All sites: Released, never merged');
 ok(/prod: .*(done|healthy|deployed|up to date)/i.test(B[26.5].envs) || !/not reached|deploying|checking/i.test(B[26.5].envs), `17a: the strip is full at the end (${B[26.5].envs})`);
 if (!phoneRun) ok(A.every((t) => near(B[t].apRect?.split(',').slice(0, 3).join(','), B[19.1].apRect?.split(',').slice(0, 3).join(','))), `0px: the Pipeline card holds its place while the waves fill (${A.map((t) => B[t].apRect).join(' / ')})`);
+if (phoneRun) ok(B[2.25].curProd, `17b (phone): the release beat ends on a tap on prod in the App page's strip (${B[2.25].curProd})`);
 /* scene lane 7 (AD r1 P0-1, 17f): the approved state is LIVE (no cover still) for >= 0.5 s before the build moves at 9.8 */
 ok(!B[9.4].snapOn && /Approved|Nothing is holding/.test(B[9.4].all) && (phoneRun || !/runs 4\.46\.0-46/.test(B[9.4].all)), `17f: at 9.4 the approval is live (no still) and the build has not moved yet (snap ${B[9.4].snapOn})`);
 /* scene lane 7 (AD r1 P0-2, 17d): the held end shows the product's count ON SCREEN */
