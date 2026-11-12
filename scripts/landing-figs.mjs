@@ -16,7 +16,7 @@
 // with the ground colour so they occlude what is behind them; that is the whole hidden-line model.
 // Motion grammar = the hero's (railway-motion.md): EXPO moves 240-540 ms, fall 320 ms, 200 ms fades,
 // holds >= 600 ms, one focal change at a time across the row (one 6 s clock, fig n bursts at n x 1100 ms).
-import { writeFileSync, mkdirSync } from 'node:fs';
+import { writeFileSync, readFileSync, mkdirSync } from 'node:fs';
 import { dirname, join } from 'node:path';
 import { fileURLToPath } from 'node:url';
 
@@ -114,15 +114,25 @@ function ghost({ px, py, z = 0, e = 16, cls = '' }) {
 	const dd = `M${p(-h, -h, e)}L${p(h, -h, e)}L${p(h, h, e)}L${p(-h, h, e)}Z M${p(-h, h, e)}L${p(-h, h, 0)}L${p(h, h, 0)}L${p(h, -h, 0)}L${p(h, -h, e)} M${p(h, h, e)}L${p(h, h, 0)}`;
 	return `<path class="fig-ghost ${cls}" ${NS} d="${dd}"/>`;
 }
-// A ramp between two plan points at two heights: two rails and treads.
-function ramp({ a, b, za, zb, wd = 12, cls = '', treads = 6 }) {
-	const dx = b[0] - a[0], dy = b[1] - a[1], len = Math.hypot(dx, dy);
-	const nx = (-dy / len) * wd / 2, ny = (dx / len) * wd / 2;
-	const pt = (t, side) => P(a[0] + dx * t + nx * side, a[1] + dy * t + ny * side, za + (zb - za) * t);
-	const rail = (side) => `M${pt(0, side).join(' ')}L${pt(1, side).join(' ')}`;
-	let tr = '';
-	for (let i = 1; i < treads; i++) { const t = i / treads; tr += `M${pt(t, -1).join(' ')}L${pt(t, 1).join(' ')}`; }
-	return `<g class="fig-ramp ${cls}"><path class="fig-rail" ${NS} d="${rail(-1)}${rail(1)}"/><path class="fig-tread" ${NS} d="${tr}"/></g>`;
+// A flight of stairs between two plates (FIGS r2 redraw). Plan axis = -y (the climb runs up-right on screen).
+// ONE GRID: the riser equals the plate thickness T and the tread depth equals the riser, so every step is a
+// 10 x 10 cell of the same lattice the plates sit on; the upper plate's own front face is the last riser.
+// Each step is a solid block (tread on top, riser facing the climber); the right-hand side is one stepped
+// profile polygon, and the underside runs parallel to the nosing line (a floating stair, as thick as a plate).
+// Painter's order: far step first; the side profile last (it never overlaps a riser, x-ranges are disjoint).
+function stairs({ x0, y0, z0, n, wd = SW }) {
+	const xa = x0 - wd / 2, xb = x0 + wd / 2, out = [];
+	const poly = (pts) => `M${pts.map((q) => P(...q).join(' ')).join('L')}Z`;
+	for (let i = n - 1; i >= 0; i--) {
+		const yf = y0 - i * T, yb = y0 - (i + 1) * T, zt = z0 + (i + 1) * T;
+		out.push(`<path class="fig-st-top" ${NS} d="${poly([[xa, yb, zt], [xb, yb, zt], [xb, yf, zt], [xa, yf, zt]])}"/>`);
+		out.push(`<path class="fig-st-side" ${NS} d="${poly([[xa, yf, zt], [xb, yf, zt], [xb, yf, zt - T], [xa, yf, zt - T]])}"/>`);
+	}
+	const prof = [[xb, y0, z0 - T]];
+	for (let i = 0; i < n; i++) prof.push([xb, y0 - i * T, z0 + (i + 1) * T], [xb, y0 - (i + 1) * T, z0 + (i + 1) * T]);
+	prof.push([xb, y0 - n * T, z0 + n * T - T]);
+	out.push(`<path class="fig-st-side" ${NS} d="${poly(prof)}"/>`);
+	return `<g class="fig-stairs">${out.join('')}</g>`;
 }
 // A measurement ring of plan radius r, in a <g> so a CSS scale never replaces the iso matrix on the circle (A5).
 function ring({ px, py, z, r, cls, dash = false }) {
@@ -146,20 +156,29 @@ function svg(name, _vb, body, extra = '') {
 	console.log('wrote', name);
 }
 
-// ---- the five loop phases (one plate scale for all five) -----------------------------------------
-const W = 100;
+// ---- one grid, one cube, one projection (FIGS r2 redraw) ----------------------------------------
+// Every figure is drawn on one plan lattice of T = 10 units: plates are 100 x 100 x 10, a step is 10 x 10 x 10,
+// a level is 4 risers (40), the gap between two plates is 3 treads (30). Every build is the same 16-unit cube
+// (the release queue, the gate, the climb, health and the staircase all share it). Posts and bars stand on
+// a plate's top face (z = 0) and are vertical in plan, so they read as standing, not floating.
+const W = 100, T = 10, E = 16, SW = 36, NB = 3, LZ = (NB + 1) * T, GAP = NB * T, LVL = W + GAP;
 const T4 = [{ u: .5, v: .17 }, { u: .83, v: .5 }, { u: .5, v: .83 }, { u: .17, v: .5 }];
+// the climb, as a polyline of cube-base points in plan: plate centre -> stair foot -> the nosing line (z rises
+// one unit per unit of travel, so the cube's front-bottom edge rides the step nosings) -> next plate centre.
+// The cube (16) is 6 longer than the tread (10), so at yc = 8 - k*10 its base sits exactly on step k's tread.
+const climb = (cx, py, z) => [[cx, py + W / 2, z], [cx, py + E / 2, z], [cx, py + E / 2 - LZ, z + LZ], [cx, py - GAP - W / 2, z + LZ]];
+const scr = (A, pts) => pts.map((q) => d(A, P(...q)));
 {
 	// release: "a new version arrives". The builds wait in a queue in the air; the front one drops onto
 	// the plate and the queue steps down. Rest pose: front build hovering, dotted drop, two ghosts.
 	begin(); const cx = W / 2, cy = W / 2; let b = plate({ px: 0, py: 0, w: W, tiles: T4 });
-	const land = P(cx, cy, 0), hover = P(cx, cy, 64), g1 = P(cx, cy - 30, 92), g2 = P(cx, cy - 56, 104);
-	b += `<path class="fig-drop" ${NS} d="M${P(cx, cy, 4).join(' ')}L${P(cx, cy, 62).join(' ')}"/>`;
-	b += `<g class="m m-rel-g2">${ghost({ px: cx, py: cy - 56, z: 104, e: 15 })}</g>`;
-	b += `<g class="m m-rel-g3">${ghost({ px: cx, py: cy - 56, z: 104, e: 15 })}</g>`;
-	b += `<g class="m m-rel-g1">${ghost({ px: cx, py: cy - 30, z: 92, e: 15 })}</g>`;
-	b += `<g class="m m-rel-next">${cube({ px: cx, py: cy - 30, z: 92, e: 15 })}</g>`;
-	b += `<g class="m m-rel-cube">${cube({ px: cx, py: cy, z: 64, e: 18 })}</g>`;
+	const land = P(cx, cy, 0), hover = P(cx, cy, 64), g1 = P(cx, cy - 30, 92), g2 = P(cx, cy - 56, 112);
+	b += `<path class="fig-drop" ${NS} d="M${P(cx, cy, 4).join(' ')}L${P(cx, cy, 60).join(' ')}"/>`;
+	b += `<g class="m m-rel-g2">${ghost({ px: cx, py: cy - 56, z: 112, e: E })}</g>`;
+	b += `<g class="m m-rel-g3">${ghost({ px: cx, py: cy - 56, z: 112, e: E })}</g>`;
+	b += `<g class="m m-rel-g1">${ghost({ px: cx, py: cy - 30, z: 92, e: E })}</g>`;
+	b += `<g class="m m-rel-next">${cube({ px: cx, py: cy - 30, z: 92, e: E })}</g>`;
+	b += `<g class="m m-rel-cube">${cube({ px: cx, py: cy, z: 64, e: E })}</g>`;
 	const fall = d(hover, land), up1 = d(g1, hover), up2 = d(g2, g1);
 	track('rel-cube', CYCLE, [{ t: 0, o: 1 }, { t: 0, dur: 320, pts: [[0, 0], fall], ease: 'fall' }, { t: 5300, x: fall[0], y: fall[1], o: 1 }, { t: 5500, x: fall[0], y: fall[1], o: 0 }, { t: 5999, x: fall[0], y: fall[1], o: 0 }, { t: 6000, o: 1 }]);
 	track('rel-next', CYCLE, [{ t: 0, o: 0 }, { t: 520, o: 0 }, { t: 520, dur: 434, pts: [[0, 0], up1], o: [0, 1], ofast: 2 }, { t: 5999, x: up1[0], y: up1[1], o: 1 }, { t: 6000, o: 0 }]);
@@ -170,11 +189,13 @@ const T4 = [{ u: .5, v: .17 }, { u: .83, v: .5 }, { u: .5, v: .83 }, { u: .17, v
 	svg('release', 'shelf', b);
 }
 {
-	// guard: "the environment is checked before anything lands". A scan runs once round the fence
-	// (on the ground, concentric with the plate), then the check is drawn and held. Rest: check drawn.
+	// guard: "the environment is checked before anything lands". The fence lies on the plate's underside
+	// plane (the ground the plate stands on), one grid cell out and concentric; a scan runs once round it,
+	// then the check is drawn and held. Rest: check drawn.
 	begin(); let b = '';
-	const [sx, sy] = P(-14, -14, -10); P(W + 14, -14, -10); P(-14, W + 14, -10); P(W + 14, W + 14, -10);
-	const fence = `width="${W + 28}" height="${W + 28}" rx="${f((W + 28) * .2)}" transform="${iso(sx, sy)}"`;
+	const o = 1.4 * T, fw = W + 2 * o;
+	const [sx, sy] = P(-o, -o, -T); P(W + o, -o, -T); P(-o, W + o, -T); P(W + o, W + o, -T);
+	const fence = `width="${fw}" height="${fw}" rx="${f(W * 0.16 + o)}" transform="${iso(sx, sy)}"`;
 	b += `<rect class="fig-fence" ${NS} x="0" y="0" ${fence}/>`;
 	b += `<rect class="fig-scan" pathLength="100" x="0" y="0" ${fence}/>`; // no non-scaling-stroke: pathLength must be honoured
 	b += plate({ px: 0, py: 0, w: W, tiles: T4 });
@@ -184,37 +205,39 @@ const T4 = [{ u: .5, v: .17 }, { u: .83, v: .5 }, { u: .5, v: .83 }, { u: .17, v
 	CSS.push('@keyframes check{0%,9%{stroke-dashoffset:1;opacity:1}13%{stroke-dashoffset:0}50%{stroke-dashoffset:0;opacity:1}53.3%,100%{stroke-dashoffset:0;opacity:0}}');
 	svg('guard', 'shelf', b);
 }
-// two environments, one step apart (gates, update)
-const TW = 100, TG = 34, TZ = 46;
-function twoPlates(rampCls) {
-	return plate({ px: 0, py: -(TW + TG), z: TZ, w: TW, tiles: [{ u: .5, v: .2 }, { u: .2, v: .5 }, { u: .8, v: .5 }], cls: 'fig-up' })
-		+ ramp({ a: [TW / 2, 0], b: [TW / 2, -TG], za: 0, zb: TZ, wd: 14, treads: 5, cls: rampCls })
-		+ plate({ px: 0, py: 0, w: TW, tiles: [{ u: .2, v: .5 }, { u: .5, v: .8 }, { u: .8, v: .5 }] });
+// two environments, one level apart (gates, update): far plate, the stairs, near plate (painter's order)
+function twoPlates() {
+	return plate({ px: 0, py: -LVL, z: LZ, w: W, tiles: [{ u: .5, v: .2 }, { u: .2, v: .5 }, { u: .8, v: .5 }], cls: 'fig-up' })
+		+ stairs({ x0: W / 2, y0: 0, z0: 0, n: NB })
+		+ plate({ px: 0, py: 0, w: W, tiles: [{ u: .2, v: .5 }, { u: .5, v: .8 }, { u: .8, v: .5 }] });
 }
 {
-	// gates: "your gate decides which version may go now". The dashed bar (the only "yours" mark) lifts,
-	// the waiting build goes through to mid-ramp, the gate drops back, the next build arrives.
-	begin(); let b = twoPlates('is-idle');
-	const gw = 7 + 12; // lane 23 (AD L11): the cube (half-width ~13 at e 14) passes BETWEEN the posts, which stand 12 outside the rails (they were 3: the cube overlapped its post)
-	const g1 = P(TW / 2 - gw, 4, 0), g2 = P(TW / 2 + gw, 4, 0);
-	b += `<path class="fig-gate" ${NS} d="M${g1[0]} ${g1[1]}v-36M${g2[0]} ${g2[1]}v-36"/>`;
-	b += `<g class="m m-gate-bar"><path class="fig-gate fig-dash" ${NS} d="M${g1[0]} ${f(g1[1] - 28)}L${g2[0]} ${f(g2[1] - 28)}"/></g>`;
-	const wait = P(TW / 2, 38, 0), foot = P(TW / 2, -2, 0), mid = P(TW / 2, -TG / 2, TZ / 2);
-	b += `<g class="m m-gate-cube">${cube({ px: TW / 2, py: 38, e: 12 })}</g>`;
-	const pass = d(wait, foot), up = d(wait, mid);
+	// gates: "your gate decides which version may go now". Two posts stand on the near plate's top face at
+	// the stair foot, straddling the flight (stair half-width + 4); the dashed bar (the only "yours" mark)
+	// spans them. The bar lifts, the waiting build climbs to the middle of the flight, the gate drops back,
+	// the next build arrives. The gate is drawn after the build: once the build is past it, the posts are nearer.
+	begin(); let b = twoPlates();
+	const gx = SW / 2 + 4, gy = 6, ph = 26, bz = 18;
+	const wait = [W / 2, 40, 0], A = P(...wait);
+	b += `<g class="m m-gate-cube">${cube({ px: wait[0], py: wait[1], z: 0, e: E })}</g>`;
+	const pl = P(W / 2 - gx, gy, 0), pr = P(W / 2 + gx, gy, 0), plt = P(W / 2 - gx, gy, ph), prt = P(W / 2 + gx, gy, ph);
+	b += `<path class="fig-gate" ${NS} d="M${pl.join(' ')}L${plt.join(' ')}M${pr.join(' ')}L${prt.join(' ')}"/>`;
+	b += `<g class="m m-gate-bar"><path class="fig-gate fig-dash" ${NS} d="M${P(W / 2 - gx, gy, bz).join(' ')}L${P(W / 2 + gx, gy, bz).join(' ')}"/></g>`;
+	const c = climb(W / 2, 0, 0), mid = [W / 2, E / 2 - 2 * T, 2 * T]; // on the second tread
+	const path = scr(A, [wait, c[1], mid]), up = path[2];
 	track('gate-bar', CYCLE, [{ t: 0, o: 1 }, { t: 0, x: 0, y: 0 }, { t: 240, x: 0, y: -8, o: 0 }, { t: 1900, x: 0, y: -8, o: 0 }, { t: 2140, x: 0, y: 0, o: 1 }, { t: 6000, o: 1 }]);
-	track('gate-cube', CYCLE, [{ t: 0, o: 1 }, { t: 160, o: 1 }, { t: 160, dur: 700, pts: [[0, 0], pass, up], o: [1, 1] }, { t: 1500, x: up[0], y: up[1], o: 1 }, { t: 1700, x: up[0], y: up[1], o: 0 }, { t: 2200, o: 0 }, { t: 2400, o: 1 }, { t: 6000, o: 1 }]);
+	track('gate-cube', CYCLE, [{ t: 0, o: 1 }, { t: 160, o: 1 }, { t: 160, dur: 700, pts: path, o: [1, 1] }, { t: 1500, x: up[0], y: up[1], o: 1 }, { t: 1700, x: up[0], y: up[1], o: 0 }, { t: 2200, o: 0 }, { t: 2400, o: 1 }, { t: 6000, o: 1 }]);
 	svg('gates', 'shelf', b);
 }
 {
-	// update: "it reaches the next environment". One continuous climb, plate centre -> ramp foot -> ramp top
-	// -> next plate centre (EXPO sampled over the polyline); the upper plate's rim answers.
-	// Rest pose (reduced motion / before live): mid-ramp, from --rest emitted here.
-	begin(); let b = twoPlates('is-active');
-	const A = P(TW / 2, TW / 2, 0), foot = P(TW / 2, 0, 0), top = P(TW / 2, -TG, TZ), B = P(TW / 2, -TG - TW / 2, TZ), mid = P(TW / 2, -TG / 2, TZ / 2);
-	const rest = d(A, mid);
-	b += `<g class="m m-upd-cube" style="--rest:translate(${rest[0]}px,${rest[1]}px)">${cube({ px: TW / 2, py: TW / 2, e: 16 })}</g>`;
-	const path = [[0, 0], d(A, foot), d(A, top), d(A, B)], end = d(A, B);
+	// update: "it reaches the next environment". One continuous climb, plate centre -> stair foot -> up the
+	// nosing line -> next plate centre (EXPO sampled over the polyline); the upper plate's rim answers.
+	// Rest pose (reduced motion / before live): on the second tread, from --rest emitted here.
+	begin(); let b = twoPlates();
+	const c = climb(W / 2, 0, 0), A = P(...c[0]);
+	const rest = d(A, P(W / 2, E / 2 - 2 * T, 2 * T));
+	b += `<g class="m m-upd-cube" style="--rest:translate(${rest[0]}px,${rest[1]}px)">${cube({ px: c[0][0], py: c[0][1], z: 0, e: E })}</g>`;
+	const path = scr(A, c), end = path[3];
 	track('upd-cube', CYCLE, [{ t: 0, o: 1 }, { t: 0, dur: 900, pts: path, o: [1, 1] }, { t: 2600, x: end[0], y: end[1], o: 1 }, { t: 2800, x: end[0], y: end[1], o: 0 }, { t: 2900, o: 0 }, { t: 3100, o: 1 }, { t: 6000, o: 1 }]);
 	CSS.push('@keyframes upd-flash{0%,7.9%{opacity:0}8%{opacity:1}19%{opacity:0}100%{opacity:0}}'); // arrival ~480 ms (900 ms, 660 ms fade)
 	svg('update', 'shelf', b);
@@ -226,43 +249,50 @@ function twoPlates(rampCls) {
 	b += ring({ px: W / 2, py: W / 2, z: 0, r: 18, cls: 'fig-ring-rest' });
 	b += ring({ px: W / 2, py: W / 2, z: 0, r: 46, cls: 'm m-hp1' });
 	b += ring({ px: W / 2, py: W / 2, z: 0, r: 46, cls: 'm m-hp2', dash: true });
-	b += cube({ px: W / 2, py: W / 2, e: 18 });
+	b += cube({ px: W / 2, py: W / 2, e: E });
 	CSS.push('@keyframes hp{0%{transform:scale(.36);opacity:0}4%{opacity:.9}15%{transform:scale(1);opacity:0}100%{transform:scale(1);opacity:0}}');
 	svg('health', 'shelf', b);
 }
 
-// ---- the staircase: three environments; the build climbs dev -> staging -> production (plays ONCE) ----
-// k = keyframe/class prefix ('st' wide, 'stc' compact). Rest = the finished picture: the build in every
-// environment, production lit.
-function staircase(name, k, { w, step, gap, wd, treads, e, rest, pulse, labels }) {
+// ---- the staircase: three environments on the same lattice; the build climbs dev -> staging -> production
+// (plays ONCE). k = keyframe/class prefix ('st' wide, 'stc' compact; same drawing, the compact one has no
+// labels). Rest = the finished picture: the build in every environment, production lit.
+function staircase(name, k, { labels }) {
 	begin(); let b = '';
-	const E = [0, 1, 2].map((i) => ({ px: 0, py: -i * (w + gap), z: i * step, label: ['development', 'staging', 'production'][i] }));
+	const E3 = [0, 1, 2].map((i) => ({ py: -i * LVL, z: i * LZ, label: ['development', 'staging', 'production'][i] }));
+	const tl = [{ u: .17, v: .5 }, { u: .83, v: .5 }];
 	for (let i = 2; i >= 0; i--) {
-		const en = E[i];
-		if (i < 2) { const n = E[i + 1]; b += ramp({ a: [w / 2, en.py], b: [w / 2, n.py + w], za: en.z, zb: n.z, wd, treads, cls: 'is-active' }); }
-		b += plate({ px: 0, py: en.py, z: en.z, w, t: w > 120 ? 12 : 10, cls: i === 2 ? 'is-healthy' : '', tiles: T4 });
-		if (i === 2) { b += ring({ px: w / 2, py: en.py + w / 2, z: en.z, r: rest, cls: `fig-ring-rest ${k}-ring` }); b += ring({ px: w / 2, py: en.py + w / 2, z: en.z, r: pulse, cls: `m m-${k}-pulse` }); }
-		if (labels) { const [lx, ly] = P(w, en.py, en.z); b += label(lx + 16, ly + 10, en.label, 'fig-env'); }
+		const en = E3[i];
+		b += plate({ px: 0, py: en.py, z: en.z, w: W, cls: i === 2 ? 'is-healthy' : '', tiles: tl });
+		if (i === 2) { b += ring({ px: W / 2, py: en.py + W / 2, z: en.z, r: 18, cls: `fig-ring-rest ${k}-ring` }); b += ring({ px: W / 2, py: en.py + W / 2, z: en.z, r: 44, cls: `m m-${k}-pulse` }); }
+		if (labels) { const [lx, ly] = P(W, en.py, en.z); b += label(lx + 12, ly + 6, en.label, 'fig-env', 7.4); }
+		if (i > 0) b += stairs({ x0: W / 2, y0: E3[i - 1].py, z0: E3[i - 1].z, n: NB });
 	}
-	b += `<g class="m m-${k}-s">${cube({ px: w / 2, py: E[1].py + w / 2, z: E[1].z, e })}</g>`;
-	b += `<g class="m m-${k}-p">${cube({ px: w / 2, py: E[2].py + w / 2, z: E[2].z, e })}</g>`;
-	b += cube({ px: w / 2, py: w / 2, z: 0, e });
-	b += `<g class="m m-${k}-t">${cube({ px: w / 2, py: w / 2, z: 0, e })}</g>`;
-	const c = (i) => P(w / 2, E[i].py + w / 2, E[i].z), ft = (i) => P(w / 2, E[i].py, E[i].z), tp = (i) => P(w / 2, E[i + 1].py + w, E[i + 1].z);
-	const A = c(0), leg = (i) => [d(A, c(i)), d(A, ft(i)), d(A, tp(i)), d(A, c(i + 1))];
-	const T = 4200, s1 = d(A, c(1)), s2 = d(A, c(2));
+	b += `<g class="m m-${k}-s">${cube({ px: W / 2, py: E3[1].py + W / 2, z: E3[1].z, e: E })}</g>`;
+	b += `<g class="m m-${k}-p">${cube({ px: W / 2, py: E3[2].py + W / 2, z: E3[2].z, e: E })}</g>`;
+	b += cube({ px: W / 2, py: W / 2, z: 0, e: E });
+	b += `<g class="m m-${k}-t">${cube({ px: W / 2, py: W / 2, z: 0, e: E })}</g>`;
+	const A = P(W / 2, W / 2, 0), leg = (i) => scr(A, climb(W / 2, E3[i].py, E3[i].z));
+	const T42 = 4200, s1 = leg(0)[3], s2 = leg(1)[3];
 	// hold 400 -> dev..staging 1000 -> hold 600 -> staging..prod 1000 -> prod pulse
-	track(`${k}-t`, T, [{ t: 0, o: 1 }, { t: 400, o: 1 }, { t: 400, dur: 1000, pts: leg(0) }, { t: 2000, x: s1[0], y: s1[1] }, { t: 2000, dur: 1000, pts: leg(1) }, { t: 4200, x: s2[0], y: s2[1] }]);
+	track(`${k}-t`, T42, [{ t: 0, o: 1 }, { t: 400, o: 1 }, { t: 400, dur: 1000, pts: leg(0) }, { t: 2000, x: s1[0], y: s1[1] }, { t: 2000, dur: 1000, pts: leg(1) }, { t: 4200, x: s2[0], y: s2[1] }]);
 	CSS.push(`@keyframes ${k}-s{0%,33.3%{opacity:0}33.4%,100%{opacity:1}}@keyframes ${k}-p{0%,71.3%{opacity:0}71.4%,100%{opacity:1}}@keyframes ${k}-pulse{0%,71.4%{transform:scale(.4);opacity:0}74%{opacity:.9}92%,100%{transform:scale(1);opacity:0}}`);
 	svg(name, '', b);
 }
-// labels 24 units (13 px rendered at 0.54), A10
-staircase('staircase-done', 'st', { w: 150, step: 46, gap: 96, wd: 16, treads: 7, e: 22, rest: 26, pulse: 64, labels: true });
-staircase('staircase-done-compact', 'stc', { w: 110, step: 34, gap: 70, wd: 14, treads: 5, e: 20, rest: 22, pulse: 44, labels: false });
+staircase('staircase-done', 'st', { labels: true });
+staircase('staircase-done-compact', 'stc', { labels: false });
 
 // The cube dependency graph left the page (landing v5 page: dependencies are one gate among six peers).
 
 // ---- the stylesheet half: the keyframes the drawings above need ------------------------------------
+// Written twice: the standalone file (the spec's artifact) and a marked block at the end of sections.css,
+// because home.html concatenates only home.css + sections.css (the .gen.css file alone never reached the page).
+const GEN = CSS.join('\n') + '\n';
 writeFileSync(join(ROOT, 'assets', 'css', 'landing-figs.gen.css'),
-	'/* GENERATED by scripts/landing-figs.mjs: keyframes for the landing figs. Waypoints come from the same P() that draws\n   the geometry (FIGS-SPEC A4); edit the generator, not this file. Attached in sections.css. */\n' + CSS.join('\n') + '\n');
-console.log('wrote assets/css/landing-figs.gen.css');
+	'/* GENERATED by scripts/landing-figs.mjs: keyframes for the landing figs. Waypoints come from the same P() that draws\n   the geometry (FIGS-SPEC A4); edit the generator, not this file. Attached in sections.css. */\n' + GEN);
+const SEC = join(ROOT, 'assets', 'css', 'sections.css'), B0 = '/* BEGIN landing-figs keyframes (GENERATED by scripts/landing-figs.mjs, do not edit) */', B1 = '/* END landing-figs keyframes */';
+let sec = readFileSync(SEC, 'utf8');
+const i0 = sec.indexOf(B0), i1 = sec.indexOf(B1);
+sec = i0 >= 0 ? sec.slice(0, i0) + B0 + '\n' + GEN + sec.slice(i1) : sec.replace(/\n*$/, '\n') + B0 + '\n' + GEN + B1 + '\n';
+writeFileSync(SEC, sec);
+console.log('wrote assets/css/landing-figs.gen.css + sections.css keyframes block');
