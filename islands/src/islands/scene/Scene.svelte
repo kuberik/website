@@ -36,8 +36,8 @@
 	let W = $state(0), H = $state(0);
 	const phone = $derived(W > 0 && W < 600);
 	/* the design box: the scene is laid out at 1x on a fixed width and zoomed to fit; the panel stops at 1.3x so the strip (always 1.5x, the cap) reads as the hero */
-	const DW = $derived(phone ? Math.max(300, W - 24) : 560);
-	const DH = $derived(phone ? 520 : 420);
+	const DW = $derived(phone ? Math.max(300, W - 24) : 660);
+	const DH = $derived(phone ? 520 : 460);
 	const k = $derived(phone ? 1 : Math.max(0.6, Math.min(1.3, (W - 80) / DW, (H - 24) / DH)));
 
 	/* ---- the strip: dev -> staging -> prod, each tier's sites in topology order ---- */
@@ -61,7 +61,8 @@
 	let boxes = $state<Record<string, { x: number; w: number }>>({});
 	let stripW = $state(0);
 	const SW = $derived(phone ? DW : 560); /* the row's own container width: >= 560 draws the connectors between boxes */
-	const zs = $derived(phone ? Math.min(1.5, stripW ? (DW - 4) / stripW : 1) : Math.min(1.5 / k, stripW ? (DW - 8) / stripW : 1));
+	/* AD r1 P0: the strip is the hero: as wide as the panel, up to 2.4x of product pixels (live DOM, crisp; the panel stays <= 1.3x) */
+	const zs = $derived(stripW ? Math.min(2.4 / k, (DW - 4) / (stripW + 2)) : 1);
 	const measure = () => {
 		if (!stripEl || !scene) return;
 		const els = [...stripEl.querySelectorAll<HTMLElement>('[data-env-box]')];
@@ -93,11 +94,12 @@
 	$effect(() => { if (!shown && stripW > 0 && W > 0) { shown = true; requestAnimationFrame(() => onshown()); } });
 
 	/* the chip: the build itself, centred over the box it runs in (design px of the scene) */
-	const off = $derived(stripW ? (DW - stripW * zs) / 2 : 0);
-	const chipX = $derived.by(() => { const b = boxes[here]; return b ? off + (b.x + b.w / 2) * zs : DW / 2; });
+	const off = $derived(stripW ? (DW - (stripW + 2) * zs) / 2 : 0);
+	/* in the strip's own units (the chip rides inside the strip's zoom) */
+	const chipX = $derived.by(() => { const b = boxes[here]; return b ? b.x + b.w / 2 : stripW / 2; });
 	let chipW = $state(0);
 	/* the chip stays inside the canvas (a phone's dev box sits at the edge); its stem still points at the box's centre */
-	const chipL = $derived(Math.max(2, Math.min(DW - chipW - 2, chipX - chipW / 2)));
+	const chipL = $derived(Math.max(0, Math.min(stripW + 2 - chipW, chipX - chipW / 2)));
 	const newTag = $derived(t < EV.hop1);
 	const shine = $derived(!reduced && t >= 0.25 && t < 1.55);
 
@@ -167,17 +169,15 @@
 				<span class="t-ui text-fg">checkout-api</span>
 			</div>
 
-			<!-- the build travels: its chip glides over the box it runs in -->
-			<div class="sc-track">
-				<span class="sc-chip" class:sc-chip-glide={!reduced} bind:offsetWidth={chipW} style="transform:translate3d({chipL}px,0,0)">
-					<span class="sc-build t-code-sm">{BUILD}</span>
-					{#if newTag}<span class="sc-new" class:sc-new-shine={shine}><Chip role="newest" label="New" dot={false} /></span>{/if}
-					<i class="sc-stem" style="left:{chipX - chipL}px"></i>
-				</span>
-			</div>
-
-			<!-- the spine: dev -> staging -> prod -->
-			<div class="sc-strip" style="zoom:{zs};margin-left:{off / zs}px">
+			<!-- the spine, the hero: dev -> staging -> prod, and the build's chip gliding over the box it runs in (one zoom: the chip is the strip's size) -->
+			<div class="sc-stage" style="zoom:{zs};margin-left:{off / zs}px;width:{stripW ? stripW + 2 : SW}px">
+				<div class="sc-track">
+					<span class="sc-chip" class:sc-chip-glide={!reduced} bind:offsetWidth={chipW} style="transform:translate3d({chipL}px,0,0)">
+						<span class="sc-build t-code-sm">{BUILD}</span>
+						{#if newTag}<span class="sc-new" class:sc-new-shine={shine}><Chip role="newest" label="New" dot={false} /></span>{/if}
+						<i class="sc-stem" style="left:{chipX - chipL}px"></i>
+					</span>
+				</div>
 				<div class="sc-strip-row" bind:this={stripEl} style="width:{SW}px">
 					<EnvRow {cells} lane="scene" size="L" />
 				</div>
@@ -213,7 +213,11 @@
 								<span class="sc-main t-body text-fg">dev</span>
 								<span class="sc-side t-meta {devSt === 'done' ? 'text-success' : devSt === 'notreached' ? 'text-fg-subtle' : 'text-progress'}">{devSt === 'notreached' ? 'Next' : WORD[devSt]}</span>
 							</div>
-							<div class="sc-foot t-meta text-fg-subtle">Every build starts in dev, then moves on by itself</div>
+							<div class="sc-row">
+								<span class="sc-mk">{#if devSt === 'done'}<CheckCircleSolid class="h-4 w-4 text-success" />{:else if devSt === 'checking'}<StatusSpinner size="4" color="yellow" />{:else}<span class="sc-ring"></span>{/if}</span>
+								<span class="sc-main t-body text-fg-muted">Health checks in dev</span>
+								<span class="sc-side t-meta {devSt === 'checking' ? 'text-progress' : 'text-fg-subtle'}">{devSt === 'done' ? '3/3 passing' : devSt === 'checking' ? 'checking' : 'waiting'}</span>
+							</div>
 						{:else if shownPhase === 'health'}
 							{#each hcs as c (c.name)}
 								<div class="sc-row">
@@ -265,7 +269,7 @@
 							{#each waves as w, i (i)}
 								<div class="sc-row">
 									<span class="sc-mk"><WaveMark mark={waveMark(w, 'Wave ' + (i + 1))} /></span>
-									<span class="sc-main t-body text-fg sc-ell"><span class="text-fg-subtle">Wave {i + 1}</span>&nbsp; {phone ? (w.length === 1 ? w[0].name : w.length + ' sites') : w.map((s) => s.name).join(', ')}</span>
+									<span class="sc-main t-body text-fg sc-ell"><span class="text-fg-subtle">Wave {i + 1}</span>&nbsp; {phone ? w.length + (w.length === 1 ? ' site' : ' sites') : w.map((s) => s.name).join(', ')}</span>
 									<span class="sc-side t-meta {w.every((s) => s.state === 'done') ? 'text-success' : w.some((s) => s.state === 'checking' || s.state === 'deploying') ? 'text-progress' : 'text-fg-subtle'}">{w.every((s) => s.state === 'done') ? 'Healthy' : w.some((s) => s.state === 'deploying') ? 'Deploying' : w.some((s) => s.state === 'checking') ? 'Checking' : 'Next'}</span>
 								</div>
 							{/each}
@@ -286,7 +290,8 @@
 	.sc-canvas { position: relative; display: flex; flex-direction: column; align-items: stretch; transition: opacity 0.12s linear; }
 	.sc-app { display: flex; align-items: center; gap: 8px; height: 28px; }
 	.sc-app :global(.t-meta) { margin-left: 4px; }
-	.sc-track { position: relative; height: 40px; margin-top: 24px; }
+	.sc-stage { overflow: hidden; margin-top: 18px; }
+	.sc-track { position: relative; height: 38px; }
 	.sc-chip { position: absolute; left: 0; bottom: 8px; display: inline-flex; align-items: center; gap: 6px; height: 26px; padding: 0 6px 0 9px; margin-left: 0; border: 1px solid var(--k-line-strong); border-radius: 6px; background: var(--k-surface); box-shadow: 0 1px 2px rgb(0 0 0 / 0.06); white-space: nowrap; }
 	.sc-chip-glide { transition: transform 0.62s cubic-bezier(0.22, 0.8, 0.24, 1); }
 	.sc-build { color: var(--k-fg); }
@@ -297,9 +302,8 @@
 	.sc-new-shine::after { content: ''; position: absolute; inset: 0; background: linear-gradient(100deg, transparent 15%, color-mix(in srgb, var(--k-success-fg) 45%, transparent) 45%, transparent 75%); transform: translateX(-120%); animation: sc-shine 1.1s ease-in-out both; }
 	@keyframes sc-shine { to { transform: translateX(120%); } }
 	@keyframes sc-glow { 0% { box-shadow: 0 0 0 0 color-mix(in srgb, var(--k-success-fg) 0%, transparent); } 35% { box-shadow: 0 0 0 4px color-mix(in srgb, var(--k-success-fg) 30%, transparent); } 100% { box-shadow: 0 0 0 7px color-mix(in srgb, var(--k-success-fg) 0%, transparent); } }
-	.sc-strip { width: max-content; }
 	.sc-strip-row { width: 560px; }
-	.sc-panel { margin-top: 28px; height: 244px; }
+	.sc-panel { margin-top: 24px; height: 244px; }
 	.sc-panel :global(.sc-body) { flex: 1 1 auto; min-height: 0; }
 	/* the title swaps with the content (the slot stays) */
 	.sc-panel :global(.card-header > svg), .sc-panel :global(.card-header h2) { opacity: var(--sc-fade); transition: opacity 0.16s ease; }
@@ -331,6 +335,6 @@
 	.sc-key { display: inline-block; width: 8px; height: 8px; border-radius: 2px; vertical-align: 0; }
 	.sc-key-new { background: var(--k-success-solid, #16a34a); }
 	.sc-key-old { background: var(--k-line-strong); }
-	.sc-phone .sc-panel { height: 272px; }
+	.sc-phone .sc-panel { height: 256px; }
 	.sc-phone .sc-gate { min-width: 0; }
 </style>
