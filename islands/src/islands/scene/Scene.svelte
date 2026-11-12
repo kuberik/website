@@ -117,7 +117,7 @@
 	const gatesN = $derived(gs.filter((g) => g.state === 'passing').length);
 	const waves = $derived([1, 2, 3].map((w) => PROD_SITES.filter((s) => s.wave === w).map((s) => ({ name: s.name, state: siteState(t, 'prod', s.name) }))));
 	const prodDone = $derived(waves.flat().filter((s) => s.state === 'done').length);
-	const PANEL_PHONE: Record<Phase, string> = { release: 'Released', health: 'Health checks', gates: 'Gates to prod', canary: 'Canary', sites: 'Prod sites' };
+	const PANEL_PHONE: Record<Phase, string> = { release: 'Released', health: 'Health checks', gates: 'Gates before prod', canary: 'Canary', sites: 'Prod sites' }; /* AD r2: the same words, only the qualifier drops */
 	const PANEL: Record<Phase, { title: string; icon: any }> = {
 		release: { title: 'Released', icon: TagOutline },
 		health: { title: 'Health checks in staging', icon: HeartOutline },
@@ -172,7 +172,7 @@
 			<!-- the spine, the hero: dev -> staging -> prod, and the build's chip gliding over the box it runs in (one zoom: the chip is the strip's size) -->
 			<div class="sc-stage" style="zoom:{zs};margin-left:{off / zs}px;width:{stripW ? stripW + 2 : SW}px">
 				<div class="sc-track">
-					<span class="sc-chip" class:sc-chip-glide={!reduced} bind:offsetWidth={chipW} style="transform:translate3d({chipL}px,0,0)">
+					<span class="sc-chip" class:sc-chip-glide={!reduced && t > 0.25} bind:offsetWidth={chipW} style="transform:translate3d({chipL}px,0,0)">
 						<span class="sc-build t-code-sm">{BUILD}</span>
 						{#if newTag}<span class="sc-new" class:sc-new-shine={shine}><Chip role="newest" label="New" dot={false} /></span>{/if}
 						<i class="sc-stem" style="left:{chipX - chipL}px"></i>
@@ -257,7 +257,7 @@
 									<span class="sc-lg text-fg-muted"><b>{100 - pct}%</b><span class="t-code-sm">{PREV}</span><i class="sc-key sc-key-old"></i></span>
 								</div>
 							</div>
-							<div class="sc-sub t-label text-fg-subtle">Canary tests at 10%</div>
+							<div class="sc-sub t-label text-fg-subtle">Canary tests</div>
 							{#each tests as c (c.name)}
 								<div class="sc-row sc-row-tight">
 									<span class="sc-mk">{#if c.state === 'passing'}<CheckCircleSolid class="h-4 w-4 text-success" />{:else if c.state === 'pending'}<StatusSpinner size="4" color="yellow" />{:else}<span class="sc-ring"></span>{/if}</span>
@@ -323,7 +323,8 @@
 	.sc-side { display: inline-flex; align-items: center; gap: 8px; white-space: nowrap; justify-self: end; }
 	.sc-gate { min-width: 170px; justify-content: flex-end; min-height: 28px; }
 	.sc-bake { padding: 10px 16px 0 44px; }
-	.sc-foot { padding: 10px 16px 0 44px; }
+	.sc-foot { padding: 10px 16px 0 44px; text-wrap: balance; }
+	.sc-bake p { text-wrap: balance; }
 	.sc-sub { padding: 10px 16px 2px 16px; text-transform: uppercase; letter-spacing: 0.04em; }
 	.sc-split { padding: 12px 16px 4px; }
 	.sc-bar { position: relative; height: 10px; border-radius: 999px; overflow: hidden; background: var(--k-line-strong); }
