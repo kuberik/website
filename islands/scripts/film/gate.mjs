@@ -28,7 +28,7 @@ const tabs = await p.evaluate(() => [...document.querySelector('[data-island="he
 const ci = await p.evaluate(() => [...document.querySelector('[data-island="hero"]').shadowRoot.querySelectorAll('.fc-tab')].findIndex((e) => (+document.documentElement.clientWidth < 500 ? /All sites/ : /Canary/).test(e.getAttribute('aria-label')))); await p.evaluate((i) => document.querySelector('[data-island="hero"]').shadowRoot.querySelectorAll('.fc-tab')[i].scrollIntoView({ inline: 'center', block: 'nearest' }), ci); await p.waitForTimeout(200);
 const tb = await p.evaluate((i) => { const r = document.querySelector('[data-island="hero"]').shadowRoot.querySelectorAll('.fc-tab')[i].getBoundingClientRect(); return { x: r.x + r.width / 2, y: r.y + r.height / 2 }; }, ci); void tabs;
 if (+w < 500) await p.touchscreen.tap(tb.x, tb.y); else await p.mouse.click(tb.x, tb.y); await p.waitForTimeout(400); const t0 = await T(); /* scene lane 6: a phone TAPS (an emulated mouse over the frame is a hover: it pauses) */
-ok(+w < 500 ? t0 >= 17.4 && t0 < 18.5 : t0 >= 9.9 && t0 < 11.0, `the ${+w < 500 ? 'All sites (phone: 3 chapters, from 17.4)' : 'Canary (from 9.9)'} chip seeks to its chapter's start (t=${t0})`); ok(await adv(), 'and keeps playing');
+ok(+w < 500 ? t0 >= 17.9 && t0 < 19.0 : t0 >= 10.4 && t0 < 11.5, `the ${+w < 500 ? 'All sites (phone: 3 chapters, from 17.9)' : 'Canary (from 10.4)'} chip seeks to its chapter's start (t=${t0})`); ok(await adv(), 'and keeps playing');
 // 2. the pointer over the canvas pauses (mouse only), leaving resumes
 if (+w > 500) {
   const f = await box('.film-frame'); await p.mouse.move(f.x, f.y); await p.waitForTimeout(300);
@@ -93,13 +93,16 @@ const probe = (t, want = []) => p.evaluate(async ([t, want]) => { const h = docu
   const prodWhole = ap && lab ? (lab.getBoundingClientRect().top >= m.top - 1 && ap.getBoundingClientRect().bottom <= m.bottom - navH + 1 ? 'whole' : 'cut') : 'missing';
   const kc = r.querySelector('.kc'), tabP = [...r.querySelectorAll('a[title="Pipeline"]')].find((a) => !a.closest('.film-snap')), envP = [...r.querySelectorAll('[data-env-row] [data-env-box]')].find((e) => /^prod$/i.test(txt(e.querySelector('.env-name'))));
   const at = (el) => { if (!kc || !el || !kc.classList.contains('kc-on')) return false; const k = kc.getBoundingClientRect(), q = el.getBoundingClientRect(); return k.x >= q.left - 2 && k.x <= q.right + 2 && k.y >= q.top - 4 && k.y <= q.bottom + 4; };
-  return { toast: txt(r.querySelector('.film-toast [role="status"]')), tally: r.querySelector('.fc-tally')?.getAttribute('aria-label') ?? '', envs: r.querySelector('.fc-envs')?.getAttribute('aria-label') ?? '', curPipe: at(tabP), curProd: at(envP), press: !!kc?.classList.contains('kc-press'), prodWhole, gatesWhole: inWin(gc), gatesTop: gc ? Math.round(gc.getBoundingClientRect().top) : null, hoodW: hood?.offsetWidth ?? 0, hoodCols: hood ? getComputedStyle(hood.querySelector('.hood-grid') ?? hood).gridTemplateColumns : '', apipe: txt(ap), apWhole: inWin(ap), apRect: rect(ap), surfTab: txt(g.querySelector('[aria-current="page"]')), titles, whole, newTag: !!r.querySelector('.film-new'), release: /4\.46\.0-46/.test(all) && !!r.querySelector('.film-new'), confirm: !!r.querySelector('[data-approve-confirm]'), all: all.slice(0, 4000),
+  const cnt = [...g.querySelectorAll('span,div,p')].filter((e) => /^\d+ of 7 places/.test(txt(e)) && e.getClientRects().length && !e.closest('.film-snap')).pop(), cb = cnt?.getBoundingClientRect(); /* scene lane 7 (17d): the count ON SCREEN, not just in the DOM */
+  const countOn = cb ? (cb.top >= m.top - 1 && cb.bottom <= m.bottom - navH + 1 && cb.left >= m.left - 1 && cb.right <= m.right + 1 ? txt(cnt) : 'off ' + Math.round(cb.top - m.top)) : 'missing';
+  const snapOn = [...r.querySelectorAll('.film-snap')].some((e) => +getComputedStyle(e).opacity > 0.02 && getComputedStyle(e).display !== 'none');
+  return { countOn, snapOn, toast: txt(r.querySelector('.film-toast [role="status"]')), tally: r.querySelector('.fc-tally')?.getAttribute('aria-label') ?? '', envs: r.querySelector('.fc-envs')?.getAttribute('aria-label') ?? '', curPipe: at(tabP), curProd: at(envP), press: !!kc?.classList.contains('kc-press'), prodWhole, gatesWhole: inWin(gc), gatesTop: gc ? Math.round(gc.getBoundingClientRect().top) : null, hoodW: hood?.offsetWidth ?? 0, hoodCols: hood ? getComputedStyle(hood.querySelector('.hood-grid') ?? hood).gridTemplateColumns : '', apipe: txt(ap), apWhole: inWin(ap), apRect: rect(ap), surfTab: txt(g.querySelector('[aria-current="page"]')), titles, whole, newTag: !!r.querySelector('.film-new'), release: /4\.46\.0-46/.test(all) && !!r.querySelector('.film-new'), confirm: !!r.querySelector('[data-approve-confirm]'), all: all.slice(0, 4000),
     pipe: txt(pipe), hc: txt(hc), hist: txt(hist), strip: [...r.querySelectorAll('[data-env-row] [data-env-box]')].map(rect).join(' '), pipeRect: rect(pipe), hcRect: rect(hc), graphRect: rect(smallest(/^Business hours$/)) }; }, [t, want]);
 const phoneRun = +w < 500;
 const B = {};
-const W = { 14.3: ['kustomization.*', 'error-rate.*', 'latency-p99.*'], 16.5: ['Check timer.*'], ...(phoneRun ? { 5.6: ['Release approval', 'Business hours', 'payments-svc.*'], 9.6: ['Release approval', 'Business hours', 'payments-svc.*'] } : {}) };
+const W = { 14.8: ['kustomization.*', 'error-rate.*', 'latency-p99.*'], 17.0: ['Check timer.*'], ...(phoneRun ? { 5.6: ['Release approval', 'Business hours', 'payments-svc.*'], 10.1: ['Release approval', 'Business hours', 'payments-svc.*'] } : {}) };
 /* scene lane 6 (owner item 17): new times. The phone plays release -> gates -> all sites only (17h): its probes skip the other chapters */
-const TS = phoneRun ? [0.8, 1.9, 5.6, 7.6, 8.4, 8.6, 9.6, 17.95, 18.6, 19.6, 20.8, 22.0, 22.8, 24.0, 26.0] : [0.8, 1.9, 3.3, 4.6, 4.86, 5.6, 7.6, 8.4, 8.6, 9.6, 10.4, 11.0, 11.4, 11.7, 12.4, 13.2, 14.3, 15.05, 16.5, 17.95, 18.6, 19.6, 20.8, 22.0, 22.8, 24.0, 26.0];
+const TS = phoneRun ? [0.8, 1.9, 5.6, 7.6, 8.4, 8.6, 9.4, 10.1, 18.45, 19.1, 20.1, 21.3, 22.5, 23.3, 24.5, 26.5, 28.0] : [0.8, 1.9, 3.3, 4.6, 4.86, 5.6, 7.6, 8.4, 8.6, 9.4, 10.1, 10.9, 11.5, 11.9, 12.2, 12.9, 13.7, 14.8, 15.55, 17.0, 18.45, 19.1, 20.1, 21.3, 22.5, 23.3, 24.5, 26.5, 28.0];
 for (const t of TS) B[t] = await probe(t, W[t] ?? []);
 const on46 = (s) => /4\.46\.0-46/.test(s ?? '') && /Up to date/.test(s ?? '');
 const wholeOk = (t) => Object.entries(B[t].whole).every(([, v]) => v === 'whole');
@@ -119,38 +122,43 @@ if (!phoneRun) {
 }
 // gates
 ok(/Release approval/.test(B[5.6].all) && /Business hours/.test(B[5.6].all) && /payments-svc\s*3\.1\.0/.test(B[5.6].all) && !/not visible/.test(B[5.6].all), 'Gates: Release approval, Business hours, staging promotion and payments-svc on 3.1.0 (no "not visible")');
-if (phoneRun) ok(wholeOk(5.6) && wholeOk(9.6), `Gates (phone, the product's list form at 390, owner ruling): every gate tile whole in frame ${JSON.stringify(B[5.6].whole)} ${JSON.stringify(B[9.6].whole)}`);
-else ok(B[5.6].gatesWhole === 'whole' && B[9.6].gatesWhole === 'whole', `Gates: the whole Gates card is in frame before and after the approval (${B[5.6].gatesWhole} / ${B[9.6].gatesWhole})`);
+if (phoneRun) ok(wholeOk(5.6) && wholeOk(10.1), `Gates (phone, the product's list form at 390, owner ruling): every gate tile whole in frame ${JSON.stringify(B[5.6].whole)} ${JSON.stringify(B[10.1].whole)}`);
+else ok(B[5.6].gatesWhole === 'whole' && B[10.1].gatesWhole === 'whole', `Gates: the whole Gates card is in frame before and after the approval (${B[5.6].gatesWhole} / ${B[10.1].gatesWhole})`);
 if (!phoneRun) ok(B[5.6].hoodW >= 560 && B[5.6].hoodW < 960, `Gates: the graph's container is in the compact two-column band 560-959 px (${B[5.6].hoodW})`);
 ok(B[7.6].confirm && !/Nothing is holding/.test(B[7.6].all), 'Gates: a person presses Approve on the Gates tab (the confirm is open) while the approval still holds');
 ok(/runs 4\.45\.0-45/.test(B[8.4].all.replace(/\s+/g, ' ')) || phoneRun, 'Gates: until every gate passes, prod still runs 4.45.0-45');
-ok(!/decision/.test(B[8.4].tally) && (phoneRun || /1 decision/.test(B[8.6].tally)), `17e: "decision" lights at the confirm press 8.5 (${B[8.4].tally} -> ${B[8.6].tally})`);
-ok(/Nothing is holding this rollout/.test(B[9.6].all) && (phoneRun || /runs 4\.46\.0-46/.test(B[9.6].all)), 'Gates: every gate passes, then the build moves by itself (runs 4.46.0-46)');
-if (!phoneRun) ok(B[5.6].gatesTop === B[9.6].gatesTop, `0px: the Gates card holds its place through the approval (top ${B[5.6].gatesTop} / ${B[9.6].gatesTop})`);
+ok(!/decision/.test(B[8.4].tally) && /1 decision/.test(B[8.6].tally), `17e: "decision" lights at the confirm press 8.5 (${B[8.4].tally} -> ${B[8.6].tally})`);
+ok(/Nothing is holding this rollout/.test(B[10.1].all) && (phoneRun || /runs 4\.46\.0-46/.test(B[10.1].all)), 'Gates: every gate passes, then the build moves by itself (runs 4.46.0-46)');
+if (!phoneRun) ok(B[5.6].gatesTop === B[10.1].gatesTop, `0px: the Gates card holds its place through the approval (top ${B[5.6].gatesTop} / ${B[10.1].gatesTop})`);
 if (!phoneRun) {
   // canary (17g): 10% -> test passes -> 50% -> 100%, ~4 s
-  ok(/Stage 1/.test(B[11.0].pipe) && /Running/.test(B[11.0].pipe) && /10\s*%/.test(B[11.0].pipe), 'Canary: stage 1 (10 %) runs, its test is running');
-  ok(/Passed/.test(B[11.7].pipe) && /Stage 2[^A-Za-z]*50\s*%[^A-Za-z]*PENDING/i.test(B[11.7].pipe), `Canary: the test passes BEFORE traffic steps up (stage 2 still pending) ${B[11.7].pipe.slice(0, 160)}`);
-  ok(/Stage 2[^A-Za-z]*50\s*%[^A-Za-z]*IN PROGRESS/i.test(B[12.4].pipe), 'Canary: then stage 2, 50 %');
-  ok(/Stage 3[^A-Za-z]*100\s*%[^A-Za-z]*IN PROGRESS/i.test(B[13.2].pipe), 'Canary: then stage 3, 100 %');
-  ok(passed(11.4) === 3 && passed(11.7) === 4, `17e: the test ticks the counter as it passes (${passed(11.4)} -> ${passed(11.7)})`);
-  ok(near(B[10.4].pipeRect, B[11.0].pipeRect) && near(B[11.0].pipeRect, B[13.2].pipeRect), `0px: the pipeline card holds its box through the canary (${B[10.4].pipeRect} / ${B[13.2].pipeRect})`);
+  ok(/Stage 1/.test(B[11.5].pipe) && /Running/.test(B[11.5].pipe) && /10\s*%/.test(B[11.5].pipe), 'Canary: stage 1 (10 %) runs, its test is running');
+  ok(/Passed/.test(B[12.2].pipe) && /Stage 2[^A-Za-z]*50\s*%[^A-Za-z]*PENDING/i.test(B[12.2].pipe), `Canary: the test passes BEFORE traffic steps up (stage 2 still pending) ${B[12.2].pipe.slice(0, 160)}`);
+  ok(/Stage 2[^A-Za-z]*50\s*%[^A-Za-z]*IN PROGRESS/i.test(B[12.9].pipe), 'Canary: then stage 2, 50 %');
+  ok(/Stage 3[^A-Za-z]*100\s*%[^A-Za-z]*IN PROGRESS/i.test(B[13.7].pipe), 'Canary: then stage 3, 100 %');
+  ok(passed(11.9) === 3 && passed(12.2) === 4, `17e: the test ticks the counter as it passes (${passed(11.9)} -> ${passed(12.2)})`);
+  ok(near(B[10.9].pipeRect, B[11.5].pipeRect) && near(B[11.5].pipeRect, B[13.7].pipeRect), `0px: the pipeline card holds its box through the canary (${B[10.9].pipeRect} / ${B[13.7].pipeRect})`);
   // health checks (after the canary)
-  ok(/kustomization/.test(B[14.3].hc) && /error-rate/.test(B[14.3].hc) && /latency-p99/.test(B[14.3].hc) && /pending/i.test(B[14.3].hc), 'Health checks: prod\'s checks are on screen, not all passed yet');
-  ok(wholeOk(14.3), `Health checks: whole in frame ${JSON.stringify(B[14.3].whole)}`);
-  ok(/3\/3 healthy/.test(B[15.05].hc) && passed(15.05) === 7, `Health checks: all three pass, the counter says 7 (${passed(15.05)})`);
-  ok(B[14.3].hcRect === B[15.05].hcRect, `0px: the Health checks card holds its box as checks pass (${B[14.3].hcRect} / ${B[15.05].hcRect})`);
-  ok(/Check timer/.test(B[16.5].pipe) && /Bake started/.test(B[16.5].pipe) && wholeOk(16.5), 'Health checks: then the bake holds (Check timer, "Bake started, monitoring for errors.")');
+  ok(/kustomization/.test(B[14.8].hc) && /error-rate/.test(B[14.8].hc) && /latency-p99/.test(B[14.8].hc) && /pending/i.test(B[14.8].hc), 'Health checks: prod\'s checks are on screen, not all passed yet');
+  ok(wholeOk(14.8), `Health checks: whole in frame ${JSON.stringify(B[14.8].whole)}`);
+  ok(/3\/3 healthy/.test(B[15.55].hc) && passed(15.55) === 7, `Health checks: all three pass, the counter says 7 (${passed(15.55)})`);
+  ok(B[14.8].hcRect === B[15.55].hcRect, `0px: the Health checks card holds its box as checks pass (${B[14.8].hcRect} / ${B[15.55].hcRect})`);
+  ok(/Check timer/.test(B[17.0].pipe) && /Bake started/.test(B[17.0].pipe) && wholeOk(17.0), 'Health checks: then the bake holds (Check timer, "Bake started, monitoring for errors.")');
 }
 // all sites: the cursor presses the App page's Pipeline tab (17b); waves 2 and 3 fill it by themselves; it ends all green, held ~3 s (17d)
-ok(B[17.95].curPipe && B[17.95].surfTab !== 'Pipeline', `17b: on the App page the cursor goes to its Pipeline tab (${B[17.95].surfTab})`);
-const A = [18.6, 19.6, 20.8, 22.0, 22.8, 24.0, 26.0];
+ok(B[18.45].curPipe && B[18.45].surfTab !== 'Pipeline', `17b: on the App page the cursor goes to its Pipeline tab (${B[18.45].surfTab})`);
+const A = [19.1, 20.1, 21.3, 22.5, 23.3, 24.5, 26.5];
 ok(A.every((t) => B[t].surfTab === 'Pipeline'), `All sites: the App page's Pipeline tab (${A.map((t) => B[t].surfTab).join('|')})`);
-ok(A.every((t) => (phoneRun ? B[t].prodWhole : B[t].apWhole) === 'whole'), `All sites: the Pipeline card (phone: its prod lane) is whole in frame (${A.map((t) => phoneRun ? B[t].prodWhole : B[t].apWhole).join(' ')})`);
-ok(/3 of 7 places/.test(B[18.6].apipe), `All sites: wave 1 done, waves 2 and 3 not yet (${B[18.6].apipe.slice(0, 40)})`);
-ok(/deploying/.test(B[19.6].apipe) && /checking/.test(B[20.8].apipe) && /5 of 7 places/.test(B[22.0].apipe), 'All sites: wave 2 deploys, checks, then is green');
-ok(/deploying/.test(B[22.8].apipe) && /checking/.test(B[24.0].apipe) && /7 of 7 places/.test(B[26.0].apipe) && !/deploying|checking/.test(B[26.0].apipe), 'All sites: wave 3 the same; the end is every place green, "7 of 7 places"');
-ok(!/[Mm]erged/.test(B[26.0].all), 'All sites: Released, never merged');
-ok(/prod: .*(done|healthy|deployed|up to date)/i.test(B[26.0].envs) || !/not reached|deploying|checking/i.test(B[26.0].envs), `17a: the strip is full at the end (${B[26.0].envs})`);
-if (!phoneRun) ok(A.every((t) => near(B[t].apRect?.split(',').slice(0, 3).join(','), B[18.6].apRect?.split(',').slice(0, 3).join(','))), `0px: the Pipeline card holds its place while the waves fill (${A.map((t) => B[t].apRect).join(' / ')})`);
+const AW = A.filter((t) => !phoneRun || t < 25.7); /* scene lane 7: from 25.7 the phone frames the card's header (17d) */
+ok(AW.every((t) => (phoneRun ? B[t].prodWhole : B[t].apWhole) === 'whole'), `All sites: the Pipeline card (phone: its prod lane, until the end frame) is whole in frame (${AW.map((t) => phoneRun ? B[t].prodWhole : B[t].apWhole).join(' ')})`);
+ok(/3 of 7 places/.test(B[19.1].apipe), `All sites: wave 1 done, waves 2 and 3 not yet (${B[19.1].apipe.slice(0, 40)})`);
+ok(/deploying/.test(B[20.1].apipe) && /checking/.test(B[21.3].apipe) && /5 of 7 places/.test(B[22.5].apipe), 'All sites: wave 2 deploys, checks, then is green');
+ok(/deploying/.test(B[23.3].apipe) && /checking/.test(B[24.5].apipe) && /7 of 7 places/.test(B[26.5].apipe) && !/deploying|checking/.test(B[26.5].apipe), 'All sites: wave 3 the same; the end is every place green, "7 of 7 places"');
+ok(!/[Mm]erged/.test(B[26.5].all), 'All sites: Released, never merged');
+ok(/prod: .*(done|healthy|deployed|up to date)/i.test(B[26.5].envs) || !/not reached|deploying|checking/i.test(B[26.5].envs), `17a: the strip is full at the end (${B[26.5].envs})`);
+if (!phoneRun) ok(A.every((t) => near(B[t].apRect?.split(',').slice(0, 3).join(','), B[19.1].apRect?.split(',').slice(0, 3).join(','))), `0px: the Pipeline card holds its place while the waves fill (${A.map((t) => B[t].apRect).join(' / ')})`);
+/* scene lane 7 (AD r1 P0-1, 17f): the approved state is LIVE (no cover still) for >= 0.5 s before the build moves at 9.8 */
+ok(!B[9.4].snapOn && /Approved|Nothing is holding/.test(B[9.4].all) && (phoneRun || !/runs 4\.46\.0-46/.test(B[9.4].all)), `17f: at 9.4 the approval is live (no still) and the build has not moved yet (snap ${B[9.4].snapOn})`);
+/* scene lane 7 (AD r1 P0-2, 17d): the held end shows the product's count ON SCREEN */
+ok(/^7 of 7 places/.test(B[28.0].countOn), `17d: the held end shows "7 of 7 places" on screen (${B[28.0].countOn})`);
 await b.close(); process.exit(bad.length ? 1 : 0);

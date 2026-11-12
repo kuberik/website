@@ -42,7 +42,7 @@ await p.evaluate(() => {
   };
   window.__iv = setInterval(tick, 50);
 });
-const LOOP = 28.2 /* scene lane 6 */, total = +loops * LOOP * 1000 + 3000;
+const LOOP = 29.4 /* scene lane 7 */, total = +loops * LOOP * 1000 + 3000;
 const pix = [];
 const start = Date.now();
 while (Date.now() - start < total) {

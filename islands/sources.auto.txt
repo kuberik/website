@@ -86,7 +86,6 @@ lib/components/StillTryingNotice.svelte
 lib/components/StuckBadge.svelte
 lib/components/Toast.svelte
 lib/components/UnavailableCard.svelte
-lib/components/UpToDate.svelte
 lib/components/WaveMark.svelte
 lib/components/activity/FeedRow.svelte
 lib/components/app-monogram.svelte.ts

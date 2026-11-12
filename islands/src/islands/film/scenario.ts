@@ -34,11 +34,11 @@ export const EV = {
 	release: 0, devGo: 2.4, devCheck: 2.6, hcDevErr: 2.8, hcDevLat: 2.9, devDone: 3.1,
 	stagingGo: 3.2, check: 3.5, hcStagingErr: 3.7, hcStagingLat: 3.8, stagingDone: 4.4, /* staging rolls out quickly: deploy, checks, a short bake */
 	gatesCut: 5.0, promo: 5.5, /* the cursor pressed prod in staging's strip at 4.85; the promotion gate opens a sync after staging's bake, on screen */
-	approved: 8.7, deploy: 9.3, ovCut: 9.9, /* the confirm is pressed at 8.5; the approver's avatar lands, then the build moves by itself */
-	paused1: 10.2, testPending: 10.3, testRunning: 10.5, testPassed: 11.5, step2Go: 12.0, step3Go: 12.8, step2Done: 13.6, /* 10% -> test -> 50% -> 100% (step2Done = the canary completed) */
-	hcKust: 14.1, hcErr: 14.5, hcLat: 14.9, bakeCut: 15.2, us1Done: 17.4, appCut: 17.4, /* scene lane 6 (item 16): the bake completes ON the cut, so the pipeline card collapsing is under the cut still, not on screen */ pipeCut: 18.3, /* the App page; the cursor presses its Pipeline tab at 18.15 */
-	w2Deploy: 19.1, w2Check0: 20.3, w2Check1: 20.5, w2Done0: 21.4, w2Done1: 21.6,
-	w3Deploy: 22.4, w3Check0: 23.6, w3Check1: 23.8, w3Done0: 24.7, w3Done1: 24.9
+	approved: 8.7, deploy: 9.8, ovCut: 10.4, /* the confirm is pressed at 8.5; the approver's avatar lands, then the build moves by itself */
+	paused1: 10.7, testPending: 10.8, testRunning: 11, testPassed: 12, step2Go: 12.5, step3Go: 13.3, step2Done: 14.1, /* 10% -> test -> 50% -> 100% (step2Done = the canary completed) */
+	hcKust: 14.6, hcErr: 15, hcLat: 15.4, bakeCut: 15.7, us1Done: 17.9, appCut: 17.9, /* scene lane 6 (item 16): the bake completes ON the cut, so the pipeline card collapsing is under the cut still, not on screen */ pipeCut: 18.8, /* the App page; the cursor presses its Pipeline tab at 18.65 */
+	w2Deploy: 19.6, w2Check0: 20.8, w2Check1: 21, w2Done0: 21.9, w2Done1: 22.1,
+	w3Deploy: 22.9, w3Check0: 24.1, w3Check1: 24.3, w3Done0: 25.2, w3Done1: 25.4
 } as const;
 /** every story second a CR changes at: the film re-derives its (heavy) data snapshot only when one of these is passed */
 export const EVENT_TIMES = [0, ...Object.values(EV)].sort((a, b) => a - b);

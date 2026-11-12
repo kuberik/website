@@ -74,6 +74,8 @@ function resolve(name: string, root: ParentNode, phone: boolean): HTMLElement | 
 			if (!card || !lab) return null;
 			return { getBoundingClientRect() { const c = card.getBoundingClientRect(), l = lab.getBoundingClientRect(); return new DOMRect(c.left, l.top, c.width, c.bottom - l.top); } } as unknown as HTMLElement; }
 		case 'gates-card': return root.querySelector<HTMLElement>('[data-tour="dependency-graph"]');
+		/* scene lane 7 (AD r1 P0-2, item 17d on the phone): the App Pipeline card from its header ("7 of 7 places"), for the last held frame */
+		case 'pipe-head': return [...root.querySelectorAll<HTMLElement>('div,span,h2,h3')].filter((e) => text(e) === 'Pipeline' && !e.closest('a, .film-snap')).pop()?.closest<HTMLElement>('[class*="rounded"]') ?? null;
 		/* scene lane 6 (the phone, the product's list form at 390): the Gates card from its banner ("Needs your approval in prod" / "Nothing is holding this rollout")
 		   to its last gate tile: the card's title row does not fit above four whole tiles in the phone's window */
 		case 'gates-phone': {

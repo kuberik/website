@@ -20,7 +20,7 @@
 	const bits = $derived([
 		{ k: 'p', n: tally.passed, word: tally.passed === 1 ? 'check passed' : 'checks passed', show: tally.passed > 0 },
 		{ k: 'f', n: tally.failed, word: 'failed', show: tally.failed > 0 },
-		{ k: 'h', n: tally.people, word: narrow ? '' : tally.people === 1 ? 'decision' : 'decisions', show: tally.people > 0 && !narrow }
+		{ k: 'h', n: tally.people, word: tally.people === 1 ? 'decision' : 'decisions', show: tally.people > 0 } /* scene lane 7 (AD r1 P1-6, item 17e): the phone shows the decision too, as a person glyph + n */
 	].filter((b) => b.show));
 	let scroller: HTMLElement | undefined = $state();
 	$effect(() => {
@@ -58,7 +58,7 @@
 		</nav>
 		{#if bits.length}<span class="fc-tally t-meta" role="status" aria-live="off" aria-label={bits.map((b) => `${b.n} ${b.k === 'p' ? (b.n === 1 ? 'check passed' : 'checks passed') : b.word}`).join(', ')}>
 			{#each bits as b (b.k)}<span class="fc-bit" class:fc-bad={b.k === 'f'}>
-				{#if narrow}<svg class="fc-ic" width="12" height="12" viewBox="0 0 12 12" aria-hidden="true">{#if b.k === 'f'}<path d="M3 3l6 6M9 3l-6 6" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" />{:else}<path d="M2.5 6.4l2.4 2.4 4.6-5" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" />{/if}</svg>{/if}
+				{#if narrow}<svg class="fc-ic" width="12" height="12" viewBox="0 0 12 12" aria-hidden="true">{#if b.k === 'f'}<path d="M3 3l6 6M9 3l-6 6" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" />{:else if b.k === 'h'}<circle cx="6" cy="3.9" r="2.1" fill="none" stroke="currentColor" stroke-width="1.5" /><path d="M2.2 10.6c.5-2.1 2-3.2 3.8-3.2s3.3 1.1 3.8 3.2" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" />{:else}<path d="M2.5 6.4l2.4 2.4 4.6-5" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" />{/if}</svg>{/if}
 				{#key b.n}<b class="fc-n">{b.n}</b>{/key}{#if !narrow} {b.word}{/if}</span>{/each}
 		</span>{/if}
 	</div>

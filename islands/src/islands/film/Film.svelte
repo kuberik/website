@@ -31,7 +31,7 @@ import { flipRecord, flipPlay, type Pos } from './flip';
 
 	let { t, playing, userPlaying, reduced, onseek, ontoggle, onshown, eventIdx, seekN = 0 }: { t: number; playing: boolean; reduced: boolean; onseek: (chip: number) => void; ontoggle: () => void; onshown?: () => void; eventIdx: number; userPlaying: boolean; seekN?: number } = $props();
 	/* scene lane 6: `seekN` counts the reader's (and the harness's) seeks. A change of `t` without a new seek is PLAYED, however far it jumps: the phone's
-	   shorter story (item 17h) plays its kept chapters back to back, so its story clock jumps 2.4 -> 5.0 and 9.9 -> 17.4 on a played cut */
+	   shorter story (item 17h) plays its kept chapters back to back, so its story clock jumps 2.4 -> 5.0 and 10.4 -> 17.9 on a played cut */
 
 	let host: HTMLElement | undefined = $state();
 	let W = $state(1120), H = $state(640);
@@ -328,6 +328,10 @@ import { flipRecord, flipPlay, type Pos } from './flip';
 		const vw = main.clientWidth, vh = main.clientHeight, gw = group.offsetWidth, gh = group.offsetHeight;
 		const el = m.to === 'rest' || (phone && (m.to === 'modal-fields' || m.to === 'modal-top')) ? null : resolveTarget(m.to, camEl!, phone); /* phone: the rollback dialog is a full-screen sheet, there is nothing to zoom */
 		let x = 0, y = 0, s = el ? m.s : 1; /* a target that is not on the page rests (never a blind zoom at the origin) */
+		if (m.to === 'rest' && !phone) { /* scene lane 7 (AD r1 P1-3): the desktop 'rest' frame may start up to 24 px down the page so that BOTH its edges sit in a gap (the opening frame sliced a Builds row at its foot) */
+			const rects = [...textRects(false), ...boxRects({ x: -1, y: -1, w: 0, h: 0 }).filter((b) => b.h < 56)].map((q) => ({ x: q.x, y: q.y - 2, w: q.w, h: q.h + 4 }));
+			y = -(freeStart(0, Math.min(24, Math.max(0, gh - vh)), vh, spansIn(rects, 'y', 0, vw), 0) ?? 0);
+		}
 		const mk = el && !phone && m.dur === 0 && s !== 1 ? `${m.at}|${CW}|${CH}` : null, memo = mk ? AIM_MEMO.get(mk) : undefined;
 		if (memo) { ({ x, y, s } = memo); }
 		else if (el) {
