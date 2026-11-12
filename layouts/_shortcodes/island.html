@@ -7,7 +7,7 @@
 {{- $name := .Get "name" -}}
 {{- $h := .Get "height" | default "300" -}}
 {{- $p := "island-poster/" | relURL -}}
-{{- $v := (os.Stat "static/island-poster/p-1440-light.webp").ModTime.Unix -}}{{- /* scene lane 4: the posters are re-shot with the film; the query busts a cached old frame (owner saw scene 1 under the film) */ -}}
+{{- $v := site.Data.island_poster.v | default (os.Stat "static/island-poster/p-1440-light.webp").ModTime.Unix -}}{{- /* scene lane 6: the version is the posters' content hash, written by capture-posters.mjs into data/island_poster.yaml (a data change re-renders the page; os.Stat was cached by the Hugo server, so a re-shot poster kept its old ?v) */ -}}{{- /* scene lane 4: the posters are re-shot with the film; the query busts a cached old frame (owner saw scene 1 under the film) */ -}}
 {{- if .Get "eager" }}<style>
 .ph-poster{position:absolute;left:0;right:0;top:-56px;bottom:0;z-index:7;background-repeat:no-repeat;background-size:cover;background-position:left top;transition:opacity .2s ease-out;pointer-events:none}
 [data-island="hero"]{position:relative}

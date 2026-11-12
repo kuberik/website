@@ -30,3 +30,7 @@ for (const theme of ['light', 'dark']) for (const [vw] of SIZES) for (let attemp
 	break;
 } catch (e) { console.log('retry', theme, vw, String(e).slice(0, 80)); }
 await b.close();
+/* scene lane 6 (owner item 15): the posters' ?v is their content hash, in a data file (a data change re-renders the page on the Hugo server too) */
+{ const { createHash } = await import('node:crypto'); const { readdirSync, readFileSync, writeFileSync } = await import('node:fs');
+  const h = createHash('sha256'); for (const f of readdirSync(OUT).filter((f) => f.endsWith('.webp')).sort()) h.update(readFileSync(OUT + f));
+  writeFileSync(new URL('../../data/island_poster.yaml', import.meta.url).pathname, `# written by islands/scripts/capture-posters.mjs: the posters' content hash (their ?v)\nv: ${h.digest('hex').slice(0, 12)}\n`); }
