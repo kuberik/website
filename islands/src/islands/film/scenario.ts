@@ -30,8 +30,8 @@ export const EV = {
 	promo: 7.0, /* the promotion gate opens a sync after staging's bake: prod us-east-1 asks for the release approval (the App page's own banner) */
 	approved: 11.0, deploy: 11.0, /* the confirm is pressed at 10.7; the cut to the Overview lands on 11.0 with the approval: the banner never leaves on screen, the build moves by itself */
 	paused1: 12.3, testPending: 12.6, testRunning: 13.0, testPassed: 15.0, step2Go: 16.2, step2Done: 17.1, hcLat: 17.8, hcErr: 18.2, us1Done: 19.1,
-	w2Deploy: 20.4, w2Check0: 21.6, w2Check1: 21.9, w2Done0: 22.6, w2Done1: 23.0,
-	w3Deploy: 23.8, w3Check0: 24.9, w3Check1: 25.2, w3Done0: 25.9, w3Done1: 26.3
+	w2Deploy: 21.0, w2Check0: 22.0, w2Check1: 22.3, w2Done0: 23.0, w2Done1: 23.4, /* scene lane 3: after the prod box is pressed (20.1) and its site list is open */
+	w3Deploy: 24.2, w3Check0: 25.2, w3Check1: 25.5, w3Done0: 26.2, w3Done1: 26.6
 } as const;
 /** every story second a CR changes at: the film re-derives its (heavy) data snapshot only when one of these is passed */
 export const EVENT_TIMES = [0, ...Object.values(EV)].sort((a, b) => a - b);

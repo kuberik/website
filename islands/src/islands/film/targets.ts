@@ -55,8 +55,14 @@ function resolve(name: string, root: ParentNode, phone: boolean): HTMLElement | 
 			return gates.length && node ? union([...gates, node]) : null;
 		}
 		case 'pipeline': return cardOf(root, /Deployment pipeline/i);
-		/* scene lane 2: the page header's environment strip (EnvRow, #137 wave dots and pies), lit with a 6 px margin round its boxes */
-		case 'env-strip': { const e = q('[data-env-row] .env-row') ?? q('[data-env-row]'); if (!e) return null; return { __r: 10, getBoundingClientRect() { const r = e.getBoundingClientRect(), u = (e.offsetWidth ? r.width / e.offsetWidth : 1) * 6; return new DOMRect(r.left - u, r.top - u, r.width + 2 * u, r.height + 2 * u); } } as unknown as HTMLElement; }
+		/* scene lane 3: the page header's environment strip, lit as its BOXES (dev, staging, prod), 6 px round them: not the row's full-width band */
+		case 'env-strip': { const bs = [...root.querySelectorAll<HTMLElement>('[data-env-row] [data-env-box]')]; return bs.length ? pad(union(bs), 6, 10) : null; }
+		/* the Change page's story: its title, the strip's boxes and the History card under them (the main column), one lit shape */
+		case 'change-story': { const hd = q<HTMLElement>('[data-change-detail] header.page-header'), bs = [...root.querySelectorAll<HTMLElement>('[data-env-row] [data-env-box]')], h = cardOf(root, /^History$/); return bs.length && h ? pad(union([...(hd ? [contentBox(hd)] : []), ...bs, h]), 6, 10) : null; }
+		/* prod's box (it holds several sites: a button that opens the site picker) */
+		case 'prod-box': return q('[data-env-row] button[data-env-box][aria-haspopup]');
+		/* the prod box with its open site picker under it: one lit shape */
+		case 'sites': { const b = q('[data-env-row] button[data-env-box][aria-haspopup]'), p = q('[data-site-picker]'); return b && p ? pad(union([b, p]), 6, 10) : b; }
 		case 'health-checks': return cardOf(root, /^Health checks/i);
 		case 'banner': return q('.ap-cq');
 		/* the catch: the WHOLE failure banner (AD r4: lit as a banner with its own radius, not as a text box) */
@@ -130,6 +136,10 @@ function contentBox(el: HTMLElement): HTMLElement {
 	if (first && last) { r.setStart(first, 0); r.setEnd(last, last.length); } else r.selectNodeContents(el);
 	/* inflated 10 px: the hole never cuts a glyph; its corners are the chip family's 6 */
 	return { __r: 6, getBoundingClientRect: () => { const b = r.getBoundingClientRect(); return new DOMRect(b.left - 10, b.top - 10, b.width + 20, b.height + 20); } } as unknown as HTMLElement;
+}
+/** `el` grown by `m` canvas px on every side (the hole never touches a box's border), corner radius `r` */
+function pad(el: { getBoundingClientRect(): DOMRect }, m: number, r: number): HTMLElement {
+	return { __r: r, __pad: m, getBoundingClientRect() { const b = el.getBoundingClientRect(); return new DOMRect(b.left, b.top, b.width, b.height); } } as unknown as HTMLElement;
 }
 function union(els: { getBoundingClientRect(): DOMRect }[]): HTMLElement {
 	return { __r: 8, getBoundingClientRect() { const rs = els.map((e) => e.getBoundingClientRect()); const l = Math.min(...rs.map((r) => r.left)), t = Math.min(...rs.map((r) => r.top)), r = Math.max(...rs.map((x) => x.right)), b = Math.max(...rs.map((x) => x.bottom)); return new DOMRect(l, t, r - l, b - t); } } as unknown as HTMLElement;

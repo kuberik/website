@@ -14,7 +14,7 @@
 	import WindowBar from '../shared/WindowBar.svelte';
 	import Chrome from './Chrome.svelte';
 	import Cursor from './Cursor.svelte';
-	import { CHAPTERS, LOOP, chapterAt, chapterFill, surfAt, moveAt, pressAt, confirmOpen, CONFIRM_SURF, tallyShown, NEW_AT, NEW_SHINE, type Surf, type Move } from './script';
+	import { CHAPTERS, LOOP, chapterAt, chapterFill, surfAt, moveAt, pressAt, confirmOpen, CONFIRM_SURF, sitesOpen, SITES_SURF, tallyShown, NEW_AT, NEW_SHINE, type Surf, type Move } from './script';
 	import Chip from '$lib/components/Chip.svelte';
 	import { loadSurface, surfaceProps, SURFACE_PATH } from './surfaces';
 	import { resolveTarget } from './targets';
@@ -206,7 +206,7 @@ import { flipRecord, flipPlay, type Pos } from './flip';
 	let holeOn = $state(false), shadeOn = $state(false);
 	let holeTimer: ReturnType<typeof setTimeout> | undefined;
 	/* the hole = the target's own box and corner radius (targets.ts: a synthetic target says its own) */
-	function holeOf(el: Element) { const r = relRect(el); const rad = (el as any).__r ?? (parseFloat(getComputedStyle(el).borderTopLeftRadius) || 0); return { ...r, r: rad }; }
+	function holeOf(el: Element) { const r0 = relRect(el), m = (el as any).__pad ?? 0, r = { x: r0.x - m, y: r0.y - m, w: r0.w + 2 * m, h: r0.h + 2 * m }; const rad = (el as any).__r ?? (parseFloat(getComputedStyle(el).borderTopLeftRadius) || 0); return { ...r, r: rad }; }
 	let moveKey = '';
 	let moveTimer: ReturnType<typeof setTimeout> | undefined;
 	const unit = () => (group && group.offsetWidth ? group.getBoundingClientRect().width / group.offsetWidth : 1);
@@ -283,6 +283,7 @@ import { flipRecord, flipPlay, type Pos } from './flip';
 	const AIM_MEMO = new Map<string, { x: number; y: number; s: number }>();
 	function aim(m: Move, jump: boolean, refine = false, final = false) {
 		if (!group || !main) return;
+		if (phone) jump = true; /* scene lane 3: the phone's frame is a scroll; inside a chapter the camera cuts, it never glides */
 		/* reduced motion: no camera at all (STORYBOARD section 9): every frame is the unzoomed, unscrolled page */
 		if (reduced) { cam = { x: 0, y: 0, s: 1, dur: 0, ease: 'ease', moving: false }; holeOn = false; shadeOn = false; return; }
 		const vw = main.clientWidth, vh = main.clientHeight, gw = group.offsetWidth, gh = group.offsetHeight;
@@ -292,7 +293,8 @@ import { flipRecord, flipPlay, type Pos } from './flip';
 		if (memo) { ({ x, y, s } = memo); }
 		else if (el) {
 			const r0 = relRect(el), r = m.h ? { ...r0, h: m.h } : r0; /* Move.h: the frame is worked out as if the target were this tall, so it does not depend on the step the story is at */
-			if (phone) { s = 1; const pk = `${m.at}|${CW}`; if (!refine && !PHONE_OFF.has(pk)) PHONE_OFF.set(pk, phoneTop(r) - Math.max(0, r.y - 10)); phoneOff = PHONE_OFF.get(pk)! - 10; y = -Math.max(0, r.y + phoneOff); } /* the foot's nudge is worked out once per move (a seek frames the way play does) */
+			if (phone && m.stay && r.y < vh * 0.4) { s = 1; phoneOff = -1e6; y = 0; } /* scene lane 3: a subject near the page top (the header strip) keeps the page unscrolled: the title stays in frame */
+			else if (phone) { s = 1; const pk = `${m.at}|${CW}`; if (!refine && !PHONE_OFF.has(pk)) PHONE_OFF.set(pk, phoneTop(r) - Math.max(0, r.y - 10)); phoneOff = PHONE_OFF.get(pk)! - 10; y = -Math.max(0, r.y + phoneOff); } /* the foot's nudge is worked out once per move (a seek frames the way play does) */
 			else if (s === 1) { y = m.stay ? 0 : -Math.max(0, Math.min(r.y - 24, gh - vh)); }
 			else {
 				/* fit with a 14 px margin: the product's gap between cards is >= 12 px x scale, so a neighbour never peeks into the frame mid-word. The PERSON beats (m.min) zoom until their smallest text renders at m.min px, bounded by the window (both axes) and 2.4x. */
@@ -375,6 +377,17 @@ import { flipRecord, flipPlay, type Pos } from './flip';
 	const lifted = $derived((mv.dimOff !== undefined && t >= mv.dimOff) || (phone && confirmOpen(t))); /* lane 36 (AD r1 P2-2): on the phone the product's own sheet brings its scrim; the film's dim on top of it darkened the asking card twice */
 	const shellDim = $derived(((shadeOn && !lifted) || (!phone && cam.s > 1.05)) && !reduced);
 
+	/* scene lane 3: the camera never moves (s = 1), so a lit box that grows or shrinks (History logging a step, the site list) is followed by the HOLE alone, for half a second after each change */
+	$effect(() => {
+		void eventIdx; void shown; const m = mv;
+		untrack(() => {
+			if (!m.dim || m.dim === 'shade' || !camEl || reduced) return;
+			let n = 0, raf = 0;
+			const go = () => { if (holeOn && hole && camEl) { const hEl = resolveTarget(m.hole ?? m.to, camEl, phone); if (hEl) { const nx = holeOf(hEl); if (Math.abs(nx.x - hole.x) + Math.abs(nx.y - hole.y) + Math.abs(nx.w - hole.w) + Math.abs(nx.h - hole.h) > 1) hole = nx; } } if (++n < 30) raf = requestAnimationFrame(go); };
+			raf = requestAnimationFrame(go);
+		});
+	});
+
 	/* ---- the cursor: canvas px; the real click is dispatched at `press` ---- */
 	let canvas: HTMLElement | undefined = $state();
 	let ptr = $state({ x: 0, y: 0, on: false, press: false });
@@ -409,9 +422,34 @@ import { flipRecord, flipPlay, type Pos } from './flip';
 			/* only on the surface that owns the button: a seek lands here before the new surface is shown */
 			if (want && !approvalUi.ask && shown === CONFIRM_SURF) {
 				const el = resolveTarget('approve', canvas, phone) as HTMLElement | null;
-				if (el) { el.click(); const a = approvalUi.ask; if (a) { if (phone) { const c = canvas.getBoundingClientRect(), r = el.getBoundingClientRect(); a.anchor = { top: (r.top - c.top) / k, left: (r.left - c.left) / k, right: (r.right - c.left) / k, bottom: (r.bottom - c.top) / k }; } else { const r = relRect(el); /* the layer lives in the camera wrapper: group space, so it sits under ITS button at any zoom; the 320 px panel is left-aligned to the button (right = left + 320) */ a.anchor = { top: r.y, left: r.x, right: r.x + 320, bottom: r.y + r.h }; } } }
+				if (el) { el.click(); const a = approvalUi.ask; if (a) { if (phone) { const c = canvas.getBoundingClientRect(), r = el.getBoundingClientRect(); a.anchor = { top: (r.top - c.top) / k, left: (r.left - c.left) / k, right: (r.right - c.left) / k, bottom: (r.bottom - c.top) / k }; } else { const r = relRect(el), gw = group?.offsetWidth ?? 1440, l = Math.min(r.x, r.x + r.w - 320, gw - 16 - 320); /* the layer lives in the camera wrapper: group space, so it sits under ITS button at any zoom; the 320 px panel ends at the button's right edge (scene lane 3: left-aligned, the button at the page's right edge pushed it out of the window) */ a.anchor = { top: r.y, left: l, right: l + 320, bottom: r.y + r.h }; } } }
 			} else if (!want && approvalUi.ask) approvalUi.ask = null;
 		});
+	});
+
+	/** scene lane 3: prod's SITE PICKER (the product's EnvSitePicker), opened by pressing the real box; its open state is a pure function of `t` (a seek lands
+	 *  on it too). The panel floats (position: fixed), and in the film its containing block is the camera wrapper: it is placed in group space under its box,
+	 *  and re-placed whenever the product's own place() (window scroll/resize, viewport coordinates) moves it. */
+	let pickObs: MutationObserver | null = null;
+	function placePicker() {
+		const box = canvas ? resolveTarget('prod-box', canvas, phone) : null, p = canvas?.querySelector<HTMLElement>('[data-site-picker]');
+		if (!box || !p || !group) return;
+		const r = relRect(box), gw = group.offsetWidth, left = `${Math.round(Math.max(8, Math.min(r.x, gw - p.offsetWidth - 8)))}px`, top = `${Math.round(r.y + r.h + 6)}px`;
+		if (p.style.left !== left) p.style.left = left;
+		if (p.style.top !== top) p.style.top = top;
+		if ((pickObs as any)?.__p !== p) { pickObs?.disconnect(); pickObs = new MutationObserver(placePicker); (pickObs as any).__p = p; pickObs.observe(p, { attributes: true, attributeFilter: ['style'] }); }
+	}
+	function syncPicker() {
+		if (!canvas) return;
+		const want = sitesOpen(t) && shown === SITES_SURF;
+		const box = resolveTarget('prod-box', canvas, phone), open = box?.getAttribute('aria-expanded') === 'true';
+		if (box && want !== open) box.click();
+		if (want) { placePicker(); let n = 0; const go = () => { placePicker(); if (++n < 60) requestAnimationFrame(go); }; requestAnimationFrame(go); } /* re-placed for a second: the cut's dissolve and the page's late layout move its box */
+		else { pickObs?.disconnect(); pickObs = null; }
+	}
+	$effect(() => {
+		void t; void shown; void eventIdx;
+		untrack(syncPicker); const id = setTimeout(syncPicker, 60); return () => clearTimeout(id);
 	});
 
 	/* ---- the NEW tag (owner 2026-11-12): the product's own chip (role "newest", the mint the product prints a current build in) on the release's line in the
@@ -483,12 +521,14 @@ import { flipRecord, flipPlay, type Pos } from './flip';
 	.film-cam { position: absolute; left: 0; top: 0; width: 100%; height: 100%; transform-origin: 0 0; }
 	.film-group { position: relative; min-width: 0; }
 	/* THE dim (one value in every theme and width): the product's ink at 38%. The hole (.film-hole) is a box whose spread shadow dims everything round it, so its own rect and corner radius are the target's; the shell is dimmed by a plain layer of the same colour. */
-	.film-frame { --film-dim: rgb(12 20 26 / 0.13); } /* lane 36 (AD r1 P2-2): at 0.34 the light page read as a muddy, disabled grey slab round the lit card */
-	:global(.dark) .film-frame { --film-dim: rgb(0 0 0 / 0.45); } /* ink on a dark page is invisible at 38%: the same perceived drop needs black, stronger */
-	.film-hole { position: absolute; z-index: 4; pointer-events: none; box-shadow: 0 0 0 4000px var(--film-dim); opacity: 0; transition: opacity 0.2s ease-out; }
+	/* scene lane 3 (RAILWAY.md 2: the rest of the canvas drops to 30-40%): the dim is a VEIL of the window's own ground at 62%, so a light page fades toward white
+	   (an ink dim read as a grey page) and a dark one toward its near-black; the lit box keeps a hairline so a white card on a white veil still has an edge */
+	.film-frame { --film-dim: color-mix(in srgb, var(--k-ground) 62%, transparent); --film-ring: rgb(12 20 26 / 0.10); }
+	:global(.dark) .film-frame { --film-dim: color-mix(in srgb, var(--k-ground) 62%, transparent); --film-ring: rgb(255 255 255 / 0.10); }
+	.film-hole { position: absolute; z-index: 4; pointer-events: none; box-shadow: 0 0 0 1px var(--film-ring), 0 0 0 4000px var(--film-dim); opacity: 0; transition: opacity 0.2s ease-out; }
 	.film-hole-on { opacity: 1; }
 	.film-side, .film-top { position: relative; }
-	.film-frame { --film-shade: rgb(12 20 26 / 0.15); } /* the shell recedes under the zoom: on a light page the full dim read as a heavy grey slab (AD r7) */
+	.film-frame { --film-shade: var(--film-dim); } /* scene lane 3: the shell takes the same veil as the page (a ground veil never reads as a grey slab) */
 	:global(.dark) .film-frame { --film-shade: var(--film-dim); }
 	.film-shade { position: absolute; inset: 0; z-index: 6; pointer-events: none; background: var(--film-shade); opacity: 0; transition: opacity 0.2s ease-out; }
 	.film-shade-on { opacity: 1; }
