@@ -27,11 +27,14 @@ export const EV = {
 	/* scene lane 2 (owner 2026-11-12, "calm, like Railway"): two views, the App page and the prod us-east-1 Overview. One state change at a time, then a hold */
 	/* scene lane 3 (owner checklist 2026-11-12): six beats on three views. Release (App) | staging, quickly | health checks on the staging rollout page |
 	   gates on the prod rollout's Gates tab (the cursor approves there) | canary + tests on its Overview | every site on the Change page */
+	/* scene lane 4 (owner 2026-11-12, item 13: health checks come AFTER the canary): release | staging, quickly | gates + approve | canary + tests | prod's
+	   health checks and bake on the same Overview, as its pipeline runs them | every site */
 	release: 0, devGo: 2.4, devCheck: 2.6, hcDevErr: 2.8, hcDevLat: 2.9, devDone: 3.1,
-	stagingGo: 3.2, check: 3.9, hcStagingErr: 4.8, hcStagingLat: 5.4, stagingDone: 7.6, /* staging's bake holds from 5.4 to 7.6 (2.5 min on the clock, bakeTime 1m) */
-	gatesCut: 7.8, promo: 8.3, /* the promotion gate opens a sync after staging's bake, on screen */
-	approved: 11.6, deploy: 12.2, ovCut: 13.0, /* the confirm is pressed at 11.4; every gate passes, then the build moves by itself */
-	paused1: 13.6, testPending: 13.9, testRunning: 14.3, testPassed: 16.0, step2Go: 17.0, step2Done: 17.8, hcLat: 18.3, hcErr: 18.6, us1Done: 19.4, changeCut: 19.6,
+	stagingGo: 3.2, check: 3.5, hcStagingErr: 3.7, hcStagingLat: 3.8, stagingDone: 4.4, /* staging rolls out quickly: deploy, checks, a short bake */
+	gatesCut: 4.8, promo: 5.3, /* the promotion gate opens a sync after staging's bake, on screen */
+	approved: 8.6, deploy: 9.2, ovCut: 10.0, /* the confirm is pressed at 8.4; every gate passes, then the build moves by itself */
+	paused1: 10.6, testPending: 10.9, testRunning: 11.3, testPassed: 13.0, step2Go: 14.0, step2Done: 14.8,
+	hcKust: 15.4, hcErr: 16.0, hcLat: 16.6, bakeCut: 16.9, us1Done: 19.4, changeCut: 19.6, /* prod's health checks pass one by one, then the bake holds to its end */
 	w2Deploy: 21.0, w2Check0: 22.0, w2Check1: 22.3, w2Done0: 23.0, w2Done1: 23.4,
 	w3Deploy: 24.2, w3Check0: 25.2, w3Check1: 25.5, w3Done0: 26.2, w3Done1: 26.6
 } as const;
@@ -103,7 +106,7 @@ export function worldAt(t: number): { fleet: FleetSource; github: Record<string,
 	const base = { id: 1, version: R45, timestamp: new Date(ago(3 * H)).toISOString(), message: auto, bakeStatus: 'Succeeded', bakeStatusMessage: DONE_MSG, bakeStartTime: new Date(ago(3 * H)).toISOString(), bakeEndTime: new Date(ago(3 * H) + 600_000).toISOString(), triggeredBy: sys };
 	/* the controller starts a bake (bakeStartTime, InProgress, "Bake started...") only once EVERY health check is Healthy with a fresh lastChangeTime (rollout_controller.go ~1950-1984); until then the entry is Deploying and "Waiting for health checks to become healthy before starting bake." */
 	const startOf = (p: Place) => (preOf(p) ? preOf(p)!.go : isUS1(p) ? EV.deploy : LATE[p.site!].go);
-	const bakeAt = (p: Place) => (preOf(p) ? preOf(p)!.hcLat : isUS1(p) ? EV.hcErr : LATE[p.site!].check);
+	const bakeAt = (p: Place) => (preOf(p) ? preOf(p)!.hcLat : isUS1(p) ? EV.hcLat : LATE[p.site!].check);
 	const doneAt = (p: Place) => (preOf(p) ? preOf(p)!.done : isUS1(p) ? EV.us1Done : LATE[p.site!].done);
 	const baking = (p: Place) => t >= bakeAt(p);
 	function history(p: Place): Any[] {
@@ -137,7 +140,7 @@ export function worldAt(t: number): { fleet: FleetSource; github: Record<string,
 		return {
 			apiVersion: 'kuberik.com/v1alpha1', kind: 'Rollout',
 			metadata: { name: APP, namespace: p.ns, labels: { environment: p.site ? `${p.env}-${p.site}` : p.env }, annotations: { 'rollout-dashboard.kuberik.com/source-cluster': p.env } },
-			spec: { releaseSourceRef: { name: APP }, versionHistoryLimit: 20, bakeTime: isUS1(p) ? '50s' : '1m', healthCheckSelector: { matchLabels: { app: APP, env: p.site ? `${p.env}-${p.site}` : p.env } } },
+			spec: { releaseSourceRef: { name: APP }, versionHistoryLimit: 20, bakeTime: isUS1(p) ? '3m' : '1m', healthCheckSelector: { matchLabels: { app: APP, env: p.site ? `${p.env}-${p.site}` : p.env } } },
 			status: {
 				source: 'github.com/exampleco/checkout-api',
 				...slicesStatus(APP, rels, history(p)[0].version.tag, gs), history: history(p), gates: gs
@@ -196,7 +199,7 @@ export function worldAt(t: number): { fleet: FleetSource; github: Record<string,
 		/* TRUTH R11: no pause duration; the step-1 bake time (20 s) runs from the moment the tests passed (stepgate writes step-1-ready-at) */
 		const bake = isUS1(p) ? { 'rollout.kuberik.io/step-1-bake-time': '20s', ...(t >= EV.testPassed && t < EV.step2Go ? { 'internal.rollout.kuberik.io/step-1-ready-at': new Date(atMs(t) - 8_000).toISOString() } : {}) } : {};
 		const kr = { apiVersion: 'rollouts.kruise.io/v1beta1', kind: 'Rollout', metadata: { name: KR, namespace: p.ns, annotations: { 'rollout-dashboard.kuberik.com/source-cluster': p.env, ...bake } },
-			spec: { strategy: { canary: { steps: [{ replicas: '25%' }, { replicas: '100%' }] } } },
+			spec: { strategy: { canary: { steps: [{ traffic: '10%', replicas: '25%' }, { traffic: '100%', replicas: '100%' }] } } },
 			status: { canaryStatus: { currentStepIndex: idx, currentStepState: st, lastUpdateTime: upd }, conditions: [] } };
 		const test = isUS1(p) ? { apiVersion: 'rollout.kuberik.com/v1alpha1', kind: 'RolloutTest', metadata: { name: 'integration-test', namespace: p.ns },
 			spec: { rolloutName: KR, stepIndex: 1, jobTemplate: { template: { spec: { containers: [{ name: 'run', image: 'ghcr.io/exampleco/checkout-api-it:b-46' }], restartPolicy: 'Never' } } } }, status: { phase: testPhase } } : null;
@@ -211,17 +214,17 @@ export function worldAt(t: number): { fleet: FleetSource; github: Record<string,
 	/* ---- health checks: pending while a build deploys, then healthy (staging: error-rate first, then latency; us-east-1 the same; wave 2 both at its check) ---- */
 	function healthChecks(p: Place) {
 		const ph = phaseOf(p, t);
-		const mk = (name: 'error-rate' | 'latency-p99') => {
+		const mk = (name: 'kustomization' | 'error-rate' | 'latency-p99') => {
 			let status = 'Healthy', since = -1; /* story second of the latest status transition (the check's lastChangeTime) */
-			const message = `No alerts firing for labels map[alertname:${name === 'error-rate' ? 'HighErrorRate' : 'HighLatencyP99'} app:${APP}]`;
+			const kz = name === 'kustomization', message = kz ? 'Kustomization is reconciled · 4/4 ready' : `No alerts firing for labels map[alertname:${name === 'error-rate' ? 'HighErrorRate' : 'HighLatencyP99'} app:${APP}]`;
 			if (ph !== 'old') {
-				const turn = preOf(p) ? (name === 'error-rate' ? preOf(p)!.hcErr : preOf(p)!.hcLat) : isUS1(p) ? (name === 'error-rate' ? EV.hcErr : EV.hcLat) : LATE[p.site!].check;
+				const turn = preOf(p) ? (name === 'latency-p99' ? preOf(p)!.hcLat : preOf(p)!.hcErr) : isUS1(p) ? (kz ? EV.hcKust : name === 'error-rate' ? EV.hcErr : EV.hcLat) : LATE[p.site!].check;
 				if (t < turn) { status = 'Pending'; since = startOf(p); } else since = turn;
 			}
-			return { apiVersion: 'kuberik.com/v1alpha1', kind: 'HealthCheck', metadata: { name: `${APP}-${name}`, namespace: p.ns, labels: { app: APP }, annotations: { 'kuberik.com/display-name': name } }, spec: { class: 'prometheus-alert' },
+			return { apiVersion: 'kuberik.com/v1alpha1', kind: 'HealthCheck', metadata: { name: `${APP}-${name}`, namespace: p.ns, labels: { app: APP }, annotations: kz ? { 'healthcheck.kuberik.com/kustomization': `checkout-api-${key(p)}`, 'kuberik.com/display-name': 'kustomization' } : { 'kuberik.com/display-name': name } }, spec: { class: kz ? 'kustomization' : 'prometheus-alert' },
 				status: { status, message, lastChangeTime: at(since), observations: [] } };
 		};
-		return { metadata: { namespace: p.ns, name: APP, annotations: { 'rollout-dashboard.kuberik.com/source-cluster': p.env } }, healthChecks: [mk('error-rate'), mk('latency-p99')] };
+		return { metadata: { namespace: p.ns, name: APP, annotations: { 'rollout-dashboard.kuberik.com/source-cluster': p.env } }, healthChecks: [mk('kustomization'), mk('error-rate'), mk('latency-p99')] };
 	}
 
 	function dependencies() {

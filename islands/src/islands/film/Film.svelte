@@ -14,7 +14,7 @@
 	import WindowBar from '../shared/WindowBar.svelte';
 	import Chrome from './Chrome.svelte';
 	import Cursor from './Cursor.svelte';
-	import { CHAPTERS, LOOP, chapterAt, chapterFill, surfAt, moveAt, pressAt, confirmOpen, CONFIRM_SURF, sitesOpen, SITES_SURF, tallyShown, NEW_AT, NEW_SHINE, type Surf, type Move } from './script';
+	import { CHAPTERS, LOOP, chapterAt, chapterFill, surfAt, moveAt, pressAt, confirmOpen, CONFIRM_SURF, tallyShown, NEW_AT, NEW_SHINE, type Surf, type Move } from './script';
 	import Chip from '$lib/components/Chip.svelte';
 	import { loadSurface, surfaceProps, SURFACE_PATH } from './surfaces';
 	import { resolveTarget } from './targets';
@@ -295,7 +295,15 @@ import { flipRecord, flipPlay, type Pos } from './flip';
 			const r0 = relRect(el), r = m.h ? { ...r0, h: m.h } : r0; /* Move.h: the frame is worked out as if the target were this tall, so it does not depend on the step the story is at */
 			if (phone && m.stay && r.y < vh * 0.4) { s = 1; phoneOff = -1e6; y = 0; } /* scene lane 3: a subject near the page top (the header strip) keeps the page unscrolled: the title stays in frame */
 			else if (phone) { s = 1; const pk = `${m.at}|${CW}`; if (!refine && !PHONE_OFF.has(pk)) PHONE_OFF.set(pk, phoneTop(r) - Math.max(0, r.y - 10)); phoneOff = PHONE_OFF.get(pk)! - 10; y = -Math.max(0, r.y + phoneOff); } /* the foot's nudge is worked out once per move (a seek frames the way play does) */
-			else if (s === 1) { y = m.stay ? 0 : -Math.max(0, Math.min(r.y - 24, gh - vh)); }
+			else if (s === 1 && m.foot) {
+				/* scene lane 4: a FOOT framing: the frame ends just under the target (its whole card and everything above it that fits), and both edges sit in a gap between the
+				   product's text and small boxes (buttons, chips): the window is shorter than the single-column page, so the subject is the frame's foot, not its top */
+				const rects = [...textRects(false), ...boxRects({ x: -1, y: -1, w: 0, h: 0 }).filter((b) => b.h < 56)].map((q) => ({ x: q.x, y: q.y - 2, w: q.w, h: q.h + 4 }));
+				const end = r.y + r.h, lo = Math.max(0, end + 2 - vh), hi = Math.max(lo, end + 14 - vh), sp = spansIn(rects, 'y', 0, vw);
+				const top = freeStart(lo, hi, vh, sp, end + 8 - vh) ?? freeStart(lo, hi, vh, sp, end + 8 - vh, true) ?? end + 8 - vh;
+				y = -Math.max(0, Math.min(top, gh - vh));
+			}
+			else if (s === 1) { y = m.stay ? 0 : -Math.max(0, Math.min(r.y - (m.pad ?? 24), gh - vh)); }
 			else {
 				/* fit with a 14 px margin: the product's gap between cards is >= 12 px x scale, so a neighbour never peeks into the frame mid-word. The PERSON beats (m.min) zoom until their smallest text renders at m.min px, bounded by the window (both axes) and 2.4x. */
 				const need = m.min ? m.min / (minFont(r) * k) : 0;
@@ -425,31 +433,6 @@ import { flipRecord, flipPlay, type Pos } from './flip';
 				if (el) { el.click(); const a = approvalUi.ask; if (a) { if (phone) { const c = canvas.getBoundingClientRect(), r = el.getBoundingClientRect(); a.anchor = { top: (r.top - c.top) / k, left: (r.left - c.left) / k, right: (r.right - c.left) / k, bottom: (r.bottom - c.top) / k }; } else { const r = relRect(el), gw = group?.offsetWidth ?? 1440, l = Math.min(r.x, r.x + r.w - 320, gw - 16 - 320); /* the layer lives in the camera wrapper: group space, so it sits under ITS button at any zoom; the 320 px panel ends at the button's right edge (scene lane 3: left-aligned, the button at the page's right edge pushed it out of the window) */ a.anchor = { top: r.y, left: l, right: l + 320, bottom: r.y + r.h }; } } }
 			} else if (!want && approvalUi.ask) approvalUi.ask = null;
 		});
-	});
-
-	/** scene lane 3: prod's SITE PICKER (the product's EnvSitePicker), opened by pressing the real box; its open state is a pure function of `t` (a seek lands
-	 *  on it too). The panel floats (position: fixed), and in the film its containing block is the camera wrapper: it is placed in group space under its box,
-	 *  and re-placed whenever the product's own place() (window scroll/resize, viewport coordinates) moves it. */
-	let pickObs: MutationObserver | null = null;
-	function placePicker() {
-		const box = canvas ? resolveTarget('prod-box', canvas, phone) : null, p = canvas?.querySelector<HTMLElement>('[data-site-picker]');
-		if (!box || !p || !group) return;
-		const r = relRect(box), gw = group.offsetWidth, left = `${Math.round(Math.max(8, Math.min(r.x, gw - p.offsetWidth - 8)))}px`, top = `${Math.round(r.y + r.h + 6)}px`;
-		if (p.style.left !== left) p.style.left = left;
-		if (p.style.top !== top) p.style.top = top;
-		if ((pickObs as any)?.__p !== p) { pickObs?.disconnect(); pickObs = new MutationObserver(placePicker); (pickObs as any).__p = p; pickObs.observe(p, { attributes: true, attributeFilter: ['style'] }); }
-	}
-	function syncPicker() {
-		if (!canvas) return;
-		const want = sitesOpen(t) && shown === SITES_SURF;
-		const box = resolveTarget('prod-box', canvas, phone), open = box?.getAttribute('aria-expanded') === 'true';
-		if (box && want !== open) box.click();
-		if (want) { placePicker(); let n = 0; const go = () => { placePicker(); if (++n < 60) requestAnimationFrame(go); }; requestAnimationFrame(go); } /* re-placed for a second: the cut's dissolve and the page's late layout move its box */
-		else { pickObs?.disconnect(); pickObs = null; }
-	}
-	$effect(() => {
-		void t; void shown; void eventIdx;
-		untrack(syncPicker); const id = setTimeout(syncPicker, 60); return () => clearTimeout(id);
 	});
 
 	/* ---- the NEW tag (owner 2026-11-12): the product's own chip (role "newest", the mint the product prints a current build in) on the release's line in the

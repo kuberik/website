@@ -260,6 +260,7 @@ lib/view-models/sites-waves.ts
 lib/view-models/skipped-builds.ts
 lib/view-models/stable-order.ts
 lib/view-models/stage-advance.ts
+lib/view-models/stage-weight.ts
 lib/view-models/up-to-date.ts
 lib/view-models/wait-cause.ts
 lib/view-models/wait-fact.ts

@@ -59,11 +59,12 @@ function resolve(name: string, root: ParentNode, phone: boolean): HTMLElement | 
 		case 'env-strip': { const bs = [...root.querySelectorAll<HTMLElement>('[data-env-row] [data-env-box]')]; return bs.length ? pad(union(bs), 6, 10) : null; }
 		/* the Change page's story: its title, the strip's boxes and the History card under them (the main column), one lit shape */
 		case 'change-story': { const hd = q<HTMLElement>('[data-change-detail] header.page-header'), bs = [...root.querySelectorAll<HTMLElement>('[data-env-row] [data-env-box]')], h = cardOf(root, /^History$/); return bs.length && h ? pad(union([...(hd ? [contentBox(hd)] : []), ...bs, h]), 6, 10) : null; }
-		/* prod's box (it holds several sites: a button that opens the site picker) */
-		case 'prod-box': return q('[data-env-row] button[data-env-box][aria-haspopup]');
-		/* the prod box with its open site picker under it: one lit shape */
-		case 'sites': { const b = q('[data-env-row] button[data-env-box][aria-haspopup]'), p = q('[data-site-picker]'); return b && p ? pad(union([b, p]), 6, 10) : b; }
-		case 'health-checks': return cardOf(root, /^Health checks/i);
+		/* scene lane 4: the standalone Health checks card (the pipeline's Check panel has its own "Health checks" row, which is not this) */
+		case 'health-checks': { const pc = cardOf(root, /Deployment pipeline/i); const hs = [...root.querySelectorAll<HTMLElement>('h2,h3')].filter((h) => /^Health checks/i.test(text(h)) && !pc?.contains(h)); return (hs[0]?.closest('section, [data-card], .card, [class*="rounded"]') as HTMLElement | null) ?? null; }
+		/* scene lane 4 (phone): the Check step's bake, its sentence ("Bake started, monitoring for errors.") and the card under it (Health checks, Check timer and its bar) */
+		case 'bake': { const line = byText(root, 'div,p,span', /^Bake (started|time completed)/i), card = byText(root, 'div,span,p,h3,h4', /^Check timer$/)?.closest<HTMLElement>('[class*="rounded"]') ?? null; return line && card ? union([line, card]) : card; }
+		/* scene lane 4: the Gates tab's graph: every gate card (staging's promotion, Release approval, Business hours) and this rollout, as one rect (the frame's foot is the lowest gate) */
+		case 'gates-graph': { const cards = ['Release approval', 'Business hours'].map((t) => byText(root, 'div,span,p,h3,h4', new RegExp('^' + t + '$'))?.closest<HTMLElement>('[class*="rounded"]') ?? null); const node = byText(root, 'div,span,p', /^This rollout$/i); return cards.every(Boolean) ? union([...(cards as HTMLElement[]), ...(node ? [node] : [])]) : null; }
 		case 'gates-card': return cardOf(root, /^Gates$/); /* scene lane 3: the Gates tab's gate graph card */
 		case 'banner': return q('.ap-cq');
 		/* the catch: the WHOLE failure banner (AD r4: lit as a banner with its own radius, not as a text box) */

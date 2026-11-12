@@ -7,16 +7,17 @@
 {{- $name := .Get "name" -}}
 {{- $h := .Get "height" | default "300" -}}
 {{- $p := "island-poster/" | relURL -}}
+{{- $v := (os.Stat "static/island-poster/p-1440-light.webp").ModTime.Unix -}}{{- /* scene lane 4: the posters are re-shot with the film; the query busts a cached old frame (owner saw scene 1 under the film) */ -}}
 {{- if .Get "eager" }}<style>
 .ph-poster{position:absolute;left:0;right:0;top:-56px;bottom:0;z-index:7;background-repeat:no-repeat;background-size:cover;background-position:left top;transition:opacity .2s ease-out;pointer-events:none}
 [data-island="hero"]{position:relative}
-html:not(.dark) .ph-poster{background-image:url({{ $p }}p-1440-light.webp)}html.dark .ph-poster{background-image:url({{ $p }}p-1440-dark.webp)}
-@media(max-width:1265px){html:not(.dark) .ph-poster{background-image:url({{ $p }}p-1100-light.webp)}html.dark .ph-poster{background-image:url({{ $p }}p-1100-dark.webp)}}
-@media(max-width:1023px){html:not(.dark) .ph-poster{background-image:url({{ $p }}p-900-light.webp)}html.dark .ph-poster{background-image:url({{ $p }}p-900-dark.webp)}}
-@media(max-width:640px){.ph-poster{top:-70px}html:not(.dark) .ph-poster{background-image:url({{ $p }}p-390-light.webp)}html.dark .ph-poster{background-image:url({{ $p }}p-390-dark.webp)}}
-@media(min-width:1920px){html:not(.dark) .ph-poster{background-image:url({{ $p }}p-1920-light.webp)}html.dark .ph-poster{background-image:url({{ $p }}p-1920-dark.webp)}}
-@media(min-width:2400px){html:not(.dark) .ph-poster{background-image:url({{ $p }}p-2560-light.webp)}html.dark .ph-poster{background-image:url({{ $p }}p-2560-dark.webp)}}
+html:not(.dark) .ph-poster{background-image:url({{ $p }}p-1440-light.webp?v={{ $v }})}html.dark .ph-poster{background-image:url({{ $p }}p-1440-dark.webp?v={{ $v }})}
+@media(max-width:1265px){html:not(.dark) .ph-poster{background-image:url({{ $p }}p-1100-light.webp?v={{ $v }})}html.dark .ph-poster{background-image:url({{ $p }}p-1100-dark.webp?v={{ $v }})}}
+@media(max-width:1023px){html:not(.dark) .ph-poster{background-image:url({{ $p }}p-900-light.webp?v={{ $v }})}html.dark .ph-poster{background-image:url({{ $p }}p-900-dark.webp?v={{ $v }})}}
+@media(max-width:640px){.ph-poster{top:-70px}html:not(.dark) .ph-poster{background-image:url({{ $p }}p-390-light.webp?v={{ $v }})}html.dark .ph-poster{background-image:url({{ $p }}p-390-dark.webp?v={{ $v }})}}
+@media(min-width:1920px){html:not(.dark) .ph-poster{background-image:url({{ $p }}p-1920-light.webp?v={{ $v }})}html.dark .ph-poster{background-image:url({{ $p }}p-1920-dark.webp?v={{ $v }})}}
+@media(min-width:2400px){html:not(.dark) .ph-poster{background-image:url({{ $p }}p-2560-light.webp?v={{ $v }})}html.dark .ph-poster{background-image:url({{ $p }}p-2560-dark.webp?v={{ $v }})}}
 .ph-chapters{position:absolute;left:0;top:-56px;margin:0;padding:0;list-style:none;display:flex;gap:12px;font:500 14px/1 var(--sans);opacity:0}
 </style>{{ end -}}
-<div data-island="{{ $name }}" data-theme-sync{{ if .Get "eager" }} data-eager{{ end }} style="min-height:{{ $h }}px">{{ if .Get "eager" }}<div class="ph-poster" aria-hidden="true"></div><ol class="ph-chapters" aria-label="The demo, chapter by chapter"><li>New release</li><li>Staging</li><li>Health checks</li><li>Gates</li><li>Canary</li><li>All sites</li></ol>{{ end }}</div>
+<div data-island="{{ $name }}" data-theme-sync{{ if .Get "eager" }} data-eager{{ end }} style="min-height:{{ $h }}px">{{ if .Get "eager" }}<div class="ph-poster" aria-hidden="true"></div><ol class="ph-chapters" aria-label="The demo, chapter by chapter"><li>New release</li><li>Staging</li><li>Gates</li><li>Canary</li><li>Health checks</li></ol>{{ end }}</div>
 <script type="module" src="{{ "islands/islands.js" | relURL }}"></script>
