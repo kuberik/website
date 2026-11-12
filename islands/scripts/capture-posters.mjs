@@ -13,11 +13,13 @@ for (const theme of ['light', 'dark']) for (const [vw] of SIZES) for (let attemp
 	await ctx.addInitScript((t) => { try { localStorage.setItem('color-theme', t); } catch {} }, theme);
 	const p = await ctx.newPage();
 	await p.goto(PAGE + '?capture=1', { waitUntil: 'load' });
-	await p.waitForFunction(() => document.querySelector('[data-island="hero"]')?.shadowRoot?.querySelector('.film') && !document.querySelector('.ph-poster'), null, { timeout: 30000 });
+	await p.waitForFunction(() => document.querySelector('[data-island="hero"]')?.shadowRoot?.querySelector('.sc') && !document.querySelector('.ph-poster'), null, { timeout: 30000 });
 	await p.evaluate(() => { const r = document.getElementById('hero-window').getBoundingClientRect(); scrollTo(0, scrollY + r.top - 160); });
 	await p.waitForTimeout(300);
 	await p.evaluate(() => document.querySelector('[data-island="hero"]').__story.at(0));
 	await p.waitForTimeout(2500);
+	/* playing again (the bar shows Pause, as the live first frame does); nothing changes before t=0.25 */
+	await p.evaluate(() => document.querySelector('[data-island="hero"]').__story.player.seek(0));
 	const r = await p.evaluate(() => { const h = document.querySelector('[data-island="hero"]').getBoundingClientRect(); return { x: h.x, y: h.y, w: h.width, h: h.height, top: innerWidth < 640 ? 70 : 56 }; });
 	const png = `${OUT}p-${vw}-${theme}.png`;
 	await p.screenshot({ path: png, clip: { x: r.x, y: r.y - r.top, width: r.w, height: r.h + r.top } });

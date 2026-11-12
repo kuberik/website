@@ -119,6 +119,7 @@ function moduleReport(): Plugin {
 
 export default defineConfig({
 	root: HERE,
+	cacheDir: process.env.VITE_CACHE_DIR || undefined,
 	publicDir: false,
 	resolve: {
 		alias: [
