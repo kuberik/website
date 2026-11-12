@@ -47,7 +47,7 @@ export const CAMERA: Move[] = [
 	{ at: 0, to: 'app-builds', s: 1.35, dur: 0, ease: EXPO }, /* the App page's Builds card, the release on it as its newest stop from the first frame */
 	{ at: 2.2, to: 'change-strip', s: 1.75, dur: 0, ease: EXPO, rows: '.cd-history li', beside: '.cd-rail' }, /* the Change page's header and environment strip: staging's mark turns */
 	{ at: 7, to: 'approve-stage', s: 1.5, dur: 0, ease: EXPO, dim: 'both', min: 15, hole: 'attention' }, /* the person's beat: the attention card and the room its confirm opens into, framed at the cut; the card is lit */
-	{ at: EV.approved, to: 'pipeline', s: 1.5, dur: 0, ease: EXPO }, /* the whole pipeline card, held through the canary */
+	{ at: EV.approved, to: 'pipeline', s: 1.5, dur: 0, ease: EXPO, h: 424 }, /* h: the card's tallest (stage 1 with the passed test and Continue, 1440): framed whole from the cut, it grows into the frame */ /* the whole pipeline card, held through the canary */
 	{ at: EV.us1Done, to: 'change-strip', s: 1.75, dur: 0, ease: EXPO, rows: '.cd-history li', beside: '.cd-rail' } /* the waves, on the same strip: each site's mark turns, a wave at a time */
 ];
 export const moveAt = (t: number, phone = false): Move => [...CAMERA].reverse().find((m) => t >= m.at && !(phone && m.desk))!;
