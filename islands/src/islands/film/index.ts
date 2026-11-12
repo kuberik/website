@@ -49,6 +49,9 @@ export function mountFilm(ctx: CustomCtx) {
 		if (player) { props.playing = player.playing; props.userPlaying = !player.paused; props.reduced = player.reduced; }
 	};
 	player = new Player({ loop: loopOf(phone), rest: playerOf(REST_T, phone), quantum: 0.05, onTime: apply });
+	/* scene lane 6 (Fast 3G, the 1.6-2.4 s blank): the story waits at 0 behind the poster until the first surface is up. It used to run from mount: on a slow
+	   network the first frame arrived ~9 s in, at story 5 s, on the Gates tab whose chunk was not in yet (the window blank until it was) */
+	player.gate('ready', false);
 	apply(0);
 	const seek = (t: number) => { props.seekN++; player!.seek(playerOf(t, phone)); };
 	/* reduced motion rests on REST_T (the motion gate arrives after mount and jumps there): start on that frame, or the first surface mounted is the Change page and the jump to the Overview leaves the window blank while its chunk loads (the blank start) */
@@ -64,6 +67,7 @@ export function mountFilm(ctx: CustomCtx) {
 		await Promise.race([document.fonts.ready, new Promise((r) => setTimeout(r, 1500))]);
 		await new Promise<void>((r) => requestAnimationFrame(() => requestAnimationFrame(() => r())));
 		ctx.ready();
+		player!.gate('ready', true); props.playing = player!.playing;
 	});
 	ctx.onGate((g, v) => { player!.gate(g, v); props.playing = player!.playing; props.reduced = player!.reduced; });
 	/* STORYBOARD section 9: hovering the film pauses the story (a reader is looking); leaving resumes. The CANVAS only: the chrome (chapters, play) sits outside the gate, or pressing it would close the gate it opens. Mouse only: a tap on a phone is not a hover. The canvas is inert (no focus, no tab stops), so there is no focus gate. */
