@@ -60,7 +60,7 @@ export const CAMERA: Move[] = [ /* scene lane 3: one fixed scale; a framing is s
 	{ at: 0, to: 'rest', s: 1, dur: 0, ease: EXPO },
 	{ at: EV.devGo, to: 'rest', s: 1, dur: 0, ease: EXPO }, /* staging's rollout page: its strip and pipeline, quickly */
 	{ at: EV.stagingGo - 0.02, to: 'pipeline', s: 1, pad: 68 /* the strip above it */, desk: true, dur: 0, ease: EXPO }, /* scene lane 4: as staging takes the build its header grows two lines (the PR, the namespace); the frame cuts to the strip and the pipeline under it, so neither moves on screen */
-	{ at: EV.gatesCut, to: 'gates-phone', s: 1, dur: 0, ease: EXPO }, /* the phone: the Gates card at 390 (the product's list form, owner ruling), its banner and every gate tile whole */
+	{ at: EV.gatesCut, to: 'gates-phone-node', s: 1, dur: 0, ease: EXPO }, /* the phone: the Gates card at 390 (the product's list form, owner ruling): every gate tile and the rollout they feed, whole. Scene lane 6: one frame for the whole beat (the banner's text changes at 5.5 and 8.7; framed on it the phone re-framed twice) */
 	{ at: EV.approved, to: 'gates-phone-node', s: 1, dur: 0, ease: EXPO }, /* re-framed under the cover: every gate tile passing and the rollout they feed (runs 4.46.0-46 from 9.3) */
 	{ at: EV.gatesCut, to: 'gates-card', s: 1, pad: 10, desk: true, dur: 0, ease: EXPO }, /* scene lane 5 (item 14): the whole Gates card, title to the graph's foot, at the frame's top */
 	{ at: EV.approved, to: 'gates-card', s: 1, pad: 10, keep: true /* the card's title where the cut put it: only the card's inside changes */, desk: true, dur: 0, ease: EXPO }, /* the approval lands, the banner shortens and the passed approval tile sorts under the others (#141): re-framed under the cover */
