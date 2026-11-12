@@ -14,7 +14,8 @@
 	import WindowBar from '../shared/WindowBar.svelte';
 	import Chrome from './Chrome.svelte';
 	import Cursor from './Cursor.svelte';
-	import { CHAPTERS, chapterAt, chapterFill, surfAt, moveAt, pressAt, confirmOpen, tallyShown, FADE_AT, type Surf, type Move } from './script';
+	import { CHAPTERS, LOOP, chapterAt, chapterFill, surfAt, moveAt, pressAt, confirmOpen, tallyShown, NEW_AT, type Surf, type Move } from './script';
+	import Chip from '$lib/components/Chip.svelte';
 	import { loadSurface, surfaceProps, SURFACE_PATH } from './surfaces';
 	import { resolveTarget } from './targets';
 import { snapFrame } from './snap';
@@ -22,7 +23,7 @@ import { flipRecord, flipPlay, type Pos } from './flip';
 	import { page } from '../../stubs/app-state';
 	import { page as pageStore } from '../../stubs/app-stores';
 	import { setDisplayTimeZone } from '$lib/timezone.svelte';
-	import { coverEvent, flipEvent, sheetClosing, rollbackOpen, REASON, TYPING, typedLen } from './script';
+	import { coverEvent, flipEvent } from './script';
 	setDisplayTimeZone('utc'); // the chrome clock is UTC, and so is every absolute time the product prints
 
 	let { t, playing, userPlaying, reduced, onseek, ontoggle, onshown, eventIdx }: { t: number; playing: boolean; reduced: boolean; onseek: (chip: number) => void; ontoggle: () => void; onshown?: () => void; eventIdx: number; userPlaying: boolean } = $props();
@@ -63,9 +64,9 @@ import { flipRecord, flipPlay, type Pos } from './flip';
 		/* the cut: a still of the outgoing page covers the window while the incoming one lays itself out UNSEEN (opacity 0), then the still fades over the settled page: nothing visible reflows (CLS), and the window is never empty ground */
 		/* the loop wrap: the still of the finale was taken before the story's data went back to 09:02 (wrapCover, below); without it the copy here is of the
 		   outgoing page already re-rendered with the opening's data (a flash of the Apps page "Deploying") */
-		const pre = wrap && wrapCover && wrapCover === snapEl ? wrapCover : null; wrapCover = null;
+		const pre = !instant && wrapCover && wrapCover === snapEl ? wrapCover : null; wrapCover = null;
 		const copy = pre ? null : !instant && shown ? takeSnap() : null;
-		if (copy) coverWith(copy);
+		if (copy) coverWith(copy, true);
 		Object.assign(page, SURFACE_PATH[next]);
 		pageStore.update((p) => ({ ...p, ...SURFACE_PATH[next] })); // the History tab reads get(page) of $app/stores (not $app/state)
 		Comp = c; shown = next;
@@ -73,8 +74,7 @@ import { flipRecord, flipPlay, type Pos } from './flip';
 		if (!swapOpacity) setTimeout(() => (fadeIn = false), 300);
 		swapOpacity = 1;
 		onshown?.();
-		if (pre) void settleThenReveal(pre, null, 300); /* the wrap is a real cross-fade, short: two pages superimposed read as a ghost */
-		else if (copy) void settleThenReveal(copy);
+		if (pre || copy) void settleThenReveal((pre ?? copy)!, null, wrap ? 400 : 260); /* a calm dissolve (lane 33, Railway's pacing): long enough to read as a cut, short enough not to ghost */
 		if (seq === swapSeq) swapping = null;
 	}
 	let main: HTMLElement | undefined = $state();
@@ -93,15 +93,18 @@ import { flipRecord, flipPlay, type Pos } from './flip';
 		c.style.cssText = `position:absolute;left:0;top:0;width:${group.offsetWidth}px;height:${group.offsetHeight}px;overflow:hidden;pointer-events:none;z-index:3;opacity:1;visibility:visible`;
 		c.setAttribute('aria-hidden', 'true'); c.removeAttribute('inert'); c.classList.add('film-snap');
 		c.querySelectorAll('[id]').forEach((e) => e.removeAttribute('id'));
-		if (kind === 'event' && phone && sheetClosing(t)) c.querySelectorAll('.fm-scrim').forEach((e) => e.remove()); /* the press sends the sheet away: the still is the page (script.ts sheetClosing) */
 		/* a clone does not carry scroll positions: the 390 rollback sheet (scrolled to its fields) came back at its top under the still (AD r8 P2-1). Copied once the still is in the document */
 		const src = group.querySelectorAll('*'), dst = c.querySelectorAll('*'), sc: [Element, number, number][] = [];
 		for (let i = 0; i < src.length; i++) if (src[i].scrollTop || src[i].scrollLeft) sc.push([dst[i], src[i].scrollTop, src[i].scrollLeft]);
 		(c as any).__scroll = sc;
 		return c;
 	}
-	function coverWith(c: HTMLElement) {
-		snapEl?.remove(); snapEl = c; camEl!.insertBefore(c, group!.nextSibling); hid = true;
+	/* `frozen`: a CUT's still sits OUTSIDE the camera, carrying the outgoing shot's transform, so the incoming shot's framing is set under it (lane 33: a shot
+	   arrives framed; the camera never zooms in front of the viewer) */
+	function coverWith(c: HTMLElement, frozen = false) {
+		snapEl?.remove(); snapEl = c; hid = true;
+		if (frozen && camEl) { c.style.transformOrigin = '0 0'; c.style.transform = getComputedStyle(camEl).transform.replace('none', ''); camEl.parentElement!.appendChild(c); }
+		else camEl!.insertBefore(c, group!.nextSibling);
 		for (const [e, y, x] of (c as any).__scroll ?? []) { e.scrollTop = y; e.scrollLeft = x; }
 	}
 	async function settleThenReveal(c: HTMLElement, rec: Pos | null = null, fade = 80) {
@@ -127,12 +130,20 @@ import { flipRecord, flipPlay, type Pos } from './flip';
 	$effect.pre(() => {
 		const ei = eventIdx, tt = t;
 		untrack(() => {
-			const wrapping = preT > 40 && tt < 2; preT = tt;
-			if (!wrapping || !group || !camEl || !shown || reduced || surfAt(tt) === shown) return;
+			const wrapping = preT > LOOP - 3 && tt < 2;
+			/* lane 33: every PLAYED cut takes its still here too, before the DOM re-renders: a CR that changes on the cut's own tick (the approval asked at 7.0)
+			   would otherwise be drawn on the outgoing page for a frame (the App page grew an approval banner under the still) */
+			const cutting = !wrapping && preT >= 0 && Math.abs(tt - preT) < 0.4 && surfAt(tt) !== shown && surfAt(tt) !== swapping;
+			preT = tt;
+			if ((!wrapping && !cutting) || !group || !camEl || !shown || reduced || hid) return;
 			const c = takeSnap(); if (!c) return;
-			c.style.transformOrigin = '0 0'; c.style.transform = getComputedStyle(camEl).transform.replace('none', '');
-			cam = { x: 0, y: 0, s: 1, dur: 0, ease: 'ease', moving: false }; holeOn = false; shadeOn = false;
-			coverWith(c); wrapCover = c; preEi = ei; preSnap = null;
+			coverWith(c, true);
+			if (wrapping) { cam = { x: 0, y: 0, s: 1, dur: 0, ease: 'ease', moving: false }; holeOn = false; shadeOn = false; }
+			else { holeOn = false; shadeOn = false; }
+			preEi = ei; preSnap = null;
+			if (cutting) { wrapCover = c; return; }
+			/* the film opens and ends on the App page: no cut runs, so the still of the finale dissolves here over the opening laid out under it */
+			if (surfAt(tt) === shown) void settleThenReveal(c, null, 400); else wrapCover = c;
 		});
 	});
 	$effect.pre(() => {
@@ -161,7 +172,7 @@ import { flipRecord, flipPlay, type Pos } from './flip';
 	let lastT = -1;
 	$effect(() => {
 		const s = surf, tt = t;
-		const wrap = lastT > 40 && tt < 2; /* the loop's end into its start: animated, not a seek */
+		const wrap = lastT > LOOP - 3 && tt < 2; /* the loop's end into its start: animated, not a seek */
 		const jumped = (Math.abs(tt - lastT) > 0.4 && !wrap) || lastT < 0;
 		lastT = tt;
 		untrack(() => { if (s !== shown && s !== swapping) void show(s, jumped || reduced, wrap && !reduced); });
@@ -245,6 +256,7 @@ import { flipRecord, flipPlay, type Pos } from './flip';
 				let sn = dlg ? snapFrame(r, tr, ...args) : snapFrame(r, [...tr, ...boxRects(r)], vw, vh, gw, gh, s, Math.max(1, s * 0.9), Math.min(args[6], s * 1.25)); /* cards too, within a hair of the wanted zoom (a frame that only clears every card at 2.4x is a different shot) */
 				if (!sn.ok && !dlg) sn = snapFrame(r, tr, ...args); /* no frame clears every card: words at least */
 				s = sn.s; x = sn.x; y = sn.y;
+				if (s * k > 1.5) { const c = 1.5 / k / s; s *= c; x *= c; y *= c; } /* owner: product footage never above 1.5x of its own pixels (the canvas is already scaled by k) */
 				 (globalThis as any).__kfAim = { to: m.to, r, sn, vw, vh, gw, gh, refine }; /* even when no x position clears every word (ok = false) the y found for a clean top edge stands */
 			}
 		}
@@ -274,8 +286,9 @@ import { flipRecord, flipPlay, type Pos } from './flip';
 	$effect(() => {
 		const m = mv, s = shown, ei = eventIdx, tt = t;
 		void s; void ei;
-		const seek = Math.abs(tt - prevT) > 0.4 && !(prevT > 40 && tt < 2); prevT = tt; /* a jump is a seek, never a move the story plays itself (it was a hard cut every time: no transition ran) */
+		const seek = Math.abs(tt - prevT) > 0.4 && !(prevT > LOOP - 3 && tt < 2); prevT = tt; /* a jump is a seek, never a move the story plays itself (it was a hard cut every time: no transition ran) */
 		untrack(() => {
+			if (s !== surfAt(m.at)) return; /* the cut has not landed yet: the framing waits for its own page (aiming it at the outgoing page moved that page) */
 			const kk = `${CAMERA_INDEX(m)}|${s}|${phone}`; /* the camera is LOCKED for the length of a move: a CR change inside a hold re-lays the page but never re-aims (it drifted 5x on the pipeline) */
 			if (kk === moveKey) return;
 			const first = !moveKey.startsWith(`${CAMERA_INDEX(m)}|`);
@@ -289,7 +302,8 @@ import { flipRecord, flipPlay, type Pos } from './flip';
 	/* the transform sits on the CAMERA wrapper (group + overlays): a fixed child (the approve popover, the rollback dialog) anchors to the wrapper and zooms with the page. On desktop the wrapper always carries a transform so the dialog's containing block never changes mid-move. */
 	const camStyle = $derived(phone && cam.s === 1 && cam.x === 0 && cam.y === 0 && !cam.moving ? 'transform:none' : cam.s === 1 && cam.x === 0 && cam.y === 0 && !cam.moving ? 'transform: translate(0, 0)' : `transform: translate3d(${cam.x}px, ${cam.y}px, 0) scale(${cam.s}); transition: transform ${cam.dur}ms ${cam.ease}; will-change: ${cam.moving ? 'transform' : 'auto'}`);
 	/* the sidebar is outside the camera: while the frame is zoomed it would stay at 1x beside a 1.6x main pane (two type scales in one shot), so it recedes */
-	const shellDim = $derived((shadeOn || (!phone && cam.s > 1.05)) && !reduced);
+	const lifted = $derived(mv.dimOff !== undefined && t >= mv.dimOff);
+	const shellDim = $derived(((shadeOn && !lifted) || (!phone && cam.s > 1.05)) && !reduced);
 
 	/* ---- the cursor: canvas px; the real click is dispatched at `press` ---- */
 	let canvas: HTMLElement | undefined = $state();
@@ -315,58 +329,39 @@ import { flipRecord, flipPlay, type Pos } from './flip';
 		raf = requestAnimationFrame(follow);
 		return () => cancelAnimationFrame(raf);
 	});
-	/** The two confirms are the product's REAL dialogs, opened by pressing the real buttons, and their open state is a pure function of `t` (so a seek lands on them too):
-	 *  the approval confirm between the two Approve presses (anchored in canvas px), the rollback dialog between the banner's Roll back and Continue.
-	 *  The approval confirm is never clicked (grantApproval would write an optimistic "Deploying" row, TRUTH defect; the story's CRs carry the outcome); the rollback dialog's own Roll back IS clicked at 38.7, which closes it the product's way. */
-	let lastGoal: HTMLElement | null = null, scrollAt = 0;
-	let rbOpen = false, pressedGo = false, pressedWarn = false, dlgTick = $state(0);
-	$effect(() => { if (t < 34.4 || t >= 38.75) { pressedGo = false; pressedWarn = false; } }); /* re-armed whenever the dialog window is out of reach, so a paused seek back into it walks the whole way again */
+	/** The approval confirm is the product's REAL popover, opened by pressing the real Approve, and its open state is a pure function of `t` (so a seek lands on it too).
+	 *  It is never confirmed by a click (grantApproval would write an optimistic "Deploying" row, TRUTH defect; the story's CRs carry the outcome): it is closed at the press. */
 	$effect(() => {
-		const want = confirmOpen(t), wantRb = rollbackOpen(t);
-		void shown; void eventIdx; void dlgTick; /* the dialogs open a frame after their button is pressed: a paused seek must still walk banner -> warning -> fields */
+		const want = confirmOpen(t);
+		void shown; void eventIdx;
 		untrack(() => {
 			if (!canvas) return;
-			/* only on the surface that owns the button: a seek lands here before the new surface is shown, and the old page may carry a link with the same words (a real navigation of the host page) */
+			/* only on the surface that owns the button: a seek lands here before the new surface is shown */
 			if (want && !approvalUi.ask && shown === 'rollouts') {
 				const el = resolveTarget('approve', canvas, phone) as HTMLElement | null;
 				if (el) { el.click(); const a = approvalUi.ask; if (a) { if (phone) { const c = canvas.getBoundingClientRect(), r = el.getBoundingClientRect(); a.anchor = { top: (r.top - c.top) / k, left: (r.left - c.left) / k, right: (r.right - c.left) / k, bottom: (r.bottom - c.top) / k }; } else { const r = relRect(el); /* the layer lives in the camera wrapper: group space, so it sits under ITS button at any zoom; the 320 px panel is left-aligned to the button (right = left + 320) */ a.anchor = { top: r.y, left: r.x, right: r.x + 320, bottom: r.y + r.h }; } } }
 			} else if (!want && approvalUi.ask) approvalUi.ask = null;
-			if (wantRb && !rbOpen && shown === 'overview') { const el = resolveTarget('banner-rollback', canvas, phone); if (el) { el.click(); rbOpen = true; void tick().then(() => requestAnimationFrame(() => (dlgTick += 1))); } }
-			else if (wantRb && rbOpen && t >= 35.5 && !pressedWarn) { const w = resolveTarget('warn-continue', canvas, phone) as HTMLButtonElement | null; if (w && !w.disabled) { pressedWarn = true; w.click(); void tick().then(() => requestAnimationFrame(() => (dlgTick += 1))); } else if (!w && canvas.querySelector('.fm-panel textarea')) pressedWarn = true; }
-			else if (wantRb && rbOpen && t >= 38.7 && !pressedGo) { const go = resolveTarget('modal-continue', canvas, phone) as HTMLButtonElement | null; if (go && !go.disabled) { pressedGo = true; rbOpen = false; go.click(); } }
-			else if (!wantRb && rbOpen) { lastGoal = null; resolveTarget('modal-cancel', canvas, phone)?.click(); rbOpen = false; }
 		});
 	});
 
-	/* the prod ceremony's two fields are typed from `t` (a pure function: a seek lands on the right half-typed text): set the value and tell the product's binding */
-	const byTextEl = (root: ParentNode, re: RegExp) => [...root.querySelectorAll<HTMLElement>('.fm-panel button')].find((e) => re.test((e.textContent ?? '').trim())) ?? null;
-	function typeInto(el: HTMLInputElement | HTMLTextAreaElement | null, text: string) {
-		if (!el || el.value === text) return;
-		el.value = text; el.dispatchEvent(new Event('input', { bubbles: true }));
-	}
+	/* ---- the NEW tag (owner 2026-11-12): the product's own chip (role "newest", the mint the product prints a current build in) on the release's line in the
+	   Builds card, from the release to the loop's end. Landing chrome placed against the product's DOM (nothing injected into it); it shines once as it lands. ---- */
+	const NEW_BUILD = '4.46.0-46';
+	let tag = $state<{ x: number; y: number } | null>(null);
 	$effect(() => {
-		const tt = t, open = rollbackOpen(t);
-		void shown; void eventIdx; void dlgTick;
+		const tt = t; void shown; void eventIdx; void hid;
 		untrack(() => {
-			if (!canvas || !open || shown !== 'overview') return;
-			typeInto(resolveTarget('modal-reason', canvas, phone) as HTMLTextAreaElement | null, REASON.slice(0, typedLen(tt, TYPING.reason, REASON.length)));
-			const v = canvas.querySelector('.fm-panel')?.textContent?.match(/Type\s+(\S+)\s+to confirm/)?.[1] ?? '4.45.0-45';
-			/* phone: the sheet's body is taller than the sheet; a person scrolls to the fields before typing (the reason first, then down to the confirmation). Pure function of t, so a seek lands scrolled. */
-			{
-				const rEl = resolveTarget('modal-reason', canvas, phone), cEl = resolveTarget('modal-confirm', canvas, phone);
-				let sc: HTMLElement | null = rEl?.parentElement ?? null; while (sc && !(sc.scrollHeight > sc.clientHeight + 4 && /auto|scroll/.test(getComputedStyle(sc).overflowY))) sc = sc.parentElement;
-				const goal = tt >= 37.2 ? cEl : tt >= 35.9 ? rEl : null;
-				if (sc && goal) {
-					const a = sc.getBoundingClientRect(), g = goal.getBoundingClientRect(), u = a.height / sc.clientHeight || 1;
-					/* the sheet's footer (Cancel / Roll back, under the scroller) grows by a "does not match yet" line once typing starts: the field is centred in the scroller as it will be THEN, so the footer never covers it and nothing jumps */
-					const hd = sc.contains(canvas.querySelector('.fm-panel header')) ? 64 : 0 /* 64 =  the sticky dialog title (AD r6: it scrolled away while the reason was typed); a tablet's title sits above the scroller: nothing to clear */, avail = sc.clientHeight - hd - (/does not match/.test(canvas.querySelector('.fm-panel')?.textContent ?? '') ? 0 : 28);
-					const want = Math.min(Math.max(0, sc.scrollTop + (g.top - a.top) / u - (hd + (avail - g.height / u) * 0.5)), Math.max(0, sc.scrollHeight - sc.clientHeight));
-					if (goal !== lastGoal) { lastGoal = goal; scrollAt = tt; sc.scrollTo({ top: want, behavior: 'smooth' }); } else if (tt > scrollAt + 0.7 && Math.abs(want - sc.scrollTop) > 1) sc.scrollTop = want; /* held there while the footer's line comes and goes */
-				}
-			}
-			typeInto(resolveTarget('modal-confirm', canvas, phone) as HTMLInputElement | null, v.slice(0, typedLen(tt, TYPING.confirm, v.length)));
+			if (tt < NEW_AT || shown !== 'app' || !group) { tag = null; return; }
+			/* on the release's own line, after its title (the id's 96 px column has no room for a chip: beside the id it covered the title) */
+			const li = group.querySelector<HTMLElement>(`li[data-truth-build="${NEW_BUILD}"]`), el = li?.querySelector<HTMLElement>('.s-ttl') ?? li?.querySelector<HTMLElement>('.s-id');
+			if (!el) { tag = null; return; }
+			const rg = document.createRange(); rg.selectNodeContents(el); const q = [...rg.getClientRects()].filter((b) => b.width > 2).pop();
+			if (!q) { tag = null; return; }
+			const g = group.getBoundingClientRect(), u = unit(), x = (q.right - g.left) / u + 8, y = (q.top - g.top) / u + q.height / u / 2 - 10;
+			if (!tag || Math.abs(tag.x - x) > 0.5 || Math.abs(tag.y - y) > 0.5) tag = { x, y };
 		});
 	});
+	const tagFresh = $derived(t >= NEW_AT && t < NEW_AT + 1.2);
 
 	const crumbs = $derived(surf === 'change' ? ['Changes', 'checkout-api #112'] : surf === 'rollouts' ? ['Rollouts'] : surf === 'envs' ? ['Environments'] : surf === 'app' ? ['Apps', 'checkout-api'] : ['Rollouts', 'checkout-api']);
 	const tally = $derived(tallyShown(t));
@@ -385,7 +380,8 @@ import { flipRecord, flipPlay, type Pos } from './flip';
 						<div class="film-cam" bind:this={camEl} style={camStyle}>
 							<div class="film-group" bind:this={group} data-hid={hid ? '1' : null} style="opacity:{hid ? 0 : swapOpacity}; transition:{fadeIn && !hid ? 'opacity .2s ease-out' : 'none'}">
 								{#if Comp}<Comp {...props} />{/if}
-								{#if hole}<div class="film-hole" class:film-hole-on={holeOn} style="left:{hole.x}px;top:{hole.y}px;width:{hole.w}px;height:{hole.h}px;border-radius:{hole.r}px"></div>{/if}
+								{#if tag}<span class="film-new" class:film-new-fresh={tagFresh && !reduced} style="left:{tag.x}px;top:{tag.y}px"><Chip role="newest" label="New" dot={false} /></span>{/if}
+								{#if hole}<div class="film-hole" class:film-hole-on={holeOn && !lifted} style="left:{hole.x}px;top:{hole.y}px;width:{hole.w}px;height:{hole.h}px;border-radius:{hole.r}px"></div>{/if}
 							</div>
 							{#if Layer && !phone}<Layer />{/if}
 						</div>
@@ -426,5 +422,11 @@ import { flipRecord, flipPlay, type Pos } from './flip';
 	:global(.fm-panel header) { position: sticky; top: 0; z-index: 5; background-color: var(--k-surface); } /* the sheet's title stays while its body scrolls */
 	/* the product's own toast ("Successfully pinned and deployed version", fixed bottom-right / top on a phone) rides the camera over the page the story is about to show: the dialog's close is the confirmation here */
 	.film-canvas :global([role="status"][class*="z-[60]"]) { display: none !important; }
+	/* the NEW tag: lands with a short rise and one light sweep across it (the shine), then sits still */
+	.film-new { position: absolute; z-index: 2; pointer-events: none; display: inline-flex; overflow: hidden; border-radius: 4px; }
+	.film-new-fresh { animation: film-new-in 0.42s cubic-bezier(0.16, 1, 0.3, 1) both; }
+	.film-new-fresh::after { content: ''; position: absolute; inset: 0; background: linear-gradient(100deg, transparent 20%, rgb(255 255 255 / 0.75) 45%, transparent 70%); transform: translateX(-120%); animation: film-new-shine 0.9s 0.25s ease-in-out both; }
+	@keyframes film-new-in { from { opacity: 0; transform: translateY(3px) scale(0.92); } to { opacity: 1; transform: none; } }
+	@keyframes film-new-shine { to { transform: translateX(120%); } }
 	.film-tabs { position: absolute; left: 0; right: 0; bottom: 0; z-index: 5; }
 </style>

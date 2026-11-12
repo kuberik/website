@@ -16,6 +16,10 @@ import Film from './Film.svelte';
 import { containScroll } from './contain-scroll';
 
 export function mountFilm(ctx: CustomCtx) {
+	/* the product's tab routes name themselves (<svelte:head><title>): mounted in the film, the Overview renamed the LANDING page's tab to "checkout-api (...) · Kuberik"
+	   (owner 2026-11-12, a glitch). The landing keeps its own name: writes to document.title are dropped while the film is on the page. */
+	const titleOf = Object.getOwnPropertyDescriptor(Document.prototype, 'title');
+	if (titleOf?.get) Object.defineProperty(document, 'title', { configurable: true, get: () => titleOf.get!.call(document), set: () => {} });
 	const props = reactive({ t: 0, playing: false, userPlaying: true, reduced: false, eventIdx: -1, onseek: (_: number) => {}, ontoggle: () => {}, onshown: () => {} });
 	let world: ReturnType<typeof worldAt> | null = null;
 	installAnswers(() => (world?.fleet.rollouts as unknown[]) ?? [], () => world?.github ?? null);

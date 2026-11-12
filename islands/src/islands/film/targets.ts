@@ -28,6 +28,11 @@ function resolve(name: string, root: ParentNode, phone: boolean): HTMLElement | 
 		case 'approve-pair': { const c = q('[data-approve-open]')?.closest<HTMLElement>('[class*="rounded"]') ?? null, pop = phone ? null : q('[data-approve-confirm]'); return c && pop ? union([c, pop]) : c; }
 		/* the finale's frame: the Production card's regions (the four untouched ones) and its Last deploy record ("rolled back"), clipped to the card's left 660 px so the zoom lands on them */
 		case 'final-prod': { const c = cardOf(root, /^Production/i); if (!c) return null; return { __r: 8, getBoundingClientRect() { const r = c.getBoundingClientRect(), sc = r.width / (c.offsetWidth || r.width); return new DOMRect(r.left, r.top, Math.min(r.width, 660 * sc), r.height); } } as unknown as HTMLElement; }
+		/* lane 33: the Approve beat is ONE frame, set at the cut: the attention card plus the room under its Approve that the confirm opens into (a 320 px panel), so nothing re-frames when it opens */
+		case 'approve-stage': {
+			const btn = q('[data-approve-open]'), c = btn?.closest<HTMLElement>('[class*="rounded"]') ?? null; if (!btn || !c) return null;
+			return { __r: 8, getBoundingClientRect() { const r = c.getBoundingClientRect(), b = btn.getBoundingClientRect(), sc = r.width / (c.offsetWidth || r.width); const bottom = phone ? r.bottom : Math.max(r.bottom, b.bottom + 118 * sc), right = Math.max(r.right, b.left + 330 * sc); return new DOMRect(r.left, r.top, right - r.left, bottom - r.top); } } as unknown as HTMLElement;
+		}
 		case 'approve-confirm': return q('[data-action="approve-confirm"]');
 		case 'attention': return q('[data-approve-open]')?.closest<HTMLElement>('[class*="rounded"]') ?? null;
 		case 'banner-rollback': return byText(root, 'button, a', /^Roll back$/);

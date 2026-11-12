@@ -1,105 +1,76 @@
 /**
- * THE FILM'S SCRIPT: what is on screen, where the camera is, and what the chrome says, as pure functions of story second `t` (STORYBOARD sections 2-4).
- * It names things (surfaces, targets, overlays); Film.svelte resolves the names against the product's real DOM. Camera, dim, cursor, overlay and
- * chrome are landing chrome (anything the storyboard specifies); every word inside a surface is the product's.
+ * THE FILM'S SCRIPT: what is on screen, where the camera is, and what the chrome says, as pure functions of story second `t`.
+ * It names things (surfaces, targets, overlays); Film.svelte resolves the names against the product's real DOM. Camera, dim, cursor, the NEW tag and
+ * chrome are landing chrome; every word inside a surface is the product's.
+ *
+ * LANE 33 (owner 2026-11-12: "too hectic"): four shots, Railway's pacing. A shot's framing is set AT its cut, under the cross-fade, and then HOLDS: the
+ * camera never moves in front of the viewer.
+ *   App 0-7          the release appears ("Newest" + the NEW tag) and staging takes it at once
+ *   Rollouts 7-11.3  a person approves production (the attention card, framed at the cut); the approved card slides out of the list
+ *   Overview 11.3-24.5  the canary in us-east-1 (wave 1): stage 1, the test passes, stage 2, the health checks pass
+ *   Environments 24.5-40  wave 2 (four regions) takes the build by itself, sped up, on the fleet picture; the loop dissolves into the opening
  */
 import { LOOP } from './clock';
+import { EV } from './scenario';
 
 export { LOOP };
 export type Surf = 'change' | 'rollouts' | 'gates' | 'overview' | 'history' | 'envs' | 'app';
 
-/** the 6 chapters (STORYBOARD section 2): label, [from, to), and the settled frame reduced motion seeks to */
+/** the chapters (chips): label, [from, to), and the settled frame reduced motion seeks to */
 export const CHAPTERS = [
-	{ key: 'merge', label: 'Merge', from: 0, to: 6.5, settled: 4.9 },
-	{ key: 'approve', label: 'Approve', from: 6.5, to: 12.5, settled: 9.3 },
-	{ key: 'gates', label: 'Gates', from: 12.5, to: 18, settled: 17.0 },
-	{ key: 'canary', label: 'Canary', from: 18, to: 27, settled: 21.2 },
-	{ key: 'catch', label: 'Catch', from: 27, to: 33.8, settled: 30.5 },
-	{ key: 'rollback', label: 'Roll back', from: 33.8, to: 48, settled: 43.2 }
+	{ key: 'release', label: 'Release', from: 0, to: 2.2, settled: 1.9 },
+	{ key: 'staging', label: 'Staging', from: 2.2, to: 7, settled: 6.2 },
+	{ key: 'approve', label: 'Approve', from: 7, to: 11.3, settled: 9.6 },
+	{ key: 'canary', label: 'Canary', from: 11.3, to: 24.5, settled: 17.4 },
+	{ key: 'waves', label: 'Waves', from: 24.5, to: 40, settled: 34 }
 ] as const;
-/** reduced motion rests on b15's settled frame: the rollout Overview, tests Passed, the final check failed, the banner and Roll back */
-export const REST_T = 28.4;
+/** reduced motion rests on the whole fleet on the new build (the Environments page, every region healthy on 4.46.0-46) */
+export const REST_T = 34;
 export const chapterAt = (t: number) => Math.max(0, CHAPTERS.findIndex((c) => t >= c.from && t < c.to));
 export const chapterFill = (t: number) => { const c = CHAPTERS[chapterAt(t)]; return Math.min(1, Math.max(0, (t - c.from) / (c.to - c.from))); };
 
-/** which surface the window shows (the cut times are the storyboard's: N() sidebar steps and T() tab slides) */
-const SURF: [number, Surf][] = [[0, 'change'], [6.3, 'rollouts'], [12.5, 'gates'], [18, 'overview'], [42.6, 'history'], [44, 'app']];
+/** which surface the window shows */
+const SURF: [number, Surf][] = [[0, 'app'], [7, 'rollouts'], [11.3, 'overview'], [24.5, 'envs']];
 export const surfAt = (t: number): Surf => [...SURF].reverse().find(([at]) => t >= at)![1];
-/** surfaces whose cut comes within `ahead` story seconds (their chunks are fetched before the beat: STORYBOARD section 9) */
+/** surfaces whose cut comes within `ahead` story seconds (their chunks are fetched before the beat) */
 export const upcoming = (t: number, ahead = 3): Surf[] => SURF.filter(([at]) => at > t && at - t <= ahead).map(([, s]) => s);
-/** (retired) the loop end no longer fades to empty ground: the wrap cross-fades into b1 */
-export const FADE_AT = 47.0;
+/** (retired) the loop end no longer fades to empty ground: the wrap cross-fades into the opening */
+export const FADE_AT = 39.0;
 
-/** camera: a keyframe is a move that STARTS at `at`. `to` names a target the film resolves in the surface's DOM ('rest' = scale 1, origin). `dur` in ms. */
-export type Move = { at: number; to: string; s: number; dur: number; ease: string; dim?: string; min?: number; desk?: boolean /* desktop only: a phone has no camera on the sheet, and every extra keyframe costs it a layout shift */; hole?: string /* the dim's hole when it is not the camera target (the catch: frame the text, light the whole banner) */ };
-const EXPO = 'cubic-bezier(0.16, 1, 0.3, 1)', SPRING = 'cubic-bezier(0.34, 1.15, 0.64, 1)', ANTIC = 'cubic-bezier(0.34, 1.3, 0.64, 1)';
-const PULL = 'cubic-bezier(0.45, 0, 0.2, 1)';
-/* FIVE zooms in all (L3): merge (where it runs -> history, a pan), gates (held across both beats), the pipeline (pans to the health checks and back for the final check), the rollback aftermath (banners -> pipeline -> timeline, panning) and the finale's pull-back over the resolved Environments page.
-   Every zoom is 1.5x; between consecutive beats on one object the camera PANS, it never returns to rest and re-zooms. The catch (27.3-30.4) and the approval are dims at 1x. */
+/** camera: a keyframe is a framing that STARTS at `at`. `to` names a target the film resolves in the surface's DOM ('rest' = scale 1, origin). `dur` in ms; 0 = set at a cut, under the cross-fade (never seen moving). */
+export type Move = { at: number; to: string; s: number; dur: number; ease: string; dim?: string; min?: number; desk?: boolean /* desktop only */; hole?: string /* the dim's hole when it is not the camera target */; dimOff?: number /* the light lifts at this second, the frame stays */ };
+const EXPO = 'cubic-bezier(0.16, 1, 0.3, 1)';
 export const CAMERA: Move[] = [
-	{ at: 0, to: 'rest', s: 1, dur: 500, ease: EXPO }, /* the loop wrap eases the camera home under the cross-fade */
-	{ at: 1.4, to: 'where-it-runs', s: 1.5, dur: 434, ease: EXPO },
-	{ at: 3.9, to: 'history', s: 2.5, dur: 460, ease: SPRING }, /* 2.5x: the History card sits at the page's right edge, and only a frame narrower than the card plus its 16 px gutter can start right of the Where-it-runs card without running off the page (at 2.4x a 20 px strip of it showed at 1440, AD r8) */
-	{ at: 5.2, to: 'rest', s: 1, dur: 537, ease: EXPO },
-	/* the PERSON beats (the approval and its confirm, the catch, the rollback fields): zoomed until the smallest text renders at 15 px, and the ONLY dimmed beats besides the dialog's own scrim */
-	{ at: 7.3, to: 'attention', s: 1.5, dur: 520, ease: EXPO, dim: 'both', min: 15 },
-	{ at: 8.9, to: 'approve-pair', s: 1.5, dur: 460, ease: SPRING, dim: 'both', min: 15 },
-	{ at: 10.4, to: 'rest', s: 1, dur: 420, ease: EXPO },
-	{ at: 13.4, to: 'gate-column', s: 1.5, dur: 380, ease: ANTIC },
-	{ at: 17.3, to: 'rest', s: 1, dur: 537, ease: EXPO },
-	{ at: 18.4, to: 'pipeline', s: 1.5, dur: 434, ease: EXPO }, /* the WHOLE pipeline card held through the canary (Stage 1 -> the final check -> its health checks); the old pan to the rail's Health checks card left the pipeline half out of frame (AD r6 P1-1) */
-	{ at: 27.3, to: 'figure', s: 1.5, dur: 480, ease: EXPO, dim: 'both', min: 15 }, /* the phone's Catch frame (the tight rest below is desktop only and wins there: moveAt reads from the end) */
-	{ at: 27.3, to: 'figure-tight', s: 1.5, dur: 480, ease: EXPO, dim: 'both', min: 15, hole: 'figure', desk: true }, /* AD r8 P2-3: the Catch's ONE tight rest, on the failure banner's words at 1.5x (the whole banner fills the page width: whole, it lands near 1.07x), lit as the whole banner */
-	{ at: 29.0, to: 'figure', s: 1.5, dur: 480, ease: EXPO, dim: 'both', min: 15 }, /* then wide: the whole banner with its actions, still lit (on the phone this is the Catch's only frame, from 27.3) */
-	{ at: 30.4, to: 'rest', s: 1, dur: 400, ease: EXPO },
-	{ at: 33.2, to: 'rest', s: 1, dur: 420, ease: EXPO },
-	{ at: 34.5, to: 'modal', s: 1.5, dur: 460, ease: EXPO, dim: 'shade', min: 15 }, /* the recovery-mode warning (the product's own dialog before the version dialog) */
-	{ at: 35.8, to: 'modal-top', s: 1.5, dur: 460, ease: EXPO, dim: 'shade', min: 15 },
-	{ at: 36.6, to: 'modal-fields', s: 1.5, dur: 460, ease: EXPO, dim: 'shade', min: 15, desk: true },
-	{ at: 39.0, to: 'rest', s: 1, dur: 300, ease: EXPO },
-	{ at: 39.4, to: 'banners', s: 1, dur: 434, ease: EXPO },
-	{ at: 42.2, to: 'rest', s: 1, dur: 340, ease: EXPO }, /* clear before the History cut (42.6) and held through the Environments cut (44.0): a cut never lands under another page's zoom. The History strip spans the page's whole content width, so no zoom can frame it without slicing the rail beside it (AD r4: no cropped words): it is shown at rest. */
-
-	{ at: 44.7, to: 'builds', s: 1.5, dur: 2400, ease: PULL }, /* the finale pushes in on the five regions, slowly, and the loop's wrap eases it home under the cross-fade */
+	{ at: 0, to: 'builds', s: 1.35, dur: 0, ease: EXPO }, /* the App page's Builds card, the release lands in it as its newest stop */
+	{ at: 7, to: 'approve-stage', s: 1.5, dur: 0, ease: EXPO, dim: 'both', min: 15, hole: 'attention', dimOff: EV.approved - 0.03 }, /* the light lifts as the approved card leaves (a lit hole over the empty slot read as a blank card) */ /* the person's beat: the attention card and the room its confirm opens into, framed at the cut; the card is lit */
+	{ at: 11.3, to: 'pipeline', s: 1.5, dur: 0, ease: EXPO }, /* the whole pipeline card, held through the canary */
+	{ at: 24.5, to: 'rest', s: 1, dur: 0, ease: EXPO } /* the waves: the Environments page from its top, the fleet at once (Staging, Production's regions, what arrived in prod) */
 ];
 export const moveAt = (t: number, phone = false): Move => [...CAMERA].reverse().find((m) => t >= m.at && !(phone && m.desk))!;
 
-/** the presses: a person decides (STORYBOARD cursor rule). `go` = cursor appears, `press` = the real click, `off` = it fades. */
-export type Press = { id: 'approve' | 'confirm' | 'rollback' | 'warn' | 'continue'; target: string; go: number; press: number; off: number };
+/** the presses: a person decides. `go` = cursor appears, `press` = the real click, `off` = it fades. */
+export type Press = { id: 'approve' | 'confirm'; target: string; go: number; press: number; off: number };
 export const PRESSES: Press[] = [
-	{ id: 'approve', target: 'approve', go: 7.9, press: 8.6, off: 8.9 },
-	{ id: 'confirm', target: 'approve-confirm', go: 9.5, press: 10.2, off: 10.4 },
-	{ id: 'rollback', target: 'banner-rollback', go: 33.9, press: 34.2, off: 34.45 },
-	{ id: 'warn', target: 'warn-continue', go: 35.0, press: 35.5, off: 35.75 },
-	{ id: 'continue', target: 'modal-continue', go: 38.0, press: 38.7, off: 39.0 }
+	{ id: 'approve', target: 'approve', go: 8.0, press: 8.8, off: 9.1 },
+	{ id: 'confirm', target: 'approve-confirm', go: 9.8, press: 10.6, off: 10.85 }
 ];
 export const pressAt = (t: number): Press | null => PRESSES.find((p) => t >= p.go && t < p.off) ?? null;
-/** overlays: the approval confirm (ApprovalLayer) is open between the first press and the second; the rollback confirm between its two */
-export const confirmOpen = (t: number) => t >= 8.75 && t < 10.4;
-export const rollbackOpen = (t: number) => t >= 34.4 && t < 38.75;
-/** the real prod ceremony, typed on screen at Railway's speed (about 30 characters a second): the reason, then the version to confirm; the real Roll back is pressed at 38.7 */
-export const REASON = 'Error rate over budget, back to the last good build';
-export const TYPING = { reason: [36.0, 37.2], confirm: [37.4, 38.0] } as const;
-export const typedLen = (t: number, [a, b]: readonly [number, number], n: number) => Math.max(0, Math.min(n, Math.floor(((t - a) / (b - a)) * n)));
+/** the approval confirm (ApprovalLayer) is open between the first press and the second */
+export const confirmOpen = (t: number) => t >= 8.95 && t < 10.65; /* closes with the press, before the card leaves (10.7) */
 
-/** the tally (STORYBOARD section 2): checks passed, failed, decided by a person. Each entry is the second its CR passes. */
-const PASSED = [3.8, 4.2, 6.5, 14.4, 16.6, 20.9, 24.8, 40.4, 41.8, 42.2];
-const PEOPLE = [10.2, 38.7];
-const FAILED = [27.0];
-export const tallyAt = (t: number) => ({ passed: PASSED.filter((x) => t >= x).length, failed: FAILED.filter((x) => t >= x).length, people: PEOPLE.filter((x) => t >= x).length });
-/** the page fades with the loop's end, so the tally clears with it */
+/** the tally: checks passed and decisions by a person. Each entry is the second its CR passes. */
+const PASSED = [EV.hcStagingErr, EV.hcStagingLat, EV.testPassed, EV.hcLat, EV.hcErr, ...[EV.w2Check0, EV.w2Check1, EV.w2Check2, EV.w2Check3].flatMap((x) => [x, x])];
+const PEOPLE = [EV.approved];
+export const tallyAt = (t: number) => ({ passed: PASSED.filter((x) => t >= x).length, failed: 0, people: PEOPLE.filter((x) => t >= x).length });
 export const tallyShown = (t: number) => tallyAt(t);
 
-/** Which product reflows are hidden under a still of the page before them (Film.svelte takeSnap). The product's own transitions (a banner opening, a dialog closing,
- *  rows sliding) are the point of the film, so they PLAY, unless one alone costs more layout shift than the page can spend: measured at 1440 the Approve collapse is one
- *  0.105 shift, over the whole 0.1 budget, so it is the single desktop cover. On the phone the same reflows move 2-3x the viewport area (0.12-0.19 each): all covered. */
-export const COVER_DESKTOP_AT = [38.7];
-/** the reflows that PLAY as a slide (flip.ts, by transform: no layout shift) instead of being covered or left to jump: the approved card leaving the Rollouts list */
-export const FLIP_AT = [10.3];
-/** the moment the rollback sheet closes (the Roll back press, 38.7): on the phone the still that covers the reflow is of the PAGE, without the sheet. A copy of a
- *  fixed full-screen sheet cannot be laid out like the real one (it came back at its top with the nav over it, AD r8 P2-1), and the press sends the sheet away:
- *  the page then slides from where it was laid out under the sheet (Film.svelte settleThenReveal) */
-export const SHEET_CLOSE_AT = 38.7;
-export const sheetClosing = (t: number) => Math.abs(t - SHEET_CLOSE_AT) < 0.35;
+/** Product reflows hidden under a still of the page before them (desktop: none; on the phone every reflow is covered and slides, Film.svelte) */
+export const COVER_DESKTOP_AT: number[] = [];
+/** the reflows that PLAY as a slide (flip.ts, by transform: no layout shift): the release's stop entering the Builds card, staging stepping onto it,
+ *  and its pipeline closing again, the approved card leaving the Rollouts list, wave 2's region tiles opening and folding back into "N regions healthy" */
+export const FLIP_AT = [EV.release, EV.stagingGo, EV.stagingDone, EV.approved, EV.w2Deploy, EV.w2Done0, EV.w2Done1, EV.w2Done2, EV.w2Done3];
 export const flipEvent = (t: number, phone: boolean) => !phone && FLIP_AT.some((c) => Math.abs(t - c) < 0.35);
 export function coverEvent(t: number, phone: boolean): boolean { return phone || COVER_DESKTOP_AT.some((c) => Math.abs(t - c) < 0.35); }
+
+/** the NEW tag: from the release until the loop ends, beside the newest build's id in the Builds card; it shines once as it lands */
+export const NEW_AT = EV.release;
