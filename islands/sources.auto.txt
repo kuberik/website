@@ -75,6 +75,7 @@ lib/components/RolloutNeighbourhood.svelte
 lib/components/RolloutTabHeader.svelte
 lib/components/ScheduleStatus.svelte
 lib/components/SectionHeader.svelte
+lib/components/SectionTabs.svelte
 lib/components/SiteMark.svelte
 lib/components/SourceViewer.svelte
 lib/components/StarToggle.svelte
@@ -143,12 +144,16 @@ lib/components/new/home-page.ts
 lib/components/new/mini-pipeline.ts
 lib/components/new/rollout-view.ts
 lib/components/new/rollouts-page.ts
+lib/components/new/scenario.ts
+lib/components/new/stages/ReleaseCommits.svelte
+lib/components/new/stages/Stages.svelte
 lib/components/new/stages/stages-model.ts
 lib/components/new/state-words.ts
 lib/components/pin-copy.ts
 lib/components/skeleton/CardSkeleton.svelte
 lib/components/skeleton/SkeletonBar.svelte
 lib/demo/demo-avatar.ts
+lib/demo/scenario-cookie.ts
 lib/deployment-timeline-logic.ts
 lib/disclosure.ts
 lib/display-time.ts
@@ -266,8 +271,10 @@ lib/view-models/wait-cause.ts
 lib/view-models/wait-fact.ts
 lib/view-models/waits-for-text.ts
 lib/view-models/wave-mark.ts
+lib/view-models/window-bar.ts
 lib/view-models/window-words.ts
 lib/wrap-compact.ts
+routes/apps/[name]/+layout.svelte
 routes/rollouts/[cluster]/[namespace]/[name]/+layout.svelte
 routes/rollouts/[cluster]/[namespace]/[name]/+page.svelte
 routes/rollouts/[cluster]/[namespace]/[name]/gates/+page.svelte

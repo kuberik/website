@@ -15,7 +15,8 @@ const loaders: Record<Surf, () => Promise<Component<any>>> = {
 	change: () => import('$lib/components/new/change/ChangeDetail.svelte').then((m) => m.default),
 	rollouts: () => import('$lib/components/new/Rollouts.svelte').then((m) => m.default),
 	envs: () => import('$lib/components/new/Environments.svelte').then((m) => m.default),
-	app: () => import('$lib/components/new/app/AppDetail.svelte').then((m) => m.default),
+	app: () => import('./AppShell.svelte').then((m) => m.default), /* scene lane 5: the apps/[name] layout (Overview | Pipeline tabs, #142) around AppDetail */
+	pipe: () => import('./AppShell.svelte').then((m) => m.default), /* scene lane 5 (owner item 8): the App page's Pipeline tab, every site wave by wave */
 	gates: () => import('./RolloutShell.svelte').then((m) => m.default),
 	overview: () => import('./RolloutShell.svelte').then((m) => m.default),
 	stg: () => import('./RolloutShell.svelte').then((m) => m.default), /* scene lane 3: staging's rollout page (its Overview: pipeline + health checks) */
@@ -46,7 +47,7 @@ export function surfaceProps(s: Surf, ei: number): Record<string, unknown> {
 	const keep = lastChange ? { change: lastChange, checks: null } : {};
 	if (s === 'change') return { ...keep, scenario: 'incident', checks: null };
 	if (isRollout(s)) return { ...keep, Tab: tabComp[s] };
-	if (s === 'app') return { ...keep, state: 'incident', name: APP };
+	if (s === 'app' || s === 'pipe') return { ...keep, state: 'incident', name: APP, tab: s === 'pipe' ? 'pipeline' : 'overview' };
 	return { ...keep, state: 'incident' };
 }
 const base = `/rollouts/${CLUSTER}/${NS}/${APP}`;
@@ -57,6 +58,7 @@ export const SURFACE_PATH: Record<Surf, { url: URL; route: { id: string }; param
 	rollouts: at('/rollouts', '/rollouts'),
 	envs: at('/environments', '/environments'),
 	app: at(`/apps/${APP}`, '/apps/[name]', { name: APP }),
+	pipe: at(`/apps/${APP}/pipeline`, '/apps/[name]/pipeline', { name: APP }),
 	overview: at(base, '/rollouts/[cluster]/[namespace]/[name]', R),
 	stg: at(`/rollouts/${CLUSTER}/checkout-api-staging/${APP}`, '/rollouts/[cluster]/[namespace]/[name]', { ...R, namespace: 'checkout-api-staging' }),
 	gates: at(`${base}/gates`, '/rollouts/[cluster]/[namespace]/[name]/gates', R),

@@ -66,6 +66,7 @@ function resolve(name: string, root: ParentNode, phone: boolean): HTMLElement | 
 		/* scene lane 4 (phone): the Release approval gate card, the subject from the Approve press to every gate passing (it stays when its button leaves) */
 		case 'gate-release': return byText(root, 'div,span,p,h3,h4', /^Release approval$/)?.closest<HTMLElement>('[class*="rounded"]') ?? null;
 		/* scene lane 4: the Gates tab's graph: every gate card (staging's promotion, Release approval, Business hours) and this rollout, as one rect (the frame's foot is the lowest gate) */
+		case 'gates-card': return root.querySelector<HTMLElement>('[data-tour="dependency-graph"]'); /* scene lane 5: the phone's Gates beat frames the whole Gates card from its title */
 		case 'gates-graph': { const cards = ['Release approval', 'Business hours'].map((t) => byText(root, 'div,span,p,h3,h4', new RegExp('^' + t + '$'))?.closest<HTMLElement>('[class*="rounded"]') ?? null); const node = byText(root, 'div,span,p', /^This rollout$/i); return cards.every(Boolean) ? union([...(cards as HTMLElement[]), ...(node ? [node] : [])]) : null; }
 		case 'gates-card': return cardOf(root, /^Gates$/); /* scene lane 3: the Gates tab's gate graph card */
 		case 'banner': return q('.ap-cq');

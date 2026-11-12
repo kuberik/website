@@ -34,9 +34,10 @@ export const EV = {
 	gatesCut: 4.8, promo: 5.3, /* the promotion gate opens a sync after staging's bake, on screen */
 	approved: 8.6, deploy: 9.2, ovCut: 10.0, /* the confirm is pressed at 8.4; every gate passes, then the build moves by itself */
 	paused1: 10.6, testPending: 10.9, testRunning: 11.3, testPassed: 13.0, step2Go: 14.0, step2Done: 14.8,
-	hcKust: 15.4, hcErr: 16.0, hcLat: 16.6, bakeCut: 16.9, us1Done: 19.4, changeCut: 19.6, /* prod's health checks pass one by one, then the bake holds to its end */
-	w2Deploy: 21.0, w2Check0: 22.0, w2Check1: 22.3, w2Done0: 23.0, w2Done1: 23.4,
-	w3Deploy: 24.2, w3Check0: 25.2, w3Check1: 25.5, w3Done0: 26.2, w3Done1: 26.6
+	hcKust: 15.4, hcErr: 16.0, hcLat: 16.6, bakeCut: 16.9, us1Done: 19.4, pipeCut: 19.6, /* scene lane 5: the App page's Pipeline tab */ /* prod's health checks pass one by one, then the bake holds to its end */
+	/* scene lane 5: the Pipeline tab fills wave by wave, each state held ~1.2-1.4 s (rings while deploying, pies while checking, then green) */
+	w2Deploy: 20.9, w2Check0: 22.3, w2Check1: 22.5, w2Done0: 23.6, w2Done1: 23.8,
+	w3Deploy: 24.8, w3Check0: 26.2, w3Check1: 26.4, w3Done0: 27.4, w3Done1: 27.6
 } as const;
 /** every story second a CR changes at: the film re-derives its (heavy) data snapshot only when one of these is passed */
 export const EVENT_TIMES = [0, ...Object.values(EV)].sort((a, b) => a - b);

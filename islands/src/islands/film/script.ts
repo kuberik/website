@@ -17,7 +17,7 @@ import { LOOP } from './clock';
 import { EV } from './scenario';
 
 export { LOOP };
-export type Surf = 'change' | 'rollouts' | 'gates' | 'overview' | 'history' | 'envs' | 'app' | 'stg';
+export type Surf = 'change' | 'rollouts' | 'gates' | 'overview' | 'history' | 'envs' | 'app' | 'stg' | 'pipe';
 
 /** the chapters (chips): label, [from, to), and the settled frame reduced motion seeks to */
 export const CHAPTERS = [ /* scene lane 4 (owner item 13): health checks come after the canary */
@@ -25,18 +25,18 @@ export const CHAPTERS = [ /* scene lane 4 (owner item 13): health checks come af
 	{ key: 'staging', label: 'Staging', from: EV.devGo, to: EV.gatesCut, settled: 4.6 },
 	{ key: 'gates', label: 'Gates', from: EV.gatesCut, to: EV.ovCut, settled: 9.7 },
 	{ key: 'canary', label: 'Canary', from: EV.ovCut, to: EV.step2Done, settled: 14.6 },
-	{ key: 'health', label: 'Health checks', from: EV.step2Done, to: LOOP, settled: 19.2 }
-	/* owner item 8: the all-sites beat returns on the App page's Pipeline tab (design/app-pipeline-tab); the Change page's History list is out */
+	{ key: 'health', label: 'Health checks', from: EV.step2Done, to: EV.pipeCut, settled: 19.5 },
+	{ key: 'sites', label: 'All sites', from: EV.pipeCut, to: LOOP, settled: 29.2 } /* scene lane 5 (owner item 8): the App page's Pipeline tab (#142), waves 2 and 3 fill it */
 ] as const;
 /** reduced motion rests on the whole fleet on the new build (the App page: every environment green on 4.46.0-46) */
-export const REST_T = 19.6; /* scene lane 4: prod's bake has completed (the last beat's end) */
+export const REST_T = 29.2; /* scene lane 4: prod's bake has completed (the last beat's end) */
 export const chapterAt = (t: number) => Math.max(0, CHAPTERS.findIndex((c) => t >= c.from && t < c.to));
 export const chapterFill = (t: number) => { const c = CHAPTERS[chapterAt(t)]; return Math.min(1, Math.max(0, (t - c.from) / (c.to - c.from))); };
 
 /** which surface the window shows: two views (RAILWAY.md: one app, few views, the full-view swap is a short cross-fade) */
 /* scene lane 3 (owner checklist): the App page (the release, NEW), staging's rollout page (staging deploys quickly, then its health checks hold for the whole
    bake), the prod rollout's Gates tab (the person approves there) and its Overview (canary and tests), then the change's page (every site, wave by wave) */
-const SURF: [number, Surf][] = [[0, 'app'], [EV.devGo, 'stg'], [EV.gatesCut, 'gates'], [EV.ovCut, 'overview']];
+const SURF: [number, Surf][] = [[0, 'app'], [EV.devGo, 'stg'], [EV.gatesCut, 'gates'], [EV.ovCut, 'overview'], [EV.pipeCut, 'pipe']];
 export const surfAt = (t: number): Surf => [...SURF].reverse().find(([at]) => t >= at)![1];
 /** surfaces whose cut comes within `ahead` story seconds (their chunks are fetched before the beat) */
 export const upcoming = (t: number, ahead = 3): Surf[] => SURF.filter(([at]) => at > t && at - t <= ahead).map(([, s]) => s);
@@ -49,12 +49,15 @@ export const CAMERA: Move[] = [ /* scene lane 3: one fixed scale; a framing is s
 	{ at: 0, to: 'rest', s: 1, dur: 0, ease: EXPO },
 	{ at: EV.devGo, to: 'rest', s: 1, dur: 0, ease: EXPO }, /* staging's rollout page: its strip and pipeline, quickly */
 	{ at: EV.stagingGo - 0.02, to: 'pipeline', s: 1, pad: 68 /* the strip above it */, desk: true, dur: 0, ease: EXPO }, /* scene lane 4: as staging takes the build its header grows two lines (the PR, the namespace); the frame cuts to the strip and the pipeline under it, so neither moves on screen */
-	{ at: EV.gatesCut, to: 'gate-release', s: 1, dur: 0, ease: EXPO }, /* the phone: the Release approval card at the top of the frame, the confirm opens as a sheet */
-	{ at: EV.gatesCut, to: 'gates-graph', s: 1, foot: true, desk: true, dur: 0, ease: EXPO }, /* the prod rollout's Gates tab: every gate (staging's promotion, Release approval, Business hours) and this rollout, whole, at the frame's foot */
+	{ at: EV.gatesCut, to: 'gates-card', s: 1, pad: 10, dur: 0, ease: EXPO }, /* scene lane 5: the phone's Gates beat is a 704 px canvas (the two-column graph): the whole Gates card from its title */
+	{ at: EV.gatesCut, to: 'gates-card', s: 1, pad: 10, desk: true, dur: 0, ease: EXPO }, /* scene lane 5 (item 14): the whole Gates card, title to the graph's foot, at the frame's top */
+	{ at: EV.approved, to: 'gates-card', s: 1, pad: 10, dur: 0, ease: EXPO },
+	{ at: EV.approved, to: 'gates-card', s: 1, pad: 10 /* the card's title where the cut put it: only the card's inside changes */, desk: true, dur: 0, ease: EXPO }, /* scene lane 5: the approval lands, the banner shortens and the passed approval tile sorts under the others (#141): re-framed under the cover */ /* the prod rollout's Gates tab: every gate (staging's promotion, Release approval, Business hours) and this rollout, whole, at the frame's foot */
 	{ at: EV.ovCut, to: 'pipeline', s: 1, foot: true, dur: 0, ease: EXPO }, /* its Overview: the pipeline card through the canary */
 	{ at: EV.step2Done, to: 'health-checks', s: 1, pad: 10, dur: 0, ease: EXPO }, /* scene lane 4: the same page, cut to its Health checks card: kustomization, error-rate, latency-p99 pass one by one */
 	{ at: EV.bakeCut, to: 'bake', s: 1, dur: 0, ease: EXPO }, /* the phone: the Check step's bake line and its timer card */
 	{ at: EV.bakeCut, to: 'pipeline', s: 1, foot: true, desk: true, dur: 0, ease: EXPO }, /* then back to the pipeline: its Check step holds the bake (the timer bar) to the end */
+	{ at: EV.pipeCut, to: 'rest', s: 1, dur: 0, ease: EXPO }, /* scene lane 5: the App page's Pipeline tab */
 ];
 export const moveAt = (t: number, phone = false): Move => [...CAMERA].reverse().find((m) => t >= m.at && !(phone && m.desk))!;
 
@@ -76,7 +79,7 @@ export const tallyAt = (t: number) => ({ passed: PASSED.filter((x) => t >= x).le
 export const tallyShown = (t: number) => tallyAt(t);
 
 /** Product reflows hidden under a still of the page before them (desktop: none; on the phone every reflow is covered and slides, Film.svelte) */
-export const COVER_DESKTOP_AT: number[] = [EV.hcLat]; /* scene lane 4: the bake starting grows the pipeline ABOVE the framed Health checks card: covered by a still while the camera takes it up */
+export const COVER_DESKTOP_AT: number[] = [EV.approved, EV.hcLat]; /* scene lane 5: + the approval landing (the Gates card re-sorts) */ /* scene lane 4: the bake starting grows the pipeline ABOVE the framed Health checks card: covered by a still while the camera takes it up */
 /** the reflows that PLAY as a slide (flip.ts, by transform: no layout shift): the release's stop entering the Builds card, staging stepping onto it,
  *  and its pipeline closing again, the approved card leaving the Rollouts list, each wave's regions stepping onto the release (rows travel, flip.ts) */
 export const FLIP_AT: number[] = []; /* scene lane 3: the only reflow on screen: History logs dev's then staging's deploy at its top, and the rows under it slide down one row (flip.ts) */ /* lane 35: the release is there at t=0, staging plays on the Change page's fixed strip, the approve beat cuts before its list re-sorts; only a wave starting adds its event at the top of History (newest first), and the rows under it slide down one row */

@@ -31,10 +31,14 @@ import { flipRecord, flipPlay, type Pos } from './flip';
 	let host: HTMLElement | undefined = $state();
 	let W = $state(1120), H = $state(640);
 	/* the canvas: a real dashboard at a real width. Phone 390 (the bottom nav layout), tablet 800, desktop 1440; scaled into the window */
-	const CW = $derived(W >= 600 ? 1000 : 390); /* scene lane 3 (owner item 12): every view is the dashboard just below its lg (1024) breakpoint, in its single-column layout, scaled up to fill the window: one fixed scale for the whole film */
+	/* scene lane 5 (owner 2026-11-12: "two columns is actually nice"): the phone's Gates beat lays the dashboard out at 620 px, still below sm (640, the
+	   phone shell: bottom nav), so the Gates card's container is in the graph's compact two-column band (560-959 px): "Gated by" left, the focus card and
+	   its downstream right. Its scale is set at the cut (a cut, never a camera move) */
+	const PHONE_GATES_CW = 704;
+	const CW = $derived(W >= 600 ? 1000 : surfAt(t) === 'gates' ? PHONE_GATES_CW : 390); /* scene lane 3 (owner item 12): every view is the dashboard just below its lg (1024) breakpoint, in its single-column layout, scaled up to fill the window: one fixed scale for the whole film */
 	const k = $derived(W / CW);
 	const CH = $derived(H / k);
-	const phone = $derived(CW < 640);
+	const phone = $derived(W < 600); /* the phone shell (bottom nav) follows the WINDOW: the Gates beat's wider canvas keeps it */
 
 	const surf = $derived<Surf>(surfAt(t));
 	const lit = $derived(chapterAt(t));
@@ -462,7 +466,7 @@ import { flipRecord, flipPlay, type Pos } from './flip';
 	});
 	const tagFresh = $derived(t >= NEW_SHINE && t < NEW_SHINE + 1.3); /* lane 35: the tag is there from the first frame; it shines once after the wrap dissolve */
 
-	const crumbs = $derived(surf === 'change' ? ['Changes', 'checkout-api #112'] : surf === 'rollouts' ? ['Rollouts'] : surf === 'envs' ? ['Environments'] : surf === 'app' ? ['Apps', 'checkout-api'] : ['Rollouts', 'checkout-api']);
+	const crumbs = $derived(surf === 'change' ? ['Changes', 'checkout-api #112'] : surf === 'rollouts' ? ['Rollouts'] : surf === 'envs' ? ['Environments'] : surf === 'app' || surf === 'pipe' ? ['Apps', 'checkout-api'] : ['Rollouts', 'checkout-api']);
 	const tally = $derived(tallyShown(t));
 	const fill = $derived(chapterFill(t));
 	void CHAPTERS;
