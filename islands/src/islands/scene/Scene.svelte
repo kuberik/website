@@ -5,7 +5,7 @@
 	 * THE HERO SCENE (landing scene lane 1, owner 2026-11-12): "promotes across environments" as ONE object changing state, like Railway's landing.
 	 * No page, no navigation, no camera, no app chrome: the dashboard's own environment strip (EnvRow, the one row every page draws), the build's chip travelling
 	 * along it, and ONE fixed panel under it (the product's Card) that explains the hop in flight. Every component here is the dashboard's; the only new
-	 * drawing is the canary traffic split (the product has no traffic meter: two product-token segments labelled with the two builds) and the pointer.
+	 * drawing is the canary traffic split (marks: the strip's own WaveMark, dashboard #137) (the product has no traffic meter: two product-token segments labelled with the two builds) and the pointer.
 	 * 0px rule: the strip's shape is topology, the panel is a fixed slot, rows keep their slots; only marks, words, the bar widths and the chip's x change.
 	 */
 	import { untrack } from 'svelte';
@@ -14,7 +14,8 @@
 	import Chip from '$lib/components/Chip.svelte';
 	import StatusMark from '$lib/components/StatusMark.svelte';
 	import StatusSpinner from '$lib/components/StatusSpinner.svelte';
-	import SiteMark from '$lib/components/SiteMark.svelte';
+	import WaveMark from '$lib/components/WaveMark.svelte';
+	import { waveMark } from '$lib/view-models/wave-mark';
 	import GateLabel from '$lib/components/GateLabel.svelte';
 	import AppGlyph from '$lib/components/AppGlyph.svelte';
 	import Avatar from '$lib/components/Avatar.svelte';
@@ -60,7 +61,7 @@
 	let boxes = $state<Record<string, { x: number; w: number }>>({});
 	let stripW = $state(0);
 	const SW = $derived(phone ? DW : 560); /* the row's own container width: >= 560 draws the connectors between boxes */
-	const zs = $derived(phone ? Math.min(1, stripW ? DW / stripW : 1) : Math.min(1.5 / k, stripW ? (DW - 8) / stripW : 1));
+	const zs = $derived(phone ? Math.min(1.5, stripW ? (DW - 4) / stripW : 1) : Math.min(1.5 / k, stripW ? (DW - 8) / stripW : 1));
 	const measure = () => {
 		if (!stripEl || !scene) return;
 		const els = [...stripEl.querySelectorAll<HTMLElement>('[data-env-box]')];
@@ -208,7 +209,7 @@
 								<span class="sc-main sc-who t-meta text-fg-muted"><Avatar name={AUTHOR} size={16} />{AUTHOR}<span class="t-code-sm text-fg-subtle">#112</span><span class="text-fg-subtle">· Released just now</span></span>
 							</div>
 							<div class="sc-row sc-row-rule">
-								<span class="sc-mk"><SiteMark state={devSt} /></span>
+								<span class="sc-mk"><WaveMark mark={waveMark([{ state: devSt }], 'dev')} /></span>
 								<span class="sc-main t-body text-fg">dev</span>
 								<span class="sc-side t-meta {devSt === 'done' ? 'text-success' : devSt === 'notreached' ? 'text-fg-subtle' : 'text-progress'}">{devSt === 'notreached' ? 'Next' : WORD[devSt]}</span>
 							</div>
@@ -263,7 +264,7 @@
 						{:else}
 							{#each waves as w, i (i)}
 								<div class="sc-row">
-									<span class="sc-mk sc-marks">{#each w as s (s.name)}<SiteMark state={s.state} />{/each}</span>
+									<span class="sc-mk"><WaveMark mark={waveMark(w, 'Wave ' + (i + 1))} /></span>
 									<span class="sc-main t-body text-fg sc-ell"><span class="text-fg-subtle">Wave {i + 1}</span>&nbsp; {phone ? (w.length === 1 ? w[0].name : w.length + ' sites') : w.map((s) => s.name).join(', ')}</span>
 									<span class="sc-side t-meta {w.every((s) => s.state === 'done') ? 'text-success' : w.some((s) => s.state === 'checking' || s.state === 'deploying') ? 'text-progress' : 'text-fg-subtle'}">{w.every((s) => s.state === 'done') ? 'Healthy' : w.some((s) => s.state === 'deploying') ? 'Deploying' : w.some((s) => s.state === 'checking') ? 'Checking' : 'Next'}</span>
 								</div>
@@ -309,8 +310,6 @@
 	.sc-row-lead { min-height: 48px; }
 	.sc-row-rule { border-top: 1px solid var(--k-line-subtle); margin-top: 6px; }
 	.sc-mk { display: inline-flex; align-items: center; justify-content: center; width: 16px; height: 16px; }
-	.sc-marks { width: auto; justify-content: flex-start; gap: 0; }
-	.sc-row:has(.sc-marks) { grid-template-columns: 52px minmax(0, 1fr) auto; }
 	.sc-dot { width: 8px; height: 8px; border-radius: 999px; background: var(--k-fg); }
 	.sc-ring { width: 12px; height: 12px; border-radius: 999px; border: 1.5px dashed var(--k-fg-subtle); }
 	.sc-main { min-width: 0; display: flex; flex-direction: column; gap: 2px; }
@@ -334,5 +333,4 @@
 	.sc-key-old { background: var(--k-line-strong); }
 	.sc-phone .sc-panel { height: 272px; }
 	.sc-phone .sc-gate { min-width: 0; }
-	.sc-phone .sc-gate > span:first-child:not(.btn) { display: none; }
 </style>

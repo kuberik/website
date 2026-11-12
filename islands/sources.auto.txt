@@ -11,6 +11,7 @@ lib/components/GateLabel.svelte
 lib/components/SiteMark.svelte
 lib/components/StatusMark.svelte
 lib/components/StatusSpinner.svelte
+lib/components/WaveMark.svelte
 lib/components/app-monogram.svelte.ts
 lib/components/home/sketch/fleet-source.svelte.ts
 lib/env-badge.ts
@@ -19,3 +20,4 @@ lib/environment-theme.ts
 lib/smooth-height.ts
 lib/view-models/gate-label.ts
 lib/view-models/sites-waves.ts
+lib/view-models/wave-mark.ts
