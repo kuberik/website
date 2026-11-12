@@ -1,8 +1,56 @@
-# The landing page's hero words (from landing v4's data/landing.yaml; its story/terminals
-# tables are retired with the still-capture story, the v5 hero window replaces them).
+# The landing page's words (v4 wording, v5 structure: .work/landing-v5/page/BRIEF.md).
 # hero.h1 is THE swappable headline: <title>, og:title and the h1 read this one string.
 hero:
   eyebrow: "Open source · Apache 2.0 · Works with Flux"
   h1: "Kubernetes releases you don't have to watch."
   sub: "Merge, and Kuberik walks each build through your environments, checks its health at every step, and only asks you when a person has to decide."
   proof: "Runs in your cluster · no agent to install"
+
+# THESIS: the two-tone statement (Linear) and the loop drawn below it. The only "special" section: it is the
+# product's thesis. Capability names live in `features`, once; the loop keeps only its questions.
+thesis:
+  claim: "Kuberik is a controller that lives in your cluster."
+  rest: "Every build goes through the same five phases. You write a Rollout and a ReleaseSource, add gates and health checks when you want them, and Kuberik runs the rest."
+  phases:
+    - { fig: release, name: release, own: "Yours",    q: "Which versions are available?" }
+    - { fig: guard,   name: guard,   own: "Kuberik",  q: "Is it safe to deploy here?" }
+    - { fig: gates,   name: gates,   own: "Optional", q: "Which version may go now?" }
+    - { fig: update,  name: update,  own: "Kuberik",  q: "How does it reach the cluster?" }
+    - { fig: health,  name: health,  own: "Optional", q: "Did it actually work?" }
+
+# FEATURES: six peers, one anatomy (visual card, title, two lines of body, one docs link).
+# Every sentence is checked against content/docs (fact sheet in BRIEF.md "Truth rules").
+features:
+  title: "Every step of a release, declared."
+  body: "Gates, health checks, canaries and waves are resources the controller reconciles in each cluster. Write them once and every build goes through them."
+  items:
+    - id: gates
+      name: "Gates"
+      title: "A build moves when every gate passes."
+      body: "Schedules, approvals, the services it needs and the environment before it. Then it goes on its own."
+      link: { text: "How gates work", href: "/docs/concepts/rollouts/#gating-process" }
+    - id: health
+      name: "Health checks"
+      title: "Healthy for the whole bake, not for a moment."
+      body: "Your Flux Kustomization and Datadog monitors stay healthy for the whole bake, or the release fails."
+      link: { text: "Add health checks", href: "/docs/guides/health-checks/" }
+    - id: canary
+      name: "Canary and waves"
+      title: "Traffic in steps, regions in waves."
+      body: "OpenKruise moves traffic in steps, with a test where you ask for one. Wave 2 waits until wave 1 has baked."
+      link: { text: "Run a canary", href: "/docs/guides/canary-rollouts/" }
+    - id: releases
+      name: "Releases"
+      title: "Every version, and where it came from."
+      body: "A ReleaseSource reads your OCI tags, orders them by version and keeps each digest and git revision."
+      link: { text: "Publish releases", href: "/docs/guides/publishing-releases/" }
+    - id: dashboard
+      name: "Dashboard"
+      title: "Every cluster in one place."
+      body: "Apps and environments from every cluster, on one hub. Paste a pull request link to see how far it got."
+      link: { text: "Expose the dashboard", href: "/docs/installation/helm/#expose-the-dashboard" }
+    - id: gitops
+      name: "GitOps"
+      title: "Flux stays in charge of your cluster."
+      body: "Kuberik never applies manifests. It sets one version in your Flux objects, and Flux does the rest."
+      link: { text: "Connect Flux", href: "/docs/integrations/fluxcd/" }

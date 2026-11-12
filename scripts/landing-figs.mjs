@@ -260,73 +260,7 @@ function staircase(name, k, { w, step, gap, wd, treads, e, rest, pulse, labels }
 staircase('staircase-done', 'st', { w: 150, step: 46, gap: 96, wd: 16, treads: 7, e: 22, rest: 26, pulse: 64, labels: true });
 staircase('staircase-done-compact', 'stc', { w: 110, step: 34, gap: 70, wd: 14, treads: 5, e: 20, rest: 22, pulse: 44, labels: false });
 
-// ---- the dependency graph: four services, one environment ---------------------------------------
-// checkout-api's new build needs payments-svc 3.0.0, which is still rolling out here: the build waits at the
-// (dashed, yours) gate on that one edge. checkout-worker needs nothing new and is not held; storefront is at
-// rest. The copy beside it says exactly this. Motion: payments-svc answers (the health pulse, once per 6 s).
-function depsGraph(name, { compact = false } = {}) {
-	begin(); const w = 120, g = compact ? 70 : 96, gv = 120; let b = '';
-	const N = compact ? {
-		pay: { px: 0, py: 0, label: 'payments-svc', v: '3.1.0 rolling out' },
-		api: { px: w + g, py: w + g, label: 'checkout-api', v: '4.46.0-46 waiting' },
-	} : {
-		pay: { px: 0, py: 0, label: 'payments-svc', v: '3.1.0 rolling out' },
-		api: { px: 0, py: -(w + gv), label: 'checkout-api', v: '4.46.0-46 waiting' }, // A7: only the waiting edge is widened
-		work: { px: w + g, py: 0, label: 'checkout-worker', v: '2.8.1 not held' },
-		front: { px: w + g, py: -(w + gv), label: 'storefront', v: '1.12.0' },
-	};
-	const wd = 12;
-	const edge = (a, c, cls) => ramp({ a, b: c, za: 0, zb: 0, wd, treads: 6, cls });
-	const T2 = [{ u: .2, v: .5 }, { u: .8, v: .5 }];
-	const wait = compact
-		? [[N.pay.px + w, N.pay.py + w / 2], [N.api.px, N.api.py + w / 2]]
-		: [[N.pay.px + w / 2, N.pay.py], [N.api.px + w / 2, N.api.py + w]];
-	if (!compact) {
-		b += plate({ px: N.api.px, py: N.api.py, w, t: 10, tiles: T2 });
-		b += plate({ px: N.front.px, py: N.front.py, w, t: 10, tiles: T2 });
-		b += edge([N.api.px + w, N.api.py + w / 2], [N.front.px, N.front.py + w / 2], 'is-idle');
-		b += edge([N.work.px + w / 2, N.work.py], [N.front.px + w / 2, N.front.py + w], 'is-idle');
-	}
-	b += edge(wait[0], wait[1], 'is-active');
-	b += plate({ px: N.pay.px, py: N.pay.py, w, t: 10, cls: 'is-healthy', tiles: T2 });
-	if (!compact) {
-		b += plate({ px: N.work.px, py: N.work.py, w, t: 10, tiles: T2 });
-		b += edge([N.pay.px + w, N.pay.py + w / 2], [N.work.px, N.work.py + w / 2], 'is-idle');
-	} else {
-		b += plate({ px: N.api.px, py: N.api.py, w, t: 10, tiles: T2 });
-	}
-	// gate: posts and a dashed bar across the waiting edge; the held build before it (A7: half-width = edge + 3,
-	// gate at .58, build at .30, posts 20 tall, bar at 14)
-	const ex = wait[1][0] - wait[0][0], ey = wait[1][1] - wait[0][1], L = Math.hypot(ex, ey);
-	const gh = wd / 2 + 3, nx = -ey / L * gh, ny = ex / L * gh;
-	const mx = wait[0][0] + ex * .58, my = wait[0][1] + ey * .58;
-	{
-		const a = P(mx + nx, my + ny), c = P(mx - nx, my - ny);
-		b += `<path class="fig-gate" ${NS} d="M${a[0]} ${a[1]}v-20M${c[0]} ${c[1]}v-20"/><path class="fig-gate fig-dash" ${NS} d="M${a[0]} ${f(a[1] - 14)}L${c[0]} ${f(c[1] - 14)}"/>`;
-	}
-	b += cube({ px: wait[0][0] + ex * .30, py: wait[0][1] + ey * .30, e: 18 });
-	// A8: outer ring <= 0.4 w; animated like health (the rest ring stays)
-	b += ring({ px: N.pay.px + w / 2, py: N.pay.py + w / 2, z: 0, r: 24, cls: 'fig-ring-rest' });
-	b += ring({ px: N.pay.px + w / 2, py: N.pay.py + w / 2, z: 0, r: 46, cls: 'm m-dp' });
-	b += cube({ px: N.pay.px + w / 2, py: N.pay.py + w / 2, e: 22 });
-	b += ghost({ px: N.api.px + w / 2, py: N.api.py + w / 2, e: 20 });
-	if (!compact) {
-		b += cube({ px: N.work.px + w / 2, py: N.work.py + w / 2, e: 20 });
-		b += cube({ px: N.front.px + w / 2, py: N.front.py + w / 2, e: 20 });
-	}
-	for (const n of Object.values(N)) {
-		// every label at the same place relative to its plate: right of the plate's right corner
-		const [lx, ly] = P(n.px + w, n.py, 0);
-		const ox = 16, oy = 2;
-		// compact: 16 / 15 units at 0.82 scale = 13 / 12.3 px (A10); wide: 15 / 14 units (see sections.css)
-		const cw = 9.6; // reserve for 16-unit labels (the widest step, see sections.css)
-		b += label(lx + ox, ly + oy, n.label, 'fig-env', cw);
-		b += label(lx + ox, ly + oy + (compact ? 22 : 21), n.v, /waiting/.test(n.v) ? 'fig-sub is-waiting' : 'fig-sub', cw * .94);
-	}
-	svg(name, '', b);
-}
-depsGraph('dependencies');
-depsGraph('dependencies-compact', { compact: true });
+// The cube dependency graph left the page (landing v5 page: dependencies are one gate among six peers).
 
 // ---- the stylesheet half: the keyframes the drawings above need ------------------------------------
 writeFileSync(join(ROOT, 'assets', 'css', 'landing-figs.gen.css'),

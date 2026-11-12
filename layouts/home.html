@@ -2,7 +2,7 @@
 {{- $getStarted := "/docs/getting-started/" -}}
 {{- $github := "https://github.com/kuberik/kuberik" -}}
 {{- $hero := site.Data.landing.hero -}}
-{{- $css := slice (resources.Get "css/home.css") (resources.Get "css/sections.css") (resources.Get "css/landing-figs.gen.css") | resources.Concat "css/landing-all.css" | minify | fingerprint -}}
+{{- $css := slice (resources.Get "css/home.css") (resources.Get "css/sections.css") | resources.Concat "css/landing-all.css" | minify | fingerprint -}}
 {{- $js := resources.Get "js/sections.js" | minify | fingerprint -}}
 <!DOCTYPE html>
 <html lang="en">
@@ -10,7 +10,7 @@
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>Kuberik · {{ $hero.h1 }}</title>
-  <meta name="description" content="Kuberik is a Kubernetes-native delivery controller. Declare when a version may deploy and when it counts as healthy; the controller runs the rollout, promotes across environments and rolls back. In your cluster, next to Flux." />
+  <meta name="description" content="Kuberik is a Kubernetes-native delivery controller. Declare when a version may deploy and when it counts as healthy; the controller runs the rollout and promotes it across environments. In your cluster, next to Flux." />
   {{- /* same key and class convention as hextra (color-theme in localStorage; class light/dark on <html>), applied before first paint */}}
   <script>(function(){var d=document.documentElement,t;try{t=localStorage.getItem("color-theme")}catch(e){}
   if(t!=="light"&&t!=="dark")t=matchMedia("(prefers-color-scheme: dark)").matches?"dark":"light";
@@ -63,79 +63,80 @@
   </div>
 </div>
 
-{{- /* PROOF (v4 .proof): the four tools it composes with, small, under the hero stage. Reference role: Vercel/Railway logo strip, no customers to show so these are the integrations. */ -}}
+{{- /* PROOF (v4 .proof): the tools it composes with, under the hero stage. Reference role: Vercel/Railway logo
+       wall; no customers to show, so these are the integrations, each named by the job it does. */ -}}
 <div class="cont proof">
   <p class="proof-label">Works with the tools already in your cluster</p>
   <ul class="proof-row">
     <li class="proof-cell"><span class="vendor-mark" style="--logo-light:url(/logos/fluxcd-light.svg); --logo-dark:url(/logos/fluxcd-dark.svg);" role="img" aria-label="Flux"></span><span class="proof-name">Flux</span><span class="proof-job">sync</span></li>
     <li class="proof-cell"><span class="vendor-mark" style="--logo-light:url(/logos/openkruise-light.svg); --logo-dark:url(/logos/openkruise-dark.svg);" role="img" aria-label="OpenKruise"></span><span class="proof-name">OpenKruise</span><span class="proof-job">canaries</span></li>
-    <li class="proof-cell"><span class="vendor-mark" style="--logo-light:url(/logos/prometheus-light.svg); --logo-dark:url(/logos/prometheus-dark.svg);" role="img" aria-label="Prometheus"></span><span class="proof-name">Prometheus</span><span class="proof-job">health checks</span></li>
-    <li class="proof-cell"><span class="vendor-mark" style="--logo-light:url(/logos/datadog-light.svg); --logo-dark:url(/logos/datadog-dark.svg);" role="img" aria-label="Datadog"></span><span class="proof-name">Datadog</span><span class="proof-job">monitors</span></li>
+        <li class="proof-cell"><span class="vendor-mark" style="--logo-light:url(/logos/datadog-light.svg); --logo-dark:url(/logos/datadog-dark.svg);" role="img" aria-label="Datadog"></span><span class="proof-name">Datadog</span><span class="proof-job">monitors</span></li>
+    <li class="proof-cell"><span class="vendor-mark" style="--logo-light:url(/logos/github-light.svg); --logo-dark:url(/logos/github-dark.svg);" role="img" aria-label="GitHub"></span><span class="proof-name">GitHub</span><span class="proof-job">deployments</span></li>
   </ul>
 </div>
 
-{{- /* STATEMENT (v4): one paragraph, two tones, no picture; the slow beat between the stage and the drawings. */ -}}
-<section class="cont statement" aria-label="What Kuberik is">
-  <p class="statement-text reveal"><span class="statement-claim">Kuberik is a controller that lives in your cluster.</span> <span class="statement-rest">Each environment is a Kubernetes resource that says what a build has to pass there: health checks, a schedule, a dependency, an approval. There is no pipeline to script and no server to run.</span></p>
+{{- /* THESIS (Linear: two-tone statement, then one row of figures). The only section about one idea, because it
+       is the product's idea: every build passes the same five declarative phases. The figures are still: the hero
+       is the page's one animation. Capabilities are named once, in FEATURES below. */ -}}
+{{- $t := site.Data.landing.thesis -}}
+<section class="sec thesis" id="how-it-works" aria-labelledby="thesis-h">
+  <div class="cont">
+    <h2 class="statement-text reveal" id="thesis-h"><span class="statement-claim">{{ $t.claim }}</span> <span class="statement-rest">{{ $t.rest }}</span></h2>
+    <ol class="figs reveal">
+      {{- range $i, $p := $t.phases }}
+      <li class="fig-cell{{ if eq $p.own "Yours" }} is-yours{{ else if eq $p.own "Optional" }} is-opt{{ end }}">
+        <div class="fig-art" aria-hidden="true">{{ partial (printf "landing-figs/%s.html" $p.fig) $ }}</div>
+        <p class="fig-cap"><span class="fig-no">Fig {{ add $i 1 }}</span><span class="fig-name">{{ $p.name }}</span><span class="fig-own">{{ $p.own }}</span></p>
+        <h3 class="fig-q">{{ $p.q }}</h3>
+      </li>
+      {{- end }}
+    </ol>
+  </div>
 </section>
 
-{{- /* THE LOOP AS FIGURES (v4): five drawings of the same plate in its five states. Dashed strokes mark the phases that are yours (gates, health). */ -}}
-<section class="sec" id="how-it-works" aria-labelledby="loop-h">
+{{- /* FEATURES (Linear "Features" row + Railway sub-feature anatomy + Vercel's short nouns): six peers, one
+       anatomy. Visual = a card in the dashboard's own grammar (47px header, 16px icon, right rollup, rows with one
+       16px status column), then name, title, two sentences, the resource kinds, one docs link. The six cards tell
+       one consistent set of facts (checkout-api 4.46.0 waits in production for payments-svc 3.1.0 to bake). */ -}}
+{{- $f := site.Data.landing.features -}}
+<section class="sec" id="features" aria-labelledby="features-h">
   <div class="stage stage-slate">
     <div class="bloom b1"></div><div class="bloom b2"></div>
     <div class="sec-inner">
       <div class="head">
-        <h2 class="title reveal" id="loop-h">A loop with five phases.</h2>
-        <p class="title-body reveal">Two of them are yours to write; three are built in. Every one is a Kubernetes resource you can read with <code>kubectl</code>.</p>
+        <h2 class="title reveal" id="features-h">{{ $f.title }}</h2>
+        <p class="title-body reveal">{{ $f.body }}</p>
       </div>
-      <ol class="figs reveal">
-        {{- $phases := slice
-          (dict "fig" "release" "name" "release" "own" "Built in" "q" "Which versions are available?" "tags" (slice "ReleaseSource" "OCI pull" "cosign-verified"))
-          (dict "fig" "guard"   "name" "guard"   "own" "Built in" "q" "Is this environment safe to deploy to?" "tags" (slice "healthy" "not paused" "idle" "no override"))
-          (dict "fig" "gates"   "name" "gates"   "own" "Yours"    "q" "Which version may go now?" "tags" (slice "schedule" "manual" "after(env)" "dependency" "custom CRD"))
-          (dict "fig" "update"  "name" "update"  "own" "Built in" "q" "How does it reach the cluster?" "tags" (slice "Flux Kustomization" "OpenKruise" "canary 0→100%"))
-          (dict "fig" "health"  "name" "health"  "own" "Yours"    "q" "Did it actually work?" "tags" (slice "kstatus" "metrics" "alerts" "smoke test" "custom CRD"))
-        -}}
-        {{ range $i, $p := $phases }}
-        <li class="fig-cell{{ if eq $p.own "Yours" }} is-yours{{ end }}" style="--i:{{ $i }}">
-          <div class="fig-art" aria-hidden="true">{{ partial (printf "landing-figs/%s.html" $p.fig) $ }}</div>
-          <p class="fig-cap"><span class="fig-no">Fig {{ add $i 1 }}</span><span class="fig-name">{{ $p.name }}</span><span class="fig-own">{{ $p.own }}</span></p>
-          <h3 class="fig-q">{{ $p.q }}</h3>
-          <ul class="fig-tags">{{ range $p.tags }}<li>{{ . }}</li>{{ end }}</ul>
+      <ul class="feats">
+        {{- range $f.items }}
+        <li class="feat reveal" id="{{ .id }}">
+          <div class="fv" aria-hidden="true">{{ partial (printf "landing-features/%s.html" .id) $ }}</div>
+          <div class="feat-copy">
+            <h3 class="feat-title">{{ .title }}</h3>
+            <p class="feat-body">{{ .body }}</p>
+            <a class="link-arrow" href="{{ .link.href }}">{{ .link.text }}<svg viewBox="0 0 16 16" width="14" height="14" fill="none" stroke="currentColor" stroke-width="1.5" aria-hidden="true"><path d="M3 8h10M9 4l4 4-4 4" stroke-linecap="round" stroke-linejoin="round"/></svg></a>
+          </div>
         </li>
-        {{ end }}
-      </ol>
+        {{- end }}
+      </ul>
     </div>
   </div>
 </section>
 
-{{- /* DEPENDENCIES, DRAWN (v4): the graph enacts the sentence beside it. Phones get the two-plate version. */ -}}
-<section class="sec" id="dependencies" aria-labelledby="deps-h">
-  <div class="stage stage-lagoon">
-    <div class="bloom b1"></div><div class="bloom b2"></div>
-    <div class="sec-inner deps-inner">
-      <div class="deps-copy">
-        <h2 class="title reveal" id="deps-h">Nothing moves before its dependencies.</h2>
-        <p class="title-body reveal">Say that checkout-api needs payments-svc ^3.1.0. A new checkout-api build then waits in each environment until a payments-svc that satisfies it is already running there, and goes on by itself once it is. Services that need nothing new are not held.</p>
-        <a class="link-arrow reveal" href="/docs/guides/service-dependencies/">Declare a dependency<svg viewBox="0 0 16 16" width="14" height="14" fill="none" stroke="currentColor" stroke-width="1.5" aria-hidden="true"><path d="M3 8h10M9 4l4 4-4 4" stroke-linecap="round" stroke-linejoin="round"/></svg></a>
-      </div>
-      <div class="deps-art reveal fig-cell" aria-hidden="true"><div class="deps-wide">{{ partial "landing-figs/dependencies.html" . }}</div><div class="deps-compact">{{ partial "landing-figs/dependencies-compact.html" . }}</div></div>
-    </div>
-  </div>
-</section>
-
-{{- /* EVERYTHING YOU WRITE (v4 "room"): the four files. v4 drew this panel dark in both themes; in the v5 look it is a slate stage with white file windows (the .mf grammar: 47px caption header, tag chip). Phones: the three non-rollout files fold (details), as in v4. */ -}}
+{{- /* EVERYTHING YOU WRITE (v4 "room"): the four files, on the page ground (the stages alternate: hero, open,
+       features, open, install). File windows = the .mf grammar (47px caption header, tag chip), the same header
+       height as the feature cards. Phones: the three non-rollout files fold (details), as in v4. */ -}}
 <section class="sec" id="spec" aria-labelledby="room-h">
-  <div class="stage stage-slate">
-    <div class="bloom b1"></div><div class="bloom b2"></div>
-    <div class="sec-inner">
+  <div class="cont">
       <div class="head">
         <h2 class="title reveal" id="room-h">This is everything you write.</h2>
-        <p class="title-body reveal">Two Kuberik resources, one Flux Kustomization, one <code>$VERSION</code> placeholder. The rollout and the release source are the only new things in your repository.</p>
+        <p class="title-body reveal">Two new resources, a Rollout and a ReleaseSource. Your Flux Kustomization gets one annotation and your Deployment one <code>${VERSION}</code> placeholder. Gates and health checks are optional.</p>
       </div>
       <div class="manifests reveal">
-        <figure class="mf mf-kuberik"><figcaption><span>rollout.yaml</span><b>kuberik</b></figcaption>
-<pre><code>apiVersion: kuberik.com/v1alpha1
+        <details class="mf-fold" open>
+          <summary class="mf-sum"><span class="mf-name">rollout.yaml</span><b>Yours</b><span class="mf-hint"></span></summary>
+          <figure class="mf mf-kuberik"><figcaption><span>rollout.yaml</span><b>Yours</b></figcaption>
+<pre tabindex="0" role="region" aria-label="rollout.yaml"><code>apiVersion: kuberik.com/v1alpha1
 kind: <span class="a">Rollout</span>
 metadata:
   name: my-app
@@ -143,11 +144,12 @@ spec:
   releaseSourceRef:
     name: my-app
   bakeTime: <span class="s">10m</span></code></pre></figure>
+        </details>
         <details class="mf-fold" open data-mp-fold>
-          <summary class="mf-sum"><span class="mf-name">releasesource.yaml</span><b>kuberik</b><span class="mf-hint"></span></summary>
-          <figure class="mf mf-kuberik"><figcaption><span>releasesource.yaml</span><b>kuberik</b></figcaption>
-<pre><code>apiVersion: kuberik.com/v1alpha1
-kind: <span class="k">ReleaseSource</span>
+          <summary class="mf-sum"><span class="mf-name">releasesource.yaml</span><b>Yours</b><span class="mf-hint"></span></summary>
+          <figure class="mf mf-kuberik"><figcaption><span>releasesource.yaml</span><b>Yours</b></figcaption>
+<pre tabindex="0" role="region" aria-label="releasesource.yaml"><code>apiVersion: kuberik.com/v1alpha1
+kind: <span class="a">ReleaseSource</span>
 metadata:
   name: my-app
 spec:
@@ -158,35 +160,36 @@ spec:
         range: <span class="s">"&gt;=0.1.0"</span></code></pre></figure>
         </details>
         <details class="mf-fold" open data-mp-fold>
-          <summary class="mf-sum"><span class="mf-name">kustomization.yaml</span><b>flux</b><span class="mf-hint"></span></summary>
-          <figure class="mf"><figcaption><span>kustomization.yaml</span><b>flux</b></figcaption>
-<pre><code>apiVersion: kustomize.toolkit.fluxcd.io/v1
+          <summary class="mf-sum"><span class="mf-name">kustomization.yaml</span><b>+1 annotation</b><span class="mf-hint"></span></summary>
+          <figure class="mf"><figcaption><span>kustomization.yaml</span><b>+1 annotation</b></figcaption>
+<pre tabindex="0" role="region" aria-label="kustomization.yaml"><code>apiVersion: kustomize.toolkit.fluxcd.io/v1
 kind: <span class="k">Kustomization</span>
 metadata:
   name: my-app
   annotations:
-    <span class="a">rollout.kuberik.com/</span>
-    <span class="a">  substitute.VERSION.from:</span> my-app
+    <span class="a">rollout.kuberik.com/substitute.VERSION.from:</span>
+      my-app
 spec:
+  interval: 10m
+  prune: true
   sourceRef:
     kind: GitRepository
     name: my-app</code></pre></figure>
         </details>
         <details class="mf-fold" open data-mp-fold>
-          <summary class="mf-sum"><span class="mf-name">deployment.yaml</span><b>yours</b><span class="mf-hint"></span></summary>
-          <figure class="mf"><figcaption><span>deployment.yaml</span><b>yours</b></figcaption>
-<pre><code>apiVersion: apps/v1
+          <summary class="mf-sum"><span class="mf-name">deployment.yaml</span><b>+1 placeholder</b><span class="mf-hint"></span></summary>
+          <figure class="mf"><figcaption><span>deployment.yaml</span><b>+1 placeholder</b></figcaption>
+<pre tabindex="0" role="region" aria-label="deployment.yaml"><code>apiVersion: apps/v1
 kind: <span class="k">Deployment</span>
 metadata: { name: my-app }
 spec:
   template:
     spec:
       containers:
-        - name: app
-          image: ghcr.io/me/app:<span class="var">${VERSION}</span></code></pre></figure>
+      - name: app
+        image: ghcr.io/me/my-app:<span class="var">${VERSION}</span></code></pre></figure>
         </details>
       </div>
-    </div>
   </div>
 </section>
 
@@ -201,11 +204,13 @@ spec:
         <p class="title-body reveal">The controller runs in your cluster, next to the thing it gates. No hosted service, no agent to register.</p>
         <div class="code reveal">
           <div class="code-head"><span>Terminal</span><button class="copy" id="copy" type="button"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="9" y="9" width="12" height="12" rx="2"/><path d="M5 15V5a2 2 0 0 1 2-2h10"/></svg><span id="copy-l">Copy</span></button></div>
-<pre><code id="install-cmd"><span class="p">$ </span>helm install kuberik \
+<pre tabindex="0" role="region" aria-label="Install command"><code id="install-cmd"><span class="p">$ </span>helm install kuberik \
     oci://ghcr.io/kuberik/charts/kuberik \
+    --version 0.8.0 \
     --namespace kuberik-system \
     --create-namespace \
     --set createNamespace=false</code></pre>
+          <p class="code-note">Helm creates the namespace, so the chart leaves it alone.</p>
         </div>
         <div class="ctas ctas-left reveal"><a class="btn btn-ink" href="{{ $getStarted }}">Get started<svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5" aria-hidden="true"><path d="M3 8h10M9 4l4 4-4 4" stroke-linecap="round" stroke-linejoin="round"/></svg></a><a class="btn btn-line" href="/docs/">Read the docs</a></div>
       </div>
@@ -216,9 +221,20 @@ spec:
 </main>
 
 <footer class="foot">
-  <div class="cont">
-    <span>kuberik · © {{ now.Year }} · Apache 2.0</span>
-    <nav aria-label="Footer"><a href="/docs/">Docs</a><a href="/blog/">Blog</a><a href="{{ $github }}">GitHub</a></nav>
+  <div class="cont foot-grid">
+    <div class="foot-brand">
+      <a class="logo" href="/" aria-label="kuberik home"><img class="ll" src="/logo.svg" alt="" /><img class="ld" src="/logo-dark.svg" alt="" />kuberik</a>
+      <p>Open source under Apache 2.0.<br>© {{ now.Year }} the Kuberik authors.</p>
+    </div>
+    <nav class="foot-col" aria-labelledby="fc-product"><h2 id="fc-product">Product</h2>
+      {{- range site.Data.landing.features.items }}<a href="#{{ .id }}">{{ .name }}</a>{{ end -}}
+    </nav>
+    <nav class="foot-col" aria-labelledby="fc-docs"><h2 id="fc-docs">Docs</h2>
+      <a href="/docs/getting-started/">Getting started</a><a href="/docs/installation/helm/">Install with Helm</a><a href="/docs/concepts/">Concepts</a><a href="/docs/guides/">Guides</a><a href="/docs/reference/api/">API reference</a>
+    </nav>
+    <nav class="foot-col" aria-labelledby="fc-community"><h2 id="fc-community">Community</h2>
+      <a href="{{ $github }}">GitHub</a><a href="{{ $github }}/issues">Issues</a><a href="/blog/">Blog</a>
+    </nav>
   </div>
 </footer>
 

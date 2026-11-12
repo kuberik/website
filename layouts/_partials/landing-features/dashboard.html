@@ -1,0 +1,12 @@
+{{- /* Dashboard: a merged pull request's change, how far it got per service and environment (what a pasted PR link
+       opens). Agrees with the Gates card: payments-svc 3.1.0 is still baking in production, so checkout-api 4.46.0
+       waits for it there. */ -}}
+<div class="fv-card">
+  <div class="fv-head">{{ partial "landing-features/icon.html" "dashboard" }}<span class="fv-title">#412</span><span class="fv-ctx">Retry payments on timeout</span><span class="fv-roll fv-wide">merged 41m ago</span></div>
+  <ul class="fv-rows">
+    <li>{{ partial "landing-features/mark.html" "ok" }}<span class="fv-name">payments-svc</span><span class="fv-id">3.1.0</span><span class="fv-state">staging</span></li>
+    <li>{{ partial "landing-features/mark.html" "run" }}<span class="fv-name">payments-svc</span><span class="fv-id">3.1.0</span><span class="fv-state">production · baking</span></li>
+    <li>{{ partial "landing-features/mark.html" "ok" }}<span class="fv-name">checkout-api</span><span class="fv-id">4.46.0</span><span class="fv-state">staging</span></li>
+    <li>{{ partial "landing-features/mark.html" "wait" }}<span class="fv-name">checkout-api</span><span class="fv-id">4.46.0</span><span class="fv-state is-wait">production · waiting</span></li>
+  </ul>
+</div>
