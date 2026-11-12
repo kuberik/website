@@ -242,7 +242,7 @@ import { flipRecord, flipPlay, type Pos } from './flip';
 		const rg = document.createRange(), g = group!.getBoundingClientRect(), u = unit();
 		for (let n = w.nextNode(); n; n = w.nextNode()) {
 			if (!n.textContent?.trim()) continue;
-			const p = n.parentElement!; if (p.closest('svg,style,script') || getComputedStyle(p).visibility === 'hidden') continue;
+			const p = n.parentElement!; if (p.closest('svg,style,script,.film-snap') || getComputedStyle(p).visibility === 'hidden') continue; /* scene lane 6: never a cover still's copy of the old layout */
 			rg.selectNodeContents(n);
 			for (const q of rg.getClientRects()) { if (q.width < 3) continue; out.push({ x: (q.left - g.left) / u, y: (q.top - g.top) / u, w: q.width / u, h: q.height / u }); }
 		}
@@ -253,7 +253,7 @@ import { flipRecord, flipPlay, type Pos } from './flip';
 		const out: { x: number; y: number; w: number; h: number }[] = [];
 		const g = group!.getBoundingClientRect(), u = unit();
 		for (const e of camEl!.querySelectorAll<HTMLElement>('[class*="rounded"], .btn, button')) { /* buttons too: the product's .btn carries its radius in CSS, not a class (the History push-in's top edge sliced "Open PR", lane 32) */
-			const q = e.getBoundingClientRect(); if (q.width < 40 || q.height < 20) continue;
+			if (e.closest('.film-snap')) continue; const q = e.getBoundingClientRect(); if (q.width < 40 || q.height < 20) continue;
 			const cs = getComputedStyle(e); if (cs.visibility === 'hidden' || cs.display === 'none') continue;
 			if (!(parseFloat(cs.borderTopWidth) > 0 || (cs.backgroundColor !== 'rgba(0, 0, 0, 0)' && cs.backgroundColor !== 'transparent'))) continue;
 			const b = { x: (q.left - g.left) / u, y: (q.top - g.top) / u, w: q.width / u, h: q.height / u };
@@ -302,7 +302,7 @@ import { flipRecord, flipPlay, type Pos } from './flip';
 		const nav = canvas.querySelector<HTMLElement>('.film-tabs nav')?.offsetHeight ?? 0, /* the product's MobileTabBar is fixed inside the canvas: its wrapper has no height */ len = main.clientHeight - nav, gh = group.offsetHeight, vw = main.clientWidth;
 		const bx = boxRects({ x: -1, y: -1, w: 0, h: 0 });
 		/* scene lane 6: a frame edge never shows the first (or last) few px of a box either: the sliver of a card's top border under the Gates card (each box's two edge bands) */
-		const rects = [...textRects(false), ...bx.filter((b) => b.h < 56), ...bx.filter((b) => b.h >= 56).flatMap((b) => [{ x: b.x, y: b.y, w: b.w, h: 14 }, { x: b.x, y: b.y + b.h - 14, w: b.w, h: 14 }])].map((q) => ({ x: q.x, y: q.y - 3, w: q.w, h: q.h + 6 }));
+		const rects = [...textRects(false), ...bx.filter((b) => b.h < 56), ...bx.filter((b) => b.h >= 56).flatMap((b) => [{ x: b.x, y: b.y, w: b.w, h: 6 }, { x: b.x, y: b.y + b.h - 6, w: b.w, h: 6 }])].map((q) => ({ x: q.x, y: q.y - 3, w: q.w, h: q.h + 6 }));
 		const p = freeStart(Math.max(0, pref - 100), Math.min(pref, Math.max(0, gh - main.clientHeight)), len, spansIn(rects, 'y', 0, vw), pref);
 		return p ?? pref;
 	}

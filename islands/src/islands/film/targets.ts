@@ -80,6 +80,12 @@ function resolve(name: string, root: ParentNode, phone: boolean): HTMLElement | 
 			const card = root.querySelector<HTMLElement>('[data-tour="dependency-graph"]'); if (!card || card.closest('.film-snap')) return null;
 			const ban = byText(card, 'p,div', /^(Needs your approval|Nothing is holding)/), tiles = [...card.querySelectorAll<HTMLElement>('[data-hood-link="upstream"]')];
 			return ban && tiles.length ? union([ban, ...tiles]) : card;
+		}
+		/* after the approval (the phone): every gate tile and the rollout they feed, which now runs the release (the banner has said its piece) */
+		case 'gates-phone-node': {
+			const card = root.querySelector<HTMLElement>('[data-tour="dependency-graph"]'); if (!card || card.closest('.film-snap')) return null;
+			const tiles = [...card.querySelectorAll<HTMLElement>('[data-hood-link="upstream"]')], node = card.querySelector<HTMLElement>('[data-hood-focus]');
+			return tiles.length && node ? union([...tiles, node]) : card;
 		} /* scene lane 5: the phone's Gates beat frames the whole Gates card from its title */
 		case 'gates-graph': { const cards = ['Release approval', 'Business hours'].map((t) => byText(root, 'div,span,p,h3,h4', new RegExp('^' + t + '$'))?.closest<HTMLElement>('[class*="rounded"]') ?? null); const node = byText(root, 'div,span,p', /^This rollout$/i); return cards.every(Boolean) ? union([...(cards as HTMLElement[]), ...(node ? [node] : [])]) : null; }
 		case 'gates-card': return cardOf(root, /^Gates$/); /* scene lane 3: the Gates tab's gate graph card */
