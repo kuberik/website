@@ -125,7 +125,7 @@ import { flipRecord, flipPlay, type Pos } from './flip';
 	/* `frozen`: a CUT's still sits OUTSIDE the camera, carrying the outgoing shot's transform, so the incoming shot's framing is set under it (lane 33: a shot
 	   arrives framed; the camera never zooms in front of the viewer) */
 	function coverWith(c: HTMLElement, frozen = false) {
-		if (snapEl) dropSnap(snapEl); snapEl = c; hid = true;
+		if (snapEl) dropSnap(snapEl); snapEl = c; hid = true; (c as any).__cam = `${cam.x}|${cam.y}|${cam.s}`;
 		if (frozen && camEl) { c.style.transformOrigin = '0 0'; c.style.transform = getComputedStyle(camEl).transform.replace('none', ''); camEl.parentElement!.appendChild(c); }
 		else camEl!.insertBefore(c, group!.nextSibling);
 		for (const e of (c as any).__extra ?? []) (phone ? canvas! : c).appendChild(e); /* desktop: the popover is camera space, so it rides in the still (same transform); phone: the sheet is canvas space */
@@ -142,6 +142,9 @@ import { flipRecord, flipPlay, type Pos } from './flip';
 		if (c !== snapEl) return;
 		/* lane 34: the phone frame keeps its subject where it stood: a reflow ABOVE it (the header's chips wrapping to a second row as staging deploys, +20 px) used to slide the
 		   Builds card up under the bar, and a seek to the same second showed it where it should be. The camera re-anchors under the still, and the slide is measured on screen */
+		/* scene lane 6 (item 16): a slide only plays for a reflow seen from the same frame; when the camera re-framed under the still (the phone's Gates beat after
+		   the approval) things did not move on the page, the frame did: dissolve */
+		if (rec && (c as any).__cam !== `${cam.x}|${cam.y}|${cam.s}`) rec = null;
 		const d = phoneAnchor();
 		if (rec && d) for (const v of rec.values()) v.y -= d;
 		hid = false; snapEl = null;
