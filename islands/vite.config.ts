@@ -46,6 +46,34 @@ function storyNow(): Plugin {
 	};
 }
 
+/** NO TRACE: the dashboard's modules keep preferences in localStorage / sessionStorage (Sidebar's 'sidebar-collapsed', the display time zone the film sets,
+ *  theme, stars, scroll memory, skeleton shapes). Bundled into a kuberik.com island those would write into the VISITOR's storage. Every `localStorage` /
+ *  `sessionStorage` (and `window.`-qualified) in the dashboard's src is rewritten to the in-memory pair in stubs/island-storage.ts, and paraglide's cookie strategy is dropped. */
+function islandStorage(): Plugin {
+	const src = resolve(D!, 'src') + '/';
+	return {
+		name: 'kuberik-island-storage',
+		enforce: 'pre',
+		transform(code, id) {
+			const f = id.replace(/\?.*$/, '');
+			if (!f.startsWith(src)) return null;
+			/* paraglide's locale strategy starts with "cookie": its first getLocale() writes PARAGLIDE_LOCALE (max-age 400 days) on the visitor's domain. The island keeps
+			   the locale in its global variable only (en, the base locale) */
+			if (f.endsWith('/lib/paraglide/runtime.js')) {
+				const out = code.replace(/(export const strategy = \[)([^\]]*)\]/, (_m, a, list) => a + list.split(',').filter((x: string) => !/"(cookie|localStorage)"/.test(x)).join(',') + ']');
+				if (out === code || /"cookie"/.test(out.match(/export const strategy = \[[^\]]*\]/)?.[0] ?? '"cookie"')) throw new Error('island-storage: paraglide strategy not rewritten');
+				return { code: out, map: null };
+			}
+			if (!/\b(local|session)Storage\b/.test(code)) return null;
+			const out = code.replace(/\b(?:window\.|globalThis\.)?(local|session)Storage\b/g, (_m, k) => (k === 'local' ? '__islandLocal' : '__islandSession'));
+			const imp = `import { islandLocal as __islandLocal, islandSession as __islandSession } from ${JSON.stringify(S('island-storage.ts'))};\n`;
+			/* .svelte: the import goes inside the instance <script> (first one without context="module" ... either works for a module-level const) */
+			if (f.endsWith('.svelte')) return { code: out.replace(/<script(\s[^>]*)?>/, (m) => m + '\n' + imp), map: null };
+			return { code: imp + out, map: null };
+		}
+	};
+}
+
 /** Post-process the compiled stylesheet for shadow-root use:
  *  - `:root` -> `:host` (the dashboard defines its --k-* tokens on :root; inside a shadow tree that is the host);
  *  - @font-face is dropped (a shadow-root stylesheet cannot register fonts) and the faces are declared in the DOCUMENT by
@@ -104,6 +132,7 @@ export default defineConfig({
 	},
 	plugins: [
 		stubModules(),
+		islandStorage(),
 		storyNow(),
 		tailwindcss(),
 		svelte({ configFile: false, preprocess: vitePreprocess(), compilerOptions: { runes: undefined, css: 'external' } }),

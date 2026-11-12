@@ -46,8 +46,8 @@ import { flipRecord, flipPlay, type Pos } from './flip';
 	/* ---- the shell and the approval layer are their own chunks, fetched right after the first surface (the first frame needs only the page): the real Sidebar
 	   / MobileTabBar fill the space reserved for them (.film-side is the product's w-58), the real ApprovalLayer arrives 3 s before the first Approve ---- */
 	let Side = $state<Component<any> | null>(null), Tabs = $state<Component<any> | null>(null), Layer = $state<Component<any> | null>(null);
-	/* the shell's sidebar is COLLAPSED (owner 2026-11-12, as Railway's): the product's own 56 px icon rail, set the way the product remembers it (its 'sidebar-collapsed' key) */
-	try { localStorage.setItem('sidebar-collapsed', '1'); } catch { /* storage off: the rail opens wide, still the product's */ }
+	/* the shell's sidebar is COLLAPSED (owner 2026-11-12, as Railway's): the product's own 56 px icon rail. Its 'sidebar-collapsed' key is seeded in the
+	   island's in-memory storage (stubs/island-storage.ts), never the visitor's localStorage */
 	$effect(() => { void (phone ? import('$lib/MobileTabBar.svelte').then((m) => (Tabs = m.default)) : import('$lib/Sidebar.svelte').then((m) => (Side = m.default))); });
 	$effect(() => { if (t >= 4 && !Layer) void import('$lib/components/new/ApprovalLayer.svelte').then((m) => (Layer = m.default)); });
 
@@ -118,6 +118,10 @@ import { flipRecord, flipPlay, type Pos } from './flip';
 			if (performance.now() - since > 110 && performance.now() - t0 > 180) break;
 		}
 		if (c !== snapEl) return;
+		/* lane 34: the phone frame keeps its subject where it stood: a reflow ABOVE it (the header's chips wrapping to a second row as staging deploys, +20 px) used to slide the
+		   Builds card up under the bar, and a seek to the same second showed it where it should be. The camera re-anchors under the still, and the slide is measured on screen */
+		const d = phoneAnchor();
+		if (rec && d) for (const v of rec.values()) v.y -= d;
 		hid = false; snapEl = null;
 		/* a covered reflow on the phone: the still is dropped in one frame (no two layouts superimposed: the ghost) and what moved SLIDES from where it was to where it is (flip.ts, transform only: no layout shift) */
 		if (rec) { c.remove(); void tick().then(() => { if (group && !swapping && !hid) flipPlay(group, rec, unit(), 300); }); return; }
@@ -235,6 +239,17 @@ import { flipRecord, flipPlay, type Pos } from './flip';
 		}
 		return out;
 	}
+	/** the phone's frame is the page scrolled to its subject (no zoom): put the subject back 10 px under the top after a reflow; returns how far the camera moved (canvas px) */
+	function phoneAnchor(): number {
+		if (!phone || reduced || !group || !main || !camEl) return 0;
+		const m = mv; if (m.to === 'rest' || shown !== surfAt(m.at)) return 0;
+		const el = resolveTarget(m.to, camEl, true); if (!el) return 0; /* the subject left (the approved card): the frame stays */
+		const r = relRect(el), vh = main.clientHeight, gh = group.offsetHeight;
+		const y = Math.min(0, Math.max(Math.min(0, vh - gh), -Math.max(0, r.y - 10))), d = y - cam.y;
+		if (Math.abs(d) < 3 || cam.s !== 1) return 0;
+		cam = { ...cam, y, dur: 0, moving: false };
+		return d;
+	}
 	let refineTimer: ReturnType<typeof setTimeout> | undefined, refine2Timer: ReturnType<typeof setTimeout> | undefined, refine3Timer: ReturnType<typeof setTimeout> | undefined;
 	function aim(m: Move, jump: boolean, refine = false) {
 		if (!group || !main) return;
@@ -292,7 +307,7 @@ import { flipRecord, flipPlay, type Pos } from './flip';
 		untrack(() => {
 			if (s !== surfAt(m.at)) return; /* the cut has not landed yet: the framing waits for its own page (aiming it at the outgoing page moved that page) */
 			const kk = `${CAMERA_INDEX(m)}|${s}|${phone}`; /* the camera is LOCKED for the length of a move: a CR change inside a hold re-lays the page but never re-aims (it drifted 5x on the pipeline) */
-			if (kk === moveKey) return;
+			if (kk === moveKey && !(seek && phone)) return; /* the phone re-anchors on a seek: the second a seek lands on frames the page the way natural play reaches it (lane 34) */
 			const first = !moveKey.startsWith(`${CAMERA_INDEX(m)}|`);
 			moveKey = kk;
 			void first;

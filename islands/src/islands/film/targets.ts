@@ -92,6 +92,15 @@ function resolve(name: string, root: ParentNode, phone: boolean): HTMLElement | 
 		case 'envs-lead': { const a = cardOf(root, /^Staging/i), b = cardOf(root, /^Production/i); if (!a || !b) return null; const u = union([a, b]); return { __r: 8, getBoundingClientRect() { const r = u.getBoundingClientRect(); return new DOMRect(r.left, r.top, Math.min(r.width, 640 * (r.width / (b as HTMLElement).offsetWidth || 1)), r.height); } } as unknown as HTMLElement; }
 		/* the finale's push-in: the Builds card (the five prod regions and the build they sit on) */
 		case 'builds': return cardOf(root, /^Builds/i);
+		/* lane 34: the App page's shots frame the page's own header block (title, meta line, environment chips) WITH the Builds card: a frame whose top edge sat
+		   under the title cut through the meta line, and the card alone left the bottom third empty. The phone keeps the card alone (the header does not fit above it) */
+		case 'app-builds': {
+			const card = cardOf(root, /^Builds/i); if (phone || !card) return card;
+			const hb = q('h1')?.parentElement?.parentElement ?? null;
+			if (!hb || hb.getBoundingClientRect().bottom > card.getBoundingClientRect().top) return card;
+			/* the header block runs the page's full width ("All environments" sits far right): the frame takes its rows, over the card's columns */
+			return { __r: 8, getBoundingClientRect() { const c = card.getBoundingClientRect(), h = hb.getBoundingClientRect(); return new DOMRect(c.left, h.top, c.width, c.bottom - h.top); } } as unknown as HTMLElement;
+		}
 		case 'prod-card': return cardOf(root, /Production/i);
 		/* the History cadence strip (bar, hour ticks, the "shown wider" note): the nearest ancestor of the note that also holds the ticks */
 		case 'timeline': { let e: HTMLElement | null = byText(root, 'span,div,p', /shown wider than its real time/i); for (let i = 0; e && i < 5; i++, e = e.parentElement) if (/07:00|08:00/.test(text(e)) && /\d\.\d+\.\d+-\d+/.test(text(e))) return e; return null; }

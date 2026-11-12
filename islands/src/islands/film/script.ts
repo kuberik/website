@@ -41,10 +41,10 @@ export const FADE_AT = 39.0;
 export type Move = { at: number; to: string; s: number; dur: number; ease: string; dim?: string; min?: number; desk?: boolean /* desktop only */; hole?: string /* the dim's hole when it is not the camera target */; dimOff?: number /* the light lifts at this second, the frame stays */ };
 const EXPO = 'cubic-bezier(0.16, 1, 0.3, 1)';
 export const CAMERA: Move[] = [
-	{ at: 0, to: 'builds', s: 1.35, dur: 0, ease: EXPO }, /* the App page's Builds card, the release lands in it as its newest stop */
+	{ at: 0, to: 'app-builds', s: 1.35, dur: 0, ease: EXPO }, /* the App page's Builds card, the release lands in it as its newest stop */
 	{ at: 7, to: 'approve-stage', s: 1.5, dur: 0, ease: EXPO, dim: 'both', min: 15, hole: 'attention', dimOff: EV.approved - 0.03 }, /* the light lifts as the approved card leaves (a lit hole over the empty slot read as a blank card) */ /* the person's beat: the attention card and the room its confirm opens into, framed at the cut; the card is lit */
 	{ at: 11.3, to: 'pipeline', s: 1.5, dur: 0, ease: EXPO }, /* the whole pipeline card, held through the canary */
-	{ at: 24.5, to: 'builds', s: 1.35, dur: 0, ease: EXPO } /* the waves, back on the App page's Builds card: each region steps from 4.45.0-45 onto the release, a wave at a time */
+	{ at: 24.5, to: 'app-builds', s: 1.35, dur: 0, ease: EXPO } /* the waves, back on the App page's Builds card: each region steps from 4.45.0-45 onto the release, a wave at a time */
 ];
 export const moveAt = (t: number, phone = false): Move => [...CAMERA].reverse().find((m) => t >= m.at && !(phone && m.desk))!;
 
@@ -68,7 +68,7 @@ export const tallyShown = (t: number) => tallyAt(t);
 export const COVER_DESKTOP_AT: number[] = [];
 /** the reflows that PLAY as a slide (flip.ts, by transform: no layout shift): the release's stop entering the Builds card, staging stepping onto it,
  *  and its pipeline closing again, the approved card leaving the Rollouts list, each wave's regions stepping onto the release (rows travel, flip.ts) */
-export const FLIP_AT = [EV.release, EV.stagingGo, EV.stagingDone, EV.approved, EV.w2Deploy, EV.w3Deploy];
+export const FLIP_AT = [EV.release, EV.stagingGo, EV.stagingDone, EV.approved, EV.w2Deploy, EV.w3Deploy, EV.w2Done0, EV.w2Done1, EV.w3Done0, EV.w3Done1]; /* lane 34: a region turning healthy re-sorts its build's rows (CLS 0.17 at 1440 before) */
 export const flipEvent = (t: number, phone: boolean) => !phone && FLIP_AT.some((c) => Math.abs(t - c) < 0.35);
 export function coverEvent(t: number, phone: boolean): boolean { return phone || COVER_DESKTOP_AT.some((c) => Math.abs(t - c) < 0.35); }
 
