@@ -8,9 +8,9 @@
  */
 import type { SiteState } from '$lib/components/SiteMark.svelte';
 
-export const LOOP = 26;
+export const LOOP = 25.5;
 /** reduced motion rests here: every place green, the panel on prod's sites */
-export const REST_T = 22;
+export const REST_T = 21.5;
 /** the wrap: the scene fades out over the last DISSOLVE seconds and back in after t=0 */
 export const DISSOLVE = 0.45;
 
@@ -25,8 +25,8 @@ export const CHAPTERS: { key: Phase; label: string; from: number; settled: numbe
 	{ key: 'release', label: 'Released', from: 0, settled: 1.9 },
 	{ key: 'health', label: 'Health checks', from: 2.2, settled: 7.0 },
 	{ key: 'gates', label: 'Gates', from: 7.1, settled: 10.1 },
-	{ key: 'canary', label: 'Canary', from: 10.9, settled: 16.5 },
-	{ key: 'sites', label: 'Every site', from: 16.7, settled: REST_T }
+	{ key: 'canary', label: 'Canary', from: 10.9, settled: 15.9 },
+	{ key: 'sites', label: 'Every site', from: 16.1, settled: REST_T }
 ];
 export const chapterAt = (t: number) => { let i = 0; CHAPTERS.forEach((c, j) => { if (t >= c.from) i = j; }); return i; };
 export const chapterFill = (t: number) => {
@@ -41,10 +41,10 @@ export const EV = {
 	hc: [3.6, 4.05, 4.5] as number[], bakeFrom: 3.15, bakeTo: 6.6, stgDone: 6.8,
 	gates: 7.1, promo: 7.55, ptrIn: 8.35, press: 9.35, approved: 9.5, allPassed: 9.8,
 	hop2: 10.0, w1Deploy: 10.55, w1Check: 10.95,
-	pct10: 11.45, tests: [12.15, 12.65, 13.15] as number[], pct50: 13.75, pct100: 14.85, w1Done: 16.2,
-	sites: 16.7,
-	w2: { deploy: 16.95, check: 17.3, done: [17.95, 18.35] as number[] },
-	w3: { deploy: 18.5, check: 18.8, done: [19.45, 19.85] as number[] }
+	pct10: 10.9, tests: [11.7, 12.2, 12.7] as number[], pct50: 13.3, pct100: 14.4, w1Done: 15.6,
+	sites: 16.1,
+	w2: { deploy: 16.35, check: 16.7, done: [17.35, 17.75] as number[] },
+	w3: { deploy: 17.9, check: 18.2, done: [18.85, 19.25] as number[] }
 };
 
 export const phaseAt = (t: number): Phase => (t < EV.hop1 ? 'release' : t < EV.gates ? 'health' : t < 10.9 ? 'gates' : t < EV.sites ? 'canary' : 'sites');
