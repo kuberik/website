@@ -121,7 +121,7 @@ import { flipRecord, flipPlay, type Pos } from './flip';
 		return c;
 	}
 	/** a still and the overlay copies it carries (on the phone they sit over the canvas, beside the real layer) */
-	function dropSnap(c: HTMLElement) { c.remove(); for (const e of (c as any).__extra ?? []) e.remove(); }
+	function dropSnap(c: HTMLElement) { c.remove(); for (const e of (c as any).__extra ?? []) e.remove(); for (const e of (c as any).__real ?? []) e.style.visibility = ''; }
 	/* `frozen`: a CUT's still sits OUTSIDE the camera, carrying the outgoing shot's transform, so the incoming shot's framing is set under it (lane 33: a shot
 	   arrives framed; the camera never zooms in front of the viewer) */
 	function coverWith(c: HTMLElement, frozen = false) {
@@ -129,6 +129,9 @@ import { flipRecord, flipPlay, type Pos } from './flip';
 		if (frozen && camEl) { c.style.transformOrigin = '0 0'; c.style.transform = getComputedStyle(camEl).transform.replace('none', ''); camEl.parentElement!.appendChild(c); }
 		else camEl!.insertBefore(c, group!.nextSibling);
 		for (const e of (c as any).__extra ?? []) (phone ? canvas! : c).appendChild(e); /* desktop: the popover is camera space, so it rides in the still (same transform); phone: the sheet is canvas space */
+		/* scene lane 7 (AD r1 P2, the phone's approve "dim flash"): on the phone the copies sit beside the REAL scrim and sheet until the approval unmounts them; two scrims
+		   stacked darkened the window for ~160 ms. The real layer is hidden while its copy stands in (dropSnap gives it back if it is still there) */
+		if (phone && canvas && (c as any).__extra?.length) { const real = [...canvas.querySelectorAll<HTMLElement>('[data-approve-confirm]')].flatMap((d) => [d, d.previousElementSibling as HTMLElement | null]).filter((e): e is HTMLElement => !!e && (e.hasAttribute('data-approve-confirm') || e.classList.contains('inset-0'))); for (const e of real) e.style.visibility = 'hidden'; (c as any).__real = real; }
 		for (const [e, y, x] of (c as any).__scroll ?? []) { e.scrollTop = y; e.scrollLeft = x; }
 	}
 	async function settleThenReveal(c: HTMLElement, rec: Pos | null = null, fade = 80) {

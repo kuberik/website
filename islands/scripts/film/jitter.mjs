@@ -45,7 +45,7 @@ await p.evaluate(() => { window.__F.length = 20000; });
 /* events: story seconds at which something switches (cuts, covers, camera keyframes, presses, waves); read from the page's own module is not exposed, so the
    list is the script's table (kept in step with script.ts / scenario.ts) */
 const EVS = JSON.parse(process.env.EVS ?? 'null') ?? (phone
-  ? { wrap: 0, toast: 0.25, 'cut gates': 5.0, approveOpen: 7.25, approved: 8.7, deploy: 9.8, 'cut app': 17.9, 'cut pipe': 18.8, w2Deploy: 19.6, w2Check: 20.8, w2Done: 21.9, w3Deploy: 22.9, w3Check: 24.1, w3Done: 25.2, 'wrap-out': 29.4 }
+  ? { wrap: 0, toast: 0.25, 'cut gates': 5.0, approveOpen: 7.25, approved: 8.7, deploy: 9.8, 'cut app': 17.9, 'cut pipe': 18.8, w2Deploy: 19.6, w2Check: 20.8, w2Done: 21.9, w3Deploy: 22.9, w3Check: 24.1, w3Done: 25.2, 'cam head': 25.7, 'wrap-out': 29.4 }
   : { wrap: 0, toast: 0.25, 'cut stg': 2.4, 'cam stagingGo': 3.18, 'cut gates': 5.0, approveOpen: 7.25, approved: 8.7, deploy: 9.8, 'cut overview': 10.4, step2Go: 12.5, 'cam health': 14.1, hcLat: 15.4, 'cam bake': 15.7, 'cut app': 17.9, 'cut pipe': 18.8, w2Deploy: 19.6, w2Check: 20.8, w2Done: 21.9, w3Deploy: 22.9, w3Check: 24.1, w3Done: 25.2, 'wrap-out': 29.4 });
 /* each event's real time = the first logged frame whose story t passed it (the wrap: t falls back) */
 const evAt = {};
