@@ -180,3 +180,10 @@ html.dark .fv-card{background:var(--page-alt);box-shadow:0 12px 32px -16px rgba(
 @container (max-width:380px){.fv-wide,.fv-roomy,.fv-ctx-more{display:none}}
 /* between phone and 760 two columns leave a card under 330px, too narrow for the gate graph: one column there */
 @media(min-width:641px) and (max-width:759px){.feats{grid-template-columns:minmax(0,1fr)}}
+/* Gates card: a section island (the product's own Gates card, layouts/_partials/section-island.html). The host's box is reserved here, per
+   breakpoint, so nothing shifts when the island paints; the product card fills it at natural scale. */
+.fv-card .fv-island{position:relative;height:390px}
+/* the product's own breakpoints, answered by the card's width (= the host's): from 572 px its graph box takes sm padding (406 px tall, still the list),
+   from 608 px it is the compact two-column graph (308 px). Measured with islands/scripts/section/look.mjs; re-measure when the dashboard pin moves. */
+@container (min-width:572px){.fv-card .fv-island{height:406px}}
+@container (min-width:608px){.fv-card .fv-island{height:308px}}

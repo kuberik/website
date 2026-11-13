@@ -24,8 +24,12 @@ function commitsAnswer(gh: Record<string, unknown>, ns: string, name: string, b:
 	return { direction: fwd ? 'forward' : 'rollback', ahead: fwd ? hit.commits.length : 0, behind: fwd ? 0 : hit.commits.length, commits: hit.commits.map((c: any) => ({ url: '', authorUrl: '', avatarUrl: '', ...c })), additions: hit.additions ?? 0, deletions: hit.deletions ?? 0, changedFiles: hit.changedFiles ?? 0 };
 }
 export function installAnswers(fleetRollouts: () => unknown[], github: () => Record<string, unknown> | null = () => null) {
-	setQueryAnswers((key) => {
-		const d = current;
+	setQueryAnswers(answersFrom(() => current, fleetRollouts, github));
+}
+/** The rollout page's query answers from a detail snapshot (pure: the film installs it globally over its live `current`; a section island hands its own, scoped, shared/scope.ts) */
+export function answersFrom(detail: () => Detail | null, fleetRollouts: () => unknown[], github: () => Record<string, unknown> | null = () => null) {
+	return (key: readonly unknown[]): unknown => {
+		const d = detail();
 		if (!d) return undefined;
 		const KUST = d.kustomization.metadata.name;
 		switch (key[0]) {
@@ -46,7 +50,7 @@ export function installAnswers(fleetRollouts: () => unknown[], github: () => Rec
 			case 'rollout-approvals': return key[1] === d.ns && key[2] === APP ? d.approvals : undefined;
 			default: return undefined;
 		}
-	});
+	};
 }
 
 /**

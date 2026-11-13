@@ -16,18 +16,22 @@ import { ingestListResponse } from '$lib/releases/feed';
 
 type Part = { fleet: FleetSource; github: Record<string, unknown> };
 const parts = new Map<string, Part>();
+/** the part whose scalar fields (now, me, github status, changesState) the source carries: the last one set with `base` (the film). A section
+ *  island adds only its release catalogue (`base: false`, sections/section.ts): it never moves the film's clock or viewer. */
+let baseFleet: FleetSource | null = null;
 
-export function setPart(id: string, fleet: FleetSource, github: Record<string, unknown>) {
+export function setPart(id: string, fleet: FleetSource, github: Record<string, unknown>, opt: { base?: boolean } = {}) {
 	parts.set(id, { fleet, github });
+	if (opt.base !== false || !baseFleet) baseFleet = fleet;
 	const all = [...parts.values()];
 	const cat = <K extends keyof FleetSource>(k: K): FleetSource[K] => all.flatMap((p) => (p.fleet[k] as unknown[]) ?? []) as FleetSource[K];
-	const base = fleet;
+	const base = baseFleet;
 	installLiveSource({
 		...base,
 		rollouts: cat('rollouts'), environments: cat('environments'), kustomizations: cat('kustomizations'), kruiseRollouts: cat('kruiseRollouts'),
 		healthChecks: cat('healthChecks'), changes: dedupe(cat('changes') as { owner: string; repo: string; number: number }[]) as never,
 		rolloutDependencies: { items: all.flatMap((p) => p.fleet.rolloutDependencies?.items ?? []) },
-		now: fleet.now,
+		now: base.now,
 		...({ releaseSources: { items: catOf(all, 'releaseSources') }, releaseSlices: { items: catOf(all, 'releaseSlices') } } as object)
 	});
 	/* THE RELEASE CATALOGUE (dashboard #69): a Rollout's releases are read from release-controller's ReleaseSlices, which the app's root layout feeds
@@ -35,7 +39,16 @@ export function setPart(id: string, fleet: FleetSource, github: Record<string, u
 	   union list is handed to the same ingest, as one complete fleet-wide list. */
 	ingestListResponse({ releaseSources: { items: catOf(all, 'releaseSources') }, releaseSlices: { items: catOf(all, 'releaseSlices') } }, { fleetWide: true });
 	githubTable.set(Object.assign({}, ...all.map((p) => p.github)));
-	driveNow(fleet.now);
+	if (opt.base !== false) driveNow(fleet.now);
+}
+/** a part leaves the world (a section island froze its frame and no longer reads the source): the union is re-installed without it */
+export function dropPart(id: string) {
+	if (!parts.delete(id) || !baseFleet) return;
+	const rest = [...parts.entries()];
+	if (!rest.length) return;
+	const [lastId, last] = rest[rest.length - 1];
+	parts.delete(lastId);
+	setPart(lastId, last.fleet, last.github, { base: last.fleet === baseFleet });
 }
 const catOf = (all: Part[], k: 'releaseSources' | 'releaseSlices'): never[] => all.flatMap((p) => ((p.fleet as unknown as Record<string, { items?: never[] } | undefined>)[k]?.items ?? []));
 const dedupe = <T extends { owner: string; repo: string; number: number }>(xs: T[]): T[] => { const seen = new Set<string>(); return xs.filter((c) => { const k = `${c.owner}/${c.repo}#${c.number}`; if (seen.has(k)) return false; seen.add(k); return true; }); };

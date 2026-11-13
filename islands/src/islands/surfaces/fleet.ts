@@ -22,12 +22,12 @@ const APPS: { name: string; owner: string; state: State; n: number; title: strin
 const sha = (i: number, k: number) => `${(i + 10).toString(16)}${k}c4e91a07b3d5f2860c1e3a5b7d9f10234${k}${i.toString(16)}`.padEnd(40, '0').slice(0, 40);
 const iso = (ms: number) => new Date(ms).toISOString();
 
-export function extras(opt: { failing: boolean; only?: (a: (typeof APPS)[number]) => boolean; settled?: string[]; settledAtMs?: number }) {
+export function extras(opt: { failing: boolean; only?: (a: (typeof APPS)[number]) => boolean; settled?: string[]; settledAtMs?: number; states?: Record<string, State> }) {
 	const sources: unknown[] = [], slices: unknown[] = [], rollouts: unknown[] = [], environments: unknown[] = [], changes: unknown[] = [], hcs: unknown[] = [], gh: Record<string, unknown> = {};
 	APPS.forEach((a0, i) => {
 		if (opt.only && !opt.only(a0)) return;
 		/* `settled`: an app the story has let through (its approval was granted off-screen): it sits at rest on the new build */
-		const a = opt.settled?.includes(a0.name) ? { ...a0, state: 'rest' as State } : a0;
+		const a = opt.settled?.includes(a0.name) ? { ...a0, state: 'rest' as State } : opt.states?.[a0.name] ? { ...a0, state: opt.states[a0.name] } : a0; /* `states`: a section's world moves one app (payments-svc baking for the Gates card) */
 		const oldR = release(a.ver?.[0] ?? `b-${a.n - 1}`, a.ver?.[1] ?? `${a.n - 1}.0.0`, sha(i, 1), CLOCK_MS - 20 * H);
 		const newR = release(a.ver?.[2] ?? `b-${a.n}`, a.ver?.[3] ?? `${a.n}.0.0`, sha(i, 2), CLOCK_MS - (3 + i) * H);
 		const place = (env: 'staging' | 'prod') => {

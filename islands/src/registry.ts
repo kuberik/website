@@ -20,5 +20,7 @@ export type IslandModule = IslandDef<any> | CustomIsland;
 
 /** Every island is a dynamic import: its component graph is its own chunk, fetched only when the loader (loader.ts) decides it is near. */
 export const registry: Record<string, () => Promise<IslandModule>> = {
-	hero: () => import('./islands/film').then((m) => ({ custom: m.mountFilm }))
+	hero: () => import('./islands/film').then((m) => ({ custom: m.mountFilm })),
+	/* section islands (islands/sections/): one real dashboard component per page section, framed at natural scale */
+	'gates-card': () => import('./islands/sections/gates').then((m) => ({ custom: m.mount }))
 };

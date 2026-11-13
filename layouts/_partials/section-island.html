@@ -1,0 +1,17 @@
+{{- /* section-island (dict "name" "gates-card" "class" "fv-gates-island"): a SECTION island host (islands/src/islands/sections/): one real dashboard
+       component, framed at natural scale. The page's CSS reserves the host's box per breakpoint (no layout shift); the static poster (the island's own
+       frame, captured by islands/scripts/section/capture-section-posters.mjs, one webp per width and theme) fills it until the first live frame, and is
+       what a reader without JavaScript sees. The host is aria-hidden and inert: the card's own copy beside it is the text. The loader starts it only once
+       it nears the viewport AND the hero film has painted its first live frame. */ -}}
+{{- $n := .name -}}
+{{- $p := "island-poster/" | relURL -}}
+{{- $v := index (site.Data.island_poster.sections | default dict) $n | default "0" -}}
+<style>
+[data-island="{{ $n }}"] .ph-poster{position:absolute;inset:0;z-index:1;background-repeat:no-repeat;background-size:cover;background-position:left top;transition:opacity .2s ease-out;pointer-events:none}
+html:not(.dark) [data-island="{{ $n }}"] .ph-poster{background-image:url({{ $p }}s-{{ $n }}-1440-light.webp?v={{ $v }})}html.dark [data-island="{{ $n }}"] .ph-poster{background-image:url({{ $p }}s-{{ $n }}-1440-dark.webp?v={{ $v }})}
+@media(max-width:640px){html:not(.dark) [data-island="{{ $n }}"] .ph-poster{background-image:url({{ $p }}s-{{ $n }}-390-light.webp?v={{ $v }})}html.dark [data-island="{{ $n }}"] .ph-poster{background-image:url({{ $p }}s-{{ $n }}-390-dark.webp?v={{ $v }})}}
+@media(min-width:1700px){html:not(.dark) [data-island="{{ $n }}"] .ph-poster{background-image:url({{ $p }}s-{{ $n }}-1920-light.webp?v={{ $v }})}html.dark [data-island="{{ $n }}"] .ph-poster{background-image:url({{ $p }}s-{{ $n }}-1920-dark.webp?v={{ $v }})}}
+@media(min-width:2300px){html:not(.dark) [data-island="{{ $n }}"] .ph-poster{background-image:url({{ $p }}s-{{ $n }}-2560-light.webp?v={{ $v }})}html.dark [data-island="{{ $n }}"] .ph-poster{background-image:url({{ $p }}s-{{ $n }}-2560-dark.webp?v={{ $v }})}}
+</style>
+<div class="sec-host {{ .class }}" data-island="{{ $n }}" data-section data-theme-sync aria-hidden="true"><div class="ph-poster"></div></div>
+<script type="module" src="{{ "islands/islands.js" | relURL }}"></script>

@@ -1,35 +1,8 @@
-{{- /* Gates = the rollout Gates tab's gate graph (RolloutNeighbourhood), drawn static: the dotted canvas, the "Gated by"
-       column (the promotion tile is the tab's » + env chip, a schedule, the payments-svc contract), curved wires into
-       the raised "This rollout" tile, and the one held wire in held ink. Agrees with the other cards: checkout-api
-       4.46.0 is held in production until payments-svc 3.1.0 finishes its bake. Wire ends are fixed: tiles are 54px on
-       an 8px gap from y 22, so centres are 49 / 111 / 173 and the focus tile is centred on 111. */ -}}
-{{- $chev := `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="m7 16 4-4-4-4m6 8 4-4-4-4"/></svg>` -}}
-{{- $cal := `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4 10h16M8 14h8m-4-7V4M7 7V4m10 3V4M5 20h14a1 1 0 0 0 1-1V7a1 1 0 0 0-1-1H5a1 1 0 0 0-1 1v12a1 1 0 0 0 1 1Z"/></svg>` -}}
-<div class="fv-card">
-  <div class="fv-head">{{ partial "landing-features/icon.html" "gates" }}<span class="fv-title">Gates</span><span class="fv-ctx">checkout-api</span><span class="fv-roll">1 of 3 holding</span></div>
-  <div class="fv-body gg-canvas">
-    <div class="gg">
-      <div class="gg-up">
-        <p class="gg-label">Gated by · <span class="gg-plus">2 + staging</span><span class="gg-n">3</span></p>
-        <div class="gg-tile"><span class="gg-t">{{ $chev | safeHTML }}<span class="chip chip-stg">staging</span></span><span class="gg-s">{{ partial "landing-features/mark.html" "ok" }}<span>4.46.0 baked 10m</span></span></div>
-        <div class="gg-tile"><span class="gg-t">{{ $cal | safeHTML }}<span>Business hours</span></span><span class="gg-s">{{ partial "landing-features/mark.html" "ok" }}<span>Open until 17:00</span></span></div>
-        <div class="gg-tile is-held"><span class="gg-t"><span>payments-svc</span><span class="chip chip-prod chip-opt">prod</span></span><span class="gg-s is-held-ink">{{ partial "landing-features/mark.html" "held" }}<span>Holding 4.46.0</span></span></div>
-      </div>
-      <div class="gg-wire-col">
-        <svg class="gg-wires" viewBox="0 0 100 200" preserveAspectRatio="none" aria-hidden="true">
-          <path class="w" d="M0 49C50 49 50 99 100 99"/><path class="w" d="M0 111H100"/><path class="w-held" d="M0 173C50 173 50 123 100 123"/>
-        </svg>
-        <svg class="gg-heads" viewBox="0 0 8 200" aria-hidden="true"><polygon class="a" points="1,95 8,99 1,103"/><polygon class="a" points="1,107 8,111 1,115"/><polygon class="a-held" points="0,117 8,123 0,129"/></svg>
-      </div>
-      <div class="gg-down">
-        <p class="gg-label">This rollout</p>
-        <div class="gg-focus">
-          <span class="gg-t"><span>checkout-api</span></span>
-          <span class="chip-j"><span class="chip chip-prod">prod</span><span class="chip chip-place">us-east-1</span></span>
-          <p class="gg-runs">runs<b>4.45.2</b></p>
-          <span class="gg-s is-held-ink">{{ partial "landing-features/mark.html" "held" }}<span>Held 4.46.0</span></span>
-        </div>
-      </div>
-    </div>
-  </div>
+{{- /* Gates = the product's own Gates card (the rollout Gates tab, its gate graph with #145's wires), a SECTION ISLAND
+       (islands/src/islands/sections/gates.ts): checkout-api in prod us-east-1, staging's promotion passed, Business hours open, payments-svc still
+       baking the 3.1.0 that release 4.46.0-46 requires, so it holds the release. Nothing here is drawn by the landing: the poster is the island's
+       own frame, re-shot by islands/scripts/section/capture-section-posters.mjs. */ -}}
+<div class="fv-card fv-card-island">
+  <div class="fv-head">{{ partial "landing-features/icon.html" "gates" }}<span class="fv-title">Gates</span><span class="fv-ctx">checkout-api</span></div>
+  {{ partial "section-island.html" (dict "name" "gates-card" "class" "fv-body fv-island") }}
 </div>

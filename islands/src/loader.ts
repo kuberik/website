@@ -10,10 +10,19 @@ const start = (host: HTMLElement) => {
 	runtime ??= import('./runtime');
 	void runtime.then((r) => r.mountIsland(host, BASE));
 };
+/* a section island never competes with the hero's first frame: it starts once every eager island has painted live (runtime ready()), or after 8 s */
+let eagerDone: Promise<unknown> | undefined;
+const afterEager = () => (eagerDone ??= new Promise<void>((res) => {
+	const left = () => [...document.querySelectorAll('[data-island][data-eager]')].filter((h) => !h.hasAttribute('data-island-ready')).length;
+	if (!left()) return res();
+	const on = () => { if (!left()) { document.removeEventListener('kuberik:island-ready', on); res(); } };
+	document.addEventListener('kuberik:island-ready', on);
+	setTimeout(res, 8000);
+}));
 const seen = new WeakSet<Element>();
 
 function scan(scope: ParentNode = document) {
-	const io = (scan as any).io ??= new IntersectionObserver((es) => es.forEach((e) => { if (e.isIntersecting) { io.unobserve(e.target); start(e.target as HTMLElement); } }), { rootMargin: `${Math.max(innerHeight, 600)}px 0px` });
+	const io = (scan as any).io ??= new IntersectionObserver((es) => es.forEach((e) => { if (e.isIntersecting) { io.unobserve(e.target); void afterEager().then(() => start(e.target as HTMLElement)); } }), { rootMargin: `${Math.max(innerHeight, 600)}px 0px` });
 	scope.querySelectorAll<HTMLElement>('[data-island]').forEach((h) => {
 		if (seen.has(h)) return;
 		seen.add(h);

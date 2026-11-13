@@ -11,3 +11,5 @@ setInterval(() => { if (!driven) w.set(new Date()); }, 1000);
 let curNow: Date | null = null;
 w.subscribe((d) => { curNow = d; });
 export const storyDate = () => (driven && curNow ? new Date(curNow.getTime()) : new Date());
+/** whether a story (the film) drives the clock: a section island rebases its world onto that now, or drives it itself when nothing does */
+export const isDriven = () => driven;

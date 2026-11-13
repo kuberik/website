@@ -88,7 +88,10 @@ const onNewBuild = (ph: Phase) => ph !== 'old';
 
 export type Detail = { approvals: Any; catalogue: { source: Any; slices: Any[] }; ns: string; rollout: Any; kustomization: Any; environment: Any; kr: Any; test: Any; gates: Any[]; healthChecks: Any[]; schedules: Any[] };
 
-export function worldAt(t: number): { fleet: FleetSource; github: Record<string, unknown>; detail: Detail } {
+/** `opt` builds a sibling world for a section island (sections/): `depHold` = payments-svc is still baking the 3.1.0 the release requires, so its
+ *  contract holds 4.46.0-46 in every prod place; `approval: false` = prod has no approval gate. The film passes none (its world is unchanged). */
+export type WorldOpt = { depHold?: boolean; approval?: boolean };
+export function worldAt(t: number, opt: WorldOpt = {}): { fleet: FleetSource; github: Record<string, unknown>; detail: Detail } {
 	/* THE CLOCK: `now` is the story clock (a Tuesday, UTC), so every absolute time the product prints ("reopens 10:00 UTC", "closes 14:00 UTC") agrees with the chrome clock;
 	   each CR timestamp is placed on the same piecewise-linear map (clock.ts), and pre-story ages count back from the first frame. */
 	const atMs = (tt: number) => DAY_MS + clockSeconds(tt) * 1000;
@@ -128,11 +131,11 @@ export function worldAt(t: number): { fleet: FleetSource; github: Record<string,
 		const promoOpen = out46 && (isUS1(p) ? t >= EV.promo : p.wave === 2 ? t >= EV.us1Done : t >= EV.w2Done1);
 		/* `kind` and `displayName` are the dashboard API's own additions to each gate summary (pkg/kubernetes/gatekind.go: by the gate object's owner / labels; the pretty-name annotation) */
 		return [
-			{ ...gate(`dependency-${DEP_NAME}`, withNew), kind: 'dependency' },
+			{ ...gate(`dependency-${DEP_NAME}`, opt.depHold ? old : withNew), kind: 'dependency' },
 			{ name: 'deploy-window', passing: true, allowedVersions: null, message: 'Gate is passing', kind: 'schedule', displayName: 'Business hours' },
 			{ ...gate(`promotion-prod-${p.site}`, promoOpen ? ['b-46', 'b-45'] : ['b-45']), kind: 'promotion' },
 			/* the ApprovalPolicy's gate: its allow-list is the versions a RolloutApproval names (the approval controller), b-46 from the viewer's approval on */
-			{ ...gate('release-approval', t >= EV.approved ? withNew : old), kind: 'approval', displayName: 'Release approval' }
+			...(opt.approval === false ? [] : [{ ...gate('release-approval', t >= EV.approved ? withNew : old), kind: 'approval', displayName: 'Release approval' }])
 		];
 	}
 
@@ -230,7 +233,7 @@ export function worldAt(t: number): { fleet: FleetSource; github: Record<string,
 	}
 
 	function dependencies() {
-		const open = true; /* payments already serves 3.1.0: the contract never holds this release */
+		const open = !opt.depHold; /* the film: payments already serves 3.1.0, the contract never holds this release (a section's depHold: it still serves 3.0.2) */
 		return PLACES.filter((p) => p.env === 'prod').map((p) => ({
 			apiVersion: 'kuberik.com/v1alpha1', kind: 'RolloutDependency', metadata: { name: DEP_NAME, namespace: p.ns, annotations: { 'rollout-dashboard.kuberik.com/source-cluster': p.env } },
 			spec: { contract: 'payments', providerRef: { name: 'payments-svc', namespace: 'payments-svc-prod' } /* scene lane 6: the fleet's payments-svc (surfaces/fleet.ts), so the Gates tile shows the version it runs */, rolloutRef: { name: APP } },
@@ -246,7 +249,7 @@ export function worldAt(t: number): { fleet: FleetSource; github: Record<string,
 
 	const cats = PLACES.map((p) => catalogue(p.ns, p.env, APP, 'ghcr.io/exampleco/checkout-api', out46 ? [R44, R45, R46] : [R44, R45]));
 	const rolloutsAll = PLACES.map(rollout), envsAll = PLACES.map(environment), krs = PLACES.map(kruise), hcs = PLACES.map(healthChecks);
-	const ex = extras({ failing: false, only: (a) => a.state === 'rest' || a.name === 'billing-api' });
+	const ex = extras({ failing: false, only: (a) => a.state === 'rest' || a.name === 'billing-api', ...(opt.depHold ? { states: { 'payments-svc': 'deploying' as const } } : {}) });
 	const change = (n: number, title: string, author: string, mergedMs: number, sha: string, files: number) => prChange('exampleco', APP, n, title, author, mergedMs, sha, files);
 	const fleet = {
 		rollouts: [...rolloutsAll, ...ex.rollouts] as never,

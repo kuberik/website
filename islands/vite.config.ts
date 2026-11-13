@@ -75,6 +75,24 @@ function islandStorage(): Plugin {
 	};
 }
 
+/** ISLAND SCOPE (src/islands/shared/scope.ts): in every dashboard .svelte file, `import { page } from '$app/state'` becomes the scoped page read at
+ *  component init, so a section island's rollout page reads ITS params while the film's read the global page. Outside a section island it is the
+ *  same global object as before (the film is unchanged). Throws if a file imports `page` in a form this rewrite does not know. */
+function islandScope(): Plugin {
+	const src = resolve(D!, 'src') + '/';
+	const IMP = "import { page } from '$app/state';";
+	return {
+		name: 'kuberik-island-scope',
+		enforce: 'pre',
+		transform(code, id) {
+			const f = id.replace(/\?.*$/, '');
+			if (!f.startsWith(src) || !f.endsWith('.svelte') || !code.includes('$app/state')) return null;
+			if (!code.includes(IMP)) throw new Error(`island-scope: unknown $app/state import form in ${f}`);
+			return { code: code.replace(IMP, "import { scopedPage as __scopedPage } from '$app/state';\n\tconst page = __scopedPage();"), map: null };
+		}
+	};
+}
+
 /** Post-process the compiled stylesheet for shadow-root use:
  *  - `:root` -> `:host` (the dashboard defines its --k-* tokens on :root; inside a shadow tree that is the host);
  *  - @font-face is dropped (a shadow-root stylesheet cannot register fonts) and the faces are declared in the DOCUMENT by
@@ -134,6 +152,7 @@ export default defineConfig({
 	},
 	plugins: [
 		stubModules(),
+		islandScope(),
 		islandStorage(),
 		storyNow(),
 		tailwindcss(),

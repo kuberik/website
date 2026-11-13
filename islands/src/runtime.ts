@@ -57,7 +57,11 @@ export async function mountIsland(host: HTMLElement, BASE: string) {
 	if ('custom' in def) {
 		const cbs: ((g: 'onscreen' | 'visible' | 'motion', v: boolean) => void)[] = [];
 		const fire = (g: 'onscreen' | 'visible' | 'motion', v: boolean) => cbs.forEach((f) => f(g, v));
-		const ready = () => { const p = host.querySelector<HTMLElement>('.ph-poster'); if (!p) return; p.style.opacity = '0'; host.querySelector('.ph-chapters')?.remove(); setTimeout(() => p.remove(), 220); };
+		const ready = () => {
+			/* the loader holds section islands until the eager one (the hero) has its first live frame (loader.ts) */
+			if (!host.hasAttribute('data-island-ready')) { host.setAttribute('data-island-ready', ''); document.dispatchEvent(new CustomEvent('kuberik:island-ready', { detail: name })); }
+			const p = host.querySelector<HTMLElement>('.ph-poster'); if (!p) return; p.style.opacity = '0'; host.querySelector('.ph-chapters')?.remove(); setTimeout(() => p.remove(), 220);
+		};
 		def.custom({ wrap, host, onGate: (cb) => cbs.push(cb), ready });
 		fire('motion', !reduced.matches);
 		fire('visible', document.visibilityState === 'visible');

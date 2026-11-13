@@ -2,6 +2,7 @@
 // (Apps' lane strip, FleetGate) get the SAME payload from the installed FleetSource: `createQuery` answers the rollouts-list key from
 // liveSource(), every other key is an idle, data-less query. No client, no cache, no fetch (query-core is ~12 KB gz saved).
 import { liveSource } from '$lib/components/home/sketch/fleet-source.svelte';
+import { currentScope } from '../islands/shared/scope';
 type Opts = { queryKey?: readonly unknown[] };
 const listPayload = () => {
 	const s = liveSource();
@@ -13,10 +14,13 @@ const idle = (data: unknown) => ({ get data() { return data; }, isLoading: false
 let answers: ((key: readonly unknown[]) => unknown) | null = null;
 export const setQueryAnswers = (fn: ((key: readonly unknown[]) => unknown) | null) => { answers = fn; };
 export function createQuery(fn: () => Opts & { enabled?: boolean }) {
+	/* a section island's own answers (shared/scope.ts), captured at creation (component init): it never falls back to the film's answers or fleet */
+	const scoped = currentScope()?.answers;
+	const A = () => scoped ?? answers;
 	/* decided on EVERY read, not once at creation: a query created with an empty key (the Roll back dialog's commit range, before a version is picked) answers once its key fills in */
-	const ans = () => { if (!answers) return undefined; const o = fn(); return o.enabled === false ? undefined : answers(o?.queryKey ?? []); };
-	const wired = () => !!answers && answers(fn()?.queryKey ?? []) !== undefined;
-	const idle = () => { const o = fn(); const k = String(o?.queryKey?.[0] ?? ''); return k === 'rollouts' && o.queryKey?.[1] === 'all' ? listPayload() : undefined; };
+	const ans = () => { const a = A(); if (!a) return undefined; const o = fn(); return o.enabled === false ? undefined : a(o?.queryKey ?? []); };
+	const wired = () => { const a = A(); return !!a && a(fn()?.queryKey ?? []) !== undefined; };
+	const idle = () => { if (scoped) return undefined; const o = fn(); const k = String(o?.queryKey?.[0] ?? ''); return k === 'rollouts' && o.queryKey?.[1] === 'all' ? listPayload() : undefined; };
 	return {
 		get data() { return ans() ?? idle(); },
 		get isPending() { return wired() ? ans() === undefined : idle() !== undefined ? false : undefined; },
