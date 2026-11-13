@@ -11,12 +11,17 @@ import { execFileSync } from 'node:child_process';
 import { mkdirSync, readdirSync, readFileSync, writeFileSync, existsSync } from 'node:fs';
 import { createHash } from 'node:crypto';
 const PAGE = process.argv[2] ?? 'http://192.168.1.102:1340/';
-/* the island widths of DIRECTION.md §3 (card - 66): phone 326, 6+6 366-454, 5-span 425 / 525 / 724, 7-span 627 / 767 / 1047, a full row 1134 / 1374;
-   one column (641-1023) takes the widest below its width. Plus the product's own breakpoints in island terms (canvas = island + 32: sm 608, md 736,
-   lg 992) and the Gates card's compact graph (644), so no range between two widths straddles a change of layout */
-const BASE = [326, 366, 425, 454, 525, 608, 627, 644, 724, 736, 767];
-const WIDE = [...BASE, 992, 1047, 1134, 1374];
-const ISLANDS = { 'gates-card': WIDE, 'health-card': BASE, 'releases-card': BASE, 'canary-card': [...WIDE, 866].sort((a, b) => a - b) /* the Progress card's stage strip from an island of 866 (measured: 864 stacked, 866 strip) */, 'dashboard-card': WIDE, 'gitops-card': BASE };
+/* every host width the page's grid gives an island, measured with scripts/section/widths.mjs (JS off = live, to the 0.1 px):
+   - plateaus (the container stops growing): 1366-1919 gates 782, 7-span 627.3, 5-span 424.7; 1920-2399 950.6 / 767.3 / 524.7; >= 2400 1422 / 724.7 / 1047.3
+   - the grid's breakpoints: 640 576, 641 527, 1023 909, 1024 gates 814 others 366, 1199 989 / 453.5, 1200 638 / 543.3 / 364.7
+   - common devices: 320 256, 360 296, 375 311, 390 326, 412 348, 430 366, 768 654, 834 720, 1280 718 / 590 / 398
+   - the fluid ranges between (phone vw-64, tablet vw-114, 1024-1199, 1200-1365) filled so no two widths are more than ~30 px apart,
+   plus the product's own breakpoints in island terms (canvas = island + 32: sm 608, md 736, lg 992), the Gates graph's 644 and the Progress strip's 866,
+   so no range between two widths straddles a change of layout. A host takes the widest poster not wider than itself + 0.5 px (section-island.html), so a
+   fractional host (424.7) takes its rounded poster (425), never the one below it. */
+const BASE = [256, 296, 311, 326, 348, 365, 366, 395, 425, 454, 485, 525, 543, 555, 576, 590, 608, 627, 638, 644, 654, 686, 718, 720, 725, 736, 767, 782, 814, 840, 866, 888, 909, 951, 992, 1047];
+const WIDE = [...BASE, 930, 970, 989, 1422].sort((a, b) => a - b);
+const ISLANDS = { 'gates-card': WIDE, 'health-card': BASE, 'releases-card': BASE, 'canary-card': BASE, 'dashboard-card': BASE, 'gitops-card': BASE };
 const only = process.argv.slice(3);
 const OUT = new URL('../../../static/island-poster/', import.meta.url).pathname;
 const DATA = new URL('../../../data/section_poster.yaml', import.meta.url).pathname;
