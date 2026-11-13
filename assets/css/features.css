@@ -14,6 +14,9 @@
    Canvas hues (lagoon / mint, data/landing.yaml): Gates L; Canary M, Health M, GitOps L; Dashboard L, Releases M. A full
    row over a stacked pair makes a three-way meeting that two hues cannot checker; the one same-hue neighbour is
    Canary | Health, chosen because it keeps Gates, GitOps and row 3 all alternating.
+   >= 2400 (container 1920): 6 | 6. A 7-span would give Canary a 1047 island, where the Progress card turns into its
+            wide form (311 tall) and the stacked pair beside it would leave ~275 px of empty canvas; at 6 | 6 (island ~886)
+            Canary keeps its 641 form beside Health over GitOps, and Dashboard (373) sits beside Releases (369).
    1024-1199: the same plan at 6 | 6, Gates copy above its canvas (island = container - 66, graph from 710).
    641-1023: one column, copy over canvas; Gates graph from an 854 viewport, its own stacked list below that.
    <= 640: the cards drop their shell; copy sits on the stage, canvas radius 12, padding 12 (island 326), 56 between.
@@ -86,6 +89,11 @@ html.js .fx .reveal:nth-child(4){transition-delay:120ms}
   .fx-gates > .fx-copy{grid-row:1;grid-column:1;align-self:center;padding:var(--card-pad) 32px var(--card-pad) var(--card-pad)}
   .fx-gates > .fx-canvas{grid-row:1;grid-column:2;margin:var(--canvas-m) var(--canvas-m) var(--canvas-m) 0}
   .fx-gates .fx-title{font-size:calc(var(--t-card-title-s) + 4px);line-height:calc(var(--t-card-title-l) + 4px)}
+}
+
+@media(min-width:2400px){
+  .fx-canary,.fx-dashboard{grid-column:1 / span 6}
+  .fx-health,.fx-gitops,.fx-releases{grid-column:7 / -1}
 }
 
 /* ---- <= 640: no card shell; copy on the stage, then its canvas ---- */
