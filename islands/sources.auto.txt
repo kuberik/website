@@ -3,6 +3,7 @@ lib/Sidebar.svelte
 lib/a11y.svelte.ts
 lib/actor.ts
 lib/api/approvals.ts
+lib/api/bypass.ts
 lib/api/commit-pulls.ts
 lib/api/commit.ts
 lib/api/errors.ts
@@ -33,6 +34,7 @@ lib/components/ChangeVersionFlow.svelte
 lib/components/ChangeVersionModal.svelte
 lib/components/Chip.svelte
 lib/components/ClearPinModal.svelte
+lib/components/ClusterMark.svelte
 lib/components/CommitSummary.svelte
 lib/components/ConnectGithubAction.svelte
 lib/components/CopyButton.svelte
@@ -77,6 +79,7 @@ lib/components/ScheduleStatus.svelte
 lib/components/SectionHeader.svelte
 lib/components/SectionTabs.svelte
 lib/components/SiteMark.svelte
+lib/components/SkipRuleModal.svelte
 lib/components/SourceViewer.svelte
 lib/components/StarToggle.svelte
 lib/components/StatementBanner.svelte
@@ -107,6 +110,7 @@ lib/components/new/BlockedActions.svelte
 lib/components/new/EnvStateBar.svelte
 lib/components/new/EnvTile.svelte
 lib/components/new/Environments.svelte
+lib/components/new/FailureBanner.svelte
 lib/components/new/Footprint.svelte
 lib/components/new/HoldingCard.svelte
 lib/components/new/ListCard.svelte
@@ -259,12 +263,14 @@ lib/view-models/rollout-neighbourhood.ts
 lib/view-models/rollout-state-chip.ts
 lib/view-models/rollout-tabs.ts
 lib/view-models/rollup-fold.ts
+lib/view-models/severity.ts
 lib/view-models/sites-waves.ts
+lib/view-models/skip-rule.ts
 lib/view-models/skipped-builds.ts
 lib/view-models/stable-order.ts
 lib/view-models/stage-advance.ts
 lib/view-models/stage-weight.ts
-lib/view-models/up-to-date.ts
+lib/view-models/state-tone.ts
 lib/view-models/wait-cause.ts
 lib/view-models/wait-fact.ts
 lib/view-models/waits-for-text.ts
