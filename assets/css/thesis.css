@@ -1,182 +1,82 @@
-/* Landing sections below the hero (landing v5 page, .work/landing-v5/page/BRIEF.md): proof row, thesis (two-tone
-   statement + the five still isometric figs from landing v4, scripts/landing-figs.mjs), six even feature cards,
-   the four files, the install band, the footer. Plain CSS, v5 tokens (home.css), three hues only (PALETTE.md).
-   Reference regions: stage panels = the hero's .stage; feature visuals and file windows = the dashboard Card
-   (47px header, 16px icon, right rollup, rows with one 16px status column); chips = the dashboard chip family.
-   New by design: .feats (Linear's Features row + Railway's sub-feature anatomy: visual, name, title, two
-   sentences, kinds, one link), .statement-text (Linear's two-tone paragraph as the thesis h2). */
+/* THESIS AND LOOP (landing v6, lane C; DIRECTION.md s1.3, s5).
+   Statement: Linear's two-tone sentence (REFERENCES #9), the continuation in the lagoon ink rather than grey.
+   Loop: five isometric figs on Railway's rail with a node per phase (REFERENCES #2, ref6-railway-rail-node.png).
+   Reference regions: the rail and node borrow the dashboard progress rail's proportions (1px hairline, 8px node,
+   one mint fill for the active step); the caption tags are the YAML window's ownership tags (Yours / Optional /
+   Kuberik). New by design: the rail itself, because no dashboard object plays "five phases of one loop in turn";
+   it is a 1px --line rule with 8px nodes, horizontal at >= 641 (one per row) and vertical at <= 640.
+   Motion: one 12 s page clock (--clk, sections.js), 2.4 s per phase; the active fig moves and its node fills mint
+   with the page's one glow outside the film; everything else holds its rest pose. Reduced motion: rest poses,
+   no node lit. The drawings' tokens, rules and keyframes are the GENERATED block at the end of this file. */
 
-:root{
-  /* FIG TOKENS (PALETTE.md s4). Neutrals = dashboard --k-iso-* / --k-*; the only colour in a drawing is the
-     brand mint (the build, the active path, the answers). Cube = the logo's two teals. */
-  --fig-ground:#ffffff;       /* --k-iso-top */
-  --fig-top-line:#97a4a9;     /* --k-fg-disabled */
-  --fig-side:#d4dcdf;         /* --k-iso-side-l */
-  --fig-side-line:#c3ccd0;    /* --k-iso-side-r */
-  --fig-ring:#dee5e8;         /* --k-line */
-  --fig-tile:#ecf1f3;         /* --k-iso-top-lo */
-  --fig-tile-line:#cad4d7;    /* --k-line-strong */
-  --fig-ghost:#97a4a9;        /* --k-fg-disabled */
-  --fig-label:#47555a;        /* --k-fg-muted */
-  --fig-wait:#b4540a;         /* the product's holding orange (Holding 1 build here) */
-  --fig-teal:#009689;         /* dev tier colour */
-  --fig-cube-t:#77ecdb;       /* logo mint, L+: oklch(.87 .11 183) */
-  --fig-cube-l:#00c9b5;       /* logo stop 1 */
-  --fig-cube-r:#009689;       /* dev tier colour (also the silhouette underlay) */
-  --statement-rest:#616e73;   /* --k-fg-subtle: 5.2:1 on white, body-text contrast (QA r1) */
-  --fig-sep:oklch(.195 .014 222/.10)}
-html.dark{
-  --fig-ground:#222d31;       /* --k-iso-top */
-  --fig-top-line:#566367;     /* --k-iso-outline */
-  --fig-side:#091113;         /* --k-iso-side-r (darkest: the slab separates from the new dark ground) */
-  --fig-side-line:#38454a;    /* --k-line-strong */
-  --fig-ring:#202c31;         /* --k-line */
-  --fig-tile:#192327;         /* --k-iso-top-lo */
-  --fig-tile-line:#38454a;    /* --k-line-strong */
-  --fig-ghost:#889599;        /* --k-fg-subtle */
-  --fig-label:#b6c0c3;        /* --k-fg-muted */
-  --fig-wait:#f0a35e;         /* the same, lifted for dark */
-  --fig-teal:#3ad9c6;         /* logo mint lifted for dark: oklch(.80 .13 183) */
-  --fig-cube-t:#8cf4e4;       /* oklch(.90 .10 183) */
-  --fig-cube-l:#3ad9c6;
-  --fig-cube-r:#14867b;       /* oklch(.56 .095 184) */
-  --statement-rest:#889599;   /* --k-fg-subtle */
-  --fig-sep:oklch(1 0 0/.08)}
-/* thesis: the two-tone statement (Linear) is the section's h2; the five figures sit under it on the page ground */
-.statement-text{margin:0;max-width:1180px;font:500 clamp(28px,3.4vw,48px)/1.18 var(--sans);letter-spacing:-.022em;text-wrap:balance}
+#how-it-works{
+  --thesis-rest:oklch(.5 .075 206);      /* lagoon ink, >= 4.8:1 on white */
+  --rail:var(--line);
+  --node-line:color-mix(in oklab,var(--ink) 28%,var(--page));
+  --node-on:var(--mint);
+  --node-halo:color-mix(in oklab,var(--mint) 20%,transparent);
+  --own-line:#009689;
+  margin-top:0;padding-block:var(--sec-y)}
+html.dark #how-it-works{--thesis-rest:oklch(.8 .07 200);--own-line:#3ad9c6;--node-line:color-mix(in oklab,var(--ink) 34%,var(--page))}
+
+/* the statement */
+.statement-text{margin:0;max-width:1080px;font:500 var(--t-statement-s)/var(--t-statement-l) var(--sans);letter-spacing:-.025em;text-wrap:balance}
 .statement-claim{color:var(--ink)}
-.statement-rest{color:var(--statement-rest)}
-/* the drawings animate while on screen (owner, landing v5), at rest under reduced motion. Strokes: three weights only (FIGS-SPEC s3): 1 structure, 1.5 teal active, 2 the answer mark.
-   Dashes: 4 3 = "yours" (gate bar, health's outer ring); 0 4 round cap = trajectory (the release drop). */
-.fig{display:block;width:100%;height:auto;overflow:visible}
-.fig-top{fill:var(--fig-ground);stroke:var(--fig-top-line);stroke-width:1}
-.fig-side{fill:var(--fig-side);stroke:var(--fig-side-line);stroke-width:1}
-.fig-line{fill:none;stroke:var(--fig-side-line);stroke-width:1}
-.fig-ring{fill:none;stroke:var(--fig-ring);stroke-width:1}
-.fig-tile{fill:var(--fig-tile);stroke:var(--fig-tile-line);stroke-width:1}
-.fig-ghost{fill:none;stroke:var(--fig-ghost);stroke-width:1;stroke-linejoin:round}
-.fig-drop{fill:none;stroke:var(--fig-teal);stroke-width:1.5;stroke-linecap:round;stroke-dasharray:0 4}
-.fig-fence{fill:none;stroke:var(--fig-top-line);stroke-width:1}
-.fig-scan{fill:none;stroke:var(--fig-teal);stroke-width:1.5;stroke-linecap:round;stroke-dasharray:16 84;stroke-dashoffset:0;opacity:0}
-.fig-check{fill:none;stroke:var(--fig-teal);stroke-width:2;stroke-linecap:round;stroke-linejoin:round;stroke-dasharray:1 1;stroke-dashoffset:0}
-.fig-st-top{fill:var(--fig-ground);stroke:var(--fig-top-line);stroke-width:1;stroke-linejoin:round}
-.fig-st-side{fill:var(--fig-side);stroke:var(--fig-side-line);stroke-width:1;stroke-linejoin:round}
-.fig-gate{fill:none;stroke:var(--fig-teal);stroke-width:2;stroke-linecap:round}
-.fig-bar-ko{fill:none;stroke:var(--fig-ground);stroke-width:5;stroke-linecap:butt}
-.fig-post-l,.fig-post-r{fill:var(--fig-side);stroke:var(--fig-side-line);stroke-width:1;stroke-linejoin:round}.fig-post-r{fill:var(--fig-ground)}
-.fig-post-t{fill:var(--fig-teal);stroke:var(--fig-teal);stroke-width:1;stroke-linejoin:round}
-.fig-dash{stroke-dasharray:4 3;stroke-linecap:butt}   /* butt caps: the gate bar and health's ring both measure a true 4/3 (AD r1 #2) */
-.fig-pulse{fill:none;stroke:var(--fig-teal);stroke-width:1.5}
-.fig-ring-rest .fig-pulse{opacity:.9}
-.fig-flash{fill:none;stroke:var(--fig-teal);stroke-width:1.5;opacity:0}
-.fig-cube-s,.fig-cube-r{fill:var(--fig-cube-r)}.fig-cube-l{fill:var(--fig-cube-l)}.fig-cube-t{fill:var(--fig-cube-t)}
-.fig-label{fill:var(--fig-label);font:500 13px/1 var(--mono);letter-spacing:.02em}
-/* motion groups: animate the <g>, never an element that carries a transform attribute (A5) */
-.m{transform-box:fill-box;transform-origin:center}
-/* REST POSE (reduced motion, or before the cell is live): each fig tells its story alone. */
-.m-rel-next,.m-rel-g3,.m-dp{opacity:0}
-.m-hp1{opacity:.5;transform:scale(.5)}.m-hp2{opacity:.22}   /* health: ring A at r 23, ring B at r 46 */
-.m-upd-cube{transform:var(--rest)}                           /* update: mid-ramp */
-.m-st-t,.m-stc-t{display:none}                               /* staircase: the finished picture */
-.m-st-pulse,.m-stc-pulse{opacity:0}
-/* ambient: runs only while the cell is on screen (sections.js sets .is-live, and --clk = the page clock so the
-   five figs stay in one sequence however they entered), never under reduced motion. One 6 s clock for the
-   row; fig n bursts at n x 1.1 s; the staircase plays once. Keyframes: landing-figs.gen.css. */
-@media(prefers-reduced-motion:no-preference){
-  .figs .fig-cell:nth-child(2){--i:1}.figs .fig-cell:nth-child(3){--i:2}.figs .fig-cell:nth-child(4){--i:3}.figs .fig-cell:nth-child(5){--i:4}
-  .fig-cell.is-live{--d:calc(var(--i,0) * 1100ms - var(--clk,0ms))}
-  .is-live .m-rel-cube{animation:rel-cube 6s linear var(--d) infinite both}
-  .is-live .m-rel-next{animation:rel-next 6s linear var(--d) infinite both}
-  .is-live .m-rel-g1{animation:rel-g1 6s linear var(--d) infinite both}
-  .is-live .m-rel-g2{animation:rel-g2 6s linear var(--d) infinite both}
-  .is-live .m-rel-g3{animation:rel-g3 6s linear var(--d) infinite both}
-  .is-live .fig-release .fig-plate .fig-flash{animation:rel-flash 6s linear var(--d) infinite both}
-  .is-live .fig-scan{animation:scan 6s linear var(--d) infinite both}
-  .is-live .fig-check{animation:check 6s linear var(--d) infinite both}
-  .is-live .m-gate-bar{animation:gate-bar 6s linear var(--d) infinite both}
-  .is-live .m-gate-cube{animation:gate-cube 6s linear var(--d) infinite both}
-  .is-live .m-upd-cube{animation:upd-cube 6s linear var(--d) infinite both}
-  .is-live .fig-update .fig-up .fig-flash{animation:upd-flash 6s linear var(--d) infinite both}
-  .is-live .m-hp1{animation:hp 6s cubic-bezier(.16,1,.3,1) var(--d) infinite both}
-  .is-live .m-hp2{animation:hp 6s cubic-bezier(.16,1,.3,1) calc(var(--d) + 180ms) infinite both}
-  .is-live .m-dp{animation:hp 6s cubic-bezier(.16,1,.3,1) var(--d) infinite both}
-  .closing-art.is-live .m-st-t{display:block;animation:st-t 4.2s linear 0s 1 both}
-  .closing-art.is-live .m-st-s{animation:st-s 4.2s linear 0s 1 both}
-  .closing-art.is-live .m-st-p,.closing-art.is-live .st-ring{animation:st-p 4.2s linear 0s 1 both}
-  .closing-art.is-live .m-st-pulse{animation:st-pulse 4.2s cubic-bezier(.16,1,.3,1) 0s 1 both}
-  .closing-art.is-live .m-stc-t{display:block;animation:stc-t 4.2s linear 0s 1 both}
-  .closing-art.is-live .m-stc-s{animation:stc-s 4.2s linear 0s 1 both}
-  .closing-art.is-live .m-stc-p,.closing-art.is-live .stc-ring{animation:stc-p 4.2s linear 0s 1 both}
-  .closing-art.is-live .m-stc-pulse{animation:stc-pulse 4.2s cubic-bezier(.16,1,.3,1) 0s 1 both}
+.statement-rest{color:var(--thesis-rest)}
+@media(min-width:1920px){.statement-text{max-width:1320px}}
+
+/* the loop: >= 1024 one row of five equal cells, the rail under the figs at caption level */
+.figs{--fig-gap:24px;list-style:none;margin:var(--head-gap) 0 0;padding:0;display:grid;grid-template-columns:repeat(5,minmax(0,1fr));column-gap:var(--fig-gap)}
+.fig-cell{position:relative;display:flex;flex-direction:column;min-width:0}
+.fig-art{display:block;aspect-ratio:372/252;margin:0 0 20px}
+.fig-art .fig6{width:100%;height:100%}
+@media(min-width:641px){.fig-art{margin-inline:calc(var(--fig-gap) / -2)}}   /* the drawing may use the gutter: the plates read ~10% larger, the captions keep the column edge */
+/* the rail: each cell draws its own run of the rule out to the next cell's node, so a row reads as one line;
+   the last cell of a row stops at its own edge */
+.fig-rail{position:relative;height:8px;margin:0 0 16px}
+.fig-rail::before{content:"";position:absolute;left:0;right:calc(-1 * var(--fig-gap));top:3.5px;height:1px;background:var(--rail)}
+.figs .fig-cell:last-child .fig-rail::before{right:0}
+.fig-node{position:absolute;left:0;top:0;width:8px;height:8px;box-sizing:border-box;border-radius:50%;border:1px solid var(--node-line);background:var(--page)}
+.fig-cap{display:flex;align-items:center;gap:10px;margin:0;font:500 13px/20px var(--mono);color:var(--ink-muted)}
+.fig-no{color:var(--ink-subtle)}
+.fig-name{color:var(--ink)}
+.fig-own{margin-left:auto;height:22px;padding:0 8px;border-radius:6px;border:1px solid var(--line);font:500 11px/20px var(--mono);color:var(--ink-muted);white-space:nowrap}
+.is-yours .fig-own,.is-opt .fig-own{border-color:var(--own-line);color:var(--mint-ink)}
+.is-opt .fig-own{border-style:dashed}
+.fig-q{margin:12px 0 0;font:600 18px/26px var(--sans);color:var(--ink);text-wrap:balance}
+@media(min-width:1024px) and (max-width:1199px){.figs{--fig-gap:16px}.fig-cap{flex-wrap:wrap;gap:4px 8px}.fig-own{margin-left:0}.fig-q{font-size:16px;line-height:24px}}
+@media(min-width:2400px){.figs{--fig-gap:32px}.fig-q{font-size:20px;line-height:28px}.fig-cap{font-size:14px}}
+
+/* 641-1023: a 3+2 grid, the second row centred under the first, a rail per row */
+@media(min-width:641px) and (max-width:1023px){
+  .figs{grid-template-columns:repeat(6,minmax(0,1fr));row-gap:40px}
+  .figs .fig-cell{grid-column:span 2}
+  .figs .fig-cell:nth-child(4){grid-column:2/span 2}
+  .figs .fig-cell:nth-child(3) .fig-rail::before{right:0}
+  .fig-cap{flex-wrap:wrap;gap:4px 8px}.fig-own{margin-left:0}
+  .fig-q{font-size:16px;line-height:24px}
+}
+/* <= 640: a vertical rail on the left (Railway ref6). Rows of [node | fig 148 | caption and question], 128 tall. */
+@media(max-width:640px){
+  .figs{grid-template-columns:minmax(0,1fr);row-gap:0}
+  .fig-cell{display:grid;grid-template-columns:8px 148px minmax(0,1fr);grid-template-rows:auto 1fr;column-gap:12px;align-items:start;min-height:128px;padding-bottom:16px;box-sizing:border-box}
+  .fig-art{grid-column:2;grid-row:1/span 2;margin:0;width:148px}
+  .fig-rail{grid-column:1;grid-row:1/span 2;align-self:stretch;height:auto;margin:0}
+  .fig-rail::before,.figs .fig-cell:last-child .fig-rail::before{left:3.5px;right:auto;top:6px;bottom:-22px;width:1px;height:auto}
+  .figs .fig-cell:last-child .fig-rail::before{display:none}
+  .fig-node{top:6px}
+  .fig-cap{grid-column:3;grid-row:1;flex-wrap:wrap;gap:4px 8px}
+  .fig-own{margin-left:0;height:20px;line-height:18px;padding:0 6px}
+  .fig-q{grid-column:3;grid-row:2;margin-top:6px;font-size:16px;line-height:24px}
 }
 
-/* the loop: five figures */
-.figs{list-style:none;margin:64px calc(-1*var(--fig-gap,20px)) 0;padding:0;display:grid;grid-template-columns:repeat(5,minmax(0,1fr))}
-.fig-cell{display:flex;flex-direction:column;padding:0 20px;border-left:1px solid var(--fig-sep);min-width:0}
-.fig-cell:first-child{border-left-color:transparent}
-.fig-art{display:block;margin-bottom:24px}
-.fig-cap{display:flex;align-items:baseline;gap:10px;margin:0;font:500 13px/20px var(--mono);letter-spacing:.04em;color:var(--ink-muted)}
-.fig-no{text-transform:uppercase;color:var(--ink-subtle)}
-.fig-name{color:var(--ink)}
-.fig-own{margin-left:auto;height:22px;padding:0 8px;border-radius:6px;border:1px solid var(--line);background:color-mix(in oklab,var(--page) 70%,transparent);font:500 11px/20px var(--mono);color:var(--ink-muted)}
-/* one ownership vocabulary (thesis tags = YAML tags): Yours = solid mint, Optional = dashed mint (the figs' dashed
-   "yours" stroke), Kuberik = neutral */
-.is-yours .fig-own,.is-opt .fig-own{border-color:var(--fig-teal);color:var(--mint-ink)}
-.is-opt .fig-own{border-style:dashed}
-.fig-q{margin:16px 0 0;font:600 18px/24px var(--sans);letter-spacing:-.01em;color:var(--ink);text-wrap:balance}
-@media(max-width:1199px){
-  .figs{grid-template-columns:repeat(6,minmax(0,1fr));row-gap:48px}
-  .figs .fig-cell{grid-column:span 2}
-  .figs .fig-cell:nth-child(n+4){grid-column:span 3}
-  .figs .fig-cell:nth-child(n+4) .fig-art{max-width:300px}
-  .figs .fig-cell:nth-child(4){border-left-color:transparent}
+/* the node follows the loop: lit mint with its halo during its own 2.4 s window */
+@keyframes f6-node{0%{background:var(--page);border-color:var(--node-line);box-shadow:0 0 0 0 transparent}
+  1.5%,18.5%{background:var(--node-on);border-color:var(--node-on);box-shadow:0 0 0 4px var(--node-halo)}
+  20%,100%{background:var(--page);border-color:var(--node-line);box-shadow:0 0 0 0 transparent}}
+@media(prefers-reduced-motion:no-preference){
+  .figs.is-live .fig-node{animation:f6-node 12s linear var(--d6) infinite both}
 }
-@media(max-width:1023px){
-  .figs{grid-template-columns:minmax(0,1fr);row-gap:0;margin:32px 0 0}
-  .figs .fig-cell,.figs .fig-cell:first-child,.figs .fig-cell:nth-child(4){grid-column:auto!important;display:grid;grid-template-columns:136px minmax(0,1fr);column-gap:16px;align-items:start;padding:24px 0;border-left:0;border-top:1px solid var(--fig-sep)}
-  .figs .fig-cell:first-child{border-top:0;padding-top:0}
-  .figs .fig-art,.figs .fig-cell:nth-child(n+4) .fig-art{grid-row:1/span 3;margin:0;max-width:none}
-  .fig-q{margin-top:8px;font-size:16px;line-height:22px}
-  .fig-cap{gap:8px;white-space:nowrap}.fig-no{letter-spacing:0}.fig-own{padding:0 6px}
-  /* below 1024 no fig renders under 0.45 scale (A11): drop the small marks that clot at that size
-     (tiles, plate ring) and queue one build, not two */
-  .figs .fig-tile,.figs .fig-ring,.fig-release .m-rel-g2,.fig-release .m-rel-g3{display:none}
-}
-@media(min-width:1024px) and (max-width:1199px){.figs .fig-cell{padding-top:8px}} /* A14: the upper plate's ring clears the frame edge */
-@media(max-width:640px){.figs{margin-top:24px}}
-/* thesis */
-.thesis .statement-text{max-width:1120px}
-.thesis .figs{margin-top:64px}
-@media(min-width:2400px){.statement-text{font-size:56px}.thesis .statement-text{max-width:1320px}}
-/* 1024-1199: the thesis figs stay one row of five equal cells; the install panel keeps the desktop split (AD r2 #3) */
-@media(min-width:1024px) and (max-width:1199px){
-  .figs{grid-template-columns:repeat(5,minmax(0,1fr));row-gap:0}
-  .figs .fig-cell,.figs .fig-cell:nth-child(n+4){grid-column:auto;padding:0 12px}
-  .figs .fig-cell:nth-child(4){border-left-color:var(--fig-sep)}
-  .figs .fig-cell:nth-child(n+4) .fig-art{max-width:none}
-  .fig-cap{flex-wrap:wrap;gap:4px 8px}
-  .fig-q{font-size:16px;line-height:22px}
-}
-@media(max-width:340px){.fig-cap{flex-wrap:wrap;white-space:normal}.fig-own{margin-left:0}}
-/* BEGIN landing-figs keyframes (GENERATED by scripts/landing-figs.mjs, do not edit) */
-@keyframes rel-cube{0%{transform:translate(0px,0px);opacity:1}0%{transform:translate(0px,0px)}0.38%{transform:translate(0px,0.14px)}0.76%{transform:translate(0px,0.57px)}1.14%{transform:translate(0px,1.3px)}1.52%{transform:translate(0px,2.34px)}1.9%{transform:translate(0px,3.71px)}2.29%{transform:translate(0px,5.44px)}2.67%{transform:translate(0px,7.55px)}3.05%{transform:translate(0px,10.11px)}3.43%{transform:translate(0px,13.19px)}3.81%{transform:translate(0px,16.91px)}4.19%{transform:translate(0px,21.46px)}4.57%{transform:translate(0px,27.24px)}4.95%{transform:translate(0px,35.27px)}5.33%{transform:translate(0px,56px)}91.67%{transform:translate(0px,56px);opacity:1}95%{transform:translate(0px,56px);opacity:0}99.98%{transform:translate(0px,56px);opacity:0}100%{transform:translate(0px,0px);opacity:1}}
-@keyframes rel-next{0%{transform:translate(0px,0px);opacity:0}8.67%{transform:translate(0px,0px);opacity:0}8.67%{transform:translate(0px,0px);opacity:0}9.18%{transform:translate(-9.89px,16.37px);opacity:0.14}9.7%{transform:translate(-16.31px,27px);opacity:0.29}10.22%{transform:translate(-20.16px,33.36px);opacity:0.43}10.73%{transform:translate(-22.45px,37.16px);opacity:0.57}11.25%{transform:translate(-23.85px,39.47px);opacity:0.71}11.77%{transform:translate(-24.71px,40.9px);opacity:0.86}12.28%{transform:translate(-25.25px,41.79px);opacity:1}12.8%{transform:translate(-25.58px,42.33px);opacity:1}13.32%{transform:translate(-25.77px,42.66px);opacity:1}13.83%{transform:translate(-25.89px,42.84px);opacity:1}14.35%{transform:translate(-25.94px,42.94px);opacity:1}14.87%{transform:translate(-25.97px,42.98px);opacity:1}15.38%{transform:translate(-25.98px,43px);opacity:1}15.9%{transform:translate(-25.98px,43px);opacity:1}99.98%{transform:translate(-25.98px,43px);opacity:1}100%{transform:translate(0px,0px);opacity:0}}
-@keyframes rel-g1{0%{transform:translate(0px,0px);opacity:1}8.67%{transform:translate(0px,0px);opacity:1}8.67%{transform:translate(0px,0px);opacity:1}9.18%{transform:translate(-9.89px,16.37px);opacity:0.86}9.7%{transform:translate(-16.31px,27px);opacity:0.71}10.22%{transform:translate(-20.16px,33.36px);opacity:0.57}10.73%{transform:translate(-22.45px,37.16px);opacity:0.43}11.25%{transform:translate(-23.85px,39.47px);opacity:0.29}11.77%{transform:translate(-24.71px,40.9px);opacity:0.14}12.28%{transform:translate(-25.25px,41.79px);opacity:0}12.8%{transform:translate(-25.58px,42.33px);opacity:0}13.32%{transform:translate(-25.77px,42.66px);opacity:0}13.83%{transform:translate(-25.89px,42.84px);opacity:0}14.35%{transform:translate(-25.94px,42.94px);opacity:0}14.87%{transform:translate(-25.97px,42.98px);opacity:0}15.38%{transform:translate(-25.98px,43px);opacity:0}15.9%{transform:translate(-25.98px,43px);opacity:0}99.98%{transform:translate(-25.98px,43px);opacity:0}100%{transform:translate(0px,0px);opacity:1}}
-@keyframes rel-g2{0%{transform:translate(0px,0px)}10%{transform:translate(0px,0px)}10%{transform:translate(0px,0px)}10.52%{transform:translate(-9.89px,16.37px)}11.03%{transform:translate(-16.31px,27px)}11.55%{transform:translate(-20.16px,33.36px)}12.07%{transform:translate(-22.45px,37.16px)}12.58%{transform:translate(-23.85px,39.47px)}13.1%{transform:translate(-24.71px,40.9px)}13.62%{transform:translate(-25.25px,41.79px)}14.13%{transform:translate(-25.58px,42.33px)}14.65%{transform:translate(-25.77px,42.66px)}15.17%{transform:translate(-25.89px,42.84px)}15.68%{transform:translate(-25.94px,42.94px)}16.2%{transform:translate(-25.97px,42.98px)}16.72%{transform:translate(-25.98px,43px)}17.23%{transform:translate(-25.98px,43px)}99.98%{transform:translate(-25.98px,43px)}100%{transform:translate(0px,0px)}}
-@keyframes rel-g3{0%{transform:translate(0px,0px);opacity:0}12.67%{transform:translate(0px,0px);opacity:0}16%{transform:translate(0px,0px);opacity:1}99.98%{transform:translate(0px,0px);opacity:1}100%{transform:translate(0px,0px);opacity:0}}
-@keyframes rel-flash{0%,5.2%{opacity:0}5.4%{opacity:1}16%,100%{opacity:0}}
-@keyframes scan{0%{opacity:0;stroke-dashoffset:0}0.3%{opacity:1;stroke-dashoffset:0}9%{opacity:1;stroke-dashoffset:-100}10%,100%{opacity:0;stroke-dashoffset:-100}}
-@keyframes check{0%,9%{stroke-dashoffset:1;opacity:1}13%{stroke-dashoffset:0}73.3%{stroke-dashoffset:0;opacity:1}76.7%,100%{stroke-dashoffset:0;opacity:0}}
-@keyframes gate-bar{0%{transform:translate(0px,0px);opacity:1}0%{transform:translate(0px,0px)}4%{transform:translate(0px,-8px);opacity:0}58.33%{transform:translate(0px,-8px);opacity:0}62.33%{transform:translate(0px,0px);opacity:1}100%{transform:translate(0px,0px);opacity:1}}
-@keyframes gate-cube{0%{transform:translate(0px,0px);opacity:1}2.67%{transform:translate(0px,0px);opacity:1}2.67%{transform:translate(0px,0px);opacity:1}3.5%{transform:translate(0.27px,-0.15px);opacity:1}4.33%{transform:translate(1.26px,-0.73px);opacity:1}5.17%{transform:translate(3.45px,-1.99px);opacity:1}6%{transform:translate(7.48px,-4.32px);opacity:1}6.83%{transform:translate(12.98px,-7.5px);opacity:1}7.67%{transform:translate(17.76px,-10.26px);opacity:1}8.5%{transform:translate(21.12px,-12.2px);opacity:1}9.33%{transform:translate(23.43px,-13.53px);opacity:1}10.17%{transform:translate(25.04px,-14.46px);opacity:1}11%{transform:translate(26.15px,-15.1px);opacity:1}11.83%{transform:translate(26.9px,-15.53px);opacity:1}12.67%{transform:translate(27.38px,-15.81px);opacity:1}13.5%{transform:translate(27.63px,-15.95px);opacity:1}14.33%{transform:translate(27.71px,-16px);opacity:1}55%{transform:translate(27.71px,-16px);opacity:1}58.33%{transform:translate(27.71px,-16px);opacity:0}60%{transform:translate(0px,0px);opacity:0}63.33%{transform:translate(0px,0px);opacity:1}100%{transform:translate(0px,0px);opacity:1}}
-@keyframes upd-cube{0%{transform:translate(0px,0px);opacity:1}0%{transform:translate(0px,0px);opacity:1}0.95%{transform:translate(1.33px,-0.77px);opacity:1}1.9%{transform:translate(6.28px,-3.63px);opacity:1}2.86%{transform:translate(17.15px,-9.9px);opacity:1}3.81%{transform:translate(36.87px,-21.87px);opacity:1}4.76%{transform:translate(52.68px,-49.25px);opacity:1}5.71%{transform:translate(66.43px,-73.06px);opacity:1}6.67%{transform:translate(79.78px,-86.07px);opacity:1}7.62%{transform:translate(91.28px,-92.7px);opacity:1}8.57%{transform:translate(99.27px,-97.32px);opacity:1}9.52%{transform:translate(104.81px,-100.51px);opacity:1}10.48%{transform:translate(108.55px,-102.67px);opacity:1}11.43%{transform:translate(110.92px,-104.04px);opacity:1}12.38%{transform:translate(112.19px,-104.78px);opacity:1}13.33%{transform:translate(112.58px,-105px);opacity:1}36.67%{transform:translate(112.58px,-105px);opacity:1}40%{transform:translate(112.58px,-105px);opacity:0}41.67%{transform:translate(0px,0px);opacity:0}45%{transform:translate(0px,0px);opacity:1}100%{transform:translate(0px,0px);opacity:1}}
-@keyframes upd-flash{0%,11.6%{opacity:0}11.7%{opacity:1}22.7%{opacity:0}100%{opacity:0}}
-@keyframes hp{0%{transform:scale(.36);opacity:0}4%{opacity:.9}15%{transform:scale(1);opacity:0}100%{transform:scale(1);opacity:0}}
-@keyframes st-t{0%{transform:translate(0px,0px);opacity:1}9.52%{transform:translate(0px,0px);opacity:1}9.52%{transform:translate(0px,0px)}11.22%{transform:translate(1.33px,-0.77px)}12.93%{transform:translate(6.28px,-3.63px)}14.63%{transform:translate(17.15px,-9.9px)}16.33%{transform:translate(36.87px,-21.87px)}18.03%{transform:translate(52.68px,-49.25px)}19.73%{transform:translate(66.43px,-73.06px)}21.43%{transform:translate(79.78px,-86.07px)}23.13%{transform:translate(91.28px,-92.7px)}24.83%{transform:translate(99.27px,-97.32px)}26.53%{transform:translate(104.81px,-100.51px)}28.23%{transform:translate(108.55px,-102.67px)}29.93%{transform:translate(110.92px,-104.04px)}31.63%{transform:translate(112.19px,-104.78px)}33.33%{transform:translate(112.58px,-105px)}47.62%{transform:translate(112.58px,-105px)}47.62%{transform:translate(112.58px,-105px)}49.32%{transform:translate(113.91px,-105.77px)}51.02%{transform:translate(118.86px,-108.63px)}52.72%{transform:translate(129.73px,-114.9px)}54.42%{transform:translate(149.46px,-126.86px)}56.12%{transform:translate(165.27px,-154.25px)}57.82%{transform:translate(179.01px,-178.06px)}59.52%{transform:translate(192.37px,-191.06px)}61.22%{transform:translate(203.87px,-197.7px)}62.93%{transform:translate(211.86px,-202.32px)}64.63%{transform:translate(217.4px,-205.51px)}66.33%{transform:translate(221.14px,-207.67px)}68.03%{transform:translate(223.51px,-209.04px)}69.73%{transform:translate(224.78px,-209.78px)}71.43%{transform:translate(225.17px,-210px)}100%{transform:translate(225.17px,-210px)}}
-@keyframes st-s{0%,33.3%{opacity:0}33.4%,100%{opacity:1}}@keyframes st-p{0%,71.3%{opacity:0}71.4%,100%{opacity:1}}@keyframes st-pulse{0%,71.4%{transform:scale(.4);opacity:0}74%{opacity:.9}92%,100%{transform:scale(1);opacity:0}}
-@keyframes stc-t{0%{transform:translate(0px,0px);opacity:1}9.52%{transform:translate(0px,0px);opacity:1}9.52%{transform:translate(0px,0px)}11.22%{transform:translate(1.33px,-0.77px)}12.93%{transform:translate(6.28px,-3.63px)}14.63%{transform:translate(17.15px,-9.9px)}16.33%{transform:translate(36.87px,-21.87px)}18.03%{transform:translate(52.68px,-49.25px)}19.73%{transform:translate(66.43px,-73.06px)}21.43%{transform:translate(79.78px,-86.07px)}23.13%{transform:translate(91.28px,-92.7px)}24.83%{transform:translate(99.27px,-97.32px)}26.53%{transform:translate(104.81px,-100.51px)}28.23%{transform:translate(108.55px,-102.67px)}29.93%{transform:translate(110.92px,-104.04px)}31.63%{transform:translate(112.19px,-104.78px)}33.33%{transform:translate(112.58px,-105px)}47.62%{transform:translate(112.58px,-105px)}47.62%{transform:translate(112.58px,-105px)}49.32%{transform:translate(113.91px,-105.77px)}51.02%{transform:translate(118.86px,-108.63px)}52.72%{transform:translate(129.73px,-114.9px)}54.42%{transform:translate(149.46px,-126.86px)}56.12%{transform:translate(165.27px,-154.25px)}57.82%{transform:translate(179.01px,-178.06px)}59.52%{transform:translate(192.37px,-191.06px)}61.22%{transform:translate(203.87px,-197.7px)}62.93%{transform:translate(211.86px,-202.32px)}64.63%{transform:translate(217.4px,-205.51px)}66.33%{transform:translate(221.14px,-207.67px)}68.03%{transform:translate(223.51px,-209.04px)}69.73%{transform:translate(224.78px,-209.78px)}71.43%{transform:translate(225.17px,-210px)}100%{transform:translate(225.17px,-210px)}}
-@keyframes stc-s{0%,33.3%{opacity:0}33.4%,100%{opacity:1}}@keyframes stc-p{0%,71.3%{opacity:0}71.4%,100%{opacity:1}}@keyframes stc-pulse{0%,71.4%{transform:scale(.4);opacity:0}74%{opacity:.9}92%,100%{transform:scale(1);opacity:0}}
-/* END landing-figs keyframes */
 /* BEGIN landing-figs (GENERATED by scripts/landing-figs.mjs from landing-figs.rules.css; do not edit here) */
 /* FIGS v6 (lane C). Hand-written; scripts/landing-figs.mjs copies this file into the GENERATED block of the thesis
    stylesheet, ahead of the keyframes it computes. Edit here, then run the generator.
