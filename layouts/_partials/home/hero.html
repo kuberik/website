@@ -1,8 +1,9 @@
 {{- $getStarted := .Scratch.Get "getStarted" -}}
 {{- $github := .Scratch.Get "github" -}}
 {{- $hero := site.Data.landing.hero -}}
+{{- /* STRADDLE (DIRECTION 1.1): the coloured stage ends at 55% of the window height (70% at 390); the window's lower part sits on the page ground. The stage no longer clips (overflow visible) so its blooms live in .stage-bg, which does. */ -}}
 <div class="stage stage-mint stage-hero" id="hero-stage">
-  <div class="bloom b1"></div><div class="bloom b2"></div>
+  <div class="stage-bg" aria-hidden="true"><div class="bloom b1"></div><div class="bloom b2"></div></div>
   <div class="hero">
     <span class="eyebrow"><b></b>{{ $hero.eyebrow }}</span>
     <h1>{{ $hero.h1 }}</h1>
@@ -15,6 +16,5 @@
     <div class="window hero-window" id="hero-window">
       {{ .Content }}
     </div>
-    <div class="hero-chiproom" id="hero-chiproom" aria-hidden="true"></div>
   </div>
 </div>
