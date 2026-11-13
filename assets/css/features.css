@@ -58,6 +58,9 @@ html.dark .fx-stage .b2{background:radial-gradient(closest-side,oklch(.4 .07 182
 .fx-mint .fx-canvas{background-color:var(--canvas-mint)}
 /* the product Card floats on the canvas the way it sits on the dashboard's ground */
 .fx-canvas > *{position:relative}
+/* Stripe's float (ref1): the product Card lifts off its tinted ground with a soft drop, the dashboard dialog shadow at low strength */
+.fx-canvas .sec-host{border-radius:8px;box-shadow:0 1px 2px oklch(.195 .014 222/.06),0 16px 36px -14px oklch(.3 .05 206/.28)}
+html.dark .fx-canvas .sec-host{box-shadow:0 16px 40px -14px oklch(0 0 0/.6)}
 /* rows of the reveal stagger: 60 ms per card (DIRECTION 5) */
 html.js .fx .reveal:nth-child(2n){transition-delay:60ms}
 html.js .fx .reveal:nth-child(4){transition-delay:120ms}
