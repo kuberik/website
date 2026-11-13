@@ -18,8 +18,7 @@
 import { mount, unmount, type Component } from 'svelte';
 import type { CustomCtx } from '../../registry';
 import type { FleetSource } from '$lib/components/home/sketch/fleet-source.svelte';
-import { liveSource } from '$lib/components/home/sketch/fleet-source.svelte';
-import { setPart, dropPart } from '../shared/world';
+import { setPart, dropPart, baseFleetOf } from '../shared/world';
 import { driveNow, isDriven, storyDate } from '../../stubs/time-store';
 import type { IslandPage } from '../shared/scope';
 import Scoped from '../shared/Scoped.svelte';
@@ -74,7 +73,8 @@ function shift<T>(x: T, ms: number): T {
 const sliceKey = (s: any) => `${s?.metadata?.annotations?.['rollout-dashboard.kuberik.com/source-cluster']}/${s?.metadata?.namespace}/${s?.metadata?.name}/${s?.metadata?.resourceVersion}`;
 /** the release catalogue this world needs is already installed (the film's world holds the same slices): the section adds nothing to the shared source */
 function catalogueInstalled(f: FleetSource): boolean {
-	const have = new Set(((liveSource() as any)?.releaseSlices?.items ?? []).map(sliceKey));
+	/* the FILM's catalogue only: another section's part may leave (dropPart) while this one still renders, taking its slices with it */
+	const have = new Set(((baseFleetOf() as any)?.releaseSlices?.items ?? []).map(sliceKey));
 	return ((f as any).releaseSlices?.items ?? []).every((s: any) => have.has(sliceKey(s)));
 }
 const listAnswer = (f: FleetSource) => ({ rollouts: { items: f.rollouts }, environments: { items: f.environments }, rolloutDependencies: f.rolloutDependencies, kustomizations: { items: f.kustomizations }, kruiseRollouts: { items: f.kruiseRollouts }, releaseSources: (f as any).releaseSources, releaseSlices: (f as any).releaseSlices });

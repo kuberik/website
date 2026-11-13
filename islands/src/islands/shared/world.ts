@@ -50,5 +50,9 @@ export function dropPart(id: string) {
 	parts.delete(lastId);
 	setPart(lastId, last.fleet, last.github, { base: last.fleet === baseFleet });
 }
-const catOf = (all: Part[], k: 'releaseSources' | 'releaseSlices'): never[] => all.flatMap((p) => ((p.fleet as unknown as Record<string, { items?: never[] } | undefined>)[k]?.items ?? []));
+/* several section islands may hand the same catalogue (two cards of one world render at once): the union names each object once */
+const catKey = (o: any) => `${o?.metadata?.annotations?.['rollout-dashboard.kuberik.com/source-cluster']}/${o?.metadata?.namespace}/${o?.metadata?.name}/${o?.metadata?.resourceVersion}`;
+const catOf = (all: Part[], k: 'releaseSources' | 'releaseSlices'): never[] => { const seen = new Set<string>(); return all.flatMap((p) => ((p.fleet as unknown as Record<string, { items?: never[] } | undefined>)[k]?.items ?? [])).filter((o) => { const c = catKey(o); if (seen.has(c)) return false; seen.add(c); return true; }); };
+/** the film's part (the base), for a section island deciding whether its catalogue is already the film's */
+export const baseFleetOf = (): FleetSource | null => baseFleet;
 const dedupe = <T extends { owner: string; repo: string; number: number }>(xs: T[]): T[] => { const seen = new Set<string>(); return xs.filter((c) => { const k = `${c.owner}/${c.repo}#${c.number}`; if (seen.has(k)) return false; seen.add(k); return true; }); };
