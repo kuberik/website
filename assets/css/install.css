@@ -1,33 +1,42 @@
-/* closing */
+/* INSTALL (landing v6, DIRECTION 1.6). Lane D owns this file; the staircase drawing and its fig rules are lane C's
+   (thesis.css, landing-figs/staircase-done*.html), only the slot is laid out here.
+   Mint stage (the hero's tokens), bloom quieter. >= 1024: copy + terminal (5 of 12 columns) beside the staircase
+   (7 of 12), bottom-aligned. Phones: copy, terminal, then the compact staircase. */
+#install{margin-top:16px}
+#install .bloom{opacity:calc(var(--bloom) * .6)}
+#install .sec-inner{padding-block:var(--sec-y)}
 .closing-inner{display:grid;grid-template-columns:minmax(0,1fr);gap:32px;align-items:center}
 .closing-copy{display:flex;flex-direction:column;align-items:flex-start;gap:20px;min-width:0}
 .closing-copy .title{max-width:none}
 .closing-copy .title-body{margin:0;max-width:46ch}
-.closing-copy .code{width:100%;max-width:640px;margin:4px 0 0;background:var(--page)}
 .closing-copy .ctas{margin-top:4px}
-.closing-art.fig-cell{border-left:0;padding:0}
-.closing-art .fig-label{font-size:12px}
+.closing-art.fig-cell{border-left:0;padding:0;order:2}
 .closing-compact{display:none}
-@media(min-width:1200px){
-  .closing-art{order:2}
-  .closing-art .fig{max-height:460px}
+
+/* terminal card: the code-window shell from spec.css, in light mode too */
+.term{width:100%;min-width:0;margin:4px 0 0;border-radius:12px;border:1px solid var(--win-code-border);background:var(--win-code-fill);box-shadow:var(--win-code-shadow);color:var(--band-ink);overflow:hidden}
+.term-head{display:flex;align-items:center;justify-content:space-between;height:47px;padding:0 8px 0 16px;border-bottom:1px solid oklch(1 0 0/.1);font:500 13px/20px var(--mono);color:var(--band-muted)}
+.term pre{margin:0;padding:16px 20px;overflow-x:auto;font:400 13px/22px var(--mono);color:var(--band-ink);scrollbar-width:thin}
+.term code{font:inherit}
+.term .p{color:var(--win-code-kind);user-select:none}
+.term .copy{position:relative;height:32px;color:var(--band-muted);font-family:var(--mono);font-size:12px}
+.term .copy:hover{background:oklch(1 0 0/.08);color:var(--band-ink)}
+.term .copy::after{content:'';position:absolute;inset:-6px -4px}
+.term :focus-visible{outline-color:oklch(.85 .11 182)}
+.term-note{margin:0;padding:10px 16px;border-top:1px solid oklch(1 0 0/.1);font:400 13px/20px var(--sans);color:var(--band-muted);text-wrap:pretty}
+
+@media(min-width:1024px){
+  .closing-inner{grid-template-columns:repeat(12,minmax(0,1fr));column-gap:24px;align-items:end}
+  .closing-copy{grid-column:1/6;align-self:center}
+  .closing-art{grid-column:6/-1;grid-row:1;order:0;align-self:end;justify-self:center;width:100%}
+  .closing-art.fig-cell{order:0}
 }
-@media(min-width:1024px) and (max-width:1199px){.closing-wide{max-width:560px}}
-@media(max-width:1023px){.closing-wide{display:none}.closing-compact{display:block;width:300px;max-width:100%;margin-top:8px}}
+@media(min-width:1024px) and (max-width:1199px){.closing-wide{max-width:560px}.term pre{font-size:12px;padding:14px 16px}}
+
+@media(max-width:1023px){.closing-wide{display:none}.closing-compact{display:block;width:100%;max-width:440px;margin-top:8px}}
 @media(max-width:640px){
   .closing-copy .ctas{width:100%;flex-direction:column;padding:0}
   .closing-copy .btn{justify-content:center;flex:0 0 auto}
+  .term pre{font-size:12px;padding:14px 16px}
 }
-/* closing labels: 12 units = 12.2-16.7 px rendered (staircase scale 1.02 at 1200 to 1.39 at 1920; 8 units = 14.9 px at 2560) */
-@media(min-width:2400px){.closing-art .fig-label{font-size:8px}}
-@media(max-width:640px){.closing-copy .copy{height:44px;padding:0 12px}}
-.code-note{margin:0;padding:10px 16px;border-top:1px solid var(--line);font:400 13px/20px var(--sans);color:var(--ink-subtle)}
-@media(min-width:1024px) and (max-width:1199px){.closing-art .fig-label{display:none}}
-/* every section starts with its heading: the staircase follows the copy at every width (AD r2 #3) */
-.closing-art{order:2}
-@media(min-width:1024px){
-  .closing-inner{grid-template-columns:repeat(2,minmax(0,1fr));column-gap:24px}
-  .closing-art{justify-self:center;width:100%}
-  .closing-copy .code{max-width:none}
-}
-.code-note{text-wrap:pretty}
+@media(min-width:2400px){.term pre{font-size:14px}}

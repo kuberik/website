@@ -1,37 +1,58 @@
-/* everything you write: four file windows */
-.manifests{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:24px;margin-top:40px}
-.mf{margin:0;min-width:0;border-radius:12px;background:var(--page);border:1px solid var(--win-border);box-shadow:0 1px 2px oklch(.195 .014 222/.05);overflow:hidden;height:100%}
-html.dark .mf{box-shadow:none}
-.mf figcaption{display:flex;align-items:center;justify-content:space-between;height:47px;padding:0 16px;border-bottom:1px solid var(--line);font:500 13px/20px var(--mono);color:var(--ink-muted)}
-.mf figcaption b,.mf-sum b{padding:0 8px;height:22px;border-radius:6px;border:1px solid var(--line);font:500 11px/20px var(--mono);color:var(--ink-muted);text-transform:none;white-space:nowrap}
-.mf code{font:inherit}
-.mf-kuberik figcaption b,.mf-fold:has(.mf-kuberik) .mf-sum b{color:var(--mint-ink);border-color:var(--fig-teal)}
-.mf pre{margin:0;padding:16px 20px;overflow-x:auto;font:400 13px/22px var(--mono);color:var(--ink-muted);tab-size:2}
-.mf .k{color:var(--ink);font-weight:500}.mf .a{color:var(--mint-ink);font-weight:500}.mf .s{color:var(--ink)}
-.mf .var{padding:1px 5px;border-radius:6px;background:color-mix(in oklab,var(--mint) 18%,transparent);color:var(--mint-ink);font-weight:500}
-.mf-fold{display:contents}
-.mf-sum{display:none}
-@media(max-width:1023px){
-  .manifests{grid-template-columns:minmax(0,1fr);gap:12px}
-  .mf-fold{display:block;border-radius:12px;background:var(--page);border:1px solid var(--win-border);box-shadow:0 1px 2px oklch(.195 .014 222/.05);overflow:hidden}
-  .mf-fold .mf{border:0;box-shadow:none;border-radius:0;height:auto}
-  .mf-fold .mf figcaption{display:none}
-  .mf-sum{display:grid;grid-template-columns:minmax(0,1fr) auto 16px;align-items:center;column-gap:12px;min-height:47px;padding:0 16px;cursor:pointer;list-style:none;font:500 13px/20px var(--mono);color:var(--ink)}
-  .mf-sum::-webkit-details-marker{display:none}
-  .mf-fold[open] .mf-sum{border-bottom:1px solid var(--line)}
-  .mf-name{white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
-  /* one anatomy for all four files: name | tag | chevron (AD r2 #1) */
-  .mf-hint{width:16px;height:16px;display:grid;place-items:center;color:var(--ink-subtle)}
-  .mf-hint::before{content:'';width:6px;height:6px;border:solid currentColor;border-width:0 1.5px 1.5px 0;transform:translateY(-2px) rotate(45deg)}
-  .mf-fold[open] .mf-hint::before{transform:translateY(1px) rotate(-135deg)}
+/* SPEC: "This is everything you write." (landing v6, DIRECTION 1.5). Lane D owns this file.
+   Role: the page's one full-bleed deep band holding one code window. The window shares radius 12 and the 47px
+   header with the dashboard Card (and with the install terminal in install.css); it is dark in both themes
+   because code reads on dark. >= 1024 the four files are panes inside it; <= 640 they are tabs (spec.js). */
+#spec{margin-top:16px;padding:var(--band-y) 0;background:var(--band-bg);color:var(--band-ink)}
+#spec .title{color:var(--band-ink)}
+#spec .title-body{color:var(--band-muted)}
+#spec .title-body code{background:oklch(1 0 0/.08);border-color:oklch(1 0 0/.16);color:var(--band-ink)}
+#spec .head .title-body{max-width:56ch}
+#spec :focus-visible{outline-color:oklch(.85 .11 182)}
+
+.cwin{margin-top:var(--head-gap);border-radius:12px;border:1px solid var(--win-code-border);background:var(--win-code-fill);box-shadow:var(--win-code-shadow);overflow:hidden;color:var(--band-ink)}
+.cwin-head{display:flex;align-items:center;gap:12px;height:47px;padding:0 16px;border-bottom:1px solid oklch(1 0 0/.1);font:500 13px/20px var(--mono);color:var(--band-ink)}
+.cwin-count{margin-left:auto;color:var(--band-muted);font-weight:400}
+.cwin-tabs{display:none}
+.cwin-panes{display:grid;grid-template-columns:repeat(2,minmax(0,1fr))}
+.pane{min-width:0}
+.pane:nth-child(even){border-left:1px solid oklch(1 0 0/.1)}
+.pane:nth-child(n+3){border-top:1px solid oklch(1 0 0/.1)}
+.pane-head{display:flex;align-items:center;justify-content:space-between;gap:12px;height:40px;padding:0 20px;border-bottom:1px solid oklch(1 0 0/.1);font:500 13px/20px var(--mono);color:var(--band-ink)}
+.ftag{display:inline-flex;align-items:center;height:22px;padding:0 8px;border-radius:6px;border:1px solid oklch(1 0 0/.24);font:500 11px/20px var(--mono);color:var(--band-muted);white-space:nowrap}
+.ftag-solid{background:oklch(.85 .11 182);border-color:transparent;color:oklch(.24 .05 190)}
+.pane pre{margin:0;padding:16px 20px;overflow-x:auto;font:400 12px/20px var(--mono);color:var(--win-code-key);tab-size:2;scrollbar-width:thin}
+.pane code{font:inherit}
+.pane .k,.pane .a{color:var(--win-code-kind);font-weight:500}
+.pane .s{color:var(--win-code-value)}
+.pane .var{color:var(--win-code-kind);font-weight:500;text-decoration:underline;text-decoration-thickness:2px;text-underline-offset:4px;text-decoration-color:var(--win-code-kind)}
+
+@media(min-width:1200px){.pane pre{font-size:13px;line-height:22px}}
+/* four panes side by side: the claim is "this is everything", so all four stay visible. Column weights follow
+   the longest line of each file so none scrolls (the annotation key is 48 characters). Between 1440 and 1919 the
+   content column (1200) is too narrow for that at 12px, so the window breaks out 48px each side. */
+@media(min-width:1440px){
+  .cwin-panes{grid-template-columns:minmax(0,280fr) minmax(0,280fr) minmax(0,400fr) minmax(0,365fr)}
+  .pane:nth-child(n+3){border-top:0}
+  .pane:not(:first-child){border-left:1px solid oklch(1 0 0/.1)}
+  .pane pre{padding:16px 12px;font-size:12px;line-height:21px}
+  .pane-head{padding:0 12px}
+  .cwin{margin-inline:-48px}
 }
-@media(max-width:640px){.mf pre{font-size:12px;padding:14px 16px}}
-@media(min-width:2400px){.manifests{grid-template-columns:repeat(4,minmax(0,1fr))}}
-/* phones: the longest YAML key fits the fold at 390 (AD r3 #1) */
-@media(max-width:400px){.mf pre{font-size:11px;line-height:20px;padding:12px 10px 12px 12px;letter-spacing:-.02em}}
-/* 1024-1199: two open file columns at 12px so the annotation key fits a 428px card */
-@media(min-width:1024px) and (max-width:1199px){.mf pre{font-size:12px;line-height:21px;padding:16px}}
-@media(max-width:380px){
-  .mf-sum{padding:0 12px;column-gap:8px}
-  .mf pre{padding:12px 6px 12px 10px}
+@media(min-width:1920px){.cwin{margin-inline:0}.pane pre{font-size:13px;line-height:22px}}
+@media(min-width:2400px){.pane pre{font-size:14px;line-height:22px;padding:20px 20px}.pane-head{padding:0 20px;font-size:14px}.cwin-head{font-size:14px}}
+
+@media(max-width:640px){
+  html.js .cwin-dir,html.js .cwin-count{display:none}
+  html.js .cwin-head{padding:0}
+  html.js .cwin-tabs{display:flex;gap:0;width:100%;height:47px;overflow-x:auto;overscroll-behavior-x:contain;scrollbar-width:none;padding:0 4px}
+  html.js .cwin-tabs::-webkit-scrollbar{display:none}
+  .cwin-tab{flex:none;display:inline-flex;align-items:center;gap:8px;height:47px;min-width:44px;padding:0 12px;border:0;border-bottom:2px solid transparent;background:transparent;color:var(--band-muted);font:500 12px/20px var(--mono);cursor:pointer}
+  .cwin-tab[aria-selected="true"]{color:var(--band-ink);border-bottom-color:oklch(.85 .11 182)}
+  .cwin-panes{grid-template-columns:minmax(0,1fr)}
+  .pane:nth-child(even){border-left:0}
+  html.js .pane:not(.is-active){display:none}
+  html.js .pane-head{display:none}
+  html.js .pane:nth-child(n+3){border-top:0}
+  .pane pre{padding:14px 16px}
 }
+@media(max-width:400px){.pane pre{font-size:11px;line-height:20px;padding:14px 12px;letter-spacing:-.02em}}

@@ -1,16 +1,28 @@
-{{- /* EVERYTHING YOU WRITE (v4 "room"): the four files, on the page ground (the stages alternate: hero, open,
-       features, open, install). File windows = the .mf grammar (47px caption header, tag chip), the same header
-       height as the feature cards. Phones: the three non-rollout files fold (details), as in v4. */ -}}
-<section class="sec" id="spec" aria-labelledby="room-h">
+{{- /* EVERYTHING YOU WRITE (landing v6, DIRECTION 1.5): the page's one full-bleed deep band. Role: proof that the
+       whole configuration is four short files. Reference: Stripe's mid-page ground flip (band) + Resend's code
+       window (one window, files side by side). No dashboard region plays this role, so the window borrows its
+       47px header and 12px radius from the dashboard Card and the file tag chips from the thesis tags (Yours =
+       solid mint, the rest outline). >= 1024 every file is visible at once (panes); <= 640 the four files are
+       tabs (assets/js/spec.js), because width forces it. All code is real, selectable text. */ -}}
+<section class="sec band" id="spec" aria-labelledby="room-h">
   <div class="cont">
-      <div class="head">
-        <h2 class="title reveal" id="room-h">This is everything you write.</h2>
-        <p class="title-body reveal">Two new resources, a Rollout and a ReleaseSource. Your Flux Kustomization gets one annotation and your Deployment one <code>${VERSION}</code> placeholder. Gates and health checks are optional.</p>
+    <div class="head">
+      <h2 class="title reveal" id="room-h">This is everything you write.</h2>
+      <p class="title-body reveal">Two new resources, a Rollout and a ReleaseSource. Your Flux Kustomization gets one annotation and your Deployment one <code>${VERSION}</code> placeholder. Gates and health checks are optional.</p>
+    </div>
+    <div class="cwin reveal" id="spec-win">
+      <div class="cwin-head">
+        <span class="cwin-dir">my-app/</span><span class="cwin-count">4 files</span>
+        <div class="cwin-tabs" role="tablist" aria-label="Files in my-app/">
+          <button class="cwin-tab" type="button" role="tab" id="tab-rollout" aria-controls="pane-rollout" aria-selected="true" data-tab>rollout.yaml<b class="ftag ftag-solid">Yours</b></button>
+          <button class="cwin-tab" type="button" role="tab" id="tab-releasesource" aria-controls="pane-releasesource" aria-selected="false" tabindex="-1" data-tab>releasesource.yaml<b class="ftag ftag-solid">Yours</b></button>
+          <button class="cwin-tab" type="button" role="tab" id="tab-kustomization" aria-controls="pane-kustomization" aria-selected="false" tabindex="-1" data-tab>kustomization.yaml<b class="ftag">+1 annotation</b></button>
+          <button class="cwin-tab" type="button" role="tab" id="tab-deployment" aria-controls="pane-deployment" aria-selected="false" tabindex="-1" data-tab>deployment.yaml<b class="ftag">+1 placeholder</b></button>
+        </div>
       </div>
-      <div class="manifests reveal">
-        <details class="mf-fold" open>
-          <summary class="mf-sum"><span class="mf-name">rollout.yaml</span><b>Yours</b><span class="mf-hint"></span></summary>
-          <figure class="mf mf-kuberik"><figcaption><span>rollout.yaml</span><b>Yours</b></figcaption>
+      <div class="cwin-panes">
+        <div class="pane is-active" id="pane-rollout" aria-labelledby="tab-rollout">
+          <div class="pane-head"><span>rollout.yaml</span><b class="ftag ftag-solid">Yours</b></div>
 <pre tabindex="0" role="region" aria-label="rollout.yaml"><code>apiVersion: kuberik.com/v1alpha1
 kind: <span class="a">Rollout</span>
 metadata:
@@ -18,11 +30,10 @@ metadata:
 spec:
   releaseSourceRef:
     name: my-app
-  bakeTime: <span class="s">10m</span></code></pre></figure>
-        </details>
-        <details class="mf-fold" open data-mp-fold>
-          <summary class="mf-sum"><span class="mf-name">releasesource.yaml</span><b>Yours</b><span class="mf-hint"></span></summary>
-          <figure class="mf mf-kuberik"><figcaption><span>releasesource.yaml</span><b>Yours</b></figcaption>
+  bakeTime: <span class="s">10m</span></code></pre>
+        </div>
+        <div class="pane" id="pane-releasesource" aria-labelledby="tab-releasesource">
+          <div class="pane-head"><span>releasesource.yaml</span><b class="ftag ftag-solid">Yours</b></div>
 <pre tabindex="0" role="region" aria-label="releasesource.yaml"><code>apiVersion: kuberik.com/v1alpha1
 kind: <span class="a">ReleaseSource</span>
 metadata:
@@ -32,11 +43,10 @@ spec:
     image: <span class="s">ghcr.io/me/my-app</span>
     policy:
       semver:
-        range: <span class="s">"&gt;=0.1.0"</span></code></pre></figure>
-        </details>
-        <details class="mf-fold" open data-mp-fold>
-          <summary class="mf-sum"><span class="mf-name">kustomization.yaml</span><b>+1 annotation</b><span class="mf-hint"></span></summary>
-          <figure class="mf"><figcaption><span>kustomization.yaml</span><b>+1 annotation</b></figcaption>
+        range: <span class="s">"&gt;=0.1.0"</span></code></pre>
+        </div>
+        <div class="pane" id="pane-kustomization" aria-labelledby="tab-kustomization">
+          <div class="pane-head"><span>kustomization.yaml</span><b class="ftag">+1 annotation</b></div>
 <pre tabindex="0" role="region" aria-label="kustomization.yaml"><code>apiVersion: kustomize.toolkit.fluxcd.io/v1
 kind: <span class="k">Kustomization</span>
 metadata:
@@ -49,11 +59,10 @@ spec:
   prune: true
   sourceRef:
     kind: GitRepository
-    name: my-app</code></pre></figure>
-        </details>
-        <details class="mf-fold" open data-mp-fold>
-          <summary class="mf-sum"><span class="mf-name">deployment.yaml</span><b>+1 placeholder</b><span class="mf-hint"></span></summary>
-          <figure class="mf"><figcaption><span>deployment.yaml</span><b>+1 placeholder</b></figcaption>
+    name: my-app</code></pre>
+        </div>
+        <div class="pane" id="pane-deployment" aria-labelledby="tab-deployment">
+          <div class="pane-head"><span>deployment.yaml</span><b class="ftag">+1 placeholder</b></div>
 <pre tabindex="0" role="region" aria-label="deployment.yaml"><code>apiVersion: apps/v1
 kind: <span class="k">Deployment</span>
 metadata: { name: my-app }
@@ -62,8 +71,9 @@ spec:
     spec:
       containers:
       - name: app
-        image: ghcr.io/me/my-app:<span class="var">${VERSION}</span></code></pre></figure>
-        </details>
+        image: ghcr.io/me/my-app:<span class="var">${VERSION}</span></code></pre>
+        </div>
       </div>
+    </div>
   </div>
 </section>
