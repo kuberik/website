@@ -8,6 +8,8 @@
   --fig-side:oklch(.9 .035 186);
   --fig-side-line:oklch(.78 .045 186);
   --fig-tile:oklch(.945 .03 182);
+  --fig-gate:oklch(.89 .05 184);      /* gate tiles: one step stronger than the plate's corner tiles (AD r1 #3) */
+  --fig-gate-line:oklch(.66 .06 186);
   --fig-tile-line:oklch(.82 .04 184);
   --fig-ring:oklch(.9 .03 184);
   --fig-ghost:oklch(.62 .03 200);
@@ -15,23 +17,25 @@
   --fig-teal-tint:oklch(.93 .05 182);
   --fig-wire:oklch(.8 .014 222);      /* --k-wire */
   --fig-held:oklch(.69 .16 48);       /* --k-held-solid */
-  --fig-held-tint:oklch(.96 .058 55); /* --k-held-tint */
+  --fig-held-tint:oklch(.92 .08 55);  /* --k-held-tint, one step stronger so the held tile reads at fig scale */
   --fig-cube-t:#77ecdb;--fig-cube-l:#00c9b5;--fig-cube-r:#009689;
   --chip-dev-bg:#f0fdfa;--chip-dev-line:#46ecd5;--chip-dev-ink:#00786f;
   --chip-staging-bg:#f5f3ff;--chip-staging-line:#c4b4ff;--chip-staging-ink:#5d0ec0;
   --chip-prod-bg:#fdf4ff;--chip-prod-line:#f4a8ff;--chip-prod-ink:#a800b7}
 html.dark .fig6,html.dark .stair{
-  --fig-top:oklch(.3 .03 186);        /* DIRECTION s1.3 plate fill, dark */
-  --fig-top-line:oklch(.5 .04 186);
-  --fig-side:oklch(.215 .025 190);
-  --fig-side-line:oklch(.42 .035 186);
-  --fig-tile:oklch(.265 .03 186);
-  --fig-tile-line:oklch(.44 .035 186);
-  --fig-ring:oklch(.37 .03 186);
+  --fig-top:oklch(.37 .045 186);      /* AD r1 #2: DIRECTION's .3 read near-black beside the page; one mint step up */
+  --fig-top-line:oklch(.58 .05 186);
+  --fig-side:oklch(.28 .04 188);
+  --fig-side-line:oklch(.48 .045 186);
+  --fig-tile:oklch(.33 .04 186);
+  --fig-gate:oklch(.43 .05 186);
+  --fig-gate-line:oklch(.66 .05 186);
+  --fig-tile-line:oklch(.53 .045 186);
+  --fig-ring:oklch(.45 .04 186);
   --fig-ghost:oklch(.62 .03 200);
   --fig-teal:#3ad9c6;
   --fig-teal-tint:oklch(.36 .06 184);
-  --fig-wire:oklch(.6 .02 222);       /* --k-wire is .38 on the dashboard's .195 canvas; on the .3 mint plate it vanishes, so two steps up */
+  --fig-wire:oklch(.66 .02 222);      /* --k-wire is .38 on the dashboard's .195 canvas; on the .3 mint plate it vanishes, so two steps up */
   --fig-held:oklch(.72 .16 50);       /* --k-held-solid, dark */
   --fig-held-tint:oklch(.318 .068 50);
   --fig-cube-t:#8cf4e4;--fig-cube-l:#3ad9c6;--fig-cube-r:#14867b;
@@ -57,11 +61,12 @@ html.dark .fig6,html.dark .stair{
 .fig6 .fig-flash{fill:none;stroke:var(--fig-teal);stroke-width:1.5;opacity:0}
 .fig6 .fig-path .fig-top{fill:var(--fig-tile)}
 .fig6 .fig-cube-s,.fig6 .fig-cube-r{fill:var(--fig-cube-r)}.fig6 .fig-cube-l{fill:var(--fig-cube-l)}.fig6 .fig-cube-t{fill:var(--fig-cube-t)}
-/* the Gates wire (#145): 1 px for every state, round caps and joins, open chevron */
-.fig6 .fig-wire path{fill:none;stroke:var(--fig-wire);stroke-width:1;stroke-linecap:round;stroke-linejoin:round}
+/* the Gates wire (#145 geometry: 8 px corners, soft S, open chevron). 1.5 px, the figs' active weight: at fig scale the
+   dashboard's 1 px hairline disappeared on the mint plate (AD r1 #3). One width for every state, as in the product. */
+.fig6 .fig-wire path{fill:none;stroke:var(--fig-wire);stroke-width:1.5;stroke-linecap:round;stroke-linejoin:round}
 .fig6 .fig-wire.is-held path{stroke:var(--fig-held)}
 .fig6 .fig-wire.is-pass path{stroke:var(--fig-teal)}
-.fig6 .fig-gtile{fill:var(--fig-tile);stroke:var(--fig-tile-line);stroke-width:1}
+.fig6 .fig-gtile{fill:var(--fig-gate);stroke:var(--fig-gate-line);stroke-width:1}
 .fig6 .fig-gtile.is-held{fill:var(--fig-held-tint);stroke:var(--fig-held)}
 .fig6 .fig-gtile.is-pass{fill:var(--fig-teal-tint);stroke:var(--fig-teal)}
 

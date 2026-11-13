@@ -4,7 +4,7 @@
    Reference regions: the rail and node borrow the dashboard progress rail's proportions (1px hairline, 8px node,
    one mint fill for the active step); the caption tags are the YAML window's ownership tags (Yours / Optional /
    Kuberik). New by design: the rail itself, because no dashboard object plays "five phases of one loop in turn";
-   it is a 1px --line rule with 8px nodes, horizontal at >= 641 (one per row) and vertical at <= 640.
+   it is a 1px --line rule with 8px nodes, horizontal at >= 641 (three then two, one rail per row) and vertical at <= 640.
    Motion: one 12 s page clock (--clk, sections.js), 2.4 s per phase; the active fig moves and its node fills mint
    with the page's one glow outside the film; everything else holds its rest pose. Reduced motion: rest poses,
    no node lit. The drawings' tokens, rules and keyframes are the GENERATED block at the end of this file. */
@@ -25,17 +25,21 @@ html.dark #how-it-works{--thesis-rest:oklch(.8 .07 200);--own-line:#3ad9c6;--nod
 .statement-rest{color:var(--thesis-rest)}
 @media(min-width:1920px){.statement-text{max-width:1320px}}
 
-/* the loop: >= 1024 one row of five equal cells, the rail under the figs at caption level */
-.figs{--fig-gap:24px;list-style:none;margin:var(--head-gap) 0 0;padding:0;display:grid;grid-template-columns:repeat(5,minmax(0,1fr));column-gap:var(--fig-gap)}
-.figs .fig-cell{position:relative;display:flex;flex-direction:column;min-width:0}
-.fig-art{display:block;aspect-ratio:372/252;margin:0 0 20px}
-.fig-art .fig6{width:100%;height:100%}
-@media(min-width:641px){.fig-art{margin-inline:calc(var(--fig-gap) / -2)}}   /* the drawing may use the gutter: the plates read ~10% larger, the captions keep the column edge */
+/* the loop at >= 641: three then two (the second row centred), a rail per row. AD r1 #1: five across at 1200 drew
+   the plates at ~0.55 scale and the two-plate figs filled their column edge to edge; at three per row every drawing
+   is ~200 px tall at 1440 with Linear's air between them (refs/linear/linear-1440-dark-02). */
+.figs{--fig-gap:24px;list-style:none;margin:var(--head-gap) 0 0;padding:0;display:grid;grid-template-columns:repeat(6,minmax(0,1fr));column-gap:var(--fig-gap);row-gap:48px}
+.figs .fig-cell{position:relative;display:flex;flex-direction:column;min-width:0;grid-column:span 2}
+.figs .fig-cell:nth-child(4){grid-column:2/span 2}
+.fig-art{display:block;margin:0 0 20px}
+/* the drawing: 88% of its column, centred, so even the two-plate figs keep air on both sides */
+.fig-box{display:block;width:88%;margin-inline:auto;aspect-ratio:372/252}
+.fig-box .fig6{width:100%;height:100%}
 /* the rail: each cell draws its own run of the rule out to the next cell's node, so a row reads as one line;
-   the last cell of a row stops at its own edge */
+   the last cell of each row stops at its own edge */
 .fig-rail{position:relative;height:8px;margin:0 0 16px}
 .fig-rail::before{content:"";position:absolute;left:0;right:calc(-1 * var(--fig-gap));top:3.5px;height:1px;background:var(--rail)}
-.figs .fig-cell:last-child .fig-rail::before{right:0}
+.figs .fig-cell:nth-child(3) .fig-rail::before,.figs .fig-cell:last-child .fig-rail::before{right:0}
 .fig-node{position:absolute;left:0;top:0;width:8px;height:8px;box-sizing:border-box;border-radius:50%;border:1px solid var(--node-line);background:var(--page)}
 .fig-cap{display:flex;align-items:center;gap:10px;margin:0;font:500 13px/20px var(--mono);color:var(--ink-muted)}
 .fig-no{color:var(--ink-subtle)}
@@ -44,25 +48,20 @@ html.dark #how-it-works{--thesis-rest:oklch(.8 .07 200);--own-line:#3ad9c6;--nod
 .is-yours .fig-own,.is-opt .fig-own{border-color:var(--own-line);color:var(--mint-ink)}
 .is-opt .fig-own{border-style:dashed}
 .fig-q{margin:12px 0 0;font:600 18px/26px var(--sans);color:var(--ink);text-wrap:balance}
-@media(min-width:1024px) and (max-width:1199px){.figs{--fig-gap:16px}.fig-cap{flex-wrap:wrap;gap:4px 8px}.fig-own{margin-left:0}.fig-q{font-size:16px;line-height:24px}}
-@media(min-width:2400px){.figs{--fig-gap:32px}.fig-q{font-size:20px;line-height:28px}.fig-cap{font-size:14px}}
-
-/* 641-1023: a 3+2 grid, the second row centred under the first, a rail per row */
-@media(min-width:641px) and (max-width:1023px){
-  .figs{grid-template-columns:repeat(6,minmax(0,1fr));row-gap:40px}
-  .figs .fig-cell{grid-column:span 2}
-  .figs .fig-cell:nth-child(4){grid-column:2/span 2}
-  .figs .fig-cell:nth-child(3) .fig-rail::before{right:0}
-  .fig-cap{flex-wrap:wrap;gap:4px 8px}.fig-own{margin-left:0}
-  .fig-q{font-size:16px;line-height:24px}
-}
+@media(min-width:1024px){.figs{--fig-gap:64px;row-gap:64px}}
+@media(min-width:1920px){.figs{--fig-gap:80px}.fig-box{width:80%}}
+@media(min-width:2400px){.figs{--fig-gap:96px;row-gap:80px}.fig-box{width:72%}.fig-q{font-size:20px;line-height:28px}.fig-cap{font-size:14px}}
+@media(min-width:641px) and (max-width:1023px){.fig-cap{flex-wrap:wrap;gap:4px 8px}.fig-own{margin-left:0}.fig-q{font-size:16px;line-height:24px}.fig-box{width:100%}}
 /* <= 640: a vertical rail on the left (Railway ref6). Rows of [node | fig 140 | caption and question], 128 tall. */
 @media(max-width:640px){
   .figs{grid-template-columns:minmax(0,1fr);row-gap:0}
-  .figs .fig-cell{display:grid;grid-template-columns:8px 140px minmax(0,1fr);grid-template-rows:auto 1fr;column-gap:12px;align-items:start;min-height:128px;padding-bottom:16px;box-sizing:border-box}
+  .figs .fig-cell,.figs .fig-cell:nth-child(4){grid-column:auto;display:grid;grid-template-columns:8px 140px minmax(0,1fr);grid-template-rows:auto 1fr;column-gap:12px;align-items:start;min-height:128px;padding-bottom:16px;box-sizing:border-box}
   .fig-art{grid-column:2;grid-row:1/span 2;margin:0;width:140px}
+  /* AD r1 #4: crop the empty shelf above the ink (--ink, from the generator) so each drawing's top meets its Fig N line */
+  .fig-box{position:relative;width:140px;aspect-ratio:auto;height:calc((1 - var(--ink)) * 140px * 252 / 372);margin-top:4px}
+  .fig-box .fig6{position:absolute;left:0;bottom:0;width:140px;height:auto}
   .fig-rail{grid-column:1;grid-row:1/span 2;align-self:stretch;height:auto;margin:0}
-  .fig-rail::before,.figs .fig-cell:last-child .fig-rail::before{left:3.5px;right:auto;top:6px;bottom:-22px;width:1px;height:auto}
+  .fig-rail::before,.figs .fig-cell:nth-child(3) .fig-rail::before{left:3.5px;right:auto;top:6px;bottom:-22px;width:1px;height:auto}
   .figs .fig-cell:last-child .fig-rail::before{display:none}
   .fig-node{top:6px}
   .fig-cap{grid-column:3;grid-row:1;flex-wrap:wrap;gap:4px 8px}
@@ -88,6 +87,8 @@ html.dark #how-it-works{--thesis-rest:oklch(.8 .07 200);--own-line:#3ad9c6;--nod
   --fig-side:oklch(.9 .035 186);
   --fig-side-line:oklch(.78 .045 186);
   --fig-tile:oklch(.945 .03 182);
+  --fig-gate:oklch(.89 .05 184);      /* gate tiles: one step stronger than the plate's corner tiles (AD r1 #3) */
+  --fig-gate-line:oklch(.66 .06 186);
   --fig-tile-line:oklch(.82 .04 184);
   --fig-ring:oklch(.9 .03 184);
   --fig-ghost:oklch(.62 .03 200);
@@ -95,23 +96,25 @@ html.dark #how-it-works{--thesis-rest:oklch(.8 .07 200);--own-line:#3ad9c6;--nod
   --fig-teal-tint:oklch(.93 .05 182);
   --fig-wire:oklch(.8 .014 222);      /* --k-wire */
   --fig-held:oklch(.69 .16 48);       /* --k-held-solid */
-  --fig-held-tint:oklch(.96 .058 55); /* --k-held-tint */
+  --fig-held-tint:oklch(.92 .08 55);  /* --k-held-tint, one step stronger so the held tile reads at fig scale */
   --fig-cube-t:#77ecdb;--fig-cube-l:#00c9b5;--fig-cube-r:#009689;
   --chip-dev-bg:#f0fdfa;--chip-dev-line:#46ecd5;--chip-dev-ink:#00786f;
   --chip-staging-bg:#f5f3ff;--chip-staging-line:#c4b4ff;--chip-staging-ink:#5d0ec0;
   --chip-prod-bg:#fdf4ff;--chip-prod-line:#f4a8ff;--chip-prod-ink:#a800b7}
 html.dark .fig6,html.dark .stair{
-  --fig-top:oklch(.3 .03 186);        /* DIRECTION s1.3 plate fill, dark */
-  --fig-top-line:oklch(.5 .04 186);
-  --fig-side:oklch(.215 .025 190);
-  --fig-side-line:oklch(.42 .035 186);
-  --fig-tile:oklch(.265 .03 186);
-  --fig-tile-line:oklch(.44 .035 186);
-  --fig-ring:oklch(.37 .03 186);
+  --fig-top:oklch(.37 .045 186);      /* AD r1 #2: DIRECTION's .3 read near-black beside the page; one mint step up */
+  --fig-top-line:oklch(.58 .05 186);
+  --fig-side:oklch(.28 .04 188);
+  --fig-side-line:oklch(.48 .045 186);
+  --fig-tile:oklch(.33 .04 186);
+  --fig-gate:oklch(.43 .05 186);
+  --fig-gate-line:oklch(.66 .05 186);
+  --fig-tile-line:oklch(.53 .045 186);
+  --fig-ring:oklch(.45 .04 186);
   --fig-ghost:oklch(.62 .03 200);
   --fig-teal:#3ad9c6;
   --fig-teal-tint:oklch(.36 .06 184);
-  --fig-wire:oklch(.6 .02 222);       /* --k-wire is .38 on the dashboard's .195 canvas; on the .3 mint plate it vanishes, so two steps up */
+  --fig-wire:oklch(.66 .02 222);      /* --k-wire is .38 on the dashboard's .195 canvas; on the .3 mint plate it vanishes, so two steps up */
   --fig-held:oklch(.72 .16 50);       /* --k-held-solid, dark */
   --fig-held-tint:oklch(.318 .068 50);
   --fig-cube-t:#8cf4e4;--fig-cube-l:#3ad9c6;--fig-cube-r:#14867b;
@@ -137,11 +140,12 @@ html.dark .fig6,html.dark .stair{
 .fig6 .fig-flash{fill:none;stroke:var(--fig-teal);stroke-width:1.5;opacity:0}
 .fig6 .fig-path .fig-top{fill:var(--fig-tile)}
 .fig6 .fig-cube-s,.fig6 .fig-cube-r{fill:var(--fig-cube-r)}.fig6 .fig-cube-l{fill:var(--fig-cube-l)}.fig6 .fig-cube-t{fill:var(--fig-cube-t)}
-/* the Gates wire (#145): 1 px for every state, round caps and joins, open chevron */
-.fig6 .fig-wire path{fill:none;stroke:var(--fig-wire);stroke-width:1;stroke-linecap:round;stroke-linejoin:round}
+/* the Gates wire (#145 geometry: 8 px corners, soft S, open chevron). 1.5 px, the figs' active weight: at fig scale the
+   dashboard's 1 px hairline disappeared on the mint plate (AD r1 #3). One width for every state, as in the product. */
+.fig6 .fig-wire path{fill:none;stroke:var(--fig-wire);stroke-width:1.5;stroke-linecap:round;stroke-linejoin:round}
 .fig6 .fig-wire.is-held path{stroke:var(--fig-held)}
 .fig6 .fig-wire.is-pass path{stroke:var(--fig-teal)}
-.fig6 .fig-gtile{fill:var(--fig-tile);stroke:var(--fig-tile-line);stroke-width:1}
+.fig6 .fig-gtile{fill:var(--fig-gate);stroke:var(--fig-gate-line);stroke-width:1}
 .fig6 .fig-gtile.is-held{fill:var(--fig-held-tint);stroke:var(--fig-held)}
 .fig6 .fig-gtile.is-pass{fill:var(--fig-teal-tint);stroke:var(--fig-teal)}
 
