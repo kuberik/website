@@ -86,8 +86,12 @@ html.js .fx .reveal:nth-child(4){transition-delay:120ms}
   /* the copy -> canvas gap is the copy block's own 24 px; the stacked pair's canvases end a gap above their neighbour's copy */
 }
 @media(min-width:1200px){
-  .fx-canary,.fx-dashboard{grid-column:1 / span 7}
-  .fx-health,.fx-gitops,.fx-releases{grid-column:8 / -1}
+  .fx-canary{grid-column:1 / span 7}
+  .fx-health,.fx-gitops{grid-column:8 / -1}
+  /* row 3 flips to Dashboard 5 | Releases 7: History is 373 tall at every width, Builds is 369 from an island of 590 up,
+     so the pair matches (AD r2: a 7-wide Dashboard beside a 463-tall 5-wide Releases left ~115 px of dead canvas) */
+  .fx-dashboard{grid-column:1 / span 5}
+  .fx-releases{grid-column:6 / -1}
   /* Gates: copy in a left column, canvas beside it, the copy centred on the graph (Linear's split row) */
   .fx-gates{grid-template-rows:none;grid-template-columns:clamp(360px,30%,440px) minmax(0,1fr);align-items:stretch}
   .fx-gates > .fx-copy{grid-row:1;grid-column:1;align-self:start;padding:var(--card-pad) 32px var(--card-pad) var(--card-pad)}
