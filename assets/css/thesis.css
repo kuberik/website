@@ -25,9 +25,9 @@ html.dark #how-it-works{--thesis-rest:oklch(.8 .07 200);--own-line:#3ad9c6;--nod
 .statement-rest{color:var(--thesis-rest)}
 @media(min-width:1920px){.statement-text{max-width:1320px}}
 
-/* the loop at >= 641: three then two (the second row centred), a rail per row. AD r1 #1: five across at 1200 drew
-   the plates at ~0.55 scale and the two-plate figs filled their column edge to edge; at three per row every drawing
-   is ~200 px tall at 1440 with Linear's air between them (refs/linear/linear-1440-dark-02). */
+/* the loop. >= 1280: five across on ONE continuous rail (AD r2, TL decision: "one loop, five phases" must read;
+   ~150 px figs at 1440 and ~180 at >= 1920 accepted, equal plate footprints kept). 641-1279: three then two, the
+   second row centred, a rail per row. <= 640: the vertical rail below. */
 .figs{--fig-gap:24px;list-style:none;margin:var(--head-gap) 0 0;padding:0;display:grid;grid-template-columns:repeat(6,minmax(0,1fr));column-gap:var(--fig-gap);row-gap:48px}
 .figs .fig-cell{position:relative;display:flex;flex-direction:column;min-width:0;grid-column:span 2}
 .figs .fig-cell:nth-child(4){grid-column:2/span 2}
@@ -40,6 +40,12 @@ html.dark #how-it-works{--thesis-rest:oklch(.8 .07 200);--own-line:#3ad9c6;--nod
 .fig-rail{position:relative;height:8px;margin:0 0 16px}
 .fig-rail::before{content:"";position:absolute;left:0;right:calc(-1 * var(--fig-gap));top:3.5px;height:1px;background:var(--rail)}
 .figs .fig-cell:nth-child(3) .fig-rail::before,.figs .fig-cell:last-child .fig-rail::before{right:0}
+@media(min-width:1280px){
+  .figs{grid-template-columns:repeat(5,minmax(0,1fr))}
+  .figs .fig-cell,.figs .fig-cell:nth-child(4){grid-column:auto}
+  .figs .fig-cell:nth-child(3) .fig-rail::before{right:calc(-1 * var(--fig-gap))}   /* one rail, node to node, across the row */
+  .fig-box{width:100%}
+}
 .fig-node{position:absolute;left:0;top:0;width:8px;height:8px;box-sizing:border-box;border-radius:50%;border:1px solid var(--node-line);background:var(--page)}
 .fig-cap{display:flex;align-items:center;gap:10px;margin:0;font:500 13px/20px var(--mono);color:var(--ink-muted)}
 .fig-no{color:var(--ink-subtle)}
@@ -48,18 +54,21 @@ html.dark #how-it-works{--thesis-rest:oklch(.8 .07 200);--own-line:#3ad9c6;--nod
 .is-yours .fig-own,.is-opt .fig-own{border-color:var(--own-line);color:var(--mint-ink)}
 .is-opt .fig-own{border-style:dashed}
 .fig-q{margin:12px 0 0;font:600 18px/26px var(--sans);color:var(--ink);text-wrap:balance}
-@media(min-width:1024px){.figs{--fig-gap:64px;row-gap:64px}}
-@media(min-width:1920px){.figs{--fig-gap:80px}.fig-box{width:80%}}
-@media(min-width:2400px){.figs{--fig-gap:96px;row-gap:80px}.fig-box{width:72%}.fig-q{font-size:20px;line-height:28px}.fig-cap{font-size:14px}}
+@media(min-width:1024px) and (max-width:1279px){.figs{--fig-gap:48px;row-gap:56px}}
+@media(min-width:1280px){.figs{--fig-gap:24px}}
+@media(min-width:1920px){.figs{--fig-gap:32px}}
+@media(min-width:2400px){.figs{--fig-gap:48px}.fig-q{font-size:20px;line-height:28px}.fig-cap{font-size:14px}}
+@media(min-width:1280px) and (max-width:1439px){.fig-cap{flex-wrap:wrap;gap:4px 8px}.fig-own{margin-left:0}.fig-q{font-size:16px;line-height:24px}}
 @media(min-width:641px) and (max-width:1023px){.fig-cap{flex-wrap:wrap;gap:4px 8px}.fig-own{margin-left:0}.fig-q{font-size:16px;line-height:24px}.fig-box{width:100%}}
 /* <= 640: a vertical rail on the left (Railway ref6). Rows of [node | fig 140 | caption and question], 128 tall. */
 @media(max-width:640px){
   .figs{grid-template-columns:minmax(0,1fr);row-gap:0}
   .figs .fig-cell,.figs .fig-cell:nth-child(4){grid-column:auto;display:grid;grid-template-columns:8px 140px minmax(0,1fr);grid-template-rows:auto 1fr;column-gap:12px;align-items:start;min-height:128px;padding-bottom:16px;box-sizing:border-box}
   .fig-art{grid-column:2;grid-row:1/span 2;margin:0;width:140px}
-  /* AD r1 #4: crop the empty shelf above the ink (--ink, from the generator) so each drawing's top meets its Fig N line */
-  .fig-box{position:relative;width:140px;aspect-ratio:auto;height:calc((1 - var(--ink)) * 140px * 252 / 372);margin-top:4px}
-  .fig-box .fig6{position:absolute;left:0;bottom:0;width:140px;height:auto}
+  /* AD r2: one fixed 140 x 96 box per row, its top on the Fig N line; every drawing is drawn at the same plate scale
+     and shifted up by its own empty shelf (--ink, from the generator), so each ink top sits on the box top */
+  .fig-box{position:relative;width:140px;height:96px;aspect-ratio:auto;overflow:hidden;margin:0}
+  .fig-box .fig6{position:absolute;left:0;top:calc(var(--ink) * -140px * 252 / 372);width:140px;height:auto}
   .fig-rail{grid-column:1;grid-row:1/span 2;align-self:stretch;height:auto;margin:0}
   .fig-rail::before,.figs .fig-cell:nth-child(3) .fig-rail::before{left:3.5px;right:auto;top:6px;bottom:-22px;width:1px;height:auto}
   .figs .fig-cell:last-child .fig-rail::before{display:none}
