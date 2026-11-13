@@ -1,0 +1,2 @@
+# written by islands/scripts/section/capture-section-posters.mjs: per section island, its posters' content hash (their ?v) and host widths
+gates-card: { v: "bfa0def4d364", w: [348, 382, 462, 572, 608, 622] }
