@@ -13,7 +13,7 @@ await p.waitForFunction((n) => document.querySelector(`[data-island="${n}"]`)?._
 await p.waitForTimeout(400);
 const st = await p.evaluate((n) => { const h = document.querySelector(`[data-island="${n}"]`); const s = h.__section; const r = h.getBoundingClientRect(); return { host: [Math.round(r.width), Math.round(r.height)], canvas: s?.canvas, boxes: s?.boxes?.map((b) => b && [b.x, b.y, b.width, b.height].map(Math.round)) }; }, name);
 console.log(JSON.stringify(st)); for (const e of errs.slice(0, 8)) console.log('console:', e);
-if (out) await p.locator(`[data-island="${name}"]`).screenshot({ path: out });
+if (out) await (process.env.CARD ? p.locator(`[data-island="${name}"]`).locator('xpath=ancestor::*[contains(@class,"fv-card")][1]') : p.locator(`[data-island="${name}"]`)).screenshot({ path: out }); /* CARD=1: the whole feature card */
 if (process.env.FULL) await p.locator(`[data-island="${name}"]`).evaluate((h) => { const c = h.shadowRoot.querySelector('.sec-still'); c.style.transform = 'none'; h.style.contain = 'none'; h.style.height = c.scrollHeight + 'px'; h.shadowRoot.querySelector('.sec-frame').style.overflow = 'visible'; });
 if (process.env.FULL) await p.locator(`[data-island="${name}"]`).screenshot({ path: process.env.FULL });
 await b.close();
