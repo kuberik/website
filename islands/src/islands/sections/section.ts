@@ -38,6 +38,8 @@ export type SectionSpec<W extends SectionWorld = SectionWorld> = {
 	world: (t: number) => W;
 	/** the query answers the component reads, from that world (the fleet list is answered for it: rollouts/all) */
 	answers?: (w: W) => (key: readonly unknown[]) => unknown;
+	/** the page reads the WHOLE fleet (the App page, the Change page: the dashboard's model, `liveSource()`): answer it with this world, not the film's */
+	source?: boolean;
 	/** story seconds: one = a still; several = a calm loop of stills */
 	times: number[];
 	/** the frame shown under reduced motion, and first (index into `times`, default 0) */
@@ -66,7 +68,8 @@ function shift<T>(x: T, ms: number): T {
 	if (x && typeof x === 'object') { const o: Record<string, unknown> = {}; for (const [k, v] of Object.entries(x)) o[k] = shift(v, ms); return o as T; }
 	return x;
 }
-const sliceKey = (s: any) => `${s?.metadata?.namespace}/${s?.metadata?.name}/${s?.metadata?.resourceVersion}`;
+/* the dashboard keys a catalogue by cluster / namespace / source: a world under its own cluster names brings its own (sections/worlds.ts `held`) */
+const sliceKey = (s: any) => `${s?.metadata?.annotations?.['rollout-dashboard.kuberik.com/source-cluster']}/${s?.metadata?.namespace}/${s?.metadata?.name}/${s?.metadata?.resourceVersion}`;
 /** the release catalogue this world needs is already installed (the film's world holds the same slices): the section adds nothing to the shared source */
 function catalogueInstalled(f: FleetSource): boolean {
 	const have = new Set(((liveSource() as any)?.releaseSlices?.items ?? []).map(sliceKey));
@@ -94,7 +97,7 @@ async function still<W extends SectionWorld>(spec: SectionSpec<W>, C: Component<
 	canvas.className = 'sec-canvas';
 	canvas.style.width = cw + 'px';
 	stage.appendChild(canvas);
-	const app = mount(Scoped, { target: canvas, props: { scope: { page: spec.page, answers }, C, props: spec.props?.(w) ?? {} } });
+	const app = mount(Scoped, { target: canvas, props: { scope: { page: spec.page, answers, ...(spec.source ? { source: w.fleet } : {}) }, C, props: spec.props?.(w) ?? {} } });
 	await Promise.race([document.fonts.ready, new Promise((r) => setTimeout(r, 1500))]);
 	/* settled: no DOM change for SETTLE_MS (the graph's wires are drawn a frame after its tiles are measured) */
 	await new Promise<void>((res) => {
@@ -128,10 +131,12 @@ export function mountSection<W extends SectionWorld>(ctx: CustomCtx, spec: Secti
 	wrap.append(frame, stage);
 	const restI = spec.rest ?? 0;
 	let stills: { el: HTMLElement; box: DOMRect }[] = [];
-	let shown = -1, cw = 0, adj = 0, gen = 0, timer: ReturnType<typeof setInterval> | undefined;
+	let shown = -1, cw = 0, adj = 0, gen = 0, done = false, timer: ReturnType<typeof setInterval> | undefined;
 	const gates = { motion: true, onscreen: false, visible: true };
 	const place = (s: { el: HTMLElement; box: DOMRect }) => {
-		const a = spec.align ?? {}, pad = a.pad ?? 0, W = host.clientWidth, H = host.clientHeight;
+		/* the host may re-place the frame (the page's design, not the island's): data-align-x / data-align-y = start | center, data-pad = px */
+		const d = host.dataset, a = { ...spec.align, ...(d.alignX ? { x: d.alignX as 'start' } : {}), ...(d.alignY ? { y: d.alignY as 'start' } : {}), ...(d.pad ? { pad: Number(d.pad) } : {}) };
+		const pad = a.pad ?? 0, W = host.clientWidth, H = host.clientHeight;
 		const x = a.x === 'center' ? (W - s.box.width) / 2 : pad, y = a.y === 'center' ? (H - s.box.height) / 2 : pad;
 		s.el.style.transform = `translate(${Math.round(x - s.box.x)}px, ${Math.round(y - s.box.y)}px)`;
 	};
@@ -153,6 +158,7 @@ export function mountSection<W extends SectionWorld>(ctx: CustomCtx, spec: Secti
 	let C: Component<any> | undefined;
 	async function render() {
 		const my = ++gen;
+		done = false;
 		const want = spec.canvas(host.clientWidth);
 		C ??= await spec.load();
 		const order = [restI, ...spec.times.map((_, i) => i).filter((i) => i !== restI)];
@@ -183,6 +189,7 @@ export function mountSection<W extends SectionWorld>(ctx: CustomCtx, spec: Secti
 			} else frame.appendChild(s.el);
 		}
 		cw = want;
+		done = true;
 		loop();
 	}
 	void render();
@@ -194,6 +201,6 @@ export function mountSection<W extends SectionWorld>(ctx: CustomCtx, spec: Secti
 		if (spec.canvas(host.clientWidth) !== cw) { clearTimeout(rt); rt = setTimeout(() => void render(), 150); }
 		else for (const s of stills) if (s) place(s);
 	}).observe(host);
-	(host as any).__section = { get stills() { return stills.length; }, get shown() { return shown; }, show, get canvas() { return cw; }, get boxes() { return stills.map((s) => s?.box); } };
+	(host as any).__section = { get stills() { return stills.length; }, get shown() { return shown; }, show, get canvas() { return cw; }, get boxes() { return stills.map((s) => s?.box); }, /** every still of the current width rendered */ get done() { return done; }, rest: restI, count: spec.times.length };
 	return () => { gen++; clearInterval(timer); };
 }

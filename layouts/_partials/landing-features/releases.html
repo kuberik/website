@@ -1,14 +1,6 @@
-{{- /* Releases = the app page's Builds card: a rail of builds newest first (a filled dot where a build runs, a hollow
-       ring for one that runs nowhere now), version + title, the commit and when it was released, and tier chips for
-       where it runs. Agrees with the Gates card (4.46.0 in staging, 4.45.2 in production). */ -}}
-<div class="fv-card">
-  <div class="fv-head">{{ partial "landing-features/icon.html" "releases" }}<span class="fv-title">Releases</span><span class="fv-ctx">checkout-api</span><span class="fv-roll">semver ≥ 4.0.0</span></div>
-  <div class="fv-body">
-    <ol class="rl">
-      <li><div class="rl-l"><span class="rl-v">4.46.0</span><span class="rl-t">Retry payments on timeout</span></div><div class="rl-m"><code>e1c7a04</code> · Released 38m ago</div><div class="rl-at"><span class="chip chip-stg">staging</span></div></li>
-      <li><div class="rl-l"><span class="rl-v">4.45.2</span><span class="rl-t">Tax on order summary</span></div><div class="rl-m"><code>9b02f11</code> · Released 2 days ago</div><div class="rl-at"><span class="chip chip-prod">prod</span></div></li>
-      <li class="is-past"><div class="rl-l"><span class="rl-v">4.45.1</span><span class="rl-t">Fix currency rounding</span></div><div class="rl-m"><code>51d7a30</code> · Released 3 days ago</div></li>
-      <li class="is-past"><div class="rl-l"><span class="rl-v">4.45.0</span><span class="rl-t">Apple Pay at checkout</span></div><div class="rl-m"><code>c40e9b8</code> · Released 5 days ago</div></li>
-    </ol>
-  </div>
-</div>
+{{- /* releases: a SECTION ISLAND (islands/src/islands/sections/releases.ts), the product's own Builds card (the App page) for checkout-api: 4.46.0-46 newest, in dev and staging; production on 4.45.0-45, held in us-east-1.
+       The island IS the product Card, header included (DIRECTION.md §3): the landing draws no header or shell here (the card shell around it is the
+       page's, features.html). Nothing inside is drawn by the landing: the poster is the island's own frame, re-shot by
+       islands/scripts/section/capture-section-posters.mjs. The host reserves the product's natural height per width (data/section_poster.yaml `h`);
+       the page's CSS may set its window height over it, and data-align-x / data-align-y / data-pad ("attrs") re-place the frame in it. */ -}}
+{{ partial "section-island.html" (dict "name" "releases-card" "class" "fv-sec") }}

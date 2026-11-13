@@ -1,7 +1,7 @@
-{{- /* section-island (dict "name" "gates-card" "class" "fv-body fv-island"): a SECTION island host (islands/src/islands/sections/): one real dashboard
+{{- /* section-island (dict "name" "gates-card" "class" "fv-body fv-island" ["attrs" (dict "align" "center" ...)]): a SECTION island host (islands/src/islands/sections/): one real dashboard
        component, framed at natural scale. The page's CSS reserves the host's box (no layout shift). The static poster (the island's own frozen frame,
        captured by islands/scripts/section/capture-section-posters.mjs at each host width the product lays out differently, light and dark, 1x) fills it
-       until the first live frame and is what a reader without JavaScript sees: by container query on the host, the widest poster not wider than the host.
+       until the first live frame and is what a reader without JavaScript sees, at its own pixels (never scaled): by container query on the host, the widest poster not wider than the host.
        The host is aria-hidden and inert: the card's own copy beside it is the text. The loader starts it only once it nears the viewport AND the hero
        film has painted its first live frame. */ -}}
 {{- $n := .name -}}
@@ -10,11 +10,19 @@
 {{- with $d }}
 <style>
 [data-island="{{ $n }}"]{container-type:inline-size}
-[data-island="{{ $n }}"] .ph-poster{position:absolute;inset:0;z-index:1;background-repeat:no-repeat;background-size:cover;background-position:left top;transition:opacity .2s ease-out;pointer-events:none}
+{{- /* `h` (optional, data/section_poster.yaml): the product's natural height at each host width in `w`, reserved before JS so nothing shifts,
+       answered by the host's own width (its slot is the container). Natural height only falls as the host widens, so the reserve of the widest
+       measured width not wider than the host is never short. It sits under :where() (no specificity): the page's CSS sets a window height over it. */ -}}
+:where([data-island="{{ $n }}"]){position:relative}
+{{- with .h }}
+:where([data-island="{{ $n }}"]){height:{{ index . 0 }}px}
+{{- range $i, $w := $d.w }}{{ if $i }}@container (min-width:{{ $w }}px){:where([data-island="{{ $n }}"]){height:{{ index $d.h $i }}px}}{{ end }}{{ end }}
+{{- end }}
+[data-island="{{ $n }}"] .ph-poster{position:absolute;inset:0;z-index:1;background-repeat:no-repeat;background-size:auto;background-position:left top;transition:opacity .2s ease-out;pointer-events:none}
 {{- range $i, $w := .w }}
 {{ if $i }}@container (min-width:{{ $w }}px){ {{ end }}html:not(.dark) [data-island="{{ $n }}"] .ph-poster{background-image:url({{ $p }}s-{{ $n }}-{{ $w }}-light.webp?v={{ $d.v }})}html.dark [data-island="{{ $n }}"] .ph-poster{background-image:url({{ $p }}s-{{ $n }}-{{ $w }}-dark.webp?v={{ $d.v }})}{{ if $i }}}{{ end }}
 {{- end }}
 </style>
 {{- end }}
-<div class="sec-host {{ .class }}" data-island="{{ $n }}" data-section data-theme-sync aria-hidden="true"><div class="ph-poster"></div></div>
+<div class="sec-slot" style="container-type:inline-size"><div class="sec-host {{ .class }}" data-island="{{ $n }}" data-section data-theme-sync aria-hidden="true"{{ range $k, $v := .attrs }} data-{{ $k }}="{{ $v }}"{{ end }}><div class="ph-poster"></div></div></div>
 <script type="module" src="{{ "islands/islands.js" | relURL }}"></script>

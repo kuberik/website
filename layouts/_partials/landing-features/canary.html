@@ -1,22 +1,6 @@
-{{- /* Canary and waves = the Deployment pipeline strand (MiniPipeline sm: 24px discs on a 56px pitch, 2px connectors,
-       names under) for us-east-1, then the wave lanes: wave 1 checking, wave 2 waiting on it. Same build and same bake
-       as the Health checks card. */ -}}
-{{- $ok := `<svg viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M2 12C2 6.477 6.477 2 12 2s10 4.477 10 10-4.477 10-10 10S2 17.523 2 12Zm13.707-1.293a1 1 0 0 0-1.414-1.414L11 12.586l-1.793-1.793a1 1 0 0 0-1.414 1.414l2.5 2.5a1 1 0 0 0 1.414 0l4-4Z"/></svg>` -}}
-<div class="fv-card">
-  <div class="fv-head">{{ partial "landing-features/icon.html" "canary" }}<span class="fv-title">Canary</span><span class="fv-ctx">payments-svc<span class="fv-ctx-more"> · us-east-1</span></span><span class="fv-roll">step 4 of 4</span></div>
-  <div class="fv-body">
-    <ol class="st">
-      <li><span class="st-disc st-done">{{ $ok | safeHTML }}</span><span class="st-name">10%</span></li>
-      <li><span class="st-disc st-done">{{ $ok | safeHTML }}</span><span class="st-name">50%</span></li>
-      <li><span class="st-disc st-done">{{ $ok | safeHTML }}</span><span class="st-name">100%</span></li>
-      <li class="is-on"><span class="st-disc st-chk"><span class="st-spin"></span></span><span class="st-name">Check</span></li>
-      <span class="st-seg"></span><span class="st-seg"></span><span class="st-seg"></span>
-    </ol>
-    <ul class="wl">
-      <li><div class="wl-top">{{ partial "landing-features/mark.html" "check" }}<span class="wl-name">Wave 1</span><span class="wl-state is-prog-ink">Checking</span></div>
-        <div class="wl-chips"><span class="chip chip-region">us-east-1</span><span class="chip chip-region">us-west-2</span></div></li>
-      <li class="is-later"><div class="wl-top">{{ partial "landing-features/mark.html" "idle" }}<span class="wl-name">Wave 2</span><span class="wl-state">After wave 1</span></div>
-        <div class="wl-chips"><span class="chip chip-region">eu-west-1</span><span class="chip chip-region">eu-central-1</span><span class="chip chip-region">ap-south-1</span></div></li>
-    </ul>
-  </div>
-</div>
+{{- /* canary: a SECTION ISLAND (islands/src/islands/sections/canary.ts), the product's own Progress card (the App page's Progress tab) for payments-svc 3.1.0: prod us-east-1 (wave 1) through its canary steps into its bake, waves 2 and 3 waiting.
+       The island IS the product Card, header included (DIRECTION.md §3): the landing draws no header or shell here (the card shell around it is the
+       page's, features.html). Nothing inside is drawn by the landing: the poster is the island's own frame, re-shot by
+       islands/scripts/section/capture-section-posters.mjs. The host reserves the product's natural height per width (data/section_poster.yaml `h`);
+       the page's CSS may set its window height over it, and data-align-x / data-align-y / data-pad ("attrs") re-place the frame in it. */ -}}
+{{ partial "section-island.html" (dict "name" "canary-card" "class" "fv-sec") }}

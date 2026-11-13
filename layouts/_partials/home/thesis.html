@@ -1,6 +1,7 @@
-{{- /* THESIS (Linear: two-tone statement, then one row of figures). The only section about one idea, because it
-       is the product's idea: every build passes the same five declarative phases. The figures are still: the hero
-       is the page's one animation. Capabilities are named once, in FEATURES below. */ -}}
+{{- /* THESIS AND LOOP (lane C, DIRECTION s1.3). Linear's two-tone statement, then the five phases every build goes
+       through, each an isometric fig (scripts/landing-figs.mjs) on Railway's rail with one node per phase. The row
+       plays as one sequence on a 12 s page clock (sections.js): one fig moves at a time and its node lights.
+       Captions: Fig N, the phase, who owns it (the YAML window's tags), the question it answers. */ -}}
 {{- $t := site.Data.landing.thesis -}}
 <section class="sec thesis" id="how-it-works" aria-labelledby="thesis-h">
   <div class="cont">
@@ -9,6 +10,7 @@
       {{- range $i, $p := $t.phases }}
       <li class="fig-cell{{ if eq $p.own "Yours" }} is-yours{{ else if eq $p.own "Optional" }} is-opt{{ end }}">
         <div class="fig-art" aria-hidden="true">{{ partial (printf "landing-figs/%s.html" $p.fig) $ }}</div>
+        <div class="fig-rail" aria-hidden="true"><span class="fig-node"></span></div>
         <p class="fig-cap"><span class="fig-no">Fig {{ add $i 1 }}</span><span class="fig-name">{{ $p.name }}</span><span class="fig-own">{{ $p.own }}</span></p>
         <h3 class="fig-q">{{ $p.q }}</h3>
       </li>

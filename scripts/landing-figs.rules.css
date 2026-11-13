@@ -1,0 +1,115 @@
+/* FIGS v6 (lane C). Hand-written; scripts/landing-figs.mjs copies this file into the GENERATED block of the thesis
+   stylesheet, ahead of the keyframes it computes. Edit here, then run the generator.
+   Tokens: plate fills are the mint tint from DIRECTION s1.3; the cube keeps the logo teals; wire, held and tier
+   colours are the dashboard's own (language.css --k-wire, --k-held-*, environment-theme.ts PRESET_RAMPS). */
+.fig6,.stair{
+  --fig-top:oklch(.975 .02 182);      /* DIRECTION s1.3 plate fill, light */
+  --fig-top-line:oklch(.72 .05 186);
+  --fig-side:oklch(.9 .035 186);
+  --fig-side-line:oklch(.78 .045 186);
+  --fig-tile:oklch(.945 .03 182);
+  --fig-tile-line:oklch(.82 .04 184);
+  --fig-ring:oklch(.9 .03 184);
+  --fig-ghost:oklch(.62 .03 200);
+  --fig-teal:#009689;                 /* dev tier colour */
+  --fig-teal-tint:oklch(.93 .05 182);
+  --fig-wire:oklch(.8 .014 222);      /* --k-wire */
+  --fig-held:oklch(.69 .16 48);       /* --k-held-solid */
+  --fig-held-tint:oklch(.96 .058 55); /* --k-held-tint */
+  --fig-cube-t:#77ecdb;--fig-cube-l:#00c9b5;--fig-cube-r:#009689;
+  --chip-dev-bg:#f0fdfa;--chip-dev-line:#46ecd5;--chip-dev-ink:#00786f;
+  --chip-staging-bg:#f5f3ff;--chip-staging-line:#c4b4ff;--chip-staging-ink:#5d0ec0;
+  --chip-prod-bg:#fdf4ff;--chip-prod-line:#f4a8ff;--chip-prod-ink:#a800b7}
+html.dark .fig6,html.dark .stair{
+  --fig-top:oklch(.3 .03 186);        /* DIRECTION s1.3 plate fill, dark */
+  --fig-top-line:oklch(.5 .04 186);
+  --fig-side:oklch(.215 .025 190);
+  --fig-side-line:oklch(.42 .035 186);
+  --fig-tile:oklch(.265 .03 186);
+  --fig-tile-line:oklch(.44 .035 186);
+  --fig-ring:oklch(.37 .03 186);
+  --fig-ghost:oklch(.62 .03 200);
+  --fig-teal:#3ad9c6;
+  --fig-teal-tint:oklch(.36 .06 184);
+  --fig-wire:oklch(.6 .02 222);       /* --k-wire is .38 on the dashboard's .195 canvas; on the .3 mint plate it vanishes, so two steps up */
+  --fig-held:oklch(.72 .16 50);       /* --k-held-solid, dark */
+  --fig-held-tint:oklch(.318 .068 50);
+  --fig-cube-t:#8cf4e4;--fig-cube-l:#3ad9c6;--fig-cube-r:#14867b;
+  --chip-dev-bg:#022f2e;--chip-dev-line:#005f5a;--chip-dev-ink:#96f7e4;
+  --chip-staging-bg:#2f0d68;--chip-staging-line:#4d179a;--chip-staging-ink:#ddd6ff;
+  --chip-prod-bg:#4b004f;--chip-prod-line:#8a0194;--chip-prod-ink:#f6cfff}
+
+/* geometry: three stroke weights (1 structure and wires, 1.5 the active teal, 2 the answer), round joins */
+.fig6{display:block;width:100%;height:auto;overflow:visible;stroke-linejoin:round}
+.fig6 .fig-top{fill:var(--fig-top);stroke:var(--fig-top-line);stroke-width:1}
+.fig6 .fig-side{fill:var(--fig-side);stroke:var(--fig-side-line);stroke-width:1}
+.fig6 .fig-hull{fill:var(--fig-side);stroke:none}
+.fig6 .fig-line{fill:none;stroke:var(--fig-side-line);stroke-width:1}
+.fig6 .fig-ring{fill:none;stroke:var(--fig-ring);stroke-width:1}
+.fig6 .fig-tile{display:inline;fill:var(--fig-tile);stroke:var(--fig-tile-line);stroke-width:1}
+.fig6 .fig-ghost{fill:none;stroke:var(--fig-ghost);stroke-width:1;stroke-linejoin:round}
+.fig6 .fig-drop{fill:none;stroke:var(--fig-teal);stroke-width:1.5;stroke-linecap:round;stroke-dasharray:0 4}
+.fig6 .fig-fence{fill:none;stroke:var(--fig-top-line);stroke-width:1}
+.fig6 .fig-scan{fill:none;stroke:var(--fig-teal);stroke-width:1.5;stroke-linecap:round;stroke-dasharray:16 84;opacity:0}
+.fig6 .fig-check{fill:none;stroke:var(--fig-teal);stroke-width:2;stroke-linecap:round;stroke-linejoin:round;stroke-dasharray:1 1;stroke-dashoffset:0}
+.fig6 .fig-pulse{fill:none;stroke:var(--fig-teal);stroke-width:1.5}
+.fig6 .fig-dash{stroke-dasharray:4 3;stroke-linecap:butt}
+.fig6 .fig-flash{fill:none;stroke:var(--fig-teal);stroke-width:1.5;opacity:0}
+.fig6 .fig-path .fig-top{fill:var(--fig-tile)}
+.fig6 .fig-cube-s,.fig6 .fig-cube-r{fill:var(--fig-cube-r)}.fig6 .fig-cube-l{fill:var(--fig-cube-l)}.fig6 .fig-cube-t{fill:var(--fig-cube-t)}
+/* the Gates wire (#145): 1 px for every state, round caps and joins, open chevron */
+.fig6 .fig-wire path{fill:none;stroke:var(--fig-wire);stroke-width:1;stroke-linecap:round;stroke-linejoin:round}
+.fig6 .fig-wire.is-held path{stroke:var(--fig-held)}
+.fig6 .fig-wire.is-pass path{stroke:var(--fig-teal)}
+.fig6 .fig-gtile{fill:var(--fig-tile);stroke:var(--fig-tile-line);stroke-width:1}
+.fig6 .fig-gtile.is-held{fill:var(--fig-held-tint);stroke:var(--fig-held)}
+.fig6 .fig-gtile.is-pass{fill:var(--fig-teal-tint);stroke:var(--fig-teal)}
+
+/* REST POSE: reduced motion, off screen, and every fig outside its own phase window */
+.m6{transform-box:fill-box;transform-origin:center}
+.m6-rel-next,.m6-rel-g3,.m6-gate-pass,.m6-gate-next,.m6-hp1,.m6-st-pulse,.m6-stc-pulse{opacity:0}
+.m6-hp2{opacity:.4}
+.m6-st-t,.m6-stc-t{display:none}
+
+/* THE LOOP: one 12 s page clock (--clk, set by sections.js when the row comes on screen), fig n acts in
+   [n x 2.4 s, +2.4 s). Only while the row is on screen (.is-live), never under reduced motion. */
+.figs .fig-cell:nth-child(1){--i:0}.figs .fig-cell:nth-child(2){--i:1}.figs .fig-cell:nth-child(3){--i:2}.figs .fig-cell:nth-child(4){--i:3}.figs .fig-cell:nth-child(5){--i:4}
+@media (prefers-reduced-motion:no-preference){
+  .figs.is-live .fig-cell{--d6:calc(var(--i,0) * 2400ms - var(--clk,0ms))}
+  .figs.is-live .m6-rel-cube{animation:f6-rel-cube 12s linear var(--d6) infinite both}
+  .figs.is-live .m6-rel-next{animation:f6-rel-next 12s linear var(--d6) infinite both}
+  .figs.is-live .m6-rel-g1{animation:f6-rel-g1 12s linear var(--d6) infinite both}
+  .figs.is-live .m6-rel-g2{animation:f6-rel-g2 12s linear var(--d6) infinite both}
+  .figs.is-live .m6-rel-g3{animation:f6-rel-g3 12s linear var(--d6) infinite both}
+  .figs.is-live .fig-release .fig-flash{animation:f6-rel-flash 12s linear var(--d6) infinite both}
+  .figs.is-live .fig-guard .fig-check{animation:f6-check 12s linear var(--d6) infinite both,f6-check-o 12s linear var(--d6) infinite both}
+  .figs.is-live .fig-guard .fig-scan{animation:f6-scan 12s linear var(--d6) infinite both}
+  .figs.is-live .m6-gate-pass{animation:f6-gate-pass 12s linear var(--d6) infinite both}
+  .figs.is-live .m6-gate-cube{animation:f6-gate-cube 12s linear var(--d6) infinite both}
+  .figs.is-live .m6-gate-next{animation:f6-gate-next 12s linear var(--d6) infinite both}
+  .figs.is-live .m6-upd-cube{animation:f6-upd-cube 12s linear var(--d6) infinite both}
+  .figs.is-live .m6-upd-ghost{animation:f6-upd-ghost 12s linear var(--d6) infinite both}
+  .figs.is-live .fig-update .fig-to .fig-flash{animation:f6-upd-flash 12s linear var(--d6) infinite both}
+  .figs.is-live .m6-hp1{animation:f6-hp1 12s cubic-bezier(.16,1,.3,1) var(--d6) infinite both}
+  .figs.is-live .m6-hp2{animation:f6-hp2 12s cubic-bezier(.16,1,.3,1) var(--d6) infinite both}
+}
+
+/* THE STAIRCASE (install): three equal rises, environment chips in the product's Chip style */
+.stair{position:relative;width:100%}
+.stair .fig6{height:100%}
+.stair .fig-ring-rest .fig-pulse{opacity:1}
+.fig-chip{position:absolute;left:var(--x);top:var(--y);transform:translate(calc(-100% - 10px),-50%);display:inline-flex;align-items:center;height:20px;padding:0 6px;border:1px solid var(--chip-dev-line);border-radius:4px;background:var(--chip-dev-bg);color:var(--chip-dev-ink);font:600 11px/16px var(--sans);letter-spacing:.06em;text-transform:uppercase;white-space:nowrap}
+.fig-chip-staging{border-color:var(--chip-staging-line);background:var(--chip-staging-bg);color:var(--chip-staging-ink)}
+.fig-chip-prod{border-color:var(--chip-prod-line);background:var(--chip-prod-bg);color:var(--chip-prod-ink)}
+@media (prefers-reduced-motion:no-preference){
+  .stair.is-live .m6-st-t{display:block;animation:f6-st-t 3s linear both}
+  .stair.is-live .m6-st-s{animation:f6-st-s 3s linear both}
+  .stair.is-live .m6-st-p{animation:f6-st-p 3s linear both}
+  .stair.is-live .m6-st-lit{animation:f6-st-lit 3s linear both}
+  .stair.is-live .m6-st-pulse{animation:f6-st-pulse 3s cubic-bezier(.16,1,.3,1) both}
+  .stair.is-live .m6-stc-t{display:block;animation:f6-stc-t 3s linear both}
+  .stair.is-live .m6-stc-s{animation:f6-stc-s 3s linear both}
+  .stair.is-live .m6-stc-p{animation:f6-stc-p 3s linear both}
+  .stair.is-live .m6-stc-lit{animation:f6-stc-lit 3s linear both}
+  .stair.is-live .m6-stc-pulse{animation:f6-stc-pulse 3s cubic-bezier(.16,1,.3,1) both}
+}

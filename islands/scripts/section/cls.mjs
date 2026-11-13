@@ -4,12 +4,12 @@ import { chromium } from '@playwright/test';
 const [vw = '1440', vh = '900', theme = 'light', name = 'gates-card'] = process.argv.slice(2);
 const b = await chromium.launch();
 const ctx = await b.newContext({ viewport: { width: +vw, height: +vh }, deviceScaleFactor: 1, colorScheme: theme, ...(+vw < 500 ? { isMobile: true, hasTouch: true } : {}), reducedMotion: process.env.REDUCED ? 'reduce' : 'no-preference' });
-await ctx.addInitScript((t) => {
+await ctx.addInitScript(([t, name]) => {
 	try { localStorage.setItem('color-theme', t); } catch {}
 	window.__shifts = [];
 	new PerformanceObserver((l) => { for (const e of l.getEntries()) if (!e.hadRecentInput) window.__shifts.push({ v: e.value, t: Math.round(e.startTime), src: (e.sources ?? []).map((s) => (s.node?.nodeName ?? '?') + '.' + (s.node?.className?.toString?.().slice(0, 40) ?? '') + ` ${Math.round(s.previousRect.y)}->${Math.round(s.currentRect.y)} h${Math.round(s.previousRect.height)}->${Math.round(s.currentRect.height)}`) }); }).observe({ type: 'layout-shift', buffered: true });
-	document.addEventListener('DOMContentLoaded', () => { const h = document.querySelector('[data-section]'); if (h) { const r = h.getBoundingClientRect(); window.__box0 = [r.x, r.y + scrollY, r.width, r.height].map(Math.round); } });
-}, theme);
+	document.addEventListener('DOMContentLoaded', () => { const h = document.querySelector(`[data-island="${name}"]`); if (h) { const r = h.getBoundingClientRect(); window.__box0 = [r.x, r.y + scrollY, r.width, r.height].map(Math.round); } });
+}, [theme, name]);
 const p = await ctx.newPage();
 await p.goto(process.env.URL ?? 'http://192.168.1.102:1340/', { waitUntil: 'load' });
 await p.waitForFunction(() => document.querySelector('[data-island="hero"]')?.hasAttribute('data-island-ready'), null, { timeout: 30000 }).catch(() => console.log('hero not ready in 30 s'));
