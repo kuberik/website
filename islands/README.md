@@ -120,9 +120,9 @@ export const mount = (ctx: CustomCtx) => mountSection(ctx, {
 ```
 
 1. The spec above, then a line in `src/registry.ts`: `'<name>': () => import('./islands/sections/<name>').then((m) => ({ custom: m.mount }))`.
-2. The host in Hugo: `{{ partial "section-island.html" (dict "name" "<name>" "class" "<slot classes>") }}`. Reserve its box in the page CSS, one height per
-   product layout (container queries on the slot's width): measure with `node scripts/section/look.mjs <name> <vw> light` (prints host and frame).
-3. Add the island and the viewports that give each of its layouts to `ISLANDS` in `scripts/section/capture-section-posters.mjs`; build; shoot the posters
+2. The host in Hugo: `{{ partial "section-island.html" (dict "name" "<name>" "class" "<slot classes>") }}`. Its box is reserved from
+   `data/section_poster.yaml` (step 3 measures it), under `:where()`, so the page's CSS can set a window height over it.
+3. Add the island and its island widths to `ISLANDS` in `scripts/section/capture-section-posters.mjs`; build; shoot the posters
    (`node scripts/section/capture-section-posters.mjs <url> <name>`); commit `static/island-poster/s-<name>-*`, `data/section_poster.yaml` with the build.
 4. Check: `node scripts/section/cls.mjs 1440 900 light <name>` and `390 844` (total CLS, host box before JS vs live), `REDUCED=1` for reduced motion,
    `node scripts/section/nojs.mjs <name> 1440 dark out.png` (the poster alone), and the film's `check-all.sh` (the hero must not change).
@@ -130,10 +130,47 @@ export const mount = (ctx: CustomCtx) => mountSection(ctx, {
 `frame` returns an element or a rect (`rectOf(edges, [bottoms], grow)`: a span cropped on a gutter). `fit: 'width'` corrects the canvas once (then
 remembers the correction) until the framed rect is exactly the host's width, since the product's gutters change at its own breakpoints.
 
+## The six feature cards
+
+Each island is a whole product Card, header included (DIRECTION.md §3): the landing draws no header or shell inside its partial
+(`layouts/_partials/landing-features/<id>.html` is only the host). They tell one set of facts: checkout-api 4.46.0-46 runs in dev and staging; production
+holds it in us-east-1 because payments-svc, which it needs at ^3.1.0, is still baking 3.1.0 there.
+
+| Card | Island | Product component | World, story second |
+|---|---|---|---|
+| Gates | `gates.ts` | rollout Gates tab, its Gates card (list below 644 px, the #145 two-column graph from 644) | `worldAt(7, depHold, no approval)`, prod us-east-1 |
+| Health checks | `health.ts` | rollout Overview, Health checks card | `payments(t)`, prod us-east-1: loop 14.9 (2 pending) -> 16.8 (3/3) |
+| Canary and waves | `canary.ts` | App page Progress tab, Progress card | `payments(t)`: loop 11.4, 12.9, 16.8 (step 1, 2, 4 of 5; waves 2 and 3 not reached) |
+| Releases | `releases.ts` | App page, Builds card | `held(7)` |
+| Dashboard | `dashboard.ts` | Change page for #112, History card | `held(7)` |
+| GitOps | `gitops.ts` | rollout Overview, Resources card (staging) | `held(7, 'staging')`. The product has no view of the version Kuberik substitutes into the Kustomization; this is Flux's side |
+
+- `sections/worlds.ts`: `held` is the scenario's held world under its own cluster names (`<env>-held`, never printed), so its release catalogue is its own
+  and a build's age does not follow the film's second (the dashboard keys a catalogue by cluster / namespace / source; `section.ts` compares the same key).
+  `payments` is the film's own CRs at a second where us-east-1 bakes, with checkout-api renamed payments-svc and its builds 3.0.1 / 3.0.2 / 3.1.0, the
+  dependency gate removed and the fleet's at-rest payments-svc left out; `paymentsAnswers` answers the rollout page's queries through the film's
+  `answersFrom` in checkout-api's names and renames the answers.
+- `source: true` in a spec: the page reads the whole fleet (App page, Change page). `vite.config.ts` `islandSource` rewrites the dashboard's `liveSource()`
+  to ask the island scope first (Svelte 5 evaluates every derived and effect under its component's context, so `getContext` works there); a scoped reader
+  never reads the film's source, so the film moving does not re-run it.
+- Calm loops: `times` with `rest` (the still shown first, under reduced motion and in the poster), `holdMs: 4000`, `fadeMs: 400`.
+
+### Frame a card
+
+- The host reserves the product's natural height per width from `data/section_poster.yaml` (`w` island widths, `h` the tallest still there), under
+  `:where()`, answered by the host's own width (`section-island.html` wraps it in a `.sec-slot` container). Natural height falls as the host widens within
+  one product layout; the widths include the product's breakpoints in island terms (canvas = island + 32: sm 608, md 736, lg 992) and the Gates graph's 644,
+  so the reserve of the widest width not wider than the host is never short.
+- The page's CSS may set a window height over it (the frame is top-left; a shorter window crops its foot). `"attrs" (dict "align-x" "center" "align-y"
+  "center" "pad" "12")` on the partial becomes `data-align-x` / `data-align-y` / `data-pad`, which `section.ts` reads when it places the frame.
+- Posters: `node scripts/section/capture-section-posters.mjs <url> [name-card ...]` lays each host out on its own bay at every width in its list
+  (reduced motion: the rest still), shoots light and dark at 1x, and writes the widths, heights and hash. `look.mjs` takes `W=<px>` (same bay),
+  `NATURAL=1` and `ALL=1` (every still of a loop).
+
 ## The Gates card
 
-`src/islands/sections/gates.ts`: the real Gates tab (`RolloutShell` + the tab route) for checkout-api in prod us-east-1 at story second 7 of a sibling
-world (`worldAt(t, { depHold: true, approval: false })`: payments-svc still baking the 3.1.0 that 4.46.0-46 requires, so its contract holds the release;
-staging's promotion passed; Business hours open; no approval gate). The frame is the gate graph's dotted box: the stacked list (down to 10 px under
-this rollout's tile, the gutter above Downstream) below a 608 px slot, the compact two-column graph (#145 wires) from 608 px. Heights in
-`assets/css/feature-cards.css`: 390 px, 406 px from a 572 px slot (the product's `sm` padding), 308 px from 608 px. Re-measure when the pin moves.
+`sections/gates.ts`: the real Gates tab (`RolloutShell` + the tab route) for checkout-api in prod us-east-1 at story second 7 of a sibling world
+(`worldAt(t, { depHold: true, approval: false })`: payments-svc still baking the 3.1.0 that 4.46.0-46 requires holds the release; staging's promotion passed;
+Business hours open; no approval gate). The frame is the whole Gates card. From an island width of 644 px it is the compact two-column graph with #145's
+wires (454 px tall); below that the stacked list (about 656-692 px). Re-measure when the pin moves.
+
