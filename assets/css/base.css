@@ -115,8 +115,8 @@ html.js .reveal.is-in{opacity:1;transform:none}
 .sec .title{font-size:clamp(28px,3vw,44px);line-height:1.12}
 @media(min-width:2400px){.sec .title{font-size:48px}}
 /* install band clears the footer by the section rhythm (AD r1 #3) */
-main{padding-bottom:128px}
-@media(max-width:640px){main{padding-bottom:80px}}
+main{padding-bottom:48px}
+
 @media(prefers-reduced-motion:reduce){.link-arrow svg{transition:none}.link-arrow:hover svg{transform:none}}
 /* 3000+: the panels frame the content column instead of spanning the screen (AD r2 #4, owner: no lone column at 4K) */
 @media(min-width:3000px){.sec>.stage{max-width:calc(var(--cont) + 240px);margin-inline:auto}}

@@ -1,6 +1,6 @@
 {{- $getStarted := .Scratch.Get "getStarted" -}}
 {{- $github := .Scratch.Get "github" -}}
-{{- /* CLOSING (v4): the hero's light again, the staircase finished (the build in every environment, production lit), then the install. The command is the OCI form from docs/installation/helm.md. */ -}}
+{{- /* INSTALL (landing v6, DIRECTION 1.6): the hero's mint stage again, bloom quieter, with the install command in a terminal card. Role: the one call to action. Reference: Resend and Railway closing bands; the terminal is the same object as the YAML window in spec.html (radius 12, 47px header, dark in both themes). Left: copy, terminal, CTAs (5/12). Right: the finished staircase (7/12, lane C draws landing-figs/staircase-done*.html), bottom-aligned. The command is the OCI form from docs/installation/helm.md. */ -}}
 <section class="sec" id="install" aria-labelledby="install-h">
   <div class="stage stage-mint">
     <div class="bloom b1"></div><div class="bloom b2"></div>
@@ -9,15 +9,15 @@
       <div class="closing-copy">
         <h2 class="title reveal" id="install-h">Install it with Helm.</h2>
         <p class="title-body reveal">The controller runs in your cluster, next to the thing it gates. No hosted service, no agent to register.</p>
-        <div class="code reveal">
-          <div class="code-head"><span>Terminal</span><button class="copy" id="copy" type="button"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="9" y="9" width="12" height="12" rx="2"/><path d="M5 15V5a2 2 0 0 1 2-2h10"/></svg><span id="copy-l">Copy</span></button></div>
+        <div class="term reveal">
+          <div class="term-head"><span>Terminal</span><button class="copy" id="copy" type="button"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="9" y="9" width="12" height="12" rx="2"/><path d="M5 15V5a2 2 0 0 1 2-2h10"/></svg><span id="copy-l">Copy</span></button></div>
 <pre tabindex="0" role="region" aria-label="Install command"><code id="install-cmd"><span class="p">$ </span>helm install kuberik \
     oci://ghcr.io/kuberik/charts/kuberik \
     --version 0.8.0 \
     --namespace kuberik-system \
     --create-namespace \
     --set createNamespace=false</code></pre>
-          <p class="code-note">Helm creates the namespace, so the chart leaves it alone.</p>
+          <p class="term-note">Helm creates the namespace, so the chart leaves it alone.</p>
         </div>
         <div class="ctas ctas-left reveal"><a class="btn btn-ink" href="{{ $getStarted }}">Get started<svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5" aria-hidden="true"><path d="M3 8h10M9 4l4 4-4 4" stroke-linecap="round" stroke-linejoin="round"/></svg></a><a class="btn btn-line" href="/docs/">Read the docs</a></div>
       </div>
