@@ -90,7 +90,7 @@ html.js .fx .reveal:nth-child(4){transition-delay:120ms}
   .fx-health,.fx-gitops,.fx-releases{grid-column:8 / -1}
   /* Gates: copy in a left column, canvas beside it, the copy centred on the graph (Linear's split row) */
   .fx-gates{grid-template-rows:none;grid-template-columns:clamp(360px,30%,440px) minmax(0,1fr);align-items:stretch}
-  .fx-gates > .fx-copy{grid-row:1;grid-column:1;align-self:center;padding:var(--card-pad) 32px var(--card-pad) var(--card-pad)}
+  .fx-gates > .fx-copy{grid-row:1;grid-column:1;align-self:start;padding:var(--card-pad) 32px var(--card-pad) var(--card-pad)}
   .fx-gates > .fx-canvas{grid-row:1;grid-column:2;margin:var(--canvas-m) var(--canvas-m) var(--canvas-m) 0}
   .fx-gates .fx-title{font-size:calc(var(--t-card-title-s) + 4px);line-height:calc(var(--t-card-title-l) + 4px)}
 }

@@ -112,8 +112,8 @@ html.js .reveal.is-in{opacity:1;transform:none}
   .head .title-body{margin-top:12px}
 }
 /* headings: one step under the statement at every width (AD r1 #5) */
-.sec .title{font-size:clamp(28px,3vw,44px);line-height:1.12}
-@media(min-width:2400px){.sec .title{font-size:48px}}
+/* one section-title size for every section (tokens.css --t-title-*) */
+.sec .title{font-size:var(--t-title-s);line-height:var(--t-title-l);letter-spacing:-.03em}
 /* install band clears the footer by the section rhythm (AD r1 #3) */
 main{padding-bottom:48px}
 

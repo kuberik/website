@@ -3,6 +3,7 @@
 .foot{border-top:1px solid var(--line);padding:64px 0 48px;font:400 14px/22px var(--sans);color:var(--ink-subtle)}
 .foot a:hover{color:var(--ink)}
 .foot .foot-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:40px 24px;align-items:start}
+.foot-brand .logo{color:var(--ink)}
 .foot-brand p{margin:12px 0 0;font:400 14px/22px var(--sans);color:var(--ink-subtle)}
 .foot .foot-col{display:flex;flex-direction:column;align-items:flex-start;gap:2px;margin:0}
 .foot-col h2{margin:0 0 8px;font:600 13px/20px var(--sans);color:var(--ink)}
