@@ -1,25 +1,26 @@
-{{- /* FEATURES (Linear "Features" row + Railway sub-feature anatomy + Vercel's short nouns): six peers, one
-       anatomy. Visual = a card in the dashboard's own grammar (47px header, 16px icon, right rollup, rows with one
-       16px status column), then name, title, two sentences, the resource kinds, one docs link. The six cards tell
-       one consistent set of facts (checkout-api 4.46.0 waits in production for payments-svc 3.1.0 to bake). */ -}}
+{{- /* FEATURES (landing v6, DIRECTION 1.4 + 3): the Linear split head over a planned bento of six cards on the lagoon stage.
+       Each card = its copy (name in the card's hue ink, title, body, docs link) over a tinted canvas holding the real product
+       Card (a section island: the island IS the dashboard Card, header included; the landing draws no card header around it).
+       The row plan lives at the top of assets/css/features.css. Card order and canvas hue come from data/landing.yaml. */ -}}
 {{- $f := site.Data.landing.features -}}
 <section class="sec" id="features" aria-labelledby="features-h">
-  <div class="stage stage-slate">
+  <div class="stage fx-stage">
     <div class="bloom b1"></div><div class="bloom b2"></div>
     <div class="sec-inner">
-      <div class="head">
+      <div class="head fx-head">
         <h2 class="title reveal" id="features-h">{{ $f.title }}</h2>
         <p class="title-body reveal">{{ $f.body }}</p>
       </div>
-      <ul class="feats">
+      <ul class="fx">
         {{- range $f.items }}
-        <li class="feat reveal" id="{{ .id }}">
-          <div class="fv" aria-hidden="true">{{ partial (printf "landing-features/%s.html" .id) $ }}</div>
-          <div class="feat-copy">
-            <h3 class="feat-title">{{ .title }}</h3>
-            <p class="feat-body">{{ .body }}</p>
+        <li class="fx-card fx-{{ .id }} fx-{{ .hue | default "lagoon" }} reveal" id="{{ .id }}">
+          <div class="fx-copy">
+            <p class="fx-name">{{ .name }}</p>
+            <h3 class="fx-title">{{ .title }}</h3>
+            <p class="fx-body">{{ .body }}</p>
             <a class="link-arrow" href="{{ .link.href }}">{{ .link.text }}<svg viewBox="0 0 16 16" width="14" height="14" fill="none" stroke="currentColor" stroke-width="1.5" aria-hidden="true"><path d="M3 8h10M9 4l4 4-4 4" stroke-linecap="round" stroke-linejoin="round"/></svg></a>
           </div>
+          <div class="fx-canvas" aria-hidden="true">{{ partial (printf "landing-features/%s.html" .id) $ }}</div>
         </li>
         {{- end }}
       </ul>
