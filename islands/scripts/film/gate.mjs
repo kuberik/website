@@ -84,16 +84,16 @@ const probe = (t, want = []) => p.evaluate(async ([t, want]) => { const h = docu
   /* WHOLE in frame: the element's card (nearest rounded box) lies inside the window, 1 px slack */
   const whole = Object.fromEntries(want.map((w) => { const e = smallest(new RegExp('^' + w + '$')); const c = e?.closest('[class*="rounded"]') ?? e; if (!c) return [w, 'missing']; const b = c.getBoundingClientRect(); return [w, b.top >= m.top - 1 && b.bottom <= m.bottom + 1 && b.left >= m.left - 1 && b.right <= m.right + 1 ? 'whole' : `cut ${Math.round(b.top - m.top)},${Math.round(m.bottom - b.bottom)},${Math.round(m.right - b.right)}`]; }));
   const all = txt(g);
-  /* scene lane 5: the Gates card (whole in frame, its top held through the approval) and the App page's Pipeline card (all sites) */
+  /* scene lane 5: the Gates card (whole in frame, its top held through the approval) and the App page's Progress card (all sites) */
   const inWin = (c) => { if (!c) return 'missing'; const b = c.getBoundingClientRect(); return b.top >= m.top - 1 && b.bottom <= m.bottom + 1 && b.left >= m.left - 1 && b.right <= m.right + 1 ? 'whole' : 'cut'; };
   const gc = g.querySelector('[data-tour="dependency-graph"]'), hood = g.querySelector('.hood');
-  const ap = smallest(/^Pipeline.*of 7 places/)?.closest('[class*="rounded"]') ?? null;
+  const ap = smallest(/^Progress.*of 7\b/)?.closest('[class*="rounded"]') ?? null;
   const navH = r.querySelector('.film-tabs nav')?.getBoundingClientRect().height ?? 0;
   const lab = ap ? [...ap.querySelectorAll('span,div')].find((e) => txt(e) === 'PROD' && !e.children.length) : null;
   const prodWhole = ap && lab ? (lab.getBoundingClientRect().top >= m.top - 1 && ap.getBoundingClientRect().bottom <= m.bottom - navH + 1 ? 'whole' : 'cut') : 'missing';
-  const kc = r.querySelector('.kc'), tabP = [...r.querySelectorAll('a[title="Pipeline"]')].find((a) => !a.closest('.film-snap')), envP = [...r.querySelectorAll('[data-env-row] [data-env-box]')].find((e) => /^prod$/i.test(txt(e.querySelector('.env-name'))));
+  const kc = r.querySelector('.kc'), tabP = [...r.querySelectorAll('a[title="Progress"]')].find((a) => !a.closest('.film-snap')), envP = [...r.querySelectorAll('[data-env-row] [data-env-box]')].find((e) => /^prod$/i.test(txt(e.querySelector('.env-name'))));
   const at = (el) => { if (!kc || !el || !kc.classList.contains('kc-on')) return false; const k = kc.getBoundingClientRect(), q = el.getBoundingClientRect(); return k.x >= q.left - 2 && k.x <= q.right + 2 && k.y >= q.top - 4 && k.y <= q.bottom + 4; };
-  const cnt = [...g.querySelectorAll('span,div,p')].filter((e) => /^\d+ of 7 places/.test(txt(e)) && e.getClientRects().length && !e.closest('.film-snap')).pop(), cb = cnt?.getBoundingClientRect(); /* scene lane 7 (17d): the count ON SCREEN, not just in the DOM */
+  const cnt = [...g.querySelectorAll('span,div,p')].filter((e) => /^\d+ of 7\b/.test(txt(e)) && e.getClientRects().length && !e.closest('.film-snap')).pop(), cb = cnt?.getBoundingClientRect(); /* scene lane 7 (17d): the count ON SCREEN, not just in the DOM */
   const countOn = cb ? (cb.top >= m.top - 1 && cb.bottom <= m.bottom - navH + 1 && cb.left >= m.left - 1 && cb.right <= m.right + 1 ? txt(cnt) : 'off ' + Math.round(cb.top - m.top)) : 'missing';
   const snapOn = [...r.querySelectorAll('.film-snap')].some((e) => +getComputedStyle(e).opacity > 0.02 && getComputedStyle(e).display !== 'none');
   return { countOn, snapOn, toast: txt(r.querySelector('.film-toast [role="status"]')), tally: r.querySelector('.fc-tally')?.getAttribute('aria-label') ?? '', envs: r.querySelector('.fc-envs')?.getAttribute('aria-label') ?? '', curPipe: at(tabP), curProd: at(envP), press: !!kc?.classList.contains('kc-press'), prodWhole, gatesWhole: inWin(gc), gatesTop: gc ? Math.round(gc.getBoundingClientRect().top) : null, hoodW: hood?.offsetWidth ?? 0, hoodCols: hood ? getComputedStyle(hood.querySelector('.hood-grid') ?? hood).gridTemplateColumns : '', apipe: txt(ap), apWhole: inWin(ap), apRect: rect(ap), surfTab: txt(g.querySelector('[aria-current="page"]')), titles, whole, newTag: !!r.querySelector('.film-new'), release: /4\.46\.0-46/.test(all) && !!r.querySelector('.film-new'), confirm: !!r.querySelector('[data-approve-confirm]'), all: all.slice(0, 4000),
@@ -145,21 +145,21 @@ if (!phoneRun) {
   ok(B[14.8].hcRect === B[15.55].hcRect, `0px: the Health checks card holds its box as checks pass (${B[14.8].hcRect} / ${B[15.55].hcRect})`);
   ok(/Check timer/.test(B[17.0].pipe) && /Bake started/.test(B[17.0].pipe) && wholeOk(17.0), 'Health checks: then the bake holds (Check timer, "Bake started, monitoring for errors.")');
 }
-// all sites: the cursor presses the App page's Pipeline tab (17b); waves 2 and 3 fill it by themselves; it ends all green, held ~3 s (17d)
-ok(B[18.45].curPipe && B[18.45].surfTab !== 'Pipeline', `17b: on the App page the cursor goes to its Pipeline tab (${B[18.45].surfTab})`);
+// all sites: the cursor presses the App page's Progress tab (17b); waves 2 and 3 fill it by themselves; it ends all green, held ~3 s (17d)
+ok(B[18.45].curPipe && B[18.45].surfTab !== 'Progress', `17b: on the App page the cursor goes to its Progress tab (${B[18.45].surfTab})`);
 const A = [19.1, 20.1, 21.3, 22.5, 22.8, 23.8, 26.5];
-ok(A.every((t) => B[t].surfTab === 'Pipeline'), `All sites: the App page's Pipeline tab (${A.map((t) => B[t].surfTab).join('|')})`);
+ok(A.every((t) => B[t].surfTab === 'Progress'), `All sites: the App page's Progress tab (${A.map((t) => B[t].surfTab).join('|')})`);
 const AW = A.filter((t) => !phoneRun || t < 24.9); /* scene lane 7: from 24.9 the phone frames the card's header (17d) */
-ok(AW.every((t) => (phoneRun ? B[t].prodWhole : B[t].apWhole) === 'whole'), `All sites: the Pipeline card (phone: its prod lane, until the end frame) is whole in frame (${AW.map((t) => phoneRun ? B[t].prodWhole : B[t].apWhole).join(' ')})`);
-ok(/3 of 7 places/.test(B[19.1].apipe), `All sites: wave 1 done, waves 2 and 3 not yet (${B[19.1].apipe.slice(0, 40)})`);
-ok(/deploying/.test(B[20.1].apipe) && /checking/.test(B[21.3].apipe) && /[57] of 7 places/.test(B[22.5].apipe), 'All sites: wave 2 deploys, checks, then is green (scene lane 7: wave 3 takes the build as wave 2 settles, so the count is 7 assigned from 22.1)');
-ok(/deploying/.test(B[22.8].apipe) && /checking/.test(B[23.8].apipe) && /7 of 7 places/.test(B[26.5].apipe) && !/deploying|checking/.test(B[26.5].apipe), 'All sites: wave 3 the same; the end is every place green, "7 of 7 places"');
+ok(AW.every((t) => (phoneRun ? B[t].prodWhole : B[t].apWhole) === 'whole'), `All sites: the Progress card (phone: its prod lane, until the end frame) is whole in frame (${AW.map((t) => phoneRun ? B[t].prodWhole : B[t].apWhole).join(' ')})`);
+ok(/3 of 7\b/.test(B[19.1].apipe), `All sites: wave 1 done, waves 2 and 3 not yet (${B[19.1].apipe.slice(0, 40)})`);
+ok(/deploying/.test(B[20.1].apipe) && /checking/.test(B[21.3].apipe) && /[57] of 7\b/.test(B[22.5].apipe), 'All sites: wave 2 deploys, checks, then is green (scene lane 7: wave 3 takes the build as wave 2 settles, so the count is 7 assigned from 22.1)');
+ok(/deploying/.test(B[22.8].apipe) && /checking/.test(B[23.8].apipe) && /7 of 7\b/.test(B[26.5].apipe) && !/deploying|checking/.test(B[26.5].apipe), 'All sites: wave 3 the same; the end is every place green, "7 of 7 places"');
 ok(!/[Mm]erged/.test(B[26.5].all), 'All sites: Released, never merged');
 ok(/prod: .*(done|healthy|deployed|up to date)/i.test(B[26.5].envs) || !/not reached|deploying|checking/i.test(B[26.5].envs), `17a: the strip is full at the end (${B[26.5].envs})`);
-if (!phoneRun) ok(A.every((t) => near(B[t].apRect?.split(',').slice(0, 3).join(','), B[19.1].apRect?.split(',').slice(0, 3).join(','))), `0px: the Pipeline card holds its place while the waves fill (${A.map((t) => B[t].apRect).join(' / ')})`);
+if (!phoneRun) ok(A.every((t) => near(B[t].apRect?.split(',').slice(0, 3).join(','), B[19.1].apRect?.split(',').slice(0, 3).join(','))), `0px: the Progress card holds its place while the waves fill (${A.map((t) => B[t].apRect).join(' / ')})`);
 if (phoneRun) ok(B[2.25].curProd, `17b (phone): the release beat ends on a tap on prod in the App page's strip (${B[2.25].curProd})`);
 /* scene lane 7 (AD r1 P0-1, 17f): the approved state is LIVE (no cover still) for >= 0.5 s before the build moves at 9.8 */
 ok(!B[9.4].snapOn && /Approved|Nothing is holding/.test(B[9.4].all) && (phoneRun || !/runs 4\.46\.0-46/.test(B[9.4].all)), `17f: at 9.4 the approval is live (no still) and the build has not moved yet (snap ${B[9.4].snapOn})`);
 /* scene lane 7 (AD r1 P0-2, 17d): the held end shows the product's count ON SCREEN */
-ok(/^7 of 7 places/.test(B[28.0].countOn), `17d: the held end shows "7 of 7 places" on screen (${B[28.0].countOn})`);
+ok(/^7 of 7\b/.test(B[28.0].countOn), `17d: the held end shows "7 of 7 places" on screen (${B[28.0].countOn})`);
 await b.close(); process.exit(bad.length ? 1 : 0);

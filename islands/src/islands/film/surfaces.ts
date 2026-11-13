@@ -47,7 +47,7 @@ export function surfaceProps(s: Surf, ei: number): Record<string, unknown> {
 	const keep = lastChange ? { change: lastChange, checks: null } : {};
 	if (s === 'change') return { ...keep, scenario: 'incident', checks: null };
 	if (isRollout(s)) return { ...keep, Tab: tabComp[s] };
-	if (s === 'app' || s === 'pipe') return { ...keep, state: 'incident', name: APP, tab: s === 'pipe' ? 'pipeline' : 'overview' };
+	if (s === 'app' || s === 'pipe') return { ...keep, state: 'incident', name: APP, tab: s === 'pipe' ? 'progress' : 'overview' };
 	return { ...keep, state: 'incident' };
 }
 const base = `/rollouts/${CLUSTER}/${NS}/${APP}`;
@@ -58,7 +58,7 @@ export const SURFACE_PATH: Record<Surf, { url: URL; route: { id: string }; param
 	rollouts: at('/rollouts', '/rollouts'),
 	envs: at('/environments', '/environments'),
 	app: at(`/apps/${APP}`, '/apps/[name]', { name: APP }),
-	pipe: at(`/apps/${APP}/pipeline`, '/apps/[name]/pipeline', { name: APP }),
+	pipe: at(`/apps/${APP}/progress`, '/apps/[name]/progress', { name: APP }),
 	overview: at(base, '/rollouts/[cluster]/[namespace]/[name]', R),
 	stg: at(`/rollouts/${CLUSTER}/checkout-api-staging/${APP}`, '/rollouts/[cluster]/[namespace]/[name]', { ...R, namespace: 'checkout-api-staging' }),
 	gates: at(`${base}/gates`, '/rollouts/[cluster]/[namespace]/[name]/gates', R),

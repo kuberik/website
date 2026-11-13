@@ -4,7 +4,7 @@
 	import Layout from '$lib/../routes/apps/[name]/+layout.svelte';
 	import AppDetail from '$lib/components/new/app/AppDetail.svelte';
 	import { provideShellChrome } from '$lib/shell-chrome.svelte';
-	let { state, name, tab = 'overview' }: { state: any; name: string; tab?: 'overview' | 'pipeline' } = $props();
+	let { state, name, tab = 'overview' }: { state: any; name: string; tab?: 'overview' | 'progress' } = $props();
 	const chrome = provideShellChrome();
 </script>
 {#if chrome.tabStrip}{@render chrome.tabStrip()}{/if}

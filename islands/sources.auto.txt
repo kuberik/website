@@ -144,7 +144,6 @@ lib/components/new/mini-pipeline.ts
 lib/components/new/rollout-view.ts
 lib/components/new/rollouts-page.ts
 lib/components/new/scenario.ts
-lib/components/new/stages/ReleaseCommits.svelte
 lib/components/new/stages/Stages.svelte
 lib/components/new/stages/stages-model.ts
 lib/components/new/state-words.ts
@@ -161,7 +160,7 @@ lib/env-order.ts
 lib/environment-theme.ts
 lib/git-ref.ts
 lib/github-avatar.ts
-lib/graph-arrow.ts
+lib/graph-wire.ts
 lib/health-check-key.ts
 lib/history-deeplink.ts
 lib/history-marks.ts

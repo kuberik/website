@@ -105,8 +105,10 @@ export const COVER_DESKTOP_AT: number[] = [EV.hcLat]; /* scene lane 7 (AD r2 P0-
 /** the reflows that PLAY as a slide (flip.ts, by transform: no layout shift): the release's stop entering the Builds card, staging stepping onto it,
  *  and its pipeline closing again, the approved card leaving the Rollouts list, each wave's regions stepping onto the release (rows travel, flip.ts) */
 export const FLIP_AT: number[] = [EV.approved]; /* scene lane 7 (AD r2 P0-1, items 10/16): the approval landing (the banner loses a line, the graph rises 24 px, the passed tile re-sorts) plays live as a 300 ms slide: no still that does not match, no double print */ /* scene lane 3: the only reflow on screen: History logs dev's then staging's deploy at its top, and the rows under it slide down one row (flip.ts) */ /* lane 35: the release is there at t=0, staging plays on the Change page's fixed strip, the approve beat cuts before its list re-sorts; only a wave starting adds its event at the top of History (newest first), and the rows under it slide down one row */
-export const flipEvent = (t: number, phone: boolean) => !phone && FLIP_AT.some((c) => Math.abs(t - c) < 0.35);
-export function coverEvent(t: number, phone: boolean): boolean { return phone || COVER_DESKTOP_AT.some((c) => Math.abs(t - c) < 0.35); }
+/* scene lane 8 (lane 7 OPEN 1): the phone's approval landing slides too (no still: the pre-approval still froze ~0.45 s); its sheet copy fades over the slide */
+const nearFlip = (t: number) => FLIP_AT.some((c) => Math.abs(t - c) < 0.35);
+export const flipEvent = (t: number, phone: boolean) => { void phone; return nearFlip(t); };
+export function coverEvent(t: number, phone: boolean): boolean { return phone ? !nearFlip(t) : COVER_DESKTOP_AT.some((c) => Math.abs(t - c) < 0.35); }
 
 /** the NEW tag: on the newest build's line in the Builds card from the first frame; it shines once, after the loop's wrap dissolve has cleared */
 export const NEW_AT = EV.release;

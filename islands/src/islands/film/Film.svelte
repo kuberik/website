@@ -111,14 +111,18 @@ import { flipRecord, flipPlay, type Pos } from './flip';
 		   lives OUTSIDE the group, so a still of the group alone dropped it: for the length of the cut's dissolve the card sat there again asking for approval.
 		   A cut's still carries a copy of it, so the cut lands on the pressed confirm and dissolves from it. */
 		if ((kind === 'cut' || approvalUi.ask) && canvas) { /* scene lane 6: an event still taken while the confirm is open (the approval landing) carries it too, so the phone's scrim dissolves with it instead of vanishing in one frame */
-			const ex: HTMLElement[] = [];
-			for (const d of canvas.querySelectorAll<HTMLElement>('[data-approve-confirm]')) {
-				const sc0 = d.previousElementSibling as HTMLElement | null;
-				for (const e of [sc0 && sc0.classList.contains('inset-0') ? sc0 : null, d]) if (e) { const k2 = e.cloneNode(true) as HTMLElement; k2.removeAttribute('data-approve-confirm'); k2.setAttribute('aria-hidden', 'true'); k2.style.pointerEvents = 'none'; ex.push(k2); }
-			}
-			(c as any).__extra = ex;
+			(c as any).__extra = confirmCopies();
 		}
 		return c;
+	}
+	/** copies of the product's approval layer (the phone: scrim + sheet; desktop: the popover), inert, for a still or a fade to carry */
+	function confirmCopies(): HTMLElement[] {
+		const ex: HTMLElement[] = []; if (!canvas) return ex;
+		for (const d of canvas.querySelectorAll<HTMLElement>('[data-approve-confirm]')) {
+			const sc0 = d.previousElementSibling as HTMLElement | null;
+			for (const e of [sc0 && sc0.classList.contains('inset-0') ? sc0 : null, d]) if (e) { const k2 = e.cloneNode(true) as HTMLElement; k2.removeAttribute('data-approve-confirm'); k2.setAttribute('aria-hidden', 'true'); k2.style.pointerEvents = 'none'; ex.push(k2); }
+		}
+		return ex;
 	}
 	/** a still and the overlay copies it carries (on the phone they sit over the canvas, beside the real layer) */
 	function dropSnap(c: HTMLElement) { c.remove(); for (const e of (c as any).__extra ?? []) e.remove(); for (const e of (c as any).__real ?? []) e.style.visibility = ''; }
@@ -160,7 +164,20 @@ import { flipRecord, flipPlay, type Pos } from './flip';
 		for (const e of phone ? (c as any).__extra ?? [] : []) e.animate([{ opacity: 1 }, { opacity: 0 }], { duration: fade, easing: "ease-out", fill: "forwards" });
 		c.animate([{ opacity: 1 }, { opacity: 0 }], { duration: fade, easing: "ease-out", fill: "forwards" }).finished.then(done, done);
 	}
-	let preEi = -2, preSnap: { el: HTMLElement | null; h: number; flip: Pos | null; rec: Pos | null } | null = null;
+	let preEi = -2, preSnap: { el: HTMLElement | null; h: number; flip: Pos | null; rec: Pos | null; sheet?: HTMLElement[]; cy?: number } | null = null;
+	/* scene lane 8 (lane 7 OPEN 1): the phone's approval landing plays as the desktop's does, a live slide (no still froze the pre-approval frame ~0.45 s). The product
+	   unmounts its sheet + scrim in one frame, so a copy of them is laid over the canvas BEFORE the DOM re-renders (the real ones hidden) and fades over 200 ms */
+	function sheetStandIn(): HTMLElement[] {
+		if (!canvas || !phone) return [];
+		const ex = confirmCopies(); if (!ex.length) return [];
+		for (const e of ex) canvas.appendChild(e);
+		for (const d of canvas.querySelectorAll<HTMLElement>('[data-approve-confirm]')) { d.style.visibility = 'hidden'; const sc0 = d.previousElementSibling as HTMLElement | null; if (sc0?.classList.contains('inset-0')) sc0.style.visibility = 'hidden'; }
+		return ex;
+	}
+	function fadeStandIn(ex: HTMLElement[] | undefined, ms = 200) {
+		for (const e of ex ?? []) { if (!e.isConnected || (e as any).__fading) continue; (e as any).__fading = true; e.animate([{ opacity: 1 }, { opacity: 0 }], { duration: ms, easing: 'ease-out', fill: 'forwards' }).finished.then(() => e.remove(), () => e.remove()); }
+		/* the real sheet stays hidden until the product unmounts it (shown again it popped the scrim back for a frame); the next ask mounts a new one */
+	}
 	/* the loop wrap (AD r8 P3-1): a still of the finale AS IT IS, taken before the DOM re-renders with the opening's data, keeps the finale's framing on itself
 	   while the camera goes home at once; the opening page then lays out at rest under it and the still fades (show() reveals it). Easing the camera home over
 	   the incoming page showed it mid-move (the chip row's foot under the top bar at 47.5) */
@@ -191,16 +208,31 @@ import { flipRecord, flipPlay, type Pos } from './flip';
 	});
 	$effect.pre(() => {
 		const ei = eventIdx;
-		untrack(() => { if (ei === preEi) return; preEi = ei; preSnap = !group || swapping || hid || reduced || !shown ? null : { el: coverEvent(t, CW < 1000) ? takeSnap('event') : null, h: group.offsetHeight, flip: flipEvent(t, CW < 1000) && !(globalThis as any).__kfNoSnap?.includes('flip') ? flipRecord(group, unit()) : null, rec: CW < 640 && coverEvent(t, true) && !(globalThis as any).__kfNoSnap?.includes('slide') ? flipRecord(group, unit()) : null }; });
+		untrack(() => { if (ei === preEi) return; preEi = ei; fadeStandIn(preSnap?.sheet, 0); preSnap = !group || swapping || hid || reduced || !shown ? null : { el: coverEvent(t, CW < 1000) ? takeSnap('event') : null, h: group.offsetHeight, flip: flipEvent(t, CW < 1000) && !(globalThis as any).__kfNoSnap?.includes('flip') ? flipRecord(group, unit()) : null, rec: CW < 640 && coverEvent(t, true) && !(globalThis as any).__kfNoSnap?.includes('slide') ? flipRecord(group, unit()) : null }; if (preSnap?.flip && phone) { preSnap.sheet = sheetStandIn(); preSnap.cy = cam.y; } });
 	});
 	$effect(() => {
 		void eventIdx;
 		untrack(() => {
 			const p = preSnap; preSnap = null; if (!p || !group) return;
 			if (p.flip) { /* scene lane 7: the product's reflow can land a few frames after the event (the approval's own update): wait for it, up to 0.9 s, and release the slide in the same animation frame it is laid out, before it is painted */
-				const rec = p.flip, h0 = p.h, t0 = performance.now();
-				const step = () => { if (!group || swapping || hid) return; if (Math.abs(group.offsetHeight - h0) >= 3 || performance.now() - t0 > 900) { flipPlay(group, rec, unit(), 300); return; } requestAnimationFrame(step); };
-				void tick().then(() => requestAnimationFrame(step)); return; } /* the product's one-step reflow plays as a slide by transform (flip.ts): no layout shift */
+				const rec = p.flip, h0 = p.h, t0 = performance.now(), sheet = p.sheet;
+				const step = () => {
+					if (!group || swapping || hid) { fadeStandIn(sheet, 0); return; }
+					if (sheet?.length && canvas && !canvas.querySelector('[data-approve-confirm]')) fadeStandIn(sheet); /* the product closed its sheet: the copy fades over the page */
+					if (Math.abs(group.offsetHeight - h0) >= 3 || performance.now() - t0 > 900) {
+						if (phone) { phoneAnchor(); const d = cam.y - (p.cy ?? cam.y); if (d) for (const v of rec.values()) v.y -= d; } /* whoever re-anchored the camera since the record (the aim's refine too) */ /* the phone frame keeps its subject where it stood; the slide starts from what was on screen */
+						flipPlay(group, rec, unit(), 300); fadeStandIn(sheet);
+						if (phone) { /* scene lane 8: the product closes its sheet a frame or two later and re-lays once more (+42 px): follow it for 400 ms, each JUMP (>= 12 px; the product's own height transitions are left alone) slid from where it was drawn */
+							let last = flipRecord(group, unit()), lh = group.offsetHeight; const f0 = performance.now();
+							const check = () => { if (!group || swapping || hid) return false; if (Math.abs(group.offsetHeight - lh) >= 12) { const c0 = cam.y; phoneAnchor(); const d = cam.y - c0; if (d) for (const v of last.values()) v.y -= d; flipPlay(group, last, unit(), 300); } lh = group.offsetHeight; last = flipRecord(group, unit()); return true; };
+							const follow = () => { if (performance.now() - f0 > 450 || !check()) return; requestAnimationFrame(follow); };
+							void tick().then(check).then(() => tick()).then(check); /* the close lands in a later flush of the same frame: caught before it is painted */
+							requestAnimationFrame(follow);
+							/* the product re-measures in its own ResizeObservers (after rAF, before the paint): a resize observer of ours sees that round before it is painted too */
+							const ro = new ResizeObserver(() => { if (performance.now() - f0 > 450) { ro.disconnect(); return; } check(); }); ro.observe(group); setTimeout(() => ro.disconnect(), 500); }
+						return; }
+					requestAnimationFrame(step); };
+				void tick().then(step); return; } /* scene lane 8: first look right after the DOM update (a microtask, before the paint): a reflow that lands with the event is slid before it is ever painted */ /* the product's one-step reflow plays as a slide by transform (flip.ts): no layout shift */
 			if (!p.el) return;
 			void tick().then(() => tick()).then(async () => {
 				if (!group || swapping || hid) return;
@@ -291,7 +323,8 @@ import { flipRecord, flipPlay, type Pos } from './flip';
 		}
 		const el = resolveTarget(m.to, camEl, true); if (!el) return 0; /* the subject left (the approved card): the frame stays */
 		const r = relRect(el), vh = main.clientHeight, gh = group.offsetHeight;
-		const y = Math.min(0, Math.max(Math.min(0, vh - gh), -(phoneOff !== null ? Math.max(0, r.y + phoneOff) : phoneTop(r)))), d = y - cam.y; /* the subject stays where the move's aim put it (a re-snapped foot would slide the whole page) */
+		const nav = canvas?.querySelector<HTMLElement>('.film-tabs nav')?.offsetHeight ?? 0; /* scene lane 8: as phoneTop */
+		const y = Math.min(0, Math.max(Math.min(0, vh - gh - nav), -(phoneOff !== null ? Math.max(0, r.y + phoneOff) : phoneTop(r)))), d = y - cam.y; /* the subject stays where the move's aim put it (a re-snapped foot would slide the whole page) */
 		if (Math.abs(d) < 3 || cam.s !== 1) return 0;
 		cam = { ...cam, y, dur: 0, moving: false };
 		return d;
@@ -320,7 +353,7 @@ import { flipRecord, flipPlay, type Pos } from './flip';
 		const bx = boxRects({ x: -1, y: -1, w: 0, h: 0 });
 		/* scene lane 6: a frame edge never shows the first (or last) few px of a box either: the sliver of a card's top border under the Gates card (each box's two edge bands) */
 		const rects = [...textRects(false), ...bx.filter((b) => b.h < 56), ...bx.filter((b) => b.h >= 56).flatMap((b) => [{ x: b.x, y: b.y, w: b.w, h: 6 }, { x: b.x, y: b.y + b.h - 6, w: b.w, h: 6 }])].map((q) => ({ x: q.x, y: q.y - 3, w: q.w, h: q.h + 6 }));
-		const p = freeStart(Math.max(0, pref - 100), Math.min(pref, Math.max(0, gh - main.clientHeight)), len, spansIn(rects, 'y', 0, vw), pref);
+		const p = freeStart(Math.max(0, pref - 100), Math.min(pref, Math.max(0, gh - main.clientHeight + nav)) /* scene lane 8: the product reserves the bottom nav's height under its last card (its shell's padding, outside the film's group): the frame may scroll that far */, len, spansIn(rects, 'y', 0, vw), pref);
 		return p ?? pref;
 	}
 	let refineTimer: ReturnType<typeof setTimeout> | undefined, refine2Timer: ReturnType<typeof setTimeout> | undefined, refine3Timer: ReturnType<typeof setTimeout> | undefined;
@@ -393,7 +426,7 @@ import { flipRecord, flipPlay, type Pos } from './flip';
 		}
 		if (mk && !memo && final) AIM_MEMO.set(mk, { x, y, s });
 		x = Math.min(0, Math.max(Math.min(0, vw - s * gw), x));
-		y = Math.min(0, Math.max(Math.min(0, vh - s * gh), y));
+		y = Math.min(0, Math.max(Math.min(0, vh - s * gh - (phone && s === 1 ? canvas?.querySelector<HTMLElement>('.film-tabs nav')?.offsetHeight ?? 0 : 0)), y)); /* scene lane 8: the phone may scroll the bottom nav's height past the last card (the product's shell reserves it) */
 		/* the ONE dim (L1/L2): the product's ink at 38% over everything but the target, shell included. The hole is the target's own rect and corner radius. */
 		const wantDim = !!el && !!m.dim && !reduced;
 		shadeOn = wantDim; /* 'shade' = the shell only (the dialog's own scrim dims the page) */

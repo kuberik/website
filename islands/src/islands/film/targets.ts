@@ -36,7 +36,7 @@ function resolve(name: string, root: ParentNode, phone: boolean): HTMLElement | 
 		case 'approve-confirm': return q('[data-action="approve-confirm"]');
 		/* scene lane 6 (item 17b): the prod box of the page header's environment strip (staging's rollout page), and the App page's Pipeline tab */
 		case 'env-prod': return [...root.querySelectorAll<HTMLElement>('[data-env-row] [data-env-box]')].find((b) => !b.closest('.film-snap') && /^prod$/i.test(text(b.querySelector('.env-name')))) ?? null;
-		case 'tab-pipeline': return [...root.querySelectorAll<HTMLElement>('a[title="Pipeline"]')].find((a) => !a.closest('.film-snap')) ?? null;
+		case 'tab-pipeline': return [...root.querySelectorAll<HTMLElement>('a[title="Progress"]')].find((a) => !a.closest('.film-snap')) ?? null;
 		case 'attention': return q('[data-approve-open]')?.closest<HTMLElement>('[class*="rounded"]') ?? null;
 		case 'banner-rollback': return byText(root, 'button, a', /^Roll back$/);
 		/* the whole dialog, title included (AD r4: the title was off-screen 35.8-38 s); it fits the window at about 1.06x */
@@ -70,12 +70,12 @@ function resolve(name: string, root: ParentNode, phone: boolean): HTMLElement | 
 		case 'gate-release': return byText(root, 'div,span,p,h3,h4', /^Release approval$/)?.closest<HTMLElement>('[class*="rounded"]') ?? null;
 		/* scene lane 4: the Gates tab's graph: every gate card (staging's promotion, Release approval, Business hours) and this rollout, as one rect (the frame's foot is the lowest gate) */
 		case 'pipe-prod': { /* scene lane 5: the App Pipeline card's prod lane, from its PROD label to the card's foot (the phone stacks the stages: dev and staging above, scrolled past) */
-			const card = [...root.querySelectorAll<HTMLElement>('div,span,h2,h3')].filter((e) => text(e) === 'Pipeline' && !e.closest('a, .film-snap')).pop()?.closest<HTMLElement>('[class*="rounded"]'); /* scene lane 6: not the App page's Pipeline TAB (its label is the same word) */ const lab = card?.querySelector<HTMLElement>('[data-stage-col="prod"]') ?? null; /* scene lane 6: the stage column's own key (its chip's text is lower case, drawn upper case by CSS) */
+			const card = [...root.querySelectorAll<HTMLElement>('div,span,h2,h3')].filter((e) => text(e) === 'Progress' && !e.closest('a, .film-snap')).pop()?.closest<HTMLElement>('[class*="rounded"]'); /* scene lane 6: not the App page's Pipeline TAB (its label is the same word) */ const lab = card?.querySelector<HTMLElement>('[data-stage-col="prod"]') ?? null; /* scene lane 6: the stage column's own key (its chip's text is lower case, drawn upper case by CSS) */
 			if (!card || !lab) return null;
 			return { getBoundingClientRect() { const c = card.getBoundingClientRect(), l = lab.getBoundingClientRect(); return new DOMRect(c.left, l.top, c.width, c.bottom - l.top); } } as unknown as HTMLElement; }
 		case 'gates-card': return root.querySelector<HTMLElement>('[data-tour="dependency-graph"]');
 		/* scene lane 7 (AD r1 P0-2, item 17d on the phone): the App Pipeline card from its header ("7 of 7 places"), for the last held frame */
-		case 'pipe-head': return [...root.querySelectorAll<HTMLElement>('div,span,h2,h3')].filter((e) => text(e) === 'Pipeline' && !e.closest('a, .film-snap')).pop()?.closest<HTMLElement>('[class*="rounded"]') ?? null;
+		case 'pipe-head': return [...root.querySelectorAll<HTMLElement>('div,span,h2,h3')].filter((e) => text(e) === 'Progress' && !e.closest('a, .film-snap')).pop()?.closest<HTMLElement>('[class*="rounded"]') ?? null;
 		/* scene lane 6 (the phone, the product's list form at 390): the Gates card from its banner ("Needs your approval in prod" / "Nothing is holding this rollout")
 		   to its last gate tile: the card's title row does not fit above four whole tiles in the phone's window */
 		case 'gates-phone': {
