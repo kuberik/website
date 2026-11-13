@@ -32,6 +32,7 @@
   --mono:'Kuberik Page Mono',ui-monospace,'SF Mono',Menlo,monospace;
   color-scheme:light}
 html.dark{
+  --st-hero:linear-gradient(180deg,oklch(.27 .045 186),oklch(.235 .03 206));
   --hero-shadow:0 0 0 1px oklch(1 0 0/.04),0 12px 32px -14px rgba(0,0,0,.42);
   --page:#0e1619;            /* --k-ground */
   --page-alt:#162024;        /* --k-surface */
@@ -69,6 +70,8 @@ html.dark{
   /* card shell: features cards and code windows share radius and border */
   --card-r:12px;--card-border:var(--line);--card-fill:var(--page);
   --card-shadow:0 1px 2px oklch(.195 .014 222/.05),0 12px 32px -12px oklch(.195 .014 222/.14);
+  /* hero stage gradient, shared by the install stage (the page opens and closes on the same mint) */
+  --st-hero:linear-gradient(180deg,oklch(.955 .045 182),oklch(.965 .03 206));
   /* lagoon stage (features) */
   --st-lagoon-v6:linear-gradient(180deg,oklch(.96 .035 206),oklch(.972 .02 196));
   /* canvas tints inside feature cards (alternating) */

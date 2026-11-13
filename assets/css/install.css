@@ -40,3 +40,6 @@
   .term pre{font-size:12px;padding:14px 16px}
 }
 @media(min-width:2400px){.term pre{font-size:14px}}
+
+/* AD r1: the install stage is the hero's mint (DIRECTION 1.6), not the older near-black --st-mint */
+#install .stage-mint{background:var(--st-hero)}

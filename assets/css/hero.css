@@ -2,8 +2,8 @@
 /* STRADDLE: --win-below is the share of the window that lies below the stage's bottom edge (45% desktop, 30% at 390).
    The window is pulled down by that much, and the stage's own bottom margin carries it plus 72px of page ground before #integrations. */
 .stage-hero{display:flow-root;--win-below:.45;margin-top:16px;overflow:visible;background:var(--hero-bg);margin-bottom:calc(var(--win-h)*var(--win-below) + 72px);
-  --hero-bg:linear-gradient(180deg,oklch(.955 .045 182),oklch(.965 .03 206));--hero-bloom-a:oklch(.88 .09 182/.6);--hero-bloom-b:oklch(.9 .06 206/.6);--bloom:1}
-html.dark .stage-hero{--hero-bg:linear-gradient(180deg,oklch(.27 .045 186),oklch(.235 .03 206));--bloom:.35;--hero-bloom-a:oklch(.88 .09 182/.6);--hero-bloom-b:oklch(.9 .06 206/.6)}
+  --hero-bg:var(--st-hero);--hero-bloom-a:oklch(.88 .09 182/.6);--hero-bloom-b:oklch(.9 .06 206/.6);--bloom:1}
+html.dark .stage-hero{--hero-bg:var(--st-hero);--bloom:.35;--hero-bloom-a:oklch(.88 .09 182/.6);--hero-bloom-b:oklch(.9 .06 206/.6)}
 .stage-hero::before{border-radius:inherit;background:radial-gradient(circle,oklch(.195 .014 222/.07) 1px,transparent 1.2px) 0 0/20px 20px}
 html.dark .stage-hero::before{background:radial-gradient(circle,oklch(.965 .005 222/.07) 1px,transparent 1.2px) 0 0/20px 20px}
 .stage-bg{position:absolute;inset:0;z-index:-1;border-radius:inherit;overflow:hidden;pointer-events:none}
