@@ -174,6 +174,19 @@ import { flipRecord, flipPlay, type Pos } from './flip';
 		for (const d of canvas.querySelectorAll<HTMLElement>('[data-approve-confirm]')) { d.style.visibility = 'hidden'; const sc0 = d.previousElementSibling as HTMLElement | null; if (sc0?.classList.contains('inset-0')) sc0.style.visibility = 'hidden'; }
 		return ex;
 	}
+	/** scene lane 8: the phone's approval re-lays the Gates card (its banner loses a line ABOVE the tiles): the camera keeps the top line of the frame (GATED BY) where it was
+	 *  drawn, so the tiles and the rollout node stay framed as before; returns the camera's change (canvas px) for the slide to start from what was on screen */
+	function keepTop(before: Pos): number {
+		if (!group || !main) return 0;
+		const top = -cam.y; let best: HTMLElement | null = null, by = 0;
+		for (const [e, v] of before) { if (typeof e === 'string' || !(e as HTMLElement).isConnected || v.y < top || v.y > top + 80) continue; const h = (e as HTMLElement).offsetHeight; if (h > 40 || h < 6) continue; if (!best || v.y < by) { best = e as HTMLElement; by = v.y; } }
+		if (!best) return 0;
+		const g = group.getBoundingClientRect(), ny = (best.getBoundingClientRect().top - g.top) / unit(), delta = ny - by;
+		if (Math.abs(delta) < 1) return 0;
+		const nav = canvas?.querySelector<HTMLElement>('.film-tabs nav')?.offsetHeight ?? 0;
+		const y = Math.min(0, Math.max(main.clientHeight - group.offsetHeight - nav, cam.y - delta)), d = y - cam.y;
+		cam = { ...cam, y, dur: 0, moving: false }; return d;
+	}
 	function fadeStandIn(ex: HTMLElement[] | undefined, ms = 200) {
 		for (const e of ex ?? []) { if (!e.isConnected || (e as any).__fading) continue; (e as any).__fading = true; e.animate([{ opacity: 1 }, { opacity: 0 }], { duration: ms, easing: 'ease-out', fill: 'forwards' }).finished.then(() => e.remove(), () => e.remove()); }
 		/* the real sheet stays hidden until the product unmounts it (shown again it popped the scrim back for a frame); the next ask mounts a new one */
@@ -220,11 +233,11 @@ import { flipRecord, flipPlay, type Pos } from './flip';
 					if (!group || swapping || hid) { fadeStandIn(sheet, 0); return; }
 					if (sheet?.length && canvas && !canvas.querySelector('[data-approve-confirm]')) fadeStandIn(sheet); /* the product closed its sheet: the copy fades over the page */
 					if (Math.abs(group.offsetHeight - h0) >= 3 || performance.now() - t0 > 900) {
-						if (phone) { phoneAnchor(); const d = cam.y - (p.cy ?? cam.y); if (d) for (const v of rec.values()) v.y -= d; } /* whoever re-anchored the camera since the record (the aim's refine too) */ /* the phone frame keeps its subject where it stood; the slide starts from what was on screen */
+						if (phone) { const d = keepTop(rec); if (d) for (const v of rec.values()) v.y -= d; } /* whoever re-anchored the camera since the record (the aim's refine too) */ /* the phone frame keeps its subject where it stood; the slide starts from what was on screen */
 						flipPlay(group, rec, unit(), 300); fadeStandIn(sheet);
 						if (phone) { /* scene lane 8: the product closes its sheet a frame or two later and re-lays once more (+42 px): follow it for 400 ms, each JUMP (>= 12 px; the product's own height transitions are left alone) slid from where it was drawn */
 							let last = flipRecord(group, unit()), lh = group.offsetHeight; const f0 = performance.now();
-							const check = () => { if (!group || swapping || hid) return false; if (Math.abs(group.offsetHeight - lh) >= 12) { const c0 = cam.y; phoneAnchor(); const d = cam.y - c0; if (d) for (const v of last.values()) v.y -= d; flipPlay(group, last, unit(), 300); } lh = group.offsetHeight; last = flipRecord(group, unit()); return true; };
+							const check = () => { if (!group || swapping || hid) return false; if (Math.abs(group.offsetHeight - lh) >= 12) { const d = keepTop(last); if (d) for (const v of last.values()) v.y -= d; flipPlay(group, last, unit(), 300); } lh = group.offsetHeight; last = flipRecord(group, unit()); return true; };
 							const follow = () => { if (performance.now() - f0 > 450 || !check()) return; requestAnimationFrame(follow); };
 							void tick().then(check).then(() => tick()).then(check); /* the close lands in a later flush of the same frame: caught before it is painted */
 							requestAnimationFrame(follow);
