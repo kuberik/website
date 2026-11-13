@@ -310,7 +310,7 @@ function staircase(name, k, { room }) {
 		const e = env[i];
 		b += plate({ px: 0, py: e.py, z: e.z, t: T + e.z, cls: i === 2 ? 'is-healthy' : '', ring: i !== 2 });
 		if (i === 2) {
-			b += ring({ px: CX, py: e.py + CX, z: e.z, r: 1.5 * U, cls: `fig-ring-rest m6 m6-${k}-lit` });
+			b += ring({ px: CX, py: e.py + CX, z: e.z, r: 2.5 * U, cls: `fig-ring-rest m6 m6-${k}-lit` });
 			b += ring({ px: CX, py: e.py + CX, z: e.z, r: 3.5 * U, cls: `m6 m6-${k}-pulse` });
 		}
 	}
@@ -338,7 +338,7 @@ function staircase(name, k, { room }) {
 	emit(name, `<div class="stair stair-${k}" style="aspect-ratio:${vb[2]}/${vb[3]}">${html}${chips}</div>`);
 }
 staircase('staircase-done', 'st', { room: 116 });
-staircase('staircase-done-compact', 'stc', { room: 150 });
+staircase('staircase-done-compact', 'stc', { room: 240 }); // at 350 px wide (390) the chips get ~126 px; needs the wrapper at 100% (lane D, install.css)
 
 // ---- the stylesheet half ---------------------------------------------------------------------------
 // One marked block at the end of assets/css/thesis.css: the hand-written fig tokens and rules

@@ -31,7 +31,7 @@ html.dark .fig6,html.dark .stair{
   --fig-ghost:oklch(.62 .03 200);
   --fig-teal:#3ad9c6;
   --fig-teal-tint:oklch(.36 .06 184);
-  --fig-wire:oklch(.52 .02 222);      /* --k-wire is .38 on the dashboard's .195 canvas; on the .3 plate it vanishes, so one step up */
+  --fig-wire:oklch(.6 .02 222);       /* --k-wire is .38 on the dashboard's .195 canvas; on the .3 mint plate it vanishes, so two steps up */
   --fig-held:oklch(.72 .16 50);       /* --k-held-solid, dark */
   --fig-held-tint:oklch(.318 .068 50);
   --fig-cube-t:#8cf4e4;--fig-cube-l:#3ad9c6;--fig-cube-r:#14867b;

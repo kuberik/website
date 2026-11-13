@@ -27,7 +27,7 @@ html.dark #how-it-works{--thesis-rest:oklch(.8 .07 200);--own-line:#3ad9c6;--nod
 
 /* the loop: >= 1024 one row of five equal cells, the rail under the figs at caption level */
 .figs{--fig-gap:24px;list-style:none;margin:var(--head-gap) 0 0;padding:0;display:grid;grid-template-columns:repeat(5,minmax(0,1fr));column-gap:var(--fig-gap)}
-.fig-cell{position:relative;display:flex;flex-direction:column;min-width:0}
+.figs .fig-cell{position:relative;display:flex;flex-direction:column;min-width:0}
 .fig-art{display:block;aspect-ratio:372/252;margin:0 0 20px}
 .fig-art .fig6{width:100%;height:100%}
 @media(min-width:641px){.fig-art{margin-inline:calc(var(--fig-gap) / -2)}}   /* the drawing may use the gutter: the plates read ~10% larger, the captions keep the column edge */
@@ -56,11 +56,11 @@ html.dark #how-it-works{--thesis-rest:oklch(.8 .07 200);--own-line:#3ad9c6;--nod
   .fig-cap{flex-wrap:wrap;gap:4px 8px}.fig-own{margin-left:0}
   .fig-q{font-size:16px;line-height:24px}
 }
-/* <= 640: a vertical rail on the left (Railway ref6). Rows of [node | fig 148 | caption and question], 128 tall. */
+/* <= 640: a vertical rail on the left (Railway ref6). Rows of [node | fig 140 | caption and question], 128 tall. */
 @media(max-width:640px){
   .figs{grid-template-columns:minmax(0,1fr);row-gap:0}
-  .fig-cell{display:grid;grid-template-columns:8px 148px minmax(0,1fr);grid-template-rows:auto 1fr;column-gap:12px;align-items:start;min-height:128px;padding-bottom:16px;box-sizing:border-box}
-  .fig-art{grid-column:2;grid-row:1/span 2;margin:0;width:148px}
+  .figs .fig-cell{display:grid;grid-template-columns:8px 140px minmax(0,1fr);grid-template-rows:auto 1fr;column-gap:12px;align-items:start;min-height:128px;padding-bottom:16px;box-sizing:border-box}
+  .fig-art{grid-column:2;grid-row:1/span 2;margin:0;width:140px}
   .fig-rail{grid-column:1;grid-row:1/span 2;align-self:stretch;height:auto;margin:0}
   .fig-rail::before,.figs .fig-cell:last-child .fig-rail::before{left:3.5px;right:auto;top:6px;bottom:-22px;width:1px;height:auto}
   .figs .fig-cell:last-child .fig-rail::before{display:none}
@@ -111,7 +111,7 @@ html.dark .fig6,html.dark .stair{
   --fig-ghost:oklch(.62 .03 200);
   --fig-teal:#3ad9c6;
   --fig-teal-tint:oklch(.36 .06 184);
-  --fig-wire:oklch(.52 .02 222);      /* --k-wire is .38 on the dashboard's .195 canvas; on the .3 plate it vanishes, so one step up */
+  --fig-wire:oklch(.6 .02 222);       /* --k-wire is .38 on the dashboard's .195 canvas; on the .3 mint plate it vanishes, so two steps up */
   --fig-held:oklch(.72 .16 50);       /* --k-held-solid, dark */
   --fig-held-tint:oklch(.318 .068 50);
   --fig-cube-t:#8cf4e4;--fig-cube-l:#3ad9c6;--fig-cube-r:#14867b;
