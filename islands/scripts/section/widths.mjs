@@ -13,7 +13,7 @@ const boxes = async (p) => {
 		const l = p.locator(`[data-island="${n}"]`);
 		const bb = await l.boundingBox();
 		const bg = await p.locator(`[data-island="${n}"] .ph-poster`).evaluate((e) => getComputedStyle(e).backgroundImage).catch(() => '?');
-		out[n] = { w: bb ? +bb.width.toFixed(1) : null, h: bb ? Math.round(bb.height) : null, poster: (bg.match(/s-[\w-]+?-(\d+)-(?:light|dark)/) ?? [])[1] ?? (bg === 'none' ? 'none' : bg.slice(0, 30)) };
+		out[n] = { live: await l.evaluate((e) => (e.__section?.stills ?? 0) > 0).catch(() => false), w: bb ? +bb.width.toFixed(1) : null, h: bb ? Math.round(bb.height) : null, poster: (bg.match(/s-[\w-]+?-(\d+)-(?:light|dark)/) ?? [])[1] ?? (bg === 'none' ? 'none' : bg.slice(0, 30)) };
 	}
 	return out;
 };
@@ -24,7 +24,7 @@ for (const vw of VWS) {
 	await p0.goto(URL_, { waitUntil: 'load' });
 	const off = await boxes(p0);
 	await c0.close();
-	if (process.env.OFF_ONLY) { for (const n of NAMES) rows.push(`${String(vw).padStart(4)} ${n.padEnd(15)} off ${off[n].w}x${off[n].h} poster ${off[n].poster}`); continue; }
+	if (process.env.OFF_ONLY) { for (const n of NAMES) console.log(`${String(vw).padStart(4)} ${n.padEnd(15)} off ${off[n].w}x${off[n].h} poster ${off[n].poster}`); continue; }
 	const c1 = await b.newContext({ viewport: { width: vw, height: 900 }, deviceScaleFactor: 1, ...mob });
 	const p1 = await c1.newPage();
 	await p1.goto(URL_, { waitUntil: 'load' });
@@ -39,7 +39,7 @@ for (const vw of VWS) {
 	await c1.close();
 	for (const n of NAMES) {
 		const ok = off[n].w === on[n].w && off[n].h === on[n].h && String(Math.round(off[n].w)) === off[n].poster;
-		rows.push(`${String(vw).padStart(4)} ${n.padEnd(15)} off ${off[n].w}x${off[n].h} poster ${off[n].poster}  live ${on[n].w}x${on[n].h}${ok ? '' : '  MISMATCH'}`);
+		console.log(`${String(vw).padStart(4)} ${n.padEnd(15)} off ${off[n].w}x${off[n].h} poster ${off[n].poster}  live ${on[n].w}x${on[n].h}${ok ? '' : '  MISMATCH'}${on[n].live ? '' : ' (not live)'}`);
 	}
 }
 console.log(rows.join('\n'));

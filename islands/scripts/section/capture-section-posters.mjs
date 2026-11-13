@@ -19,7 +19,7 @@ const PAGE = process.argv[2] ?? 'http://192.168.1.102:1340/';
    plus the product's own breakpoints in island terms (canvas = island + 32: sm 608, md 736, lg 992), the Gates graph's 644 and the Progress strip's 866,
    so no range between two widths straddles a change of layout. A host takes the widest poster not wider than itself + 0.5 px (section-island.html), so a
    fractional host (424.7) takes its rounded poster (425), never the one below it. */
-const BASE = [256, 296, 311, 326, 348, 365, 366, 395, 425, 454, 485, 525, 543, 555, 576, 590, 608, 627, 638, 644, 654, 686, 718, 720, 725, 736, 767, 782, 814, 840, 866, 888, 909, 951, 992, 1047];
+const BASE = [256, 296, 311, 326, 348, 365, 366, 395, 398, 425, 454, 485, 525, 527, 543, 555, 576, 590, 608, 627, 638, 644, 654, 686, 718, 720, 725, 736, 767, 782, 814, 840, 866, 888, 909, 951, 992, 1047];
 const WIDE = [...BASE, 930, 970, 989, 1422].sort((a, b) => a - b);
 const ISLANDS = { 'gates-card': WIDE, 'health-card': BASE, 'releases-card': BASE, 'canary-card': BASE, 'dashboard-card': BASE, 'gitops-card': BASE };
 const only = process.argv.slice(3);

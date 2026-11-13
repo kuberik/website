@@ -161,6 +161,10 @@ holds it in us-east-1 because payments-svc, which it needs at ^3.1.0, is still b
   `:where()`, answered by the host's own width (`section-island.html` wraps it in a `.sec-slot` container). Natural height falls as the host widens within
   one product layout; the widths include the product's breakpoints in island terms (canvas = island + 32: sm 608, md 736, lg 992) and the Gates graph's 644,
   so the reserve of the widest width not wider than the host is never short.
+  The widths are every host width the page's grid gives an island (plateaus, the grid's breakpoints, common devices; the fluid ranges between filled
+  at <= ~30 px steps): `node scripts/section/widths.mjs <vw ...>` prints each host with JS off and live, and the poster it shows, MISMATCH where they
+  differ. Grid tracks are fractional (424.7): the container query is `min-width: w - 0.5px`, so a track takes its rounded poster, never the one below.
+  After a features.css change, run it at 390, 640, 641, 1023, 1024, 1199, 1200, 1280, 1440, 1920, 2399, 2400 and 2560 and add any new width.
 - The page's CSS may set a window height over it (the frame is top-left; a shorter window crops its foot). `"attrs" (dict "align-x" "center" "align-y"
   "center" "pad" "12")` on the partial becomes `data-align-x` / `data-align-y` / `data-pad`, which `section.ts` reads when it places the frame.
 - Posters: `node scripts/section/capture-section-posters.mjs <url> [name-card ...]` lays each host out on its own bay at every width in its list
