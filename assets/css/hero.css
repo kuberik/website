@@ -1,0 +1,20 @@
+/* hero (SPEC 2.1) */
+.stage-hero{margin-top:16px}
+.hero{padding:36px var(--stage-pad) 16px;text-align:center}
+.eyebrow{display:inline-flex;align-items:center;gap:8px;height:28px;padding:0 12px;border-radius:999px;background:color-mix(in oklab,var(--page) 70%,transparent);border:1px solid var(--line);font:500 13px/20px var(--sans);color:var(--mint-ink)}
+.eyebrow b{width:6px;height:6px;border-radius:50%;background:var(--mint)}
+h1{font:600 64px/68px var(--sans);letter-spacing:-.035em;margin:18px auto 14px;max-width:1000px;text-wrap:balance}
+.sub{font:400 20px/30px var(--sans);color:var(--ink-muted);max-width:720px;margin:0 auto;text-wrap:pretty}
+.hero-window{margin-top:68px;height:var(--win-h);overflow:visible;box-shadow:var(--hero-shadow)}
+.hero-window>[data-island]{height:100%;min-height:0!important}
+.hero-chiproom{height:72px}
+
+@media(min-width:2400px){h1{font-size:76px;line-height:80px}.sub{font-size:22px;line-height:32px}}
+@media(max-width:640px){
+  .hero{padding:32px var(--stage-pad) 12px}
+  h1{font-size:40px;line-height:44px;margin:14px auto 12px}
+  .sub{font-size:16px;line-height:26px}
+  .hero-window{margin-top:72px}
+  .hero-chiproom{height:80px}
+}
+.hero-proof{margin:20px 0 0;font:500 14px/20px var(--sans);color:var(--ink-subtle)}

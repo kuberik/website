@@ -1,0 +1,33 @@
+/* closing */
+.closing-inner{display:grid;grid-template-columns:minmax(0,1fr);gap:32px;align-items:center}
+.closing-copy{display:flex;flex-direction:column;align-items:flex-start;gap:20px;min-width:0}
+.closing-copy .title{max-width:none}
+.closing-copy .title-body{margin:0;max-width:46ch}
+.closing-copy .code{width:100%;max-width:640px;margin:4px 0 0;background:var(--page)}
+.closing-copy .ctas{margin-top:4px}
+.closing-art.fig-cell{border-left:0;padding:0}
+.closing-art .fig-label{font-size:12px}
+.closing-compact{display:none}
+@media(min-width:1200px){
+  .closing-art{order:2}
+  .closing-art .fig{max-height:460px}
+}
+@media(min-width:1024px) and (max-width:1199px){.closing-wide{max-width:560px}}
+@media(max-width:1023px){.closing-wide{display:none}.closing-compact{display:block;width:300px;max-width:100%;margin-top:8px}}
+@media(max-width:640px){
+  .closing-copy .ctas{width:100%;flex-direction:column;padding:0}
+  .closing-copy .btn{justify-content:center;flex:0 0 auto}
+}
+/* closing labels: 12 units = 12.2-16.7 px rendered (staircase scale 1.02 at 1200 to 1.39 at 1920; 8 units = 14.9 px at 2560) */
+@media(min-width:2400px){.closing-art .fig-label{font-size:8px}}
+@media(max-width:640px){.closing-copy .copy{height:44px;padding:0 12px}}
+.code-note{margin:0;padding:10px 16px;border-top:1px solid var(--line);font:400 13px/20px var(--sans);color:var(--ink-subtle)}
+@media(min-width:1024px) and (max-width:1199px){.closing-art .fig-label{display:none}}
+/* every section starts with its heading: the staircase follows the copy at every width (AD r2 #3) */
+.closing-art{order:2}
+@media(min-width:1024px){
+  .closing-inner{grid-template-columns:repeat(2,minmax(0,1fr));column-gap:24px}
+  .closing-art{justify-self:center;width:100%}
+  .closing-copy .code{max-width:none}
+}
+.code-note{text-wrap:pretty}

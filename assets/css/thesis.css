@@ -42,45 +42,10 @@ html.dark{
   --fig-cube-r:#14867b;       /* oklch(.56 .095 184) */
   --statement-rest:#889599;   /* --k-fg-subtle */
   --fig-sep:oklch(1 0 0/.08)}
-
-.hero-proof{margin:20px 0 0;font:500 14px/20px var(--sans);color:var(--ink-subtle)}
-.btn svg[viewBox="0 0 16 16"]{width:14px;height:14px}
-.sec{margin-top:128px}
-/* stage contents sit on the page column: content x = (viewport - --cont)/2 when wide, --stage-inset + --stage-pad
-   (= --gut) when narrow (AD r1 #2) */
-.sec-inner{padding:var(--stage-pad);padding-inline:max(var(--stage-pad),calc((100% - var(--cont)) / 2))}
-.head{display:flex;flex-direction:column}
-.head .title{max-width:none}
-.title-body code{font:500 14px var(--mono);padding:1px 6px;border-radius:6px;background:color-mix(in oklab,var(--page) 70%,transparent);border:1px solid var(--line);color:var(--ink)}
-@media(min-width:1024px){
-  .head{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1fr);column-gap:48px;align-items:end}
-  .head .title-body{margin:0;justify-self:end}
-}
-.link-arrow{display:inline-flex;align-items:center;gap:6px;font:500 14px/20px var(--sans);color:var(--ink)}
-.link-arrow svg{transition:transform .15s}
-.link-arrow:hover svg{transform:translateX(3px)}
-
-/* reveal on scroll (JS adds html.js; without it everything is visible) */
-html.js .reveal{opacity:0;transform:translateY(12px);transition:opacity .5s ease,transform .5s ease}
-html.js .reveal.is-in{opacity:1;transform:none}
-@media(prefers-reduced-motion:reduce){html.js .reveal{opacity:1;transform:none;transition:none}}
-
-/* proof row */
-.proof{display:flex;flex-wrap:wrap;align-items:center;justify-content:space-between;gap:16px 40px;margin-top:48px}
-.proof-label{margin:0;font:500 14px/20px var(--sans);color:var(--ink-muted)}
-.proof-row{display:flex;flex-wrap:wrap;gap:16px 40px;margin:0;padding:0;list-style:none}
-.proof-cell{display:flex;align-items:center;gap:10px}
-.vendor-mark{width:28px;height:28px;flex:none;background:var(--logo-light) center/contain no-repeat;filter:grayscale(1);opacity:.62;transition:filter .2s,opacity .2s}
-html.dark .vendor-mark{background-image:var(--logo-dark);opacity:.72}
-.proof-cell:hover .vendor-mark{filter:none;opacity:1}
-.proof-name{font:600 14px/20px var(--sans);color:var(--ink)}
-.proof-job{font:400 13px/20px var(--mono);color:var(--ink-subtle)}
-
 /* thesis: the two-tone statement (Linear) is the section's h2; the five figures sit under it on the page ground */
 .statement-text{margin:0;max-width:1180px;font:500 clamp(28px,3.4vw,48px)/1.18 var(--sans);letter-spacing:-.022em;text-wrap:balance}
 .statement-claim{color:var(--ink)}
 .statement-rest{color:var(--statement-rest)}
-
 /* the drawings animate while on screen (owner, landing v5), at rest under reduced motion. Strokes: three weights only (FIGS-SPEC s3): 1 structure, 1.5 teal active, 2 the answer mark.
    Dashes: 4 3 = "yours" (gate bar, health's outer ring); 0 4 round cap = trajectory (the release drop). */
 .fig{display:block;width:100%;height:auto;overflow:visible}
@@ -178,109 +143,11 @@ html.dark .vendor-mark{background-image:var(--logo-dark);opacity:.72}
   .figs .fig-tile,.figs .fig-ring,.fig-release .m-rel-g2,.fig-release .m-rel-g3{display:none}
 }
 @media(min-width:1024px) and (max-width:1199px){.figs .fig-cell{padding-top:8px}} /* A14: the upper plate's ring clears the frame edge */
-
-/* everything you write: four file windows */
-.manifests{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:24px;margin-top:40px}
-.mf{margin:0;min-width:0;border-radius:12px;background:var(--page);border:1px solid var(--win-border);box-shadow:0 1px 2px oklch(.195 .014 222/.05);overflow:hidden;height:100%}
-html.dark .mf{box-shadow:none}
-.mf figcaption{display:flex;align-items:center;justify-content:space-between;height:47px;padding:0 16px;border-bottom:1px solid var(--line);font:500 13px/20px var(--mono);color:var(--ink-muted)}
-.mf figcaption b,.mf-sum b{padding:0 8px;height:22px;border-radius:6px;border:1px solid var(--line);font:500 11px/20px var(--mono);color:var(--ink-muted);text-transform:none;white-space:nowrap}
-.mf code,.code code{font:inherit}
-.mf-kuberik figcaption b,.mf-fold:has(.mf-kuberik) .mf-sum b{color:var(--mint-ink);border-color:var(--fig-teal)}
-.mf pre{margin:0;padding:16px 20px;overflow-x:auto;font:400 13px/22px var(--mono);color:var(--ink-muted);tab-size:2}
-.mf .k{color:var(--ink);font-weight:500}.mf .a{color:var(--mint-ink);font-weight:500}.mf .s{color:var(--ink)}
-.mf .var{padding:1px 5px;border-radius:6px;background:color-mix(in oklab,var(--mint) 18%,transparent);color:var(--mint-ink);font-weight:500}
-.mf-fold{display:contents}
-.mf-sum{display:none}
-@media(max-width:1023px){
-  .manifests{grid-template-columns:minmax(0,1fr);gap:12px}
-  .mf-fold{display:block;border-radius:12px;background:var(--page);border:1px solid var(--win-border);box-shadow:0 1px 2px oklch(.195 .014 222/.05);overflow:hidden}
-  .mf-fold .mf{border:0;box-shadow:none;border-radius:0;height:auto}
-  .mf-fold .mf figcaption{display:none}
-  .mf-sum{display:grid;grid-template-columns:minmax(0,1fr) auto 16px;align-items:center;column-gap:12px;min-height:47px;padding:0 16px;cursor:pointer;list-style:none;font:500 13px/20px var(--mono);color:var(--ink)}
-  .mf-sum::-webkit-details-marker{display:none}
-  .mf-fold[open] .mf-sum{border-bottom:1px solid var(--line)}
-  .mf-name{white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
-  /* one anatomy for all four files: name | tag | chevron (AD r2 #1) */
-  .mf-hint{width:16px;height:16px;display:grid;place-items:center;color:var(--ink-subtle)}
-  .mf-hint::before{content:'';width:6px;height:6px;border:solid currentColor;border-width:0 1.5px 1.5px 0;transform:translateY(-2px) rotate(45deg)}
-  .mf-fold[open] .mf-hint::before{transform:translateY(1px) rotate(-135deg)}
-}
-@media(max-width:640px){.mf pre{font-size:12px;padding:14px 16px}}
-
-/* closing */
-.closing-inner{display:grid;grid-template-columns:minmax(0,1fr);gap:32px;align-items:center}
-.closing-copy{display:flex;flex-direction:column;align-items:flex-start;gap:20px;min-width:0}
-.closing-copy .title{max-width:none}
-.closing-copy .title-body{margin:0;max-width:46ch}
-.closing-copy .code{width:100%;max-width:640px;margin:4px 0 0;background:var(--page)}
-.closing-copy .ctas{margin-top:4px}
-.closing-art.fig-cell{border-left:0;padding:0}
-.closing-art .fig-label{font-size:12px}
-.closing-compact{display:none}
-@media(min-width:1200px){
-  .closing-art{order:2}
-  .closing-art .fig{max-height:460px}
-}
-@media(min-width:1024px) and (max-width:1199px){.closing-wide{max-width:560px}}
-@media(max-width:1023px){.closing-wide{display:none}.closing-compact{display:block;width:300px;max-width:100%;margin-top:8px}}
-@media(max-width:640px){
-  .sec{margin-top:80px}
-  .head .title-body{margin-top:12px}
-  .proof{margin-top:32px}
-  .proof-row{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:16px;width:100%}
-  .proof-cell{display:grid;grid-template-columns:28px minmax(0,1fr);column-gap:10px;row-gap:2px;align-items:start}
-  .proof-cell .vendor-mark{grid-row:1/span 2}
-  .figs{margin-top:24px}
-  .closing-copy .ctas{width:100%;flex-direction:column;padding:0}
-  .closing-copy .btn{justify-content:center;flex:0 0 auto}
-}
-/* closing labels: 12 units = 12.2-16.7 px rendered (staircase scale 1.02 at 1200 to 1.39 at 1920; 8 units = 14.9 px at 2560) */
-@media(min-width:2400px){.closing-art .fig-label{font-size:8px}}
-
+@media(max-width:640px){.figs{margin-top:24px}}
 /* thesis */
 .thesis .statement-text{max-width:1120px}
 .thesis .figs{margin-top:64px}
-
-/* features: three by two at >= 1024, two at >= 641, one on phones */
-.feats{list-style:none;margin:56px 0 0;padding:0;display:grid;grid-template-columns:repeat(3,minmax(0,1fr));column-gap:24px;row-gap:56px}
-.feat{display:flex;flex-direction:column;min-width:0;scroll-margin-top:96px}
-.feat-copy{flex:1;display:flex;flex-direction:column;align-items:flex-start;padding:24px 0 0}
-.feat-title{margin:0;font:600 18px/26px var(--sans);letter-spacing:-.01em;color:var(--ink);text-wrap:balance}
-.feat-body{margin:8px 0 0;font:400 15px/24px var(--sans);color:var(--ink-muted);text-wrap:pretty}
-.feat .link-arrow{margin-top:auto;padding-top:16px;min-height:24px}
-@media(max-width:1199px){.feats{grid-template-columns:repeat(2,minmax(0,1fr));row-gap:48px}}
-@media(max-width:640px){.feats{grid-template-columns:minmax(0,1fr);row-gap:40px;margin-top:32px}.feat-copy{padding:20px 0 0}.feat-title{font-size:17px;line-height:24px}}
-
-/* footer: brand + three link columns (Railway/Linear footers, sized to what we have) */
-.foot{padding:56px 0 64px}
-.foot .foot-grid{display:grid;grid-template-columns:minmax(0,2fr) repeat(3,minmax(0,1fr));gap:32px;align-items:start}
-.foot-brand p{margin:12px 0 0;font:400 13px/20px var(--sans);color:var(--ink-subtle)}
-.foot .foot-col{display:flex;flex-direction:column;align-items:flex-start;gap:2px;margin:0;flex-wrap:nowrap}
-.foot-col h2{margin:0 0 8px;font:600 13px/20px var(--sans);color:var(--ink)}
-.foot-col a{display:inline-flex;align-items:center;min-height:32px;font:400 14px/20px var(--sans);color:var(--ink-subtle)}
-.foot-col a:hover{color:var(--ink)}
-@media(max-width:767px){.foot .foot-grid{grid-template-columns:repeat(2,minmax(0,1fr));row-gap:40px}.foot-brand{grid-column:1/-1}}
-
-/* ---- landing v5 page, AD round 1 ---- */
-/* headings: one step under the statement at every width (AD r1 #5) */
-.sec .title{font-size:clamp(28px,3vw,44px);line-height:1.12}
-@media(min-width:2400px){.statement-text{font-size:56px}.sec .title{font-size:48px}.thesis .statement-text{max-width:1320px}}
-/* install band clears the footer by the section rhythm (AD r1 #3) */
-main{padding-bottom:128px}
-@media(max-width:640px){main{padding-bottom:80px}}
-/* phone tap targets >= 44 (AD r1 #12) */
-@media(max-width:640px){
-  .feat .link-arrow{min-height:44px;padding-top:8px}
-  .foot-col a{min-height:44px}
-  .closing-copy .copy{height:44px;padding:0 12px}
-}
-@media(max-width:640px){.foot-brand .logo{min-height:44px;display:inline-flex;align-items:center}}
-
-/* ---- landing v5 page, AD round 2 / QA round 1 ---- */
-.code-note{margin:0;padding:10px 16px;border-top:1px solid var(--line);font:400 13px/20px var(--sans);color:var(--ink-subtle)}
-@media(prefers-reduced-motion:reduce){.link-arrow svg,.vendor-mark{transition:none}.link-arrow:hover svg{transform:none}}
-@media(max-width:640px){.foot-col a{min-width:44px}}
+@media(min-width:2400px){.statement-text{font-size:56px}.thesis .statement-text{max-width:1320px}}
 /* 1024-1199: the thesis figs stay one row of five equal cells; the install panel keeps the desktop split (AD r2 #3) */
 @media(min-width:1024px) and (max-width:1199px){
   .figs{grid-template-columns:repeat(5,minmax(0,1fr));row-gap:0}
@@ -289,36 +156,6 @@ main{padding-bottom:128px}
   .figs .fig-cell:nth-child(n+4) .fig-art{max-width:none}
   .fig-cap{flex-wrap:wrap;gap:4px 8px}
   .fig-q{font-size:16px;line-height:22px}
-  .closing-art .fig-label{display:none}
-}
-/* 3000+: the panels frame the content column instead of spanning the screen (AD r2 #4, owner: no lone column at 4K) */
-@media(min-width:3000px){.sec>.stage{max-width:calc(var(--cont) + 240px);margin-inline:auto}}
-/* every section starts with its heading: the staircase follows the copy at every width (AD r2 #3) */
-.closing-art{order:2}
-
-/* ---- landing v5 page, AD round 3 ---- */
-/* one midline: every two-part composition (section head, YAML pairs, install) splits on the same line, the
-   feature grid's 24px gutter; at 2400+ the four files sit in one row whose third column starts on it too */
-@media(min-width:1024px){
-  .head{column-gap:24px}
-  .head .title-body{justify-self:start}
-  .closing-inner{grid-template-columns:repeat(2,minmax(0,1fr));column-gap:24px}
-  .closing-art{justify-self:center;width:100%}
-  .closing-copy .code{max-width:none}
-}
-@media(min-width:2400px){.manifests{grid-template-columns:repeat(4,minmax(0,1fr))}}
-/* phones: the longest YAML key fits the fold at 390 (AD r3 #1) */
-@media(max-width:400px){.mf pre{font-size:11px;line-height:20px;padding:12px 10px 12px 12px;letter-spacing:-.02em}}
-/* proof row: the logos follow their label instead of drifting to the far edge on wide screens */
-@media(min-width:641px){.proof{justify-content:flex-start;column-gap:56px}}
-/* ---- landing v5 page, AD round 4 ---- */
-.code-note{text-wrap:pretty}
-/* 1024-1199: two open file columns at 12px so the annotation key fits a 428px card */
-@media(min-width:1024px) and (max-width:1199px){.mf pre{font-size:12px;line-height:21px;padding:16px}}
-/* small phones: headers and code give back their padding before anything clips */
-@media(max-width:380px){
-  .mf-sum{padding:0 12px;column-gap:8px}
-  .mf pre{padding:12px 6px 12px 10px}
 }
 @media(max-width:340px){.fig-cap{flex-wrap:wrap;white-space:normal}.fig-own{margin-left:0}}
 /* BEGIN landing-figs keyframes (GENERATED by scripts/landing-figs.mjs, do not edit) */

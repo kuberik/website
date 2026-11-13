@@ -1,3 +1,13 @@
+/* features: three by two at >= 1024, two at >= 641, one on phones */
+.feats{list-style:none;margin:56px 0 0;padding:0;display:grid;grid-template-columns:repeat(3,minmax(0,1fr));column-gap:24px;row-gap:56px}
+.feat{display:flex;flex-direction:column;min-width:0;scroll-margin-top:96px}
+.feat-copy{flex:1;display:flex;flex-direction:column;align-items:flex-start;padding:24px 0 0}
+.feat-title{margin:0;font:600 18px/26px var(--sans);letter-spacing:-.01em;color:var(--ink);text-wrap:balance}
+.feat-body{margin:8px 0 0;font:400 15px/24px var(--sans);color:var(--ink-muted);text-wrap:pretty}
+.feat .link-arrow{margin-top:auto;padding-top:16px;min-height:24px}
+@media(max-width:1199px){.feats{grid-template-columns:repeat(2,minmax(0,1fr));row-gap:48px}}
+@media(max-width:640px){.feats{grid-template-columns:minmax(0,1fr);row-gap:40px;margin-top:32px}.feat-copy{padding:20px 0 0}.feat-title{font-size:17px;line-height:24px}}
+@media(max-width:640px){.feat .link-arrow{min-height:44px;padding-top:8px}}
 /* ---- landing v5: the six feature cards ("Every step of a release, declared.") ----
    Owner 2026-11-12: "the visuals are monotonic. gates clearly could be shown similar to how we show them on the actual
    dashboard". One frame for all six (the dashboard Card: 47px header, 16px icon, title, context, right rollup), six

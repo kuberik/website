@@ -1,0 +1,18 @@
+{{- /* THESIS (Linear: two-tone statement, then one row of figures). The only section about one idea, because it
+       is the product's idea: every build passes the same five declarative phases. The figures are still: the hero
+       is the page's one animation. Capabilities are named once, in FEATURES below. */ -}}
+{{- $t := site.Data.landing.thesis -}}
+<section class="sec thesis" id="how-it-works" aria-labelledby="thesis-h">
+  <div class="cont">
+    <h2 class="statement-text reveal" id="thesis-h"><span class="statement-claim">{{ $t.claim }}</span> <span class="statement-rest">{{ $t.rest }}</span></h2>
+    <ol class="figs reveal">
+      {{- range $i, $p := $t.phases }}
+      <li class="fig-cell{{ if eq $p.own "Yours" }} is-yours{{ else if eq $p.own "Optional" }} is-opt{{ end }}">
+        <div class="fig-art" aria-hidden="true">{{ partial (printf "landing-figs/%s.html" $p.fig) $ }}</div>
+        <p class="fig-cap"><span class="fig-no">Fig {{ add $i 1 }}</span><span class="fig-name">{{ $p.name }}</span><span class="fig-own">{{ $p.own }}</span></p>
+        <h3 class="fig-q">{{ $p.q }}</h3>
+      </li>
+      {{- end }}
+    </ol>
+  </div>
+</section>
