@@ -43,3 +43,5 @@
 
 /* AD r1: the install stage is the hero's mint (DIRECTION 1.6), not the older near-black --st-mint */
 #install .stage-mint{background:var(--st-hero)}
+/* AD r3: from 1920 the staircase stops growing (its 11px chips stay legible beside it, the copy column keeps the weight) */
+@media(min-width:1920px){.closing-wide{max-width:760px;margin-left:auto}}
