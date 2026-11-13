@@ -30,5 +30,6 @@ export const mount = (ctx: CustomCtx) =>
 		canvas: (hw) => Math.round(hw) + 32,
 		fit: 'width',
 		frame: (root) => cardTitled(root, /^Resources$/),
+		ready: (root) => /checkout-api/.test(cardTitled(root, /^Resources$/)?.textContent ?? ''),
 		align: { x: 'start', y: 'start' }
 	});

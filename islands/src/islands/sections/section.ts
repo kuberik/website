@@ -53,11 +53,13 @@ export type SectionSpec<W extends SectionWorld = SectionWorld> = {
 	fit?: 'width';
 	/** what is framed in the host box, found in the rendered product: an element, or a rect (`rectOf`: a span of elements, an edge cropped on a gutter) */
 	frame: (root: HTMLElement) => { getBoundingClientRect(): DOMRect } | null;
+	/** the product has drawn what the frame shows (its rows are in): the still is not taken before this holds (or SETTLE_MAX_MS), then the usual settle */
+	ready?: (root: HTMLElement) => boolean;
 	/** where the framed element sits in the host box: 'start' = its left/top edge at `pad`, 'center' = centred (default start, start, 0) */
 	align?: { x?: 'start' | 'center'; y?: 'start' | 'center'; pad?: number };
 };
 
-const SETTLE_MS = 250, SETTLE_MAX_MS = 4000;
+const SETTLE_MS = 250, SETTLE_MAX_MS = 6000;
 const ISO = /^\d{4}-\d\d-\d\dT\d\d:\d\d:\d\d(?:\.\d+)?Z$/;
 /** every ISO timestamp (and Date) in a CR tree, shifted by `ms` */
 function shift<T>(x: T, ms: number): T {
@@ -105,13 +107,15 @@ async function still<W extends SectionWorld>(spec: SectionSpec<W>, C: Component<
 		const t0 = last;
 		const mo = new MutationObserver(() => { last = performance.now(); });
 		mo.observe(canvas, { subtree: true, childList: true, attributes: true, characterData: true });
-		const tick = () => { const n = performance.now(); if (n - last >= SETTLE_MS || n - t0 > SETTLE_MAX_MS) { mo.disconnect(); res(); } else requestAnimationFrame(tick); };
+		const tick = () => { const n = performance.now(); if (spec.ready && !spec.ready(canvas) && n - t0 <= SETTLE_MAX_MS) last = n; if (n - last >= SETTLE_MS || n - t0 > SETTLE_MAX_MS) { mo.disconnect(); res(); } else requestAnimationFrame(tick); };
 		requestAnimationFrame(tick);
 	});
 	const target = spec.frame(canvas);
 	const cr = canvas.getBoundingClientRect(), tr = target?.getBoundingClientRect();
 	const box = tr ? new DOMRect(tr.left - cr.left, tr.top - cr.top, tr.width, tr.height) : new DOMRect(0, 0, cr.width, cr.height);
 	const el = canvas.cloneNode(true) as HTMLElement;
+	/* only the framed rect is ever seen: what the product draws beside or under it (a card stacked below, a side rail) is clipped away, whatever the host's box */
+	el.style.clipPath = `inset(${box.y}px ${Math.max(0, cr.width - box.x - box.width)}px ${Math.max(0, cr.height - box.y - box.height)}px ${box.x}px)`;
 	el.setAttribute('inert', '');
 	unmount(app);
 	canvas.remove();

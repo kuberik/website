@@ -30,5 +30,7 @@ export const overviewSpec = (id: string, target: 'health-checks' | 'pipeline', l
 	canvas: (hw) => Math.round(hw) + 32,
 	fit: 'width',
 	frame: (root) => resolveTarget(target, root, false),
+	/* the card's rows are in (the health checks' last row, or the pipeline's) */
+	ready: (root) => /latency-p99|Check/.test(resolveTarget(target, root, false)?.textContent ?? ''),
 	align: { x: 'start', y: 'start' }
 });

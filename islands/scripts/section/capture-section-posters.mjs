@@ -16,7 +16,7 @@ const PAGE = process.argv[2] ?? 'http://192.168.1.102:1340/';
    lg 992) and the Gates card's compact graph (644), so no range between two widths straddles a change of layout */
 const BASE = [326, 366, 425, 454, 525, 608, 627, 644, 724, 736, 767];
 const WIDE = [...BASE, 992, 1047, 1134, 1374];
-const ISLANDS = { 'gates-card': WIDE, 'health-card': BASE, 'releases-card': BASE, 'canary-card': WIDE, 'dashboard-card': WIDE, 'gitops-card': BASE };
+const ISLANDS = { 'gates-card': WIDE, 'health-card': BASE, 'releases-card': BASE, 'canary-card': [...WIDE, 866].sort((a, b) => a - b) /* the Progress card's stage strip from an island of 866 (measured: 864 stacked, 866 strip) */, 'dashboard-card': WIDE, 'gitops-card': BASE };
 const only = process.argv.slice(3);
 const OUT = new URL('../../../static/island-poster/', import.meta.url).pathname;
 const DATA = new URL('../../../data/section_poster.yaml', import.meta.url).pathname;

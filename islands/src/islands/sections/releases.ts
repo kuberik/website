@@ -25,5 +25,7 @@ export const mount = (ctx: CustomCtx) =>
 		canvas: (hw) => Math.round(hw) + 32,
 		fit: 'width',
 		frame: (root) => resolveTarget('builds', root, false),
+		/* every place is in, the last region included */
+		ready: (root) => /eu-central-1/.test(resolveTarget('builds', root, false)?.textContent ?? ''),
 		align: { x: 'start', y: 'start' }
 	});

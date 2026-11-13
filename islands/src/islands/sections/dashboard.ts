@@ -24,5 +24,7 @@ export const mount = (ctx: CustomCtx) =>
 		canvas: (hw) => Math.round(hw) + 32,
 		fit: 'width',
 		frame: (root) => cardTitled(root, /^History$/),
+		/* History's rows are in: down to the merge */
+		ready: (root) => /Merged/.test(cardTitled(root, /^History$/)?.textContent ?? ''),
 		align: { x: 'start', y: 'start' }
 	});
