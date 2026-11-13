@@ -1,0 +1,19 @@
+/* proof row */
+.proof{display:flex;flex-wrap:wrap;align-items:center;justify-content:space-between;gap:16px 40px;margin-top:48px}
+.proof-label{margin:0;font:500 14px/20px var(--sans);color:var(--ink-muted)}
+.proof-row{display:flex;flex-wrap:wrap;gap:16px 40px;margin:0;padding:0;list-style:none}
+.proof-cell{display:flex;align-items:center;gap:10px}
+.vendor-mark{width:28px;height:28px;flex:none;background:var(--logo-light) center/contain no-repeat;filter:grayscale(1);opacity:.62;transition:filter .2s,opacity .2s}
+html.dark .vendor-mark{background-image:var(--logo-dark);opacity:.72}
+.proof-cell:hover .vendor-mark{filter:none;opacity:1}
+.proof-name{font:600 14px/20px var(--sans);color:var(--ink)}
+.proof-job{font:400 13px/20px var(--mono);color:var(--ink-subtle)}
+@media(max-width:640px){
+  .proof{margin-top:32px}
+  .proof-row{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:16px;width:100%}
+  .proof-cell{display:grid;grid-template-columns:28px minmax(0,1fr);column-gap:10px;row-gap:2px;align-items:start}
+  .proof-cell .vendor-mark{grid-row:1/span 2}
+}
+@media(prefers-reduced-motion:reduce){.vendor-mark{transition:none}}
+/* proof row: the logos follow their label instead of drifting to the far edge on wide screens */
+@media(min-width:641px){.proof{justify-content:flex-start;column-gap:56px}}

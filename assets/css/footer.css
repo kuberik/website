@@ -1,0 +1,17 @@
+/* footer */
+.foot{border-top:1px solid var(--line);padding:32px 0 48px;font:400 14px/22px var(--sans);color:var(--ink-subtle)}
+.foot .cont{display:flex;gap:24px;flex-wrap:wrap;align-items:center}
+.foot nav{display:flex;gap:20px;margin-left:auto;flex-wrap:wrap}
+.foot a:hover{color:var(--ink)}
+
+@media(max-width:640px){.foot nav{margin-left:0}}
+/* footer: brand + three link columns (Railway/Linear footers, sized to what we have) */
+.foot{padding:56px 0 64px}
+.foot .foot-grid{display:grid;grid-template-columns:minmax(0,2fr) repeat(3,minmax(0,1fr));gap:32px;align-items:start}
+.foot-brand p{margin:12px 0 0;font:400 13px/20px var(--sans);color:var(--ink-subtle)}
+.foot .foot-col{display:flex;flex-direction:column;align-items:flex-start;gap:2px;margin:0;flex-wrap:nowrap}
+.foot-col h2{margin:0 0 8px;font:600 13px/20px var(--sans);color:var(--ink)}
+.foot-col a{display:inline-flex;align-items:center;min-height:32px;font:400 14px/20px var(--sans);color:var(--ink-subtle)}
+.foot-col a:hover{color:var(--ink)}
+@media(max-width:767px){.foot .foot-grid{grid-template-columns:repeat(2,minmax(0,1fr));row-gap:40px}.foot-brand{grid-column:1/-1}}
+@media(max-width:640px){.foot-col a{min-height:44px}.foot-brand .logo{min-height:44px;display:inline-flex;align-items:center}.foot-col a{min-width:44px}}

@@ -1,0 +1,69 @@
+{{- /* EVERYTHING YOU WRITE (v4 "room"): the four files, on the page ground (the stages alternate: hero, open,
+       features, open, install). File windows = the .mf grammar (47px caption header, tag chip), the same header
+       height as the feature cards. Phones: the three non-rollout files fold (details), as in v4. */ -}}
+<section class="sec" id="spec" aria-labelledby="room-h">
+  <div class="cont">
+      <div class="head">
+        <h2 class="title reveal" id="room-h">This is everything you write.</h2>
+        <p class="title-body reveal">Two new resources, a Rollout and a ReleaseSource. Your Flux Kustomization gets one annotation and your Deployment one <code>${VERSION}</code> placeholder. Gates and health checks are optional.</p>
+      </div>
+      <div class="manifests reveal">
+        <details class="mf-fold" open>
+          <summary class="mf-sum"><span class="mf-name">rollout.yaml</span><b>Yours</b><span class="mf-hint"></span></summary>
+          <figure class="mf mf-kuberik"><figcaption><span>rollout.yaml</span><b>Yours</b></figcaption>
+<pre tabindex="0" role="region" aria-label="rollout.yaml"><code>apiVersion: kuberik.com/v1alpha1
+kind: <span class="a">Rollout</span>
+metadata:
+  name: my-app
+spec:
+  releaseSourceRef:
+    name: my-app
+  bakeTime: <span class="s">10m</span></code></pre></figure>
+        </details>
+        <details class="mf-fold" open data-mp-fold>
+          <summary class="mf-sum"><span class="mf-name">releasesource.yaml</span><b>Yours</b><span class="mf-hint"></span></summary>
+          <figure class="mf mf-kuberik"><figcaption><span>releasesource.yaml</span><b>Yours</b></figcaption>
+<pre tabindex="0" role="region" aria-label="releasesource.yaml"><code>apiVersion: kuberik.com/v1alpha1
+kind: <span class="a">ReleaseSource</span>
+metadata:
+  name: my-app
+spec:
+  oci:
+    image: <span class="s">ghcr.io/me/my-app</span>
+    policy:
+      semver:
+        range: <span class="s">"&gt;=0.1.0"</span></code></pre></figure>
+        </details>
+        <details class="mf-fold" open data-mp-fold>
+          <summary class="mf-sum"><span class="mf-name">kustomization.yaml</span><b>+1 annotation</b><span class="mf-hint"></span></summary>
+          <figure class="mf"><figcaption><span>kustomization.yaml</span><b>+1 annotation</b></figcaption>
+<pre tabindex="0" role="region" aria-label="kustomization.yaml"><code>apiVersion: kustomize.toolkit.fluxcd.io/v1
+kind: <span class="k">Kustomization</span>
+metadata:
+  name: my-app
+  annotations:
+    <span class="a">rollout.kuberik.com/substitute.VERSION.from:</span>
+      my-app
+spec:
+  interval: 10m
+  prune: true
+  sourceRef:
+    kind: GitRepository
+    name: my-app</code></pre></figure>
+        </details>
+        <details class="mf-fold" open data-mp-fold>
+          <summary class="mf-sum"><span class="mf-name">deployment.yaml</span><b>+1 placeholder</b><span class="mf-hint"></span></summary>
+          <figure class="mf"><figcaption><span>deployment.yaml</span><b>+1 placeholder</b></figcaption>
+<pre tabindex="0" role="region" aria-label="deployment.yaml"><code>apiVersion: apps/v1
+kind: <span class="k">Deployment</span>
+metadata: { name: my-app }
+spec:
+  template:
+    spec:
+      containers:
+      - name: app
+        image: ghcr.io/me/my-app:<span class="var">${VERSION}</span></code></pre></figure>
+        </details>
+      </div>
+  </div>
+</section>
