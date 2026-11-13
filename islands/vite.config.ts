@@ -93,6 +93,25 @@ function islandScope(): Plugin {
 	};
 }
 
+/** A section island may show a page the dashboard draws from the WHOLE fleet (the App page, the Change page): `liveSource()` asks the island
+ *  scope first (shared/scope.ts `source`, read from the component context of the reaction evaluating it: Svelte 5 runs every derived and effect
+ *  with its component's context), else the installed source, exactly as before. A scoped reader never reads the installed source, so the
+ *  film's world changing never re-runs it. Outside a section island nothing changes. */
+function islandSource(): Plugin {
+	const f0 = resolve(D!, 'src/lib/components/home/sketch/fleet-source.svelte.ts');
+	const LINE = 'export const liveSource = (): FleetSource | null => installed;';
+	return {
+		name: 'kuberik-island-source',
+		enforce: 'pre',
+		transform(code, id) {
+			if (id.replace(/\?.*$/, '') !== f0) return null;
+			if (!code.includes(LINE)) throw new Error('island-source: liveSource() changed shape in fleet-source.svelte.ts');
+			const scope = resolve(HERE, 'src/islands/shared/scope.ts');
+			return { code: code.replace(LINE, `import { currentScope as __cs } from '${scope}';\nexport const liveSource = (): FleetSource | null => { const s = __cs()?.source as FleetSource | undefined; return s ?? installed; };`), map: null };
+		}
+	};
+}
+
 /** Post-process the compiled stylesheet for shadow-root use:
  *  - `:root` -> `:host` (the dashboard defines its --k-* tokens on :root; inside a shadow tree that is the host);
  *  - @font-face is dropped (a shadow-root stylesheet cannot register fonts) and the faces are declared in the DOCUMENT by
@@ -153,6 +172,7 @@ export default defineConfig({
 	plugins: [
 		stubModules(),
 		islandScope(),
+		islandSource(),
 		islandStorage(),
 		storyNow(),
 		tailwindcss(),

@@ -1,19 +1,6 @@
-{{- /* Dashboard = what a pasted PR link opens: the change page's reach, services x tiers, one state mark per place.
-       Agrees with the other cards: payments-svc 3.1.0 is checking in production, so checkout-api 4.46.0 is held there. */ -}}
-<div class="fv-card">
-  <div class="fv-head">{{ partial "landing-features/icon.html" "dashboard" }}<span class="fv-title">#412</span><span class="fv-ctx">Retry payments on timeout</span><span class="fv-roll fv-wide">merged 41m ago</span></div>
-  <div class="fv-body">
-    <div class="rg">
-      <span class="rg-h"></span><span class="rg-h"><span class="chip chip-dev">dev</span></span><span class="rg-h"><span class="chip chip-stg">staging</span></span><span class="rg-h"><span class="chip chip-prod">prod</span></span>
-      <span class="rg-svc"><span class="rg-n">payments-svc</span><span class="rg-v">3.1.0</span></span>
-      <span class="rg-c">{{ partial "landing-features/mark.html" "ok" }}<span class="rg-t">32m</span></span>
-      <span class="rg-c">{{ partial "landing-features/mark.html" "ok" }}<span class="rg-t">24m</span></span>
-      <span class="rg-c is-prog-ink">{{ partial "landing-features/mark.html" "check" }}<span>Checking</span></span>
-      <span class="rg-svc"><span class="rg-n">checkout-api</span><span class="rg-v">4.46.0</span></span>
-      <span class="rg-c">{{ partial "landing-features/mark.html" "ok" }}<span class="rg-t">36m</span></span>
-      <span class="rg-c">{{ partial "landing-features/mark.html" "ok" }}<span class="rg-t">27m</span></span>
-      <span class="rg-c is-held-ink">{{ partial "landing-features/mark.html" "held" }}<span>Held</span></span>
-    </div>
-    <div class="rg-foot"><span><b>4 of 6</b> places</span><span>held by payments-svc in prod</span></div>
-  </div>
-</div>
+{{- /* dashboard: a SECTION ISLAND (islands/src/islands/sections/dashboard.ts), the product's own History card on the Change page (what a pasted pull request link opens) for #112: merged, released, dev, staging, held in prod us-east-1 waiting on payments-svc.
+       The island IS the product Card, header included (DIRECTION.md §3): the landing draws no header or shell here (the card shell around it is the
+       page's, features.html). Nothing inside is drawn by the landing: the poster is the island's own frame, re-shot by
+       islands/scripts/section/capture-section-posters.mjs. The host reserves the product's natural height per width (data/section_poster.yaml `h`);
+       the page's CSS may set its window height over it, and data-align-x / data-align-y / data-pad ("attrs") re-place the frame in it. */ -}}
+{{ partial "section-island.html" (dict "name" "dashboard-card" "class" "fv-sec") }}

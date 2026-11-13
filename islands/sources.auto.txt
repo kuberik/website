@@ -11,6 +11,7 @@ lib/api/events.ts
 lib/api/github-gate.svelte.ts
 lib/api/github.ts
 lib/api/health-checks.ts
+lib/api/pulls.ts
 lib/api/rollouts.ts
 lib/api/schedules.ts
 lib/api/urls.ts
@@ -191,6 +192,7 @@ lib/source-dashboard.ts
 lib/source-url.ts
 lib/steady-height.ts
 lib/stores/announce.svelte.ts
+lib/stores/pr-meta.svelte.ts
 lib/stores/stars.svelte.ts
 lib/stores/theme.ts
 lib/stores/toast-visibility.svelte.ts
@@ -279,6 +281,7 @@ lib/view-models/window-bar.ts
 lib/view-models/window-words.ts
 lib/wrap-compact.ts
 routes/apps/[name]/+layout.svelte
+routes/changes/[...slug]/+page.svelte
 routes/rollouts/[cluster]/[namespace]/[name]/+layout.svelte
 routes/rollouts/[cluster]/[namespace]/[name]/+page.svelte
 routes/rollouts/[cluster]/[namespace]/[name]/gates/+page.svelte
