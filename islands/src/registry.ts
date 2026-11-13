@@ -22,5 +22,10 @@ export type IslandModule = IslandDef<any> | CustomIsland;
 export const registry: Record<string, () => Promise<IslandModule>> = {
 	hero: () => import('./islands/film').then((m) => ({ custom: m.mountFilm })),
 	/* section islands (islands/sections/): one real dashboard component per page section, framed at natural scale */
-	'gates-card': () => import('./islands/sections/gates').then((m) => ({ custom: m.mount }))
+	'gates-card': () => import('./islands/sections/gates').then((m) => ({ custom: m.mount })),
+	'health-card': () => import('./islands/sections/health').then((m) => ({ custom: m.mount })),
+	'canary-card': () => import('./islands/sections/canary').then((m) => ({ custom: m.mount })),
+	'releases-card': () => import('./islands/sections/releases').then((m) => ({ custom: m.mount })),
+	'dashboard-card': () => import('./islands/sections/dashboard').then((m) => ({ custom: m.mount })),
+	'gitops-card': () => import('./islands/sections/gitops').then((m) => ({ custom: m.mount }))
 };

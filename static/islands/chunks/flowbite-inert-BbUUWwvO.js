@@ -1,0 +1,1 @@
+import{a as m,B as i,i as t,j as p,b as o,R as v}from"./svelte-BM29j39N.js";function b(f,a){let s=m(a,"open",3,!1);var n=i(),l=t(n);{var c=e=>{var r=i(),d=t(r);v(d,()=>a.children),o(e,r)};p(l,e=>{s()&&a.children&&e(c)})}o(f,n)}export{b as F};

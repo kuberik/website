@@ -89,8 +89,9 @@ const onNewBuild = (ph: Phase) => ph !== 'old';
 export type Detail = { approvals: Any; catalogue: { source: Any; slices: Any[] }; ns: string; rollout: Any; kustomization: Any; environment: Any; kr: Any; test: Any; gates: Any[]; healthChecks: Any[]; schedules: Any[] };
 
 /** `opt` builds a sibling world for a section island (sections/): `depHold` = payments-svc is still baking the 3.1.0 the release requires, so its
- *  contract holds 4.46.0-46 in every prod place; `approval: false` = prod has no approval gate. The film passes none (its world is unchanged). */
-export type WorldOpt = { depHold?: boolean; approval?: boolean };
+ *  contract holds 4.46.0-46 in every prod place; `approval: false` = prod has no approval gate; `place` = the rollout page's queries answer for this
+ *  place (its site, or dev / staging) at every second. The film passes none (its world is unchanged). */
+export type WorldOpt = { depHold?: boolean; approval?: boolean; place?: string };
 export function worldAt(t: number, opt: WorldOpt = {}): { fleet: FleetSource; github: Record<string, unknown>; detail: Detail } {
 	/* THE CLOCK: `now` is the story clock (a Tuesday, UTC), so every absolute time the product prints ("reopens 10:00 UTC", "closes 14:00 UTC") agrees with the chrome clock;
 	   each CR timestamp is placed on the same piecewise-linear map (clock.ts), and pre-story ages count back from the first frame. */
@@ -281,7 +282,7 @@ export function worldAt(t: number, opt: WorldOpt = {}): { fleet: FleetSource; gi
 
 	/* ---- what the rollout page's queries are answered with: the prod us-east-1 place ---- */
 	/* scene lane 3: the rollout page is staging's until the cut to the prod Gates tab, then prod us-east-1's */
-	const i1 = t < EV.gatesCut - 0.05 ? PLACES.findIndex((p) => p.env === 'staging') : PLACES.findIndex(isUS1);
+	const i1 = opt.place ? PLACES.findIndex((p) => key(p) === opt.place) : t < EV.gatesCut - 0.05 ? PLACES.findIndex((p) => p.env === 'staging') : PLACES.findIndex(isUS1);
 	const NS = PLACES[i1].ns;
 	const rGates = ((rolloutsAll[i1].status.gates ?? []) as Any[]).map((g) => ({
 		apiVersion: 'kuberik.com/v1alpha1', kind: 'RolloutGate',
