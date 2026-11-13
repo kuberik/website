@@ -39,6 +39,8 @@ DASHBOARD_SRC=/path/to/rollout-dashboard/frontend bash build.sh
 
 - `DASHBOARD_SRC` is a dashboard checkout's `frontend/`; it is only read. The commit it was at is written to `../static/islands/BUILT-FROM`: that is the pin. Rebuild from the same commit unless the film is meant to pick up a dashboard change.
 - `build.sh` links the dashboard's `node_modules` (or `DASHBOARD_NODE_MODULES`), compiles to `../static/islands/`, regenerates `sources.auto.txt` and subsets the fonts. Set `VITE_CACHE_DIR` to a private directory when other builds share the host.
+- A fresh dashboard checkout needs three untracked, git-ignored things before it builds (the dashboard's own files stay untouched): `frontend/node_modules` (a symlink to a checkout's with the same `pnpm-lock.yaml`; the dashboard's own imports resolve from there), `frontend/.svelte-kit` (`svelte-kit sync`, or a copy: `tsconfig.json` extends it) and `src/lib/paraglide` (compiled by the dashboard's vite plugin, or a copy from a checkout with the same `messages/en.json`). Check `src/lib/paraglide/messages/_index.js` is ~100 KB: an 18-byte stub compiles nothing and wipes every string.
+- `PYFTSUBSET` points `subset-fonts.sh` at a `pyftsubset` (fonttools) when it is not on the PATH.
 - Commit `static/islands/` with the source change. A running Hugo server serves the new files after a few seconds.
 
 ## Re-shoot the posters
@@ -82,3 +84,56 @@ node scripts/film/strip.mjs /tmp/jit 'cut gates' strip.png       # the ~60 fps f
 - Transitions smooth: no dropped frames, snaps, mismatched stills, scroll or reflow jumps, half-painted frames. Measure it (above), in a browser and in recordings.
 - The served page shows only the current film: re-shoot the posters with every first-frame change.
 - No music, no popover or site picker, no slogans, no overlays carrying numbers the product does not print.
+
+# Section islands: one real component per page section
+
+A section visual (a feature card, a later section) can be the dashboard's own component too, so it never drifts from the product. It is the same
+build as the film (shared runtime, shared stylesheet and fonts, the film's chunks reused), one small chunk per island (the Gates card: 2.5 KB gz of its
+own), started by the loader only once its host nears the viewport AND the hero has painted its first live frame.
+
+## How a frame is made
+
+`src/islands/sections/section.ts` (`mountSection(ctx, spec)`):
+
+- The component is mounted LIVE under `shared/Scoped.svelte`: its own `$app/state` page and its own query answers (`shared/scope.ts`), so it can be
+  the same rollout as the film at another story second without reading or writing the film's. `vite.config.ts` `islandScope` rewrites every dashboard
+  `.svelte` file's `import { page } from '$app/state'` into `scopedPage()` at component init; the svelte-query stub captures the scope when a query is
+  created. Outside a section island both fall back to the globals: the film is unchanged.
+- It lays out on a canvas of the product's own width (container `kc`, as the film's canvas: the product's breakpoints answer it) offstage in the shadow
+  root, settles (fonts, no DOM change for 250 ms: the Gates graph measures its ports and draws its wires a frame later), is CLONED into the frame and
+  unmounted. The frame is the product's markup and CSS, inert, and nothing the film does later moves it.
+- Time: when the film drives the story clock, the section's world is rebased onto it (every ISO timestamp shifted by now - world.now), so its ages are
+  its own story's; with no film on the page the section drives the clock.
+- Its release catalogue is added to the shared source only if the film's does not already hold it (`base: false`, dropped after the clone).
+- Several story times = a calm loop of stills that dissolve (`times`, `holdMs`, `fadeMs`), paused off screen, in a hidden tab and under reduced motion
+  (the `rest` still). One time = a still.
+- A host width that moves the product's layout re-renders (debounced); any other only re-places the frame.
+
+## Add one
+
+```ts {filename="src/islands/sections/<name>.ts"}
+export const mount = (ctx: CustomCtx) => mountSection(ctx, {
+	id: 'section-<name>', load: () => import('$lib/components/<Component>.svelte').then((m) => m.default), props: (w) => ({ /* what the route passes */ }),
+	page: pageAt('/route/path', '/route/[id]', { /* params */ }), world: (t) => worldAt(t, { /* sibling-world options */ }),
+	answers: (w) => answersFrom(() => w.detail, () => w.fleet.rollouts as unknown[], () => w.github), times: [7],
+	canvas: (hw) => hw + 68, fit: 'width', frame: (root) => root.querySelector('<selector>'), align: { x: 'start', y: 'start' } });
+```
+
+1. The spec above, then a line in `src/registry.ts`: `'<name>': () => import('./islands/sections/<name>').then((m) => ({ custom: m.mount }))`.
+2. The host in Hugo: `{{ partial "section-island.html" (dict "name" "<name>" "class" "<slot classes>") }}`. Reserve its box in the page CSS, one height per
+   product layout (container queries on the slot's width): measure with `node scripts/section/look.mjs <name> <vw> light` (prints host and frame).
+3. Add the island and the viewports that give each of its layouts to `ISLANDS` in `scripts/section/capture-section-posters.mjs`; build; shoot the posters
+   (`node scripts/section/capture-section-posters.mjs <url> <name>`); commit `static/island-poster/s-<name>-*`, `data/section_poster.yaml` with the build.
+4. Check: `node scripts/section/cls.mjs 1440 900 light <name>` and `390 844` (total CLS, host box before JS vs live), `REDUCED=1` for reduced motion,
+   `node scripts/section/nojs.mjs <name> 1440 dark out.png` (the poster alone), and the film's `check-all.sh` (the hero must not change).
+
+`frame` returns an element or a rect (`rectOf(edges, [bottoms], grow)`: a span cropped on a gutter). `fit: 'width'` corrects the canvas once (then
+remembers the correction) until the framed rect is exactly the host's width, since the product's gutters change at its own breakpoints.
+
+## The Gates card
+
+`src/islands/sections/gates.ts`: the real Gates tab (`RolloutShell` + the tab route) for checkout-api in prod us-east-1 at story second 7 of a sibling
+world (`worldAt(t, { depHold: true, approval: false })`: payments-svc still baking the 3.1.0 that 4.46.0-46 requires, so its contract holds the release;
+staging's promotion passed; Business hours open; no approval gate). The frame is the gate graph's dotted box: the stacked list (down to 10 px under
+this rollout's tile, the gutter above Downstream) below a 608 px slot, the compact two-column graph (#145 wires) from 608 px. Heights in
+`assets/css/feature-cards.css`: 390 px, 406 px from a 572 px slot (the product's `sm` padding), 308 px from 608 px. Re-measure when the pin moves.

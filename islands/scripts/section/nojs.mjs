@@ -1,5 +1,5 @@
 // nojs.mjs <name> <vw> <theme> <out.png>: the section island's slot with JavaScript off (the poster alone)
-import { chromium } from '/home/luka/projects/kuberik/rollout-dashboard/frontend/node_modules/@playwright/test/index.mjs';
+import { chromium } from '@playwright/test';
 const [name, vw, theme, out] = process.argv.slice(2);
 const b = await chromium.launch();
 const p = await b.newPage({ viewport: { width: +vw, height: 900 }, javaScriptEnabled: false, colorScheme: theme });

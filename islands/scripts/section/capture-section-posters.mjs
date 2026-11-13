@@ -2,7 +2,7 @@
 // in light and dark, at 1x. Writes ../static/island-poster/s-<name>-<hostWidth>-<theme>.webp and ../data/section_poster.yaml
 // ({name: {v: content hash, w: [host widths]}}): section-island.html picks, by container query on the host's width, the widest poster not wider than the host.
 // usage: node scripts/section/capture-section-posters.mjs [url] [name ...]     (ImageMagick `convert` makes the webp)
-import { chromium } from '/home/luka/projects/kuberik/rollout-dashboard/frontend/node_modules/@playwright/test/index.mjs';
+import { chromium } from '@playwright/test';
 import { execFileSync } from 'node:child_process';
 import { mkdirSync, readdirSync, readFileSync, writeFileSync, existsSync } from 'node:fs';
 import { createHash } from 'node:crypto';

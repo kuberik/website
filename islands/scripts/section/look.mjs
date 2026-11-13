@@ -1,5 +1,5 @@
 // look.mjs <name> <vw> <theme> <out.png> : scrolls to a section island, waits for its live still, prints its state, screenshots the host (1x)
-import { chromium } from '/home/luka/projects/kuberik/rollout-dashboard/frontend/node_modules/@playwright/test/index.mjs';
+import { chromium } from '@playwright/test';
 const [name = 'gates-card', vw = '1440', theme = 'light', out] = process.argv.slice(2);
 const URL_ = process.env.URL ?? 'http://192.168.1.102:1340/';
 const b = await chromium.launch();

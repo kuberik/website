@@ -1,5 +1,5 @@
 // prints the box of each feature card's visual (.fv-body) at the given viewport widths
-import { chromium } from '/home/luka/projects/kuberik/rollout-dashboard/frontend/node_modules/@playwright/test/index.mjs';
+import { chromium } from '@playwright/test';
 const URL_ = process.env.URL ?? 'http://192.168.1.102:1340/';
 const b = await chromium.launch();
 for (const w of (process.argv[2] ?? '390,1440,1920,2560').split(',').map(Number)) {

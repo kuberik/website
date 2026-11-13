@@ -1,5 +1,5 @@
 // probe.mjs <name> <vw> : rects (relative to the still) of a few elements in a section island's frozen still
-import { chromium } from '/home/luka/projects/kuberik/rollout-dashboard/frontend/node_modules/@playwright/test/index.mjs';
+import { chromium } from '@playwright/test';
 const [name = 'gates-card', vw = '1440'] = process.argv.slice(2);
 const b = await chromium.launch();
 const p = await b.newPage({ viewport: { width: +vw, height: 900 } });
