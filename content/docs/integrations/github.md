@@ -81,7 +81,7 @@ In the org that owns your source repositories, open **Settings → Developer set
 
 ### Install the app
 
-Choose **Install App** and install it on the org, for the repositories your Rollouts are built from.
+Choose **Install App** and install it on the org, for the repositories your [Rollouts](/docs/concepts/rollouts/) are built from.
 
 ### Create the Secret
 

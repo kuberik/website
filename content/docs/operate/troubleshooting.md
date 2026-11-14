@@ -5,7 +5,7 @@ type_: guide
 weight: 90
 ---
 
-Find the condition that holds your Rollout and apply the fix under it. Every example uses the Rollout `hello-world` in namespace `hello-world`.
+Find the condition that holds your [Rollout](/docs/concepts/rollouts/) and apply the fix under it. Every example uses the Rollout `hello-world` in namespace `hello-world`.
 
 The symptoms below are named by the condition types and reasons this command prints. Events on the Rollout, such as `HealthCheckBlocking` and `BakeTimeFailed`, add detail.
 
@@ -20,7 +20,7 @@ Other parts of Kuberik have their own Troubleshoot sections:
 | Area | Page |
 |---|---|
 | ReleaseSource not Ready, tags missing | [Publish Releases from CI](/docs/releases/publish/#troubleshoot) |
-| Environments do not promote (`WaveReady`, `LockstepConsistent`) | [Promote Across Environments](/docs/releases/promote/#troubleshoot) |
+| [Environments](/docs/concepts/environments/) do not promote (`WaveReady`, `LockstepConsistent`) | [Promote Across Environments](/docs/releases/promote/#troubleshoot) |
 | Datadog monitors | [Datadog](/docs/integrations/datadog/#troubleshoot) |
 | Install and upgrade errors | [Install with Helm](/docs/installation/helm/#troubleshooting) |
 | Dashboard sign-in | [Set Up Dashboard Sign-in](/docs/installation/dashboard-auth/#troubleshoot) |
@@ -29,7 +29,7 @@ Other parts of Kuberik have their own Troubleshoot sections:
 
 ### `ReleasesUpdated` is False with reason `ReleaseSourceRequired`
 
-The Rollout has no `spec.releaseSourceRef`, so it reads no releases. Point it at the app's [ReleaseSource](/docs/releases/publish/).
+The Rollout has no `spec.releaseSourceRef`, so it reads no releases. Point it at the app's ReleaseSource.
 
 ```bash {filename="Terminal"}
 kubectl patch rollout hello-world -n hello-world --type merge \
@@ -66,7 +66,7 @@ kubectl edit releasesource hello-world -n hello-world
 
 ### `GatesPassing` is False with reason `SomeGatesBlocking`
 
-A release is waiting and a gate has `passing: false`, often a closed deployment window from a `RolloutSchedule` or a `ClusterRolloutSchedule`. With nothing waiting, the condition stays `True` and the closed gate is still listed in `status.gates`. List the gates and schedules.
+A release is waiting and a gate has `passing: false`, often a closed deployment window from a [`RolloutSchedule`](/docs/gates/schedules/) or a [`ClusterRolloutSchedule`](/docs/gates/schedules/). With nothing waiting, the condition stays `True` and the closed gate is still listed in `status.gates`. List the gates and schedules.
 
 ```bash {filename="Terminal"}
 kubectl get rollout hello-world -n hello-world -o jsonpath='{.status.gates}'
@@ -88,7 +88,7 @@ Newer releases are waiting, but none is in every gate's `allowedVersions`. `bloc
 kubectl get rollout hello-world -n hello-world -o jsonpath='{range .status.candidates[*]}{.tag}{"\t"}{.blockedBy}{"\n"}{end}'
 ```
 
-An `approval-gate-…` lets a release through once a `RolloutApproval` names it. Apply one to approve 1.4.1.
+An `approval-gate-…` lets a release through once a [`RolloutApproval`](/docs/gates/approvals/) names it. Apply one to approve 1.4.1.
 
 ```bash {filename="Terminal"}
 kubectl apply -f - <<EOF
@@ -108,7 +108,7 @@ A `dependency-…` gate means the provider has not deployed the contract version
 
 ### `DeploymentBlocked` is True with reason `UnhealthyHealthChecks`
 
-A selected HealthCheck is `Unhealthy`; the message names it. Fix the workload, or deploy a known build by hand, which skips this hold.
+A selected [HealthCheck](/docs/gates/health-checks/) is `Unhealthy`; the message names it. Fix the workload, or deploy a known build by hand, which skips this hold.
 
 ```bash {filename="Terminal"}
 kubectl get healthchecks -n hello-world

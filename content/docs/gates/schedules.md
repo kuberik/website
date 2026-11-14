@@ -7,7 +7,7 @@ weight: 30
 aliases: ["/docs/guides/schedules/"]
 ---
 
-Hold automatic deploys outside the hours you choose, or block them during a freeze. A `RolloutSchedule` turns its time rules into a gate on every Rollout it selects.
+Hold automatic deploys outside the hours you choose, or block them during a freeze. A [`RolloutSchedule`](/docs/reference/api/#rolloutschedule) turns its time rules into a gate on every [Rollout](/docs/concepts/rollouts/) it selects.
 
 ## Allow deploys during business hours
 
@@ -55,11 +55,11 @@ spec:
     name: hello-world
 ```
 
-The two annotations name the gate in the dashboard. Kuberik copies them onto the `RolloutGate` it creates for each selected Rollout.
+The two annotations name the gate in the dashboard. Kuberik copies them onto the [`RolloutGate`](/docs/concepts/gates/) it creates for each selected Rollout.
 
 ## Freeze deploys across namespaces
 
-A `ClusterRolloutSchedule` works the same way, and adds `namespaceSelector` to reach Rollouts in every namespace with matching labels. This one blocks production deploys over the holidays. A `dateRange` includes both its start and end day.
+A [`ClusterRolloutSchedule`](/docs/reference/api/#clusterrolloutschedule) works the same way, and adds `namespaceSelector` to reach Rollouts in every namespace with matching labels. This one blocks production deploys over the holidays. A `dateRange` includes both its start and end day.
 
 ```yaml {filename="holiday-freeze.yaml"}
 apiVersion: kuberik.com/v1alpha1

@@ -7,13 +7,13 @@ weight: 10
 aliases: ["/docs/guides/health-checks/"]
 ---
 
-A Rollout with health checks marks a deploy succeeded only after its checks stay healthy for the bake time, and fails it when a check turns unhealthy. While a check is unhealthy, new automatic deploys wait.
+A [Rollout](/docs/concepts/rollouts/) with health checks marks a deploy succeeded only after its checks stay healthy for the bake time, and fails it when a check turns unhealthy. While a check is unhealthy, new automatic deploys wait.
 
 Works with: Flux Kustomizations (built into rollout-controller), [Datadog](/docs/integrations/datadog/) monitors and incidents (datadog-controller), and [Prometheus](/docs/integrations/prometheus/) alerts (prometheus-controller).
 
 ## Add a health check
 
-A [`HealthCheck`](/docs/reference/api/) reports `Healthy`, `Unhealthy` or `Pending` in `status.status`; its `spec.class` names the controller that fills it in. This one follows a Flux Kustomization:
+A [`HealthCheck`](/docs/reference/api/#healthcheck) reports `Healthy`, `Unhealthy` or `Pending` in `status.status`; its `spec.class` names the controller that fills it in. This one follows a Flux Kustomization:
 
 ```yaml {filename="healthcheck.yaml"}
 apiVersion: kuberik.com/v1alpha1
@@ -33,7 +33,7 @@ The annotation takes the Kustomization's name, or `<namespace>/<name>` for one i
 
 ## Select health checks from the Rollout
 
-Set `healthCheckSelector` on the [`Rollout`](/docs/concepts/rollouts/), and a bake time the checks must hold:
+Set `healthCheckSelector` on the `Rollout`, and a bake time the checks must hold:
 
 ```yaml {filename="rollout.yaml"}
 apiVersion: kuberik.com/v1alpha1

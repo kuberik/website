@@ -7,11 +7,11 @@ weight: 20
 aliases: ["/docs/guides/manual-approvals/"]
 ---
 
-A deploy waits until a person approves the build. An `ApprovalPolicy` holds every new build of the Rollouts it selects, and a `RolloutApproval` lets one version through.
+A deploy waits until a person approves the build. An [`ApprovalPolicy`](/docs/reference/api/#approvalpolicy) holds every new build of the [Rollouts](/docs/concepts/rollouts/) it selects, and a [`RolloutApproval`](/docs/reference/api/#rolloutapproval) lets one version through.
 
 ## Require an approval
 
-Label the [Rollouts](/docs/concepts/rollouts/) that need a person, then select them with an `ApprovalPolicy` in their namespace. The label is yours to choose; the policy only matches it.
+Label the Rollouts that need a person, then select them with an `ApprovalPolicy` in their namespace. The label is yours to choose; the policy only matches it.
 
 ```bash {filename="Terminal"}
 kubectl -n hello-world label rollout hello-world approval.kuberik.com/required=true
@@ -33,7 +33,7 @@ spec:
 
 For each matched Rollout the controller creates one [RolloutGate](/docs/concepts/gates/) named `approval-gate-<suffix>`. Its `allowedVersions` lists the versions approved for that Rollout and nothing else, so every newer build waits. An empty `rolloutSelector` matches every Rollout in the namespace.
 
-To require approvals across namespaces, use a `ClusterApprovalPolicy`. Its `namespaceSelector` picks the namespaces; leave it out to match all of them.
+To require approvals across namespaces, use a [`ClusterApprovalPolicy`](/docs/reference/api/#clusterapprovalpolicy). Its `namespaceSelector` picks the namespaces; leave it out to match all of them.
 
 ```yaml {filename="cluster-approval-policy.yaml"}
 apiVersion: kuberik.com/v1alpha1

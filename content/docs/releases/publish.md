@@ -7,7 +7,7 @@ weight: 10
 aliases: ["/docs/guides/publishing-releases/"]
 ---
 
-Publish every build as a tagged artifact that a `ReleaseSource` picks up as a new release. Pick one tagging scheme, publish with the matching workflow, and give the `ReleaseSource` the policy that orders those tags.
+Publish every build as a tagged artifact that a [`ReleaseSource`](/docs/reference/api/#releasesource) picks up as a new release. Pick one tagging scheme, publish with the matching workflow, and give the `ReleaseSource` the policy that orders those tags.
 
 Each artifact also carries two OCI annotations: `org.opencontainers.image.revision` (the full git commit SHA) and `org.opencontainers.image.source` (the repository URL). Kuberik reads them to link a release to its commit and pull request, so `revision` must be the SHA, not a version string.
 

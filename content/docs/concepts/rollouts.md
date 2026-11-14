@@ -9,7 +9,7 @@ A **Rollout** deploys the builds of one OCI artifact into one environment, one b
 
 ## How a build is chosen
 
-A Rollout reads its releases from a [`ReleaseSource`](/docs/reference/api/), which lists the tags of an OCI repository. Every release newer than the deployed one is a candidate. The Rollout deploys the newest candidate that every [gate](#when-a-deploy-is-held) allows, by writing the version to the Flux source it owns: a `Kustomization` substitution variable or an `OCIRepository` tag. It then [bakes](#how-a-deploy-is-verified) the build and records the outcome in `status.history`.
+A [Rollout](/docs/reference/api/#rollout) reads its releases from a [`ReleaseSource`](/docs/releases/publish/), which lists the tags of an OCI repository. Every release newer than the deployed one is a candidate. The Rollout deploys the newest candidate that every [gate](#when-a-deploy-is-held) allows, by writing the version to the Flux source it owns: a `Kustomization` substitution variable or an `OCIRepository` tag. It then [bakes](#how-a-deploy-is-verified) the build and records the outcome in `status.history`.
 
 Kuberik deploys one version at a time. If `v1.2.0` is deploying or baking when `v1.3.0` and `v1.4.0` arrive, both wait as candidates. When `v1.2.0` succeeds, the Rollout deploys the newest candidate the gates allow, `v1.4.0`, and skips `v1.3.0`.
 
@@ -40,7 +40,7 @@ spec:
 | `versionHistoryLimit` | How many past deployments to keep in `status.history` (default `10`). |
 | `bakeTime` | How long the build must stay free of health-check errors once the bake starts (e.g., `5m`, `1h`). |
 | `deployTimeout` | How long to wait for the health checks to become healthy after a deploy. When it passes before the bake starts, the deploy fails. Unset means wait indefinitely. |
-| `healthCheckSelector` | Label selector (and optional namespace selector) for the HealthCheck resources to evaluate. |
+| `healthCheckSelector` | Label selector (and optional namespace selector) for the [HealthCheck](/docs/gates/health-checks/) resources to evaluate. |
 | `wantedVersion` | Pins the Rollout to one tag: it deploys that tag and nothing else until you clear the field. See [Operate a Rollout by Hand](/docs/operate/manual-actions/#pin-a-version). |
 
 ## Rollout status

@@ -10,7 +10,7 @@ tabs:
   sync: true
 ---
 
-Deploy `hello-world` with Kuberik. At the end, every build your CI publishes is picked up by a `ReleaseSource` and deployed by a `Rollout` through Flux.
+Deploy `hello-world` with Kuberik. At the end, every build your CI publishes is picked up by a [`ReleaseSource`](/docs/releases/publish/) and deployed by a [`Rollout`](/docs/concepts/rollouts/) through Flux.
 
 Before you start, you need a cluster with [Flux](https://fluxcd.io) 2.6 or later and [Kuberik](/docs/installation/helm/) installed, and a GitHub repository, here `acme/hello-world`, whose CI can push to `ghcr.io/acme/hello-world`. `ReleaseSource` is served by the release-controller, which the Helm chart installs from the next chart release. Pick Image tag or Rendered manifests in the tabs below; [Propagation Modes](/docs/concepts/propagation/) explains the difference.
 
@@ -26,7 +26,7 @@ kubectl create namespace hello-world
 
 ### Create a ReleaseSource
 
-A [`ReleaseSource`](/docs/concepts/architecture/) lists the tags of an OCI repository, orders them by a policy, and keeps the result as the catalogue of releases your Rollout reads. CI tags each build `main-<sha>-<timestamp>`, and the policy orders by the timestamp.
+A `ReleaseSource` lists the tags of an OCI repository, orders them by a policy, and keeps the result as the catalogue of releases your Rollout reads. CI tags each build `main-<sha>-<timestamp>`, and the policy orders by the timestamp.
 
 {{< tabs >}}
   {{< tab name="Image tag" >}}
@@ -80,7 +80,7 @@ For a private registry, add `secretRef` under `oci` with the name of an image pu
 
 ### Create the Rollout
 
-The [`Rollout`](/docs/concepts/rollouts/) reads releases from the `ReleaseSource` and decides which one to deploy. The `HealthCheck` follows the Flux Kustomization you create in the next step, and the Rollout selects it, so a deploy succeeds only after Flux has applied it and it stayed healthy for the bake time. Both resources are identical in the two modes.
+The `Rollout` reads releases from the `ReleaseSource` and decides which one to deploy. The [`HealthCheck`](/docs/gates/health-checks/) follows the Flux Kustomization you create in the next step, and the Rollout selects it, so a deploy succeeds only after Flux has applied it and it stayed healthy for the bake time. Both resources are identical in the two modes.
 
 ```yaml {filename="rollout.yaml"}
 apiVersion: kuberik.com/v1alpha1

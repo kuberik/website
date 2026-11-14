@@ -6,7 +6,7 @@ weight: 30
 aliases: ["/docs/guides/monitoring/"]
 ---
 
-Export every Rollout's latest deploy, bake state and gate state as Prometheus metrics, then chart and alert on them. Kuberik writes this state to the Rollout's `status`; [kube-state-metrics](https://github.com/kubernetes/kube-state-metrics) turns it into metrics.
+Export every [Rollout](/docs/concepts/rollouts/)'s latest deploy, bake state and gate state as Prometheus metrics, then chart and alert on them. Kuberik writes this state to the Rollout's `status`; [kube-state-metrics](https://github.com/kubernetes/kube-state-metrics) turns it into metrics.
 
 The dashboard reads the same fields: its Activity page is the deploy feed across every cluster, and each rollout page shows the bake and health-check state these metrics export.
 
@@ -111,7 +111,7 @@ Each metric carries the `namespace` and `name` of the Rollout.
 | `kuberik_rollout_bake_start_timestamp` | When every health check first reported healthy and bake time began | |
 | `kuberik_rollout_bake_end_timestamp` | When the deploy succeeded, failed, timed out, or was cancelled by a newer deploy | |
 | `kuberik_rollout_bake_status` | 1 for the current state, 0 for the others | `bake_status`: `Deploying`, `InProgress`, `Succeeded`, `Failed`, `Cancelled` |
-| `kuberik_rollout_available_releases` | Number of releases in the `ReleaseSource` catalogue, older ones included | |
+| `kuberik_rollout_available_releases` | Number of releases in the [`ReleaseSource`](/docs/releases/publish/) catalogue, older ones included | |
 | `kuberik_rollout_condition` | 1 when the condition is True, 0 when False | `type`, for example `Ready`, `GatesPassing`, `DeploymentBlocked`; `reason` |
 
 `Deploying` means Kuberik has written the new version and waits for the health checks to report healthy; `InProgress` means bake time is running.

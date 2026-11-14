@@ -5,7 +5,7 @@ type_: concept
 weight: 30
 ---
 
-An Environment puts a [Rollout](/docs/concepts/rollouts/) into a tier, such as staging or production, and lets it deploy only the releases the earlier tier has already deployed and baked. Clusters coordinate through GitHub deployments, so they never connect to each other.
+An [Environment](/docs/reference/api/#environment) puts a [Rollout](/docs/concepts/rollouts/) into a tier, such as staging or production, and lets it deploy only the releases the earlier tier has already deployed and baked. Clusters coordinate through GitHub deployments, so they never connect to each other.
 
 {{< fig id="env-tiers-github" caption="Two clusters never connect: the staging Environment reports to GitHub, and the production Environment lets through only what baked upstream." >}}
 
@@ -59,7 +59,7 @@ Use one name per tier. If an app registers both `staging` and `preprod`, every E
 
 ## How a release is admitted
 
-The controller creates a [RolloutGate](/docs/reference/api/) named `ghd-<random>` for the Rollout, owned by the Environment, and keeps its `allowedVersions` up to date:
+The controller creates a [RolloutGate](/docs/concepts/gates/) named `ghd-<random>` for the Rollout, owned by the Environment, and keeps its `allowedVersions` up to date:
 
 - With no upstream, the gate does not restrict versions.
 - With an upstream, the gate allows the releases that every registered site of the upstream's last wave baked successfully.
