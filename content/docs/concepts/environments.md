@@ -1,6 +1,8 @@
 ---
 title: "Environments"
-weight: 4
+description: "How Environments order tiers, sites and waves and report deployments to GitHub."
+type_: concept
+weight: 30
 ---
 
 An **Environment** connects a Rollout to an external deployment backend and enables multi-cluster coordination.
@@ -141,5 +143,5 @@ For GitHub:
 
 ## Related Guides
 
-- [Cross-Environment Rollout](/docs/guides/cross-environment-rollout/) — Set up staging → production
+- [Cross-Environment Rollout](/docs/releases/promote/) — Set up staging → production
 - [GitHub Integration](/docs/integrations/github/) — Configure the GitHub backend

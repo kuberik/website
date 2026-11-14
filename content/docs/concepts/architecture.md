@@ -1,6 +1,8 @@
 ---
-title: "Architecture"
-weight: 1
+title: "How Kuberik Works"
+description: "The controllers, the resources they own, and how a release travels from registry to cluster."
+type_: concept
+weight: 10
 ---
 
 Kuberik is a GitOps-native orchestration layer that extends the standard controller pattern to handle complex deployment lifecycles.

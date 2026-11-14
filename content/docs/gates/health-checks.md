@@ -1,6 +1,10 @@
 ---
-title: "Health Checks"
-weight: 1
+title: "Verify with Health Checks"
+linkTitle: "Health Checks"
+description: "Fail a deploy when the app is unhealthy during bake time."
+type_: guide
+weight: 10
+aliases: ["/docs/guides/health-checks/"]
 ---
 
 Use `HealthCheck` to verify deployments. Kuberik monitors health checks during deployment and bake time—bake only starts once all checks transition from pending to healthy. Any failed health check marks the deployment as failed.

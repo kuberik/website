@@ -1,6 +1,8 @@
 ---
-title: "Datadog Integration"
-weight: 3
+title: "Datadog"
+description: "Fail a deploy when Datadog monitors alert or an incident opens."
+type_: integration
+weight: 30
 ---
 
 Use Datadog monitors as health check sources for your rollouts.
@@ -271,6 +273,6 @@ If monitors are too sensitive:
 ## Next Steps
 
 {{< cards >}}
-  {{< card title="Health Checks" link="/docs/guides/health-checks/" icon="shield-check" subtitle="All health check options" >}}
+  {{< card title="Health Checks" link="/docs/gates/health-checks/" icon="shield-check" subtitle="All health check options" >}}
   {{< card title="API Reference" link="/docs/reference/api/" icon="code" subtitle="Full schema details" >}}
 {{< /cards >}}

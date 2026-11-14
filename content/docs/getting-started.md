@@ -1,6 +1,9 @@
 ---
-title: "Getting Started"
-weight: 2
+title: "Deploy Your First App"
+linkTitle: "Deploy Your First App"
+description: "Deploy an app with a Rollout, a ReleaseSource and Flux, then watch Kuberik ship a new release."
+type_: tutorial
+weight: -10
 sidebar:
   open: true
 tabs:
@@ -22,7 +25,7 @@ Pick a mode in the tabs below and it carries through the guide. Both modes use t
 
 ### Create a ReleaseSource
 
-Tell Kuberik which artifact to scan for new versions. A `ReleaseSource` lists the tags of an OCI repository, orders them by a policy, and keeps the result as the catalogue of releases your Rollout reads. Your CI publishes these artifacts with `main-<sha>-<timestamp>` tags — see [Publishing Releases](/docs/guides/publishing-releases/) for the workflows.
+Tell Kuberik which artifact to scan for new versions. A `ReleaseSource` lists the tags of an OCI repository, orders them by a policy, and keeps the result as the catalogue of releases your Rollout reads. Your CI publishes these artifacts with `main-<sha>-<timestamp>` tags — see [Publishing Releases](/docs/releases/publish/) for the workflows.
 
 {{< tabs >}}
   {{< tab name="Image tag" >}}
@@ -176,7 +179,7 @@ Point Flux at the source Kuberik will drive.
   kubectl apply -f kustomization.yaml
   ```
 
-  Your CI renders the manifests for this environment and pushes them to this path. See [Publishing Releases](/docs/guides/publishing-releases/).
+  Your CI renders the manifests for this environment and pushes them to this path. See [Publishing Releases](/docs/releases/publish/).
   {{< /tab >}}
 {{< /tabs >}}
 
@@ -198,6 +201,6 @@ kubectl describe rollout -n hello-world hello-world-app
 
 {{< cards >}}
   {{< card title="Propagation Modes" link="/docs/concepts/propagation/" icon="switch-horizontal" subtitle="Image tag vs rendered manifests" >}}
-  {{< card title="Manual Approvals" link="/docs/guides/manual-approvals/" icon="shield-check" subtitle="Add production gates" >}}
+  {{< card title="Manual Approvals" link="/docs/gates/approvals/" icon="shield-check" subtitle="Add production gates" >}}
   {{< card title="Core Concepts" link="/docs/concepts/architecture/" icon="book-open" subtitle="How it works" >}}
 {{< /cards >}}

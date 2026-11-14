@@ -1,6 +1,10 @@
 ---
-title: "Publishing Releases"
-weight: 5
+title: "Publish Releases from CI"
+linkTitle: "Publish Releases"
+description: "Tag images or manifest artifacts in CI so a ReleaseSource picks them up."
+type_: guide
+weight: 10
+aliases: ["/docs/guides/publishing-releases/"]
 ---
 
 Kuberik orchestrates the delivery of your releases — but **you** decide when and how to release. A release is triggered when a new container image tag appears in the registry. Your CI pipeline controls that.

@@ -1,6 +1,8 @@
 ---
 title: "API Reference"
-weight: 1
+description: "Fields of every Kuberik custom resource."
+type_: reference
+weight: 10
 ---
 
 This page includes the full API documentation of the Kuberik project.

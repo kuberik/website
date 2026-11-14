@@ -1,6 +1,10 @@
 ---
-title: "Automated Promotion"
-weight: 3
+title: "Promote Across Environments"
+linkTitle: "Promote Across Environments"
+description: "Deploy to production only after staging has shipped the same release."
+type_: guide
+weight: 20
+aliases: ["/docs/guides/cross-environment-rollout/"]
 ---
 
 Chain environments together so production deploys only after staging succeeds. Requires the [GitHub Integration](/docs/integrations/github/).
@@ -61,4 +65,4 @@ The controller automatically creates RolloutGate resources based on relationship
 
 ## Recommended: Add a Schedule
 
-Combine with a [Deployment Schedule](/docs/guides/schedules/) to prevent automatic promotions when your team isn't around.
+Combine with a [Deployment Schedule](/docs/gates/schedules/) to prevent automatic promotions when your team isn't around.

@@ -1,6 +1,9 @@
 ---
-title: "Monitoring Rollouts"
-weight: 6
+title: "Monitor Rollouts"
+description: "Track deploys and rollout state with kube-state-metrics and Prometheus."
+type_: guide
+weight: 30
+aliases: ["/docs/guides/monitoring/"]
 ---
 
 Track deployment history and rollout status using kube-state-metrics.
@@ -278,6 +281,6 @@ groups:
 ## Next Steps
 
 {{< cards >}}
-  {{< card title="Health Checks" link="/docs/guides/health-checks/" icon="shield-check" subtitle="Configure deployment verification" >}}
+  {{< card title="Health Checks" link="/docs/gates/health-checks/" icon="shield-check" subtitle="Configure deployment verification" >}}
   {{< card title="Datadog Integration" link="/docs/integrations/datadog/" icon="chart-bar" subtitle="Metrics-based health checks" >}}
 {{< /cards >}}

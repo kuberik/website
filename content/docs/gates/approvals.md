@@ -1,6 +1,10 @@
 ---
-title: "Manual Approvals"
-weight: 2
+title: "Require a Manual Approval"
+linkTitle: "Manual Approvals"
+description: "Hold a deploy until a person approves it."
+type_: guide
+weight: 20
+aliases: ["/docs/guides/manual-approvals/"]
 ---
 
 Use `RolloutGate` to block deployments until explicitly approved.

@@ -1,6 +1,8 @@
 ---
 title: "Rollouts"
-weight: 2
+description: "How a Rollout picks a version, gates it, deploys it and verifies it during bake time."
+type_: concept
+weight: 20
 ---
 
 A **Rollout** is the central resource in Kuberik. It tracks versions of an OCI artifact and orchestrates their deployment through a controlled lifecycle. That artifact is either your container image or the rendered manifests for an environment.
@@ -174,6 +176,6 @@ When a manual rollout lands in an already unhealthy environment, automatic rollb
 
 - [Getting Started](/docs/getting-started/): set up your first Rollout
 - [Propagation Modes](/docs/concepts/propagation/): image tag or rendered manifests
-- [Health Checks](/docs/guides/health-checks/): configure verification
-- [Manual Approvals](/docs/guides/manual-approvals/): add approval gates
-- [Deployment Schedules](/docs/guides/schedules/): control deployment time windows
+- [Health Checks](/docs/gates/health-checks/): configure verification
+- [Manual Approvals](/docs/gates/approvals/): add approval gates
+- [Deployment Schedules](/docs/gates/schedules/): control deployment time windows

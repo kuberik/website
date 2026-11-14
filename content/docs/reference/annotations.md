@@ -1,6 +1,8 @@
 ---
-title: "Annotations Reference"
-weight: 2
+title: "Annotations"
+description: "Every annotation Kuberik reads or writes, with its values and effect."
+type_: reference
+weight: 20
 ---
 
 Complete reference for all Kuberik annotations.
