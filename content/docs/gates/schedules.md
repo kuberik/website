@@ -36,7 +36,7 @@ spec:
   action: Allow
 ```
 
-`Allow` passes deploys while a rule matches and holds them otherwise; `Deny` is the reverse. A held deploy starts automatically when the gate passes again.
+`Allow` passes deploys while a rule matches and holds them otherwise; `Deny` is the reverse. A held deploy starts automatically when the gate passes again. A closed window does not hold a Rollout's first deploy or a deploy you start by hand.
 
 `action` defaults to `Deny` and `timezone` defaults to `UTC`. Always set `action: Allow` on an allow window: without it, the schedule blocks deploys during exactly the hours you meant to allow.
 
@@ -133,7 +133,7 @@ spec:
 
 ## Check the result
 
-`kubectl get` shows whether each schedule is active now and how many Rollouts it selects.
+`kubectl get` shows whether each schedule is active now and how many Rollouts it selects. `ACTIVE` reads `true` while a rule matches and stays blank otherwise.
 
 ```bash {filename="Terminal"}
 kubectl get rolloutschedule -n hello-world
@@ -141,7 +141,7 @@ kubectl get rolloutschedule -n hello-world
 
 ```text {filename="Output"}
 NAME             ACTION   ACTIVE   MATCHING   AGE
-business-hours   Allow    false    1          3h
+business-hours   Allow             1          3h
 ```
 
 While the window is closed, the dashboard holds the rollout and names the schedule, its hours, and when automatic deploys resume.

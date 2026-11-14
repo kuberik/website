@@ -66,10 +66,16 @@ The tag must be a candidate, a release newer than the deployed one; for any othe
 
 To skip only some gates, add `rollout.kuberik.com/bypass-gates-only` with a comma-separated list of `RolloutGate` names (available from the next rollout-controller release). The build then deploys once every gate not named allows it. A name that matches no gate of the Rollout raises a `BypassGatesUnknown` warning event, and the annotation does nothing without `bypass-gates`.
 
+Schedules, approval policies and dependencies name their gates `schedule-gate-<suffix>`, `approval-gate-<suffix>` and `dependency-<name>`. List the names of the Rollout's gates first.
+
+```bash {filename="Terminal"}
+kubectl -n hello-world get rollout hello-world -o jsonpath='{.status.gates[*].name}'
+```
+
 ```bash {filename="Terminal"}
 kubectl -n hello-world annotate rollout hello-world --overwrite \
   rollout.kuberik.com/bypass-gates=v1.2.3 \
-  rollout.kuberik.com/bypass-gates-only=weekend-freeze,production-approval
+  rollout.kuberik.com/bypass-gates-only=schedule-gate-x7k2p,approval-gate-9fqzt
 ```
 
 Both annotations are removed when that build deploys. **Skip once** on a gate's tile in the rollout's **Gates** tab writes them for the gates of that rule.

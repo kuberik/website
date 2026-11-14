@@ -61,7 +61,7 @@ spec:
 kubectl apply -f production.yaml
 ```
 
-When staging finishes the bake of `1.4.0`, the production gate adds `1.4.0` to its `allowedVersions` and the production Rollout deploys it as soon as its other gates allow. A failed bake in staging never reaches production, with one exception: a Rollout's first deploy ignores gates and takes the newest release. Pin a new production Rollout (`spec.wantedVersion`) to a release staging baked, or create it after staging has one. The order comes from the tier names alone: there is nothing to configure between the two objects.
+When staging finishes the bake of `1.4.0`, the production gate adds `1.4.0` to its `allowedVersions` and the production Rollout deploys it as soon as its other gates allow. A failed bake in staging never reaches production, with one exception. Gates never hold a Rollout's first deploy: it deploys the newest release the gates allow, or the newest release if they allow none. The Environment creates its gate only after the Rollout exists, and the gate allows every release until the Environment has read staging, so a new Rollout's first deploy can take a release staging never baked. Create a new Rollout with `spec.wantedVersion` set to a release staging baked, and remove the pin after that deploy. The order comes from the tier names alone: there is nothing to configure between the two objects.
 
 ## Roll production out in waves
 
@@ -131,7 +131,7 @@ kubectl get environment hello-world-production -n hello-world \
 | `WaveReady=False`, reason `CandidatesUnresolved` | The ReleaseSlice CRD is not served, so revisions cannot be mapped to tags. | Install the release-controller. |
 | `WaveReady=False`, reason `DuplicateSite` | Another Environment already owns this site of the tier. | Give each cluster its own `site`, or take the site over (below). |
 | Production deploys releases staging never ran | No staging site is registered for this `name`, so production has no upstream. | Check that both Environments use the same `name` and `backend.project`. |
-| A new production Rollout deploys a release staging never baked | A Rollout's first deploy ignores gates. | Pin the new Rollout (`spec.wantedVersion`) to a release staging baked, or create it after staging has one. |
+| A new production Rollout deploys a release staging never baked | Gates never hold a first deploy, and the Environment's gate allows every release until the Environment has read staging. | Create the Rollout with `spec.wantedVersion` set to a release staging baked; remove the pin after that deploy. |
 
 {{< callout type="warning" >}}
 Taking a site over deregisters the Environment that owns it, in another cluster. Do it only when that owner is gone or replaced.

@@ -9,7 +9,7 @@ toc: false
 # `title` here is only the fallback.
 hero:
   eyebrow: "Documentation"
-  lead: "Kuberik is a Kubernetes controller that deploys each release your CI publishes one environment at a time, when its gates allow, and promotes it once its health checks pass."
+  lead: "Kuberik is a set of Kubernetes controllers that deploy each release your CI publishes one environment at a time, when its gates allow, and promote it once its health checks pass."
   primary: { title: "Deploy your first app", url: "/docs/getting-started/" }
   secondary: { title: "Install", url: "/docs/installation/" }
 journeys:
@@ -55,7 +55,7 @@ journeys:
   - title: "Integrations"
     url: "/docs/integrations/"
     icon: plug
-    outcome: "Connect Kuberik to Flux, GitHub and Datadog."
+    outcome: "Connect Kuberik to Flux, GitHub, Datadog and Prometheus."
     links:
       - { url: "/docs/integrations/fluxcd/", title: "Flux" }
       - { url: "/docs/integrations/github/", title: "GitHub" }

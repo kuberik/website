@@ -15,11 +15,11 @@ Kuberik is a set of controllers that decide which build of your app runs in each
 
 | Resource | Purpose |
 |-----------|---------|
-| **Rollout** | The core state machine. Reads the releases a `ReleaseSource` discovers and orchestrates releases. Drives either a `Kustomization` substitution or an `OCIRepository` tag. |
+| [**Rollout**](/docs/concepts/rollouts/) | The core state machine. Reads the releases a `ReleaseSource` discovers and orchestrates releases. Drives either a `Kustomization` substitution or an `OCIRepository` tag. |
 | **ReleaseSource** | Lists the tags of an OCI repository, orders them by a policy and keeps the catalogue of releases (served by the release-controller). A Rollout points at one with `spec.releaseSourceRef`. |
-| **Environment** | Maps a Rollout to a logical target (e.g. "production") and syncs status to external backends (GitHub). |
-| **HealthCheck** | Reports health from a Flux `Kustomization` or from an integration (Datadog monitors, Prometheus alerts). The Rollout reads it before and during the bake. |
-| **RolloutGate** | Holds builds until it allows them: written by hand, or by schedules, approval policies, service dependencies and Environments. |
+| [**Environment**](/docs/concepts/environments/) | Maps a Rollout to a logical target (e.g. "production") and syncs status to external backends (GitHub). |
+| [**HealthCheck**](/docs/gates/health-checks/) | Reports health from a Flux `Kustomization` or from an integration (Datadog monitors, Prometheus alerts). The Rollout reads it before and during the bake. |
+| [**RolloutGate**](/docs/concepts/gates/) | Holds builds until it allows them: written by hand, or by schedules, approval policies, service dependencies and Environments. |
 
 ![One rollout in the dashboard: the health checks it watches, all passing, and the resources it manages, 10 of 10 ready](/images/docs/concepts/architecture-rollout.png)
 
@@ -27,7 +27,7 @@ Kuberik is a set of controllers that decide which build of your app runs in each
 
 A `ReleaseSource` finds a new tag in the OCI repository and adds it to its catalogue of releases. Every release newer than the deployed one becomes a candidate for the Rollout; `status.candidates` shows the newest of them.
 
-`RolloutGates` decide which candidates may deploy. If any gate does not allow the build, the build waits until a gate changes.
+`RolloutGates` decide which candidates may deploy. If any gate does not allow the build, the build waits until a gate changes. Gates never hold deploys you start by hand. On a Rollout's first deploy they never hold either: it deploys the newest release the gates allow, or the newest release if they allow none.
 
 Kuberik then updates the Flux source it owns, a substitution variable on a `Kustomization` or the tag on an `OCIRepository`, and Flux applies the change. See [Propagation Modes](/docs/concepts/propagation/).
 

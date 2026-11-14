@@ -7,20 +7,17 @@ weight: 40
 aliases: ["/docs/guides/service-dependencies/"]
 ---
 
-Hold a service until the service it depends on has shipped the version it needs, in every environment, without hand-sequencing deploys. Requires rollout-controller v0.9.0 or newer.
+Hold a service until the service it depends on has shipped the version it needs, in every environment, without hand-sequencing deploys. Requires rollout-controller v0.10.0 or later.
 
-A `RolloutDependency` connects a consumer Rollout to a provider Rollout. Each consumer release says which provider version it was built against; the controller admits it only once the provider has successfully deployed a release that satisfies that constraint. Providers advance first, consumers follow on their own.
+A `RolloutDependency` connects a consumer Rollout to a provider Rollout. Each consumer release says which provider version it was built against, and the controller admits it only once the provider has successfully deployed a release that satisfies that constraint.
 
-## Declare the Contract on the Images
+## Declare the contract on the images
 
-The dependency lives on the images, not in the manifests. The provider announces the contract version it serves in the standard OCI version annotation; the consumer adds one annotation per contract it requires:
+The dependency lives on the images, not in the manifests. The provider announces the contract version it serves in the standard OCI version annotation, and the consumer adds one annotation per contract it requires.
 
-```bash {filename="build.sh"}
-# provider: the contract version this build serves
+```bash {filename="Terminal"}
 docker buildx build --push -t ghcr.io/acme/api:rel-64 \
   --annotation "index:org.opencontainers.image.version=1.64.0-64" .
-
-# consumer: its own version, plus what it was built against
 docker buildx build --push -t ghcr.io/acme/frontend:rel-64 \
   --annotation "index:org.opencontainers.image.version=2.64.0-64" \
   --annotation "index:com.kuberik.rollout.requires.api=^1.64.0" .
@@ -32,11 +29,11 @@ The annotation key is `com.kuberik.rollout.requires.<contract>`. The value is a 
 A bare version such as `1.64.0` is an **exact match**, not a floor. A release that tolerates later providers has to say so: publish `^1.64.0`.
 {{< /callout >}}
 
-The `-64` suffix is a per-build ordinal. Attach it as a SemVer pre-release identifier so builds of the same triple still sort by build order, and keep `org.opencontainers.image.revision` as the real git SHA. The controller strips that numeric ordinal before evaluating the constraint; a real pre-release such as `1.64.0-rc.1` is kept and correctly fails `^1.64.0`, because the triple has not shipped yet.
+The `-64` suffix is a per-build ordinal. Attach it as a SemVer pre-release identifier so builds of the same triple still sort by build order, and keep `org.opencontainers.image.revision` as the real git SHA. The controller strips that numeric ordinal before evaluating the constraint. A real pre-release such as `1.64.0-rc.1` is kept and fails `^1.64.0`, because the triple has not shipped yet.
 
 ## Connect the Rollouts
 
-One object per consumer and contract, in the consumer's namespace:
+Create one object per consumer and contract, in the consumer's namespace.
 
 ```yaml {filename="frontend-needs-api.yaml"}
 apiVersion: kuberik.com/v1alpha1
@@ -46,32 +43,41 @@ metadata:
   namespace: production
 spec:
   rolloutRef:
-    name: frontend            # the consumer being gated
+    name: frontend  # the consumer being gated
   providerRef:
-    name: api                 # the Rollout that provides the contract
-    # namespace: platform  # defaults to this namespace
-  contract: api               # matches com.kuberik.rollout.requires.api
-                              # defaults to the provider Rollout name
+    name: api
+  contract: api     # matches com.kuberik.rollout.requires.api
 ```
 
-Apply it in every environment that has both Rollouts. Each environment waits on its own copy of the provider: production's frontend waits for production's api, not for staging's.
+`contract` defaults to the provider Rollout's name, and `providerRef.namespace` defaults to the dependency's namespace. Apply the object in every environment that has both Rollouts. Each environment waits on its own copy of the provider: production's frontend waits for production's api, not for staging's.
 
-## What the Controller Does
+The controller compares each consumer release's requirement with the contract version of the most recent provider deploy whose bake succeeded. It publishes the verdict as a `RolloutGate` named `dependency-<name>`, whose `allowedVersions` lists the admitted releases. A dependency therefore holds back only the releases whose requirement is unmet. Older releases stay deployable, so you can roll back while a newer release waits.
 
-For every consumer release candidate, the controller reads its `requires.<contract>` annotation and compares it with the contract version of the release the provider has **successfully deployed** (bake succeeded, not merely started). The verdict is published as a `RolloutGate` named `dependency-<name>` whose `allowedVersions` lists exactly the admitted releases. Rollout admission is unchanged: the gate is evaluated like schedule and manual-approval gates.
+A provider without `bakeTime` records its bake as succeeded the moment the deploy is written, before the workload has rolled out, so its consumers can start before the contract is live. Set `bakeTime` on every provider whose consumers must wait for the contract to be served.
 
-Because the verdict is an allow list, a dependency holds back only the releases whose requirement is unmet. Older releases stay deployable, so rollback works while a newer release waits. A Rollout with no deployment history deploys its newest release without waiting on gates, so a brand-new consumer is gated from its second release on.
+Gates never hold a Rollout's first deploy: a brand-new consumer deploys the newest release the dependency admits, or the newest release if it admits none.
 
-## Watch It
+## Check the result
 
-```bash {filename="inspect.sh"}
-kubectl -n production get rolloutdependency
-# NAME                 ROLLOUT    PROVIDER   PROVIDED   SATISFIED
-# frontend-needs-api   frontend   api        1.64.0     False
+`kubectl get` shows the version the provider serves and whether any consumer release waits on it.
 
-kubectl -n production get rolloutdependency frontend-needs-api \
-  -o jsonpath='{.status.blockedReleases}'
-# [{"reason":"ConstraintNotSatisfied","requiredVersion":"^1.66.0","tag":"rel-66"}]
+```bash {filename="Terminal"}
+kubectl get rolloutdependency -n production
+```
+
+```text {filename="Output"}
+NAME                 ROLLOUT    PROVIDER   PROVIDED   SATISFIED   AGE
+frontend-needs-api   frontend   api        1.64.0     False       2d
+```
+
+`status.blockedReleases` names each held release and the constraint it needs.
+
+```bash {filename="Terminal"}
+kubectl get rolloutdependency frontend-needs-api -n production -o jsonpath='{.status.blockedReleases}'
+```
+
+```json {filename="Output"}
+[{"reason":"ConstraintNotSatisfied","requiredVersion":"^1.66.0","tag":"rel-66"}]
 ```
 
 The dashboard shows the same on the rollout's **Gates** tab: what the consumer waits on, the version it needs against the version running, and the contract across every environment. The home page and the Environments page name the provider on every held card.
@@ -82,6 +88,12 @@ Once the provider bakes, the consumer follows a few seconds later, unprompted.
 
 ## Limits
 
-- The consumer must be in the same namespace as the `RolloutDependency`; a `RolloutGate` can only reference a Rollout in its own namespace. The provider may live elsewhere via `spec.providerRef.namespace`.
+- The consumer must be in the same namespace as the `RolloutDependency`, because a `RolloutGate` can only reference a Rollout in its own namespace. The provider may live elsewhere via `spec.providerRef.namespace`.
 - The provider's `org.opencontainers.image.version` must be a semantic version. A git SHA there cannot be ordered against a constraint.
 - One `RolloutDependency` covers one contract. A consumer that requires two services gets two objects.
+
+## Next steps
+
+- [Gates](/docs/concepts/gates/): how dependency gates combine with schedules and approvals
+- [Require a Manual Approval](/docs/gates/approvals/): hold a release until a person approves it
+- [Troubleshoot](/docs/operate/troubleshooting/): find what holds a Rollout
