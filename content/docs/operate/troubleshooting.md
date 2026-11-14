@@ -234,7 +234,7 @@ kubectl events -n hello-world --for releasesource/hello-world
 
 - [Datadog](/docs/integrations/datadog/#troubleshooting): monitors not checked, false positives
 - [Install with Helm](/docs/installation/helm/#troubleshooting): install and upgrade errors
-- [Set Up Dashboard Sign-in](/docs/installation/dashboard-auth/#troubleshooting): sign-in loops and blank pages
+- [Set Up Dashboard Sign-in](/docs/installation/dashboard-auth/#troubleshoot): sign-in loops and blank pages
 
 ## Next steps
 
