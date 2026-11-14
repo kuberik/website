@@ -72,6 +72,7 @@ main{padding-bottom:0}
 .hextra-search-wrapper kbd{height:22px;margin:0;top:7px;padding:0 6px;border:1px solid var(--line);border-radius:4px;background:var(--page-alt);color:var(--ink-subtle);font:500 10px/20px var(--mono)}
 .hextra-search-results{background:var(--page)!important;border:1px solid var(--line)!important;border-radius:12px!important;box-shadow:var(--card-shadow)!important;font-family:var(--sans)}
 .kd-burger{display:none}
+.kd-burger svg{width:20px;height:20px}
 @media(max-width:1199px){.kd-search .hextra-search-wrapper{width:180px}}
 @media(max-width:1023px){.kd-nav .gh-text{display:none}.kd-nav .pill:has(.gh-text){width:36px;padding:0}}
 @media(max-width:767px){
@@ -102,10 +103,11 @@ html.dark .kd-wash::before{opacity:.5}
   .kd-shell .hextra-sidebar-container > .hextra-scrollbar{padding:32px 8px 32px 0;margin-left:-10px;height:calc(100vh - 64px)}
 }
 @media(max-width:767px){
-  .hextra-sidebar-container{padding-top:64px}
+  .hextra-sidebar-container{padding-top:64px;left:0;right:0;width:100%!important}
   .hextra-sidebar-container > .hextra-scrollbar{padding:16px var(--gut) 32px}
   .hextra-sidebar-container > div:first-child{padding:16px var(--gut) 0}
-  .hextra-sidebar-container .hextra-search-input{height:44px;border:1px solid var(--line);border-radius:8px;background:var(--page-alt);font:400 16px/20px var(--sans);color:var(--ink)}
+  .hextra-sidebar-container .hextra-search-wrapper{width:100%}
+  .hextra-sidebar-container .hextra-search-input{width:100%;height:44px;border:1px solid var(--line);border-radius:8px;background:var(--page-alt);font:400 16px/20px var(--sans);color:var(--ink)}
 }
 .hextra-sidebar-container > div[data-toggle-animation]{display:none}
 .hextra-sidebar-container ul{gap:2px}
