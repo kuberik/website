@@ -32,7 +32,8 @@
   .kdh-hero-in{padding-block:36px 28px;gap:24px}
   .kdh-copy h1{margin-top:16px}
   .kdh-ctas{width:100%;gap:8px;margin-top:24px}
-  .kdh-ctas .btn{flex:1 1 0;min-width:0;padding-inline:10px}
+  .kdh-ctas{flex-direction:column}
+  .kdh-ctas .btn{width:100%}
 }
 
 /* ---------- journeys: one card per reader job (NEW BY DESIGN; feature-card shell) ---------- */

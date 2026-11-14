@@ -153,6 +153,7 @@ html.dark .kd-wash::before{opacity:.5}
 .hextra-toc a.hextra-toc-active::before{content:'';position:absolute;left:-1px;top:4px;bottom:4px;width:2px;background:var(--mint)}
 .hextra-toc > div > div{margin-top:24px;padding-top:16px;border-top:1px solid var(--line)!important;background:transparent!important;box-shadow:none!important}
 .hextra-toc > div > div a{padding-left:0!important;font-size:13px}
+.hextra-toc > div > div:first-child{display:none}  /* no headings (index pages): no stray rule under an empty TOC */
 
 /* ---------- article type ---------- */
 .kd-content{font:400 16px/28px var(--sans);color:var(--ink-muted)}
@@ -177,8 +178,8 @@ html.dark .kd-wash::before{opacity:.5}
 .kd-content blockquote{padding-left:16px;border-left:2px solid var(--line);color:var(--ink-muted);font-style:normal}
 
 /* links */
-.kd-content a:not(.hextra-card):not(.kd-eyebrow):not(.subheading-anchor):not(.kd-pager-card){color:var(--kd-link);text-decoration:underline;text-decoration-thickness:1px;text-underline-offset:3px;text-decoration-color:var(--kd-link-line);transition:text-decoration-color .15s}
-.kd-content a:not(.hextra-card):not(.kd-eyebrow):not(.subheading-anchor):not(.kd-pager-card):hover{text-decoration-color:currentColor}
+.kd-content a:not(.hextra-card):not(.kd-eyebrow):not(.subheading-anchor):not(.kd-pager-card):not(.kd-next-card){color:var(--kd-link);text-decoration:underline;text-decoration-thickness:1px;text-underline-offset:3px;text-decoration-color:var(--kd-link-line);transition:text-decoration-color .15s}
+.kd-content a:not(.hextra-card):not(.kd-eyebrow):not(.subheading-anchor):not(.kd-pager-card):not(.kd-next-card):hover{text-decoration-color:currentColor}
 
 /* inline code: the landing's title-body code chip */
 .kd-content :where(code):not(:where(.hextra-code-block code,pre code)){padding:1px 6px;border:1px solid var(--line);border-radius:6px;background:var(--page-alt);color:var(--ink);font:500 .84em/1 var(--mono);white-space:nowrap}
@@ -338,6 +339,25 @@ html.dark #kd-article .mermaid svg .edgeLabel :is(span,p,rect,.labelBkg){backgro
 .kd-pager-label svg{width:14px;height:14px}
 .kd-pager-title{font:600 15px/22px var(--sans);color:var(--ink);letter-spacing:-.01em}
 @media(max-width:640px){.kd-pager{grid-template-columns:minmax(0,1fr)}.kd-pager-next{grid-column:1}}
+
+/* ---------- next steps / related: compact link cards (docs/page.html list transform, {{< next >}} shortcode).
+   The pager card's shell (radius 12, card border/fill, mint border on hover) with the title over a one-line outcome
+   and an arrow; hextra card blocks under the same headings are drawn the same way, so one role has one look. ---------- */
+.kd-content ul.kd-next{display:grid;grid-template-columns:repeat(auto-fill,minmax(240px,1fr));gap:12px;margin:20px 0 0;padding:0;list-style:none}
+.kd-content ul.kd-next > li{margin:0}
+.kd-next-card{position:relative;display:flex;flex-direction:column;gap:2px;height:100%;padding:12px 40px 14px 16px;border:1px solid var(--card-border);border-radius:12px;background:var(--card-fill);text-decoration:none!important;transition:border-color .15s}
+.kd-next-card::after{content:'';position:absolute;right:16px;top:16px;width:14px;height:14px;background:var(--ink-subtle);transition:transform .15s,background-color .15s;-webkit-mask:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 16 16'%3E%3Cpath d='M3 8h10M9 4l4 4-4 4' fill='none' stroke='black' stroke-width='1.5' stroke-linecap='round' stroke-linejoin='round'/%3E%3C/svg%3E") center/14px no-repeat;mask:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 16 16'%3E%3Cpath d='M3 8h10M9 4l4 4-4 4' fill='none' stroke='black' stroke-width='1.5' stroke-linecap='round' stroke-linejoin='round'/%3E%3C/svg%3E") center/14px no-repeat}
+.kd-next-card:hover{border-color:color-mix(in oklab,var(--mint) 55%,var(--line))}
+.kd-next-card:hover::after{background:var(--mint-ink);transform:translateX(2px)}
+.kd-next-title{font:600 15px/22px var(--sans);letter-spacing:-.01em;color:var(--ink)}
+.kd-next-title code{font-size:.84em}
+.kd-next-desc{font:400 14px/20px var(--sans);color:var(--ink-muted)}
+.kd-next-desc:empty{display:none}
+.kd-next-desc::first-letter{text-transform:uppercase}
+.kd-content h2:has(> span[id^="next-steps"],> span[id^="related"]) + .hextra-cards{grid-template-columns:repeat(auto-fill,minmax(240px,1fr))!important;gap:12px!important;margin-top:20px}
+.kd-content h2:has(> span[id^="next-steps"],> span[id^="related"]) + .hextra-cards a.hextra-card{padding:12px 16px 14px;box-shadow:none!important}
+.kd-content h2:has(> span[id^="next-steps"],> span[id^="related"]) + .hextra-cards .hextra-card-icon svg{width:28px;height:28px;padding:6px}
+.kd-content h2:has(> span[id^="next-steps"],> span[id^="related"]) + .hextra-cards .hextra-card-subtitle{padding-left:40px!important;padding-top:2px!important}
 
 /* ---------- phones ---------- */
 @media(max-width:640px){
