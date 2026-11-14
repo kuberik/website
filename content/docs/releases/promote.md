@@ -114,14 +114,32 @@ The gate whose name starts with `ghd-` belongs to the Environment. In GitHub, th
 
 ## Troubleshoot
 
+Each Environment explains what holds it in its `WaveReady` and `LockstepConsistent` conditions.
+
+```bash {filename="Terminal"}
+kubectl get environment hello-world-production -n hello-world \
+  -o jsonpath='{range .status.conditions[*]}{.type}{"\t"}{.status}{"\t"}{.reason}{"\t"}{.message}{"\n"}{end}'
+```
+
 | Symptom | Cause | Fix |
 |---|---|---|
 | `WaveReady=False`, reason `WaitingFor` | Staging (or an earlier wave) has not baked the release yet, or its bake failed. The message names the site. | Wait for the bake, or fix the failure in staging. |
 | `WaveReady=False`, reason `WaitingForCandidate` | The revision staging deployed has no release tag in the production Rollout's ReleaseSource. | Check that both clusters read the same releases. |
-| `WaveReady=False`, reason `InvalidTopology` | Two names of one tier are in use (`staging` and `preprod`), or the waves have a gap. | Use one tier name, and number waves from 1 without gaps. |
-| `WaveReady=False`, reason `DuplicateSite` | Another Environment already owns this site of the tier. | Give each cluster its own `site`, or annotate the new one with `environments.kuberik.com/take-over-site=true`. |
+| `WaveReady=False`, reason `InvalidTopology` or `UnknownTier` | Two names of one tier are in use (`staging` and `preprod`), the tier is not known, or the waves have a gap. | Use one tier name, and number waves from 1 without gaps. |
+| `WaveReady=False`, reason `Pinned` | `spec.wantedVersion` on the Rollout differs from the build the wave selected. | Remove the pin from the Rollout. |
+| `WaveReady=False`, reason `LockstepWaiting`; `LockstepConsistent=False`, reason `LockstepMismatch` | A lockstep wave waits until every site baked the release, or the sites disagree on `lockstep`. | Wait, or set the same `lockstep` on every site. |
+| `WaveReady=False`, reason `CandidatesUnresolved` | The ReleaseSlice CRD is not served, so revisions cannot be mapped to tags. | Install the release-controller. |
+| `WaveReady=False`, reason `DuplicateSite` | Another Environment already owns this site of the tier. | Give each cluster its own `site`, or take the site over (below). |
 | Production deploys releases staging never ran | No staging site is registered for this `name`, so production has no upstream. | Check that both Environments use the same `name` and `backend.project`. |
 | A new production Rollout deploys a release staging never baked | A Rollout's first deploy ignores gates. | Pin the new Rollout (`spec.wantedVersion`) to a release staging baked, or create it after staging has one. |
+
+{{< callout type="warning" >}}
+Taking a site over deregisters the Environment that owns it, in another cluster. Do it only when that owner is gone or replaced.
+{{< /callout >}}
+
+```bash {filename="Terminal"}
+kubectl annotate environment hello-world-production -n hello-world environments.kuberik.com/take-over-site=true --overwrite
+```
 
 ## Next steps
 
