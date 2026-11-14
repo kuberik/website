@@ -11,7 +11,7 @@ Kuberik records every deploy as a GitHub deployment, which is how [Environments]
 
 | For | You need | Notes |
 |---|---|---|
-| Environments | environment-controller after v0.1.5 | The Helm chart installs it with `--set integrations.environment.enabled=true`. |
+| Environments | environment-controller after v0.1.5 | The Helm chart's environment integration (`integrations.environment.enabled=true`) still installs v0.1.5; tiers, sites and waves need the next chart release. |
 | Environments | A GitHub token per app namespace | Classic: `repo_deployment` for public repositories, `repo` for private ones. Fine-grained: **Deployments: Read and write** on the repository. |
 | Dashboard changes | A GitHub App, on the cluster that serves the dashboard | Read-only access to **Contents**, **Pull requests** and **Checks**. |
 
