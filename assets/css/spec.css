@@ -41,9 +41,11 @@
 @media(min-width:2400px){.pane pre{font-size:14px;line-height:22px;padding:20px 20px}.pane-head{padding:0 20px;font-size:14px}.cwin-head{font-size:14px}}
 
 @media(max-width:640px){
-  html.js .cwin-dir,html.js .cwin-count{display:none}
+  /* AD r4: the strip scrolls, so the head keeps "4 files" at its right end to say there are more tabs */
+  html.js .cwin-dir{display:none}
+  html.js .cwin-count{order:2;flex:none;padding:0 14px 0 8px;font-size:12px}
   html.js .cwin-head{padding:0}
-  html.js .cwin-tabs{display:flex;gap:0;width:100%;height:47px;overflow-x:auto;overscroll-behavior-x:contain;scrollbar-width:none;padding:0 4px;-webkit-mask-image:linear-gradient(90deg,#000 calc(100% - 64px),transparent);mask-image:linear-gradient(90deg,#000 calc(100% - 64px),transparent)}
+  html.js .cwin-tabs{display:flex;gap:0;flex:1;min-width:0;height:47px;overflow-x:auto;overscroll-behavior-x:contain;scrollbar-width:none;padding:0 4px;-webkit-mask-image:linear-gradient(90deg,#000 calc(100% - 64px),transparent);mask-image:linear-gradient(90deg,#000 calc(100% - 64px),transparent)}
   html.js .cwin-tabs::-webkit-scrollbar{display:none}
   .cwin-tab{flex:none;display:inline-flex;align-items:center;gap:8px;height:47px;min-width:44px;padding:0 12px;border:0;border-bottom:2px solid transparent;background:transparent;color:var(--band-muted);font:500 12px/20px var(--mono);cursor:pointer}
   .cwin-tab[aria-selected="true"]{color:var(--band-ink);border-bottom-color:oklch(.85 .11 182)}
