@@ -33,7 +33,7 @@ metadata:
     rollout.kuberik.com/substitute.APP_VERSION.from: "hello-world"
 spec:
   interval: 10m
-  path: ./k8s/overlays/production
+  path: ./deploy/production
   prune: true
   sourceRef:
     kind: GitRepository

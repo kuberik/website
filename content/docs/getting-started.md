@@ -142,10 +142,10 @@ Create the Flux objects the Rollout drives. The annotation names the Rollout tha
     name: hello-world
     namespace: hello-world
     annotations:
-      rollout.kuberik.com/substitute.HELLO_WORLD_VERSION.from: "hello-world"
+      rollout.kuberik.com/substitute.APP_VERSION.from: "hello-world"
   spec:
     interval: 10m
-    path: ./deployments/production
+    path: ./deploy/production
     prune: true
     sourceRef:
       kind: GitRepository
@@ -153,9 +153,9 @@ Create the Flux objects the Rollout drives. The annotation names the Rollout tha
     targetNamespace: hello-world
   ```
 
-  The Deployment in `deployments/production` of `acme/hello-world` reads the substitution variable:
+  The Deployment in `deploy/production` of `acme/hello-world` reads the substitution variable:
 
-  ```yaml {filename="deployments/production/deployment.yaml"}
+  ```yaml {filename="deploy/production/deployment.yaml"}
   apiVersion: apps/v1
   kind: Deployment
   metadata:
@@ -171,7 +171,7 @@ Create the Flux objects the Rollout drives. The annotation names the Rollout tha
       spec:
         containers:
           - name: app
-            image: ghcr.io/acme/hello-world:${HELLO_WORLD_VERSION}
+            image: ghcr.io/acme/hello-world:${APP_VERSION}
   ```
   {{< /tab >}}
 
