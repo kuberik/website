@@ -38,7 +38,7 @@ Pick one place to approve from. When Flux applies the gate from Git, Flux owns `
   {{< tab name="Dashboard" >}}
   Open the Rollout in the Kuberik Dashboard. Held builds are listed under **Newer builds**; the `HELD` chip names the gate that is waiting. Approve the gate through the CLI or Git so the build promotes on its own, or press **Deploy** on the build to ship it by hand. A hand deploy overrides the gate, applies immediately and records the note you type.
 
-  ![Newer builds on a production rollout: each held build says how many rules hold it, and Deploy ships one by hand](/images/docs/gates/approvals-held.png)
+  ![Newer builds on a production rollout: each held build says how many rules hold it, Deploy ships one by hand, and older builds were skipped by staging](/images/docs/gates/approvals-held.png)
   {{< /tab >}}
 
   {{< tab name="CLI" >}}
