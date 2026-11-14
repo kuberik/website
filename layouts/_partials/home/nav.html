@@ -2,7 +2,9 @@
 {{- $github := .Scratch.Get "github" -}}
 <header class="nav" id="nav">
   <div class="cont">
-    <a class="logo" href="/" aria-label="kuberik home"><img src="/logo-dark.svg" alt="" />kuberik</a>
+    <a class="logo" href="/" aria-label="kuberik home">{{- /* inlined, not an <img>: the mark carries a SMIL rotation (15 s, forever), and an animated SVG <img> asks the main thread for a frame on every vsync while it is on screen. A sticky nav is always on screen, so every composited vignette animation below it was dragged onto per-frame main-thread style recalc (UpdateLayoutTree ~70/s, +150-420 ms/s at 4x). Inline, the page can pause it (see the vg-play listener in home.html). */ -}}
+    {{- $svg := readFile "static/logo-dark.svg" -}}{{- $svg = replaceRE `<\?xml[^>]*\?>` "" $svg -}}{{- $svg = replaceRE `<svg ` `<svg class="logo-mark" aria-hidden="true" ` $svg 1 -}}
+    {{ $svg | safeHTML }}kuberik</a>
     <nav class="links" aria-label="Primary">
       <a href="/docs/">Docs</a><a href="/blog/">Blog</a>
     </nav>
