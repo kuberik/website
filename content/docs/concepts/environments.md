@@ -67,7 +67,7 @@ A Rollout's first deploy ignores gates: with an empty history it deploys the new
 
 GitHub records Git revisions, and the gate lists release tags. The controller maps one to the other through the release catalogue of the Rollout's [ReleaseSource](/docs/guides/publishing-releases/), so the Rollout must take its releases from a ReleaseSource, and each release must carry the commit it was built from. A revision with no matching tag is left out.
 
-Pinning the Rollout (`spec.wantedVersion`) overrides the wave's choice and the Environment reports `Pinned`. Deleting the Environment deletes its gate, which leaves the Rollout ungated: pin the Rollout first if it must not move.
+A pin on the Rollout (`spec.wantedVersion`) is a manual deploy that skips the gate. On a wave leader, the pinned release becomes the wave's pick and the followers deploy it. On a follower, a pin that differs from the wave's pick makes the Environment report `Pinned`. Deleting the Environment deletes its gate, which leaves the Rollout ungated: pin the Rollout first if it must not move.
 
 ## Sites and waves
 
@@ -103,7 +103,7 @@ The controller reports the gate decision as conditions on the Environment, with 
 | `WaveReady=True` | `Ready` | The site may deploy the allowed releases. |
 | `WaveReady=False` | `WaitingFor` | A named site has not picked or baked the release yet, or its bake failed. |
 | `WaveReady=False` | `WaitingForCandidate`, `CandidatesUnresolved` | The revision has no release tag, or the release catalogue cannot be read. |
-| `WaveReady=False` | `Pinned`, `LockstepWaiting` | The Rollout is pinned, or lockstep holds the leader. |
+| `WaveReady=False` | `Pinned`, `LockstepWaiting` | A follower's Rollout is pinned to another release than the wave's pick, or lockstep holds the leader. |
 | `WaveReady=False` | `DuplicateSite`, `InvalidTopology`, `UnknownTier` | The setup is wrong; the gate allows nothing. |
 | `Deprecated=True` | `RelationshipIgnored` | `spec.relationship` is set and ignored. |
 
