@@ -38,7 +38,7 @@ async function shoot(vw, vh, mobile) {
 				const mt = cs.transform === 'none' ? [1, 0, 0, 1, 0, 0] : cs.transform.match(/matrix\(([^)]*)\)/)[1].split(',').map(Number);
 				const w = parseFloat(cs.width), h = parseFloat(cs.height);
 				const lin = mt.slice(0, 4).map(num).join(',');
-				m.style.transform = mt[4] === 0 && mt[5] === 0 && lin === '1,0,0,1' ? '' : `translate(${num((mt[4] / w) * 100)}%,${num((mt[5] / h) * 100)}%) matrix(${lin},0,0)`;
+				m.style.transform = mt[4] === 0 && mt[5] === 0 && lin === '1,0,0,1' ? '' : `translate(${+((mt[4] / w) * 100).toFixed(2)}%,${+((mt[5] / h) * 100).toFixed(2)}%) matrix(${lin},0,0)`;
 				if (m.style.opacity === '1') m.style.opacity = '';
 			});
 			cards[id] = { html: clone.innerHTML, vb: spec.vb(window.matchMedia('(max-width: 640px)').matches) };
