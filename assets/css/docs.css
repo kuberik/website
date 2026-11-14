@@ -266,8 +266,8 @@ html.dark .kd-content table th{background:oklch(1 0 0/.03)}
 .kd-content details{margin:24px 0 0;border:1px solid var(--line)!important;border-radius:12px!important;background:var(--page)!important;overflow:hidden}
 .kd-content details > summary{display:flex;align-items:center;gap:10px;min-height:44px;padding:10px 16px!important;font:500 15px/22px var(--sans)!important;color:var(--ink)!important;cursor:pointer;list-style:none;background:transparent!important}
 .kd-content details > summary::-webkit-details-marker{display:none}
-.kd-content details > summary::before{content:'';width:8px;height:8px;flex:none;border-right:1.5px solid var(--ink-subtle);border-bottom:1.5px solid var(--ink-subtle);transform:rotate(-45deg);transition:transform .15s;margin-right:2px;background:none!important;vertical-align:0}
-.kd-content details[open] > summary::before{transform:rotate(45deg)}
+.kd-content details > summary::before{content:''!important;width:16px!important;height:16px!important;flex:none;margin:0!important;padding:0!important;border:0!important;background:var(--ink-subtle)!important;-webkit-mask:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 16 16'%3E%3Cpath d='M6 3.5 10.5 8 6 12.5' fill='none' stroke='black' stroke-width='1.6' stroke-linecap='round' stroke-linejoin='round'/%3E%3C/svg%3E") center/16px 16px no-repeat;mask:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 16 16'%3E%3Cpath d='M6 3.5 10.5 8 6 12.5' fill='none' stroke='black' stroke-width='1.6' stroke-linecap='round' stroke-linejoin='round'/%3E%3C/svg%3E") center/16px 16px no-repeat;transform:none!important;rotate:none!important;transition:transform .15s;vertical-align:0}
+.kd-content details[open] > summary::before{transform:rotate(90deg)!important}
 .kd-content details[open] > summary{border-bottom:1px solid var(--line)}
 .kd-content details > :not(summary){padding-inline:16px}
 .kd-content details > div{padding:4px 16px 16px!important}
