@@ -5,7 +5,7 @@
 {{- $section := .CurrentSection -}}
 {{- if and .IsSection .Parent }}{{ $section = .Parent }}{{ end -}}
 {{- $eyebrow := "" -}}{{- $eyebrowURL := "" -}}
-{{- if and $section (ne $section.RelPermalink .RelPermalink) -}}
+{{- if and $section (ne $section.RelPermalink .RelPermalink) (not $section.IsHome) -}}
   {{- $eyebrow = cond (eq $section.RelPermalink "/docs/") "Docs" $section.LinkTitle -}}
   {{- $eyebrowURL = $section.RelPermalink -}}
 {{- end -}}
