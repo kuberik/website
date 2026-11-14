@@ -243,7 +243,7 @@ main-3f9c2ab-1794583200   Succeeded   Automatic deployment
 
 The dashboard shows the same rollout: the running build, the pipeline it moved through, and its health checks.
 
-![The rollout in the dashboard: the running build, the deployment pipeline, health checks and the resources it manages](/screenshots/dashboard/overview.png)
+![The staging rollout of hello-world-app: the deployment pipeline it moved through, no newer build waiting, and its three health checks passing](/images/docs/getting-started/rollout-pipeline.png)
 
 ## Next steps
 
