@@ -7,7 +7,7 @@ A **Rollout** deploys the builds of one OCI artifact into one environment, one b
 
 ## How a build is chosen
 
-A Rollout reads its releases from a [`ReleaseSource`](/docs/reference/api/), which lists the tags of an OCI repository. Every release newer than the deployed one is a candidate in `status.candidates`. The Rollout deploys the newest candidate that every [gate](#when-a-deploy-is-held) allows, by writing the version to the Flux source it owns: a `Kustomization` substitution variable or an `OCIRepository` tag. It then [bakes](#how-a-deploy-is-verified) the build and records the outcome in `status.history`.
+A Rollout reads its releases from a [`ReleaseSource`](/docs/reference/api/), which lists the tags of an OCI repository. Every release newer than the deployed one is a candidate. The Rollout deploys the newest candidate that every [gate](#when-a-deploy-is-held) allows, by writing the version to the Flux source it owns: a `Kustomization` substitution variable or an `OCIRepository` tag. It then [bakes](#how-a-deploy-is-verified) the build and records the outcome in `status.history`.
 
 Kuberik deploys one version at a time. If `v1.2.0` is deploying or baking when `v1.3.0` and `v1.4.0` arrive, both wait as candidates. When `v1.2.0` succeeds, the Rollout deploys the newest candidate the gates allow, `v1.4.0`, and skips `v1.3.0`.
 
@@ -50,7 +50,7 @@ kubectl -n hello-world get rollout hello-world -o yaml
 ```
 
 - `history`: deployments, newest first. `history[0].version.tag` is the running version; each entry records its `message`, `triggeredBy` and `bakeStatus` (`Deploying`, `InProgress`, `Succeeded`, `Failed` or `Cancelled`).
-- `candidates`: releases newer than the deployed one. `gated: true` means every gate lets the release through; `blockedBy` names the gates that hold it.
+- `candidates`: the newest releases newer than the deployed one (20 by default, set by the controller flag `--release-candidates`), plus any tag a gate, the pin or an action annotation names, up to 64. Gates and selection see every release; this list is what the status shows. `gated: true` means every gate lets the release through; `blockedBy` names the gates that hold it.
 - `gates`: each gate that targets this Rollout, whether it is passing, and the versions it allows.
 - `conditions`: `Ready`, `GatesPassing`, `DeploymentBlocked` (a health check is unhealthy) and `BakeFailureDisabled` (see [When a bake fails](#when-a-bake-fails)).
 

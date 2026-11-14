@@ -70,7 +70,7 @@ flowchart TB
 
 ### Discovery
 
-A `ReleaseSource` finds a new tag in the OCI repository and adds it to its catalogue of releases. The Rollout lists every release newer than the deployed one in `status.candidates`.
+A `ReleaseSource` finds a new tag in the OCI repository and adds it to its catalogue of releases. Every release newer than the deployed one becomes a candidate for the Rollout; `status.candidates` shows the newest of them.
 
 ### Gating
 
