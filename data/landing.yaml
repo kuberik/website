@@ -35,13 +35,13 @@ features:
     - id: canary
       hue: mint
       name: "Canary and waves"
-      title: "Traffic in steps, regions in waves."
+      title: "Each region waits for the one before it to bake."
       body: "OpenKruise moves traffic in steps, with a test where you ask for one. Wave 2 waits until wave 1 has baked."
       link: { text: "Run a canary", href: "/docs/guides/canary-rollouts/" }
     - id: health
       hue: mint
       name: "Health checks"
-      title: "Healthy for the whole bake, not for a moment."
+      title: "A release has to stay healthy for the whole bake."
       body: "Your Flux Kustomization and Datadog monitors stay healthy for the whole bake, or the release fails."
       link: { text: "Add health checks", href: "/docs/guides/health-checks/" }
     - id: gitops
