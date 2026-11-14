@@ -410,10 +410,10 @@ figs['datadog-health-paths'] = {
       plate({ x: 334, y: 168, w: 176, h: 72, kind: 'k', title: 'HealthCheck', sub: ['`datadog-check-<name>`', '`datadog-monitor-crd`'] }),
       edge([[302, 52], [331, 52]], { kind: 'act' }),
       edge([[302, 72], [318, 72], [318, 196], [331, 196]], { kind: 'act' }),
-      plate({ x: 536, y: 104, w: 96, h: 72, kind: 'k', key: true, title: 'Rollout', sub: ['reads only', 'HealthChecks'] }),
+      plate({ x: 536, y: 112, w: 96, kind: 'k', key: true, title: 'Rollout', sub: 'reads both' }),
       edge([[510, 60], [522, 60], [522, 128], [533, 128]]),
       edge([[510, 204], [522, 204], [522, 152], [533, 152]]),
-      text({ x: 632, y: 200, t: 'healthCheckSelector', role: 'mono', anchor: 'end' }),
+      text({ x: 540, y: 192, t: ['healthCheck', 'Selector'], role: 'mono' }),
       text({ x: 0, y: 280, t: 'HealthCheck status' }),
       hcChips(124, 276),
     ].join('')
