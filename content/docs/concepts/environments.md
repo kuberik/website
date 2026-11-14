@@ -69,35 +69,7 @@ During deployment:
 2. State is recorded (Pending → Success/Failure)
 3. Downstream environments watch for success events
 
-```mermaid
-flowchart LR
-    %% Styles
-    classDef env fill:#4B4BE8,stroke:#fff,stroke-width:2px,color:#fff
-    classDef backend fill:#E5E7EB,stroke:#374151,stroke-width:1px,color:#374151
-    classDef boundary fill:#F3F4F6,stroke:#D1D5DB,stroke-width:1px,color:#374151,stroke-dasharray: 5 5
-
-    subgraph ClusterA ["Cluster A (Staging)"]
-        direction TB
-        S_ENV[Environment: staging]:::env
-        S_RO[Rollout]:::env
-    end
-
-    subgraph Backend ["Backend System"]
-        BE[External State Store]:::backend
-    end
-
-    subgraph ClusterB ["Cluster B (Production)"]
-        direction TB
-        P_ENV[Environment: production]:::env
-        P_RO[Rollout]:::env
-    end
-
-    S_ENV -->|Reports Success| BE
-    BE -->|Staging Passed| P_ENV
-    P_ENV -->|Triggers| P_RO
-
-    class ClusterA,ClusterB boundary
-```
+{{< fig id="environments" caption="Environments in different clusters share bake results through GitHub Deployments; the next tier only gets versions that baked upstream." >}}
 
 ## Environment Relationships
 
