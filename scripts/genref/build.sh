@@ -81,13 +81,15 @@ label_groups () {
         latest=$(echo "${stable}" | tail -1)
         if [ -n "${containing}" ]; then
             line="Released in ${name} ${containing}. This page documents main at ${short}."
+        elif [ -n "${latest}" ] && git -C ${WORK}/${name} diff --quiet ${latest} ${full} -- api/v1alpha1; then
+            line="Released in ${name} ${latest}: the API types are identical on main at ${short}."
         elif [ -n "${latest}" ]; then
-            line="Latest release is ${name} ${latest}. This page documents main at ${short}, which is not in a release yet, so newer fields may be missing from it."
+            line="Latest release is ${name} ${latest}. This page documents main at ${short}, so it also lists API changes that are not in a release yet."
         else
             line="Not in a release yet. This page documents ${name} main at ${short}."
         fi
-        # insert after the first "# Title" line
-        LINE="${line}" perl -0pi -e 's/^(# [^\n]+\n)/$1\n$ENV{LINE}\n/m' $f
+        # insert after the first "## Title" line
+        LINE="${line}" perl -0pi -e 's/^(## [^\n]+\n)/$1\n$ENV{LINE}\n/m' $f
     done
     rm -rf ${WORK}
 }
