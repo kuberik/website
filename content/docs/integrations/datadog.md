@@ -103,7 +103,7 @@ Removing the annotation deletes the generated HealthCheck. This path needs no Da
 
 ## Select the checks from the Rollout
 
-The [`Rollout`](/docs/concepts/rollouts/) picks up every HealthCheck whose labels match `healthCheckSelector`, in its own namespace:
+The [`Rollout`](/docs/concepts/rollouts/) picks up every HealthCheck whose labels match `healthCheckSelector`, in its own namespace unless you add a `namespaceSelector`:
 
 ```yaml {filename="rollout.yaml"}
 apiVersion: kuberik.com/v1alpha1
