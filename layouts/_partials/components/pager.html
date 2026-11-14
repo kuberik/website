@@ -1,0 +1,25 @@
+{{- /* Prev / next as two cards (docs visual redesign, DIRECTION.md 1; the landing fx-card shell). Same page
+     resolution as hextra's pager, including front-matter prev/next overrides. */ -}}
+{{- $reversePagination := .Store.Get "reversePagination" | default false -}}
+{{- $prev := cond $reversePagination .PrevInSection .NextInSection -}}
+{{- $next := cond $reversePagination .NextInSection .PrevInSection -}}
+{{- if eq .Params.prev false }}{{ if $reversePagination }}{{ $next = false }}{{ else }}{{ $prev = false }}{{ end }}
+{{- else }}{{ with .Params.prev }}{{ with $.Site.GetPage . }}{{ if $reversePagination }}{{ $next = . }}{{ else }}{{ $prev = . }}{{ end }}{{ end }}{{ end }}{{ end -}}
+{{- if eq .Params.next false }}{{ if $reversePagination }}{{ $prev = false }}{{ else }}{{ $next = false }}{{ end }}
+{{- else }}{{ with .Params.next }}{{ with $.Site.GetPage . }}{{ if $reversePagination }}{{ $prev = . }}{{ else }}{{ $next = . }}{{ end }}{{ end }}{{ end }}{{ end -}}
+{{- if or $prev $next -}}
+<nav class="kd-pager" aria-label="Previous and next page">
+  {{- if $prev }}
+  <a class="kd-pager-card kd-pager-prev" href="{{ $prev.RelPermalink }}">
+    <span class="kd-pager-label"><svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M10 3.5 5.5 8l4.5 4.5"/></svg>Previous</span>
+    <span class="kd-pager-title">{{ partial "utils/title" $prev }}</span>
+  </a>
+  {{- end }}
+  {{- if $next }}
+  <a class="kd-pager-card kd-pager-next" href="{{ $next.RelPermalink }}">
+    <span class="kd-pager-label">Next<svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M6 3.5 10.5 8 6 12.5"/></svg></span>
+    <span class="kd-pager-title">{{ partial "utils/title" $next }}</span>
+  </a>
+  {{- end }}
+</nav>
+{{- end -}}

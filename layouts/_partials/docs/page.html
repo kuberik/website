@@ -1,0 +1,25 @@
+{{- /* Docs page (docs visual redesign, DIRECTION.md 1). Shared by docs/single.html and docs/list.html.
+     The hextra sidebar and toc partials are kept (their JS drives the phone drawer and search); the shell around
+     them is the landing's .cont container, styled in assets/css/docs.css (.kd-*). The breadcrumb is replaced by an
+     eyebrow naming the section, the role the landing feature card's fx-name plays. */ -}}
+{{- $section := .CurrentSection -}}
+{{- if and .IsSection .Parent }}{{ $section = .Parent }}{{ end -}}
+{{- $eyebrow := "" -}}{{- $eyebrowURL := "" -}}
+{{- if and $section (ne $section.RelPermalink .RelPermalink) -}}
+  {{- $eyebrow = cond (eq $section.RelPermalink "/docs/") "Docs" $section.LinkTitle -}}
+  {{- $eyebrowURL = $section.RelPermalink -}}
+{{- end -}}
+<div class="kd-shell">
+  {{ partial "sidebar.html" (dict "context" .) }}
+  {{ partial "toc.html" . }}
+  <article class="kd-article">
+    <main class="kd-main">
+      <div class="content kd-content">
+        {{- with $eyebrow }}<a class="kd-eyebrow" href="{{ $eyebrowURL }}">{{ . }}</a>{{ end }}
+        {{ if .Title }}<h1>{{ .Title }}</h1>{{ end }}
+        {{ .Content }}
+      </div>
+      {{ partial "components/pager.html" . }}
+    </main>
+  </article>
+</div>

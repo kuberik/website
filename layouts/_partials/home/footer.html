@@ -8,7 +8,7 @@
       <p>Open source under Apache 2.0.<br>© {{ now.Year }} the Kuberik authors.</p>
     </div>
     <nav class="foot-col" aria-labelledby="fc-product"><h2 id="fc-product">Product</h2>
-      {{- range site.Data.landing.features.items }}<a href="#{{ .id }}">{{ .name }}</a>{{ end -}}
+      {{- range site.Data.landing.features.items }}<a href="{{ if not $.IsHome }}/{{ end }}#{{ .id }}">{{ .name }}</a>{{ end -}}
     </nav>
     <nav class="foot-col" aria-labelledby="fc-docs"><h2 id="fc-docs">Docs</h2>
       <a href="/docs/getting-started/">Getting started</a><a href="/docs/installation/helm/">Install with Helm</a><a href="/docs/concepts/">Concepts</a><a href="/docs/guides/">Guides</a><a href="/docs/reference/api/">API reference</a>

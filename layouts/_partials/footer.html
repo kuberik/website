@@ -1,0 +1,5 @@
+{{- /* Docs and blog footer = the landing footer (layouts/_partials/home/footer.html + footer.css), verbatim.
+     The scratch values mirror home.html's. */ -}}
+{{- .Scratch.Set "getStarted" "/docs/getting-started/" -}}
+{{- .Scratch.Set "github" "https://github.com/kuberik/kuberik" -}}
+{{ partial "home/footer.html" . }}

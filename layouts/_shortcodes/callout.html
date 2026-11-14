@@ -1,0 +1,6 @@
+{{- /* Callout (docs visual redesign, DIRECTION.md 3). Same parameters as hextra's: type (default, info, warning,
+     error, important), emoji, icon. Colour by type is in docs.css (.kd-callout-*). */ -}}
+{{- $type := .Get "type" | default "default" -}}
+{{- $icons := dict "default" "light-bulb" "info" "information-circle" "warning" "exclamation" "error" "ban" "important" "exclamation-circle" -}}
+{{- $icon := .Get "icon" | default (index $icons $type) | default "light-bulb" -}}
+{{- partial "shortcodes/callout.html" (dict "content" (.InnerDeindent | markdownify) "emoji" (.Get "emoji") "icon" $icon "type" $type) -}}
