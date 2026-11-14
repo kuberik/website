@@ -76,7 +76,7 @@ kubectl -n production get rolloutdependency frontend-needs-api \
 
 The dashboard shows the same on the rollout's **Gates** tab: what the consumer waits on, the version it needs against the version running, and the contract across every environment. The home page and the Environments page name the provider on every held card.
 
-![The rollout's Gates tab (captured when it was named Dependencies): what it waits on, the version it needs against the version running, and the same contract across every environment](/screenshots/dashboard/rollout-dependencies.png)
+![The rollout's Gates tab: the gate graph, what the rollout waits on, and the version it needs against the version running](/images/docs/rollout-dependencies.png)
 
 Once the provider bakes, the consumer follows a few seconds later, unprompted.
 
