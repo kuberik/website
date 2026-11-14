@@ -1,9 +1,9 @@
 {{ define "type" }}
 
-{{ if .References }}
+{{ if not .References }}
 ### {{ .Name.Name }}     {#{{ .Anchor }}}
 {{ else }}
-## {{ .Name.Name }}     {#{{ .Anchor }}}
+#### {{ .Name.Name }}     {#{{ .Anchor }}}
 {{ end }}
 
 {{ if eq .Kind "Alias" -}}
@@ -11,14 +11,12 @@
 {{ end }}
 
 {{- with .References }}
-{{ "{{" }}< callout type="info" >{{ "}}" }}
 **Appears in:**
 {{ range . }}
 {{ if or .Referenced .IsExported -}}
 - [{{ .DisplayName }}]({{ .Link }})
 {{ end -}}
 {{- end -}}
-{{ "{{" }}< /callout >{{ "}}" }}
 {{- end }}
 
 {{ if .GetComment -}}

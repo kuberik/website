@@ -28,10 +28,11 @@ jobs:
       - name: Build
         env:
           HUGO_ENVIRONMENT: production
+        shell: bash
         run: npx hugo --minify --panicOnWarning=false 2>&1 | tee hugo.log
 
       - name: Fail on build errors
-        run: '! grep -q "^ERROR" hugo.log'
+        run: '! grep -qE "^(ERROR|Error:)" hugo.log'
 
       - name: Check internal links and anchors in docs and blog
         run: python3 scripts/linkcheck.py public --fail

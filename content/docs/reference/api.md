@@ -10,61 +10,15 @@ Every field of the Kuberik resources, generated from the `api/v1alpha1` types on
 ---
 
 
-# Environment API
+## Environment API
 
-Latest release is environment-controller v0.1.5. This page documents main at ee03b0b, which is not in a release yet, so newer fields may be missing from it.
+Latest release is environment-controller v0.1.5. This page documents main at ee03b0b, so it also lists API changes that are not in a release yet.
 
-
-**Resource Types:**
-    
-
-
-### BackendConfig     {#backendconfig}
-
-
-
-{{< callout type="info" >}}
-**Appears in:**
-
-- [EnvironmentSpec](#environmentspec)
-{{< /callout >}}
-
-BackendConfig contains backend-specific configuration
-
-<table>
-<thead><tr><th width="30%">Field</th><th>Description</th></tr></thead>
-<tbody>
-    
   
-<tr><td><code>type</code>
-      
-<br/>
-<code>string</code>
-</td>
-<td>
-   Type specifies the backend to use (e.g., "github")</td>
-</tr>
-<tr><td><code>project</code>
-      
-<br/>
-<code>string</code>
-</td>
-<td>
-   Project is the project identifier (backend-specific format, e.g., "owner/repo" for GitHub)</td>
-</tr>
-<tr><td><code>secret</code>
-      
-<br/>
-<code>string</code>
-</td>
-<td>
-   Secret is the name of the Kubernetes Secret containing the backend authentication token</td>
-</tr>
-</tbody>
-</table>
+    
 
 
-## Environment     {#environment}
+### Environment     {#environment}
 
 
 
@@ -103,16 +57,65 @@ Environment is the Schema for the environments API
 </tbody>
 </table>
 
+### Definitions
 
-### EnvironmentInfo     {#environmentinfo}
+This section contains definitions for objects used in the Environment API API.
+
+    
+
+
+#### BackendConfig     {#backendconfig}
 
 
 
-{{< callout type="info" >}}
+**Appears in:**
+
+- [EnvironmentSpec](#environmentspec)
+
+
+BackendConfig contains backend-specific configuration
+
+<table>
+<thead><tr><th width="30%">Field</th><th>Description</th></tr></thead>
+<tbody>
+    
+  
+<tr><td><code>type</code>
+      
+<br/>
+<code>string</code>
+</td>
+<td>
+   Type specifies the backend to use (e.g., "github")</td>
+</tr>
+<tr><td><code>project</code>
+      
+<br/>
+<code>string</code>
+</td>
+<td>
+   Project is the project identifier (backend-specific format, e.g., "owner/repo" for GitHub)</td>
+</tr>
+<tr><td><code>secret</code>
+      
+<br/>
+<code>string</code>
+</td>
+<td>
+   Secret is the name of the Kubernetes Secret containing the backend authentication token</td>
+</tr>
+</tbody>
+</table>
+
+
+#### EnvironmentInfo     {#environmentinfo}
+
+
+
 **Appears in:**
 
 - [EnvironmentStatus](#environmentstatus)
-{{< /callout >}}
+
 
 EnvironmentInfo represents information about an environment's deployment.
 
@@ -149,15 +152,14 @@ EnvironmentInfo represents information about an environment's deployment.
 </table>
 
 
-### EnvironmentRelationship     {#environmentrelationship}
+#### EnvironmentRelationship     {#environmentrelationship}
 
 
 
-{{< callout type="info" >}}
 **Appears in:**
 
 - [EnvironmentSpec](#environmentspec)
-{{< /callout >}}
+
 
 EnvironmentRelationship is the deprecated relationship to another environment.
 
@@ -186,15 +188,14 @@ EnvironmentRelationship is the deprecated relationship to another environment.
 </table>
 
 
-### EnvironmentSpec     {#environmentspec}
+#### EnvironmentSpec     {#environmentspec}
 
 
 
-{{< callout type="info" >}}
 **Appears in:**
 
 - [Environment](#environment)
-{{< /callout >}}
+
 
 EnvironmentSpec defines the desired state of Environment
 
@@ -300,15 +301,14 @@ If not specified, defaults to 1 minute. Must be a valid duration string (e.g., "
 </table>
 
 
-### EnvironmentStatus     {#environmentstatus}
+#### EnvironmentStatus     {#environmentstatus}
 
 
 
-{{< callout type="info" >}}
 **Appears in:**
 
 - [Environment](#environment)
-{{< /callout >}}
+
 
 EnvironmentStatus defines the observed state of Environment.
 
@@ -374,31 +374,29 @@ Each condition has a unique type and reflects the status of a specific aspect of
 </table>
 
 
-### RelationshipType     {#relationshiptype}
+#### RelationshipType     {#relationshiptype}
 
 
 (Alias of `string`)
 
-{{< callout type="info" >}}
 **Appears in:**
 
 - [EnvironmentRelationship](#environmentrelationship)
-{{< /callout >}}
+
 
 RelationshipType is the type of the deprecated spec.relationship.
 
 
 
 
-### SiteOwner     {#siteowner}
+#### SiteOwner     {#siteowner}
 
 
 
-{{< callout type="info" >}}
 **Appears in:**
 
 - [WaveBlocker](#waveblocker)
-{{< /callout >}}
+
 
 SiteOwner identifies the Environment object that owns a site.
 
@@ -435,15 +433,14 @@ SiteOwner identifies the Environment object that owns a site.
 </table>
 
 
-### WaveBlocker     {#waveblocker}
+#### WaveBlocker     {#waveblocker}
 
 
 
-{{< callout type="info" >}}
 **Appears in:**
 
 - [WaveStatus](#wavestatus)
-{{< /callout >}}
+
 
 WaveBlocker is the machine-readable form of a WaveReady=False condition. The
 condition message is display text and may change; these fields are the contract.
@@ -555,15 +552,14 @@ deployment name the existing owner holds the site for.</td>
 </table>
 
 
-### WaveMemberStatus     {#wavememberstatus}
+#### WaveMemberStatus     {#wavememberstatus}
 
 
 
-{{< callout type="info" >}}
 **Appears in:**
 
 - [WaveStatus](#wavestatus)
-{{< /callout >}}
+
 
 WaveMemberStatus is one site of a wave as observed in the backend.
 
@@ -624,31 +620,29 @@ WaveMemberStatus is one site of a wave as observed in the backend.
 </table>
 
 
-### WaveRole     {#waverole}
+#### WaveRole     {#waverole}
 
 
 (Alias of `string`)
 
-{{< callout type="info" >}}
 **Appears in:**
 
 - [WaveStatus](#wavestatus)
-{{< /callout >}}
+
 
 WaveRole is the role a site plays inside its (environment, wave).
 
 
 
 
-### WaveStatus     {#wavestatus}
+#### WaveStatus     {#wavestatus}
 
 
 
-{{< callout type="info" >}}
 **Appears in:**
 
 - [EnvironmentStatus](#environmentstatus)
-{{< /callout >}}
+
 
 WaveStatus describes the site/wave view the controller used for the last gate decision.
 
@@ -735,16 +729,15 @@ recorded on the next GitHub deployment this site creates.</td>
 </tbody>
 </table>
 
-# OpenKruise Integration API
+## OpenKruise Integration API
 
-Latest release is openkruise-controller v0.4.1. This page documents main at 06c5d99, which is not in a release yet, so newer fields may be missing from it.
+Released in openkruise-controller v0.4.1: the API types are identical on main at 06c5d99.
 
-
-**Resource Types:**
+  
     
 
 
-## RolloutTest     {#rollouttest}
+### RolloutTest     {#rollouttest}
 
 
 
@@ -783,32 +776,36 @@ RolloutTest is the Schema for the rollouttests API
 </tbody>
 </table>
 
+### Definitions
 
-### RolloutTestPhase     {#rollouttestphase}
+This section contains definitions for objects used in the OpenKruise Integration API API.
+
+    
+
+
+#### RolloutTestPhase     {#rollouttestphase}
 
 
 (Alias of `string`)
 
-{{< callout type="info" >}}
 **Appears in:**
 
 - [RolloutTestStatus](#rolloutteststatus)
-{{< /callout >}}
+
 
 RolloutTestPhase represents the current phase of a RolloutTest
 
 
 
 
-### RolloutTestSpec     {#rollouttestspec}
+#### RolloutTestSpec     {#rollouttestspec}
 
 
 
-{{< callout type="info" >}}
 **Appears in:**
 
 - [RolloutTest](#rollouttest)
-{{< /callout >}}
+
 
 RolloutTestSpec defines the desired state of RolloutTest
 
@@ -845,15 +842,14 @@ RolloutTestSpec defines the desired state of RolloutTest
 </table>
 
 
-### RolloutTestStatus     {#rolloutteststatus}
+#### RolloutTestStatus     {#rolloutteststatus}
 
 
 
-{{< callout type="info" >}}
 **Appears in:**
 
 - [RolloutTest](#rollouttest)
-{{< /callout >}}
+
 
 RolloutTestStatus defines the observed state of RolloutTest.
 
@@ -930,24 +926,136 @@ When the canaryRevision changes, it indicates a new rollout and the old job shou
 </tbody>
 </table>
 
-# Release API
+## Release API
 
 Not in a release yet. This page documents release-controller main at a52ee1e.
 
-
-**Resource Types:**
+  
     
 
 
-### AlphabeticalPolicy     {#alphabeticalpolicy}
+### ReleaseSlice     {#releaseslice}
 
 
 
-{{< callout type="info" >}}
+
+ReleaseSlice holds a bounded chunk of a ReleaseSource catalogue. Like
+EndpointSlice it has no spec/status. Labelled kuberik.com/release-source,
+owned (controller=true) by its ReleaseSource, named <source>-<5-digit index>.
+
+<table>
+<thead><tr><th width="30%">Field</th><th>Description</th></tr></thead>
+<tbody>
+    
+  
+<tr><td><code>metadata</code>
+      
+<br/>
+<a href="https://kubernetes.io/docs/reference/generated/kubernetes-api/v1.33/#objectmeta-v1-meta"><code>ObjectMeta</code></a>
+</td>
+<td>
+   <em>No description provided. </em>Refer to the Kubernetes API documentation for the fields of the <code>metadata</code> field.</td>
+</tr>
+<tr><td><code>source</code>
+      
+<br/>
+<code>string</code>
+</td>
+<td>
+   Source is the owning ReleaseSource name. Immutable.</td>
+</tr>
+<tr><td><code>sealed</code>
+      
+<br/>
+<code>bool</code>
+</td>
+<td>
+   Sealed slices take no new releases. Once true stays true.
+Always serialised (no omitempty) and defaulted to false so the
+transition rule also sees true -> false from clients that drop zero values.</td>
+</tr>
+<tr><td><code>oldestCreated</code>
+      
+<br/>
+<a href="https://kubernetes.io/docs/reference/generated/kubernetes-api/v1.33/#time-v1-meta"><code>Time</code></a>
+</td>
+<td>
+   <em>No description provided. </em></td>
+</tr>
+<tr><td><code>newestCreated</code>
+      
+<br/>
+<a href="https://kubernetes.io/docs/reference/generated/kubernetes-api/v1.33/#time-v1-meta"><code>Time</code></a>
+</td>
+<td>
+   <em>No description provided. </em></td>
+</tr>
+<tr><td><code>releases</code>
+      
+<br/>
+<a href="#release"><code>[]Release</code></a>
+</td>
+<td>
+   Releases sorted by sequence ascending.</td>
+</tr>
+</tbody>
+</table>
+
+
+### ReleaseSource     {#releasesource}
+
+
+
+
+ReleaseSource is the Schema for the releasesources API.
+
+<table>
+<thead><tr><th width="30%">Field</th><th>Description</th></tr></thead>
+<tbody>
+    
+  
+<tr><td><code>metadata</code>
+      
+<br/>
+<a href="https://kubernetes.io/docs/reference/generated/kubernetes-api/v1.33/#objectmeta-v1-meta"><code>ObjectMeta</code></a>
+</td>
+<td>
+   <em>No description provided. </em>Refer to the Kubernetes API documentation for the fields of the <code>metadata</code> field.</td>
+</tr>
+<tr><td><code>spec</code>
+      
+<br/>
+<a href="#releasesourcespec"><code>ReleaseSourceSpec</code></a>
+</td>
+<td>
+   <em>No description provided. </em></td>
+</tr>
+<tr><td><code>status</code>
+      
+<br/>
+<a href="#releasesourcestatus"><code>ReleaseSourceStatus</code></a>
+</td>
+<td>
+   <em>No description provided. </em></td>
+</tr>
+</tbody>
+</table>
+
+### Definitions
+
+This section contains definitions for objects used in the Release API API.
+
+    
+
+
+#### AlphabeticalPolicy     {#alphabeticalpolicy}
+
+
+
 **Appears in:**
 
 - [OrderPolicy](#orderpolicy)
-{{< /callout >}}
+
 
 AlphabeticalPolicy orders tags alphabetically.
 
@@ -968,15 +1076,14 @@ AlphabeticalPolicy orders tags alphabetically.
 </table>
 
 
-### ArtifactMetadata     {#artifactmetadata}
+#### ArtifactMetadata     {#artifactmetadata}
 
 
 
-{{< callout type="info" >}}
 **Appears in:**
 
 - [ReleaseSourceStatus](#releasesourcestatus)
-{{< /callout >}}
+
 
 ArtifactMetadata is the artifact-level metadata of the newest release.
 
@@ -1021,15 +1128,14 @@ ArtifactMetadata is the artifact-level metadata of the newest release.
 </table>
 
 
-### NumericalPolicy     {#numericalpolicy}
+#### NumericalPolicy     {#numericalpolicy}
 
 
 
-{{< callout type="info" >}}
 **Appears in:**
 
 - [OrderPolicy](#orderpolicy)
-{{< /callout >}}
+
 
 NumericalPolicy orders tags numerically.
 
@@ -1050,15 +1156,14 @@ NumericalPolicy orders tags numerically.
 </table>
 
 
-### OCISource     {#ocisource}
+#### OCISource     {#ocisource}
 
 
 
-{{< callout type="info" >}}
 **Appears in:**
 
 - [ReleaseSourceSpec](#releasesourcespec)
-{{< /callout >}}
+
 
 OCISource configures an OCI repository source.
 
@@ -1123,15 +1228,14 @@ and filterTags must not be set with it.</td>
 </table>
 
 
-### OrderPolicy     {#orderpolicy}
+#### OrderPolicy     {#orderpolicy}
 
 
 
-{{< callout type="info" >}}
 **Appears in:**
 
 - [OCISource](#ocisource)
-{{< /callout >}}
+
 
 OrderPolicy picks how tags are ordered (Flux ImagePolicy shape). At most one member.
 
@@ -1168,15 +1272,14 @@ OrderPolicy picks how tags are ordered (Flux ImagePolicy shape). At most one mem
 </table>
 
 
-### Release     {#release}
+#### Release     {#release}
 
 
 
-{{< callout type="info" >}}
 **Appears in:**
 
 - [ReleaseSlice](#releaseslice)
-{{< /callout >}}
+
 
 Release is one catalogue entry. It is a superset of rollout-controller's
 VersionInfo (tag, digest, version, revision, created, requires,
@@ -1292,15 +1395,14 @@ backfilled releases get min-1.. going down. Never renumbered.</td>
 </table>
 
 
-### ReleaseRef     {#releaseref}
+#### ReleaseRef     {#releaseref}
 
 
 
-{{< callout type="info" >}}
 **Appears in:**
 
 - [ReleaseSourceStatus](#releasesourcestatus)
-{{< /callout >}}
+
 
 ReleaseRef identifies the newest release.
 
@@ -1337,123 +1439,14 @@ ReleaseRef identifies the newest release.
 </table>
 
 
-## ReleaseSlice     {#releaseslice}
+#### ReleaseSourceSpec     {#releasesourcespec}
 
 
 
-
-ReleaseSlice holds a bounded chunk of a ReleaseSource catalogue. Like
-EndpointSlice it has no spec/status. Labelled kuberik.com/release-source,
-owned (controller=true) by its ReleaseSource, named <source>-<5-digit index>.
-
-<table>
-<thead><tr><th width="30%">Field</th><th>Description</th></tr></thead>
-<tbody>
-    
-  
-<tr><td><code>metadata</code>
-      
-<br/>
-<a href="https://kubernetes.io/docs/reference/generated/kubernetes-api/v1.33/#objectmeta-v1-meta"><code>ObjectMeta</code></a>
-</td>
-<td>
-   <em>No description provided. </em>Refer to the Kubernetes API documentation for the fields of the <code>metadata</code> field.</td>
-</tr>
-<tr><td><code>source</code>
-      
-<br/>
-<code>string</code>
-</td>
-<td>
-   Source is the owning ReleaseSource name. Immutable.</td>
-</tr>
-<tr><td><code>sealed</code>
-      
-<br/>
-<code>bool</code>
-</td>
-<td>
-   Sealed slices take no new releases. Once true stays true.
-Always serialised (no omitempty) and defaulted to false so the
-transition rule also sees true -> false from clients that drop zero values.</td>
-</tr>
-<tr><td><code>oldestCreated</code>
-      
-<br/>
-<a href="https://kubernetes.io/docs/reference/generated/kubernetes-api/v1.33/#time-v1-meta"><code>Time</code></a>
-</td>
-<td>
-   <em>No description provided. </em></td>
-</tr>
-<tr><td><code>newestCreated</code>
-      
-<br/>
-<a href="https://kubernetes.io/docs/reference/generated/kubernetes-api/v1.33/#time-v1-meta"><code>Time</code></a>
-</td>
-<td>
-   <em>No description provided. </em></td>
-</tr>
-<tr><td><code>releases</code>
-      
-<br/>
-<a href="#release"><code>[]Release</code></a>
-</td>
-<td>
-   Releases sorted by sequence ascending.</td>
-</tr>
-</tbody>
-</table>
-
-
-## ReleaseSource     {#releasesource}
-
-
-
-
-ReleaseSource is the Schema for the releasesources API.
-
-<table>
-<thead><tr><th width="30%">Field</th><th>Description</th></tr></thead>
-<tbody>
-    
-  
-<tr><td><code>metadata</code>
-      
-<br/>
-<a href="https://kubernetes.io/docs/reference/generated/kubernetes-api/v1.33/#objectmeta-v1-meta"><code>ObjectMeta</code></a>
-</td>
-<td>
-   <em>No description provided. </em>Refer to the Kubernetes API documentation for the fields of the <code>metadata</code> field.</td>
-</tr>
-<tr><td><code>spec</code>
-      
-<br/>
-<a href="#releasesourcespec"><code>ReleaseSourceSpec</code></a>
-</td>
-<td>
-   <em>No description provided. </em></td>
-</tr>
-<tr><td><code>status</code>
-      
-<br/>
-<a href="#releasesourcestatus"><code>ReleaseSourceStatus</code></a>
-</td>
-<td>
-   <em>No description provided. </em></td>
-</tr>
-</tbody>
-</table>
-
-
-### ReleaseSourceSpec     {#releasesourcespec}
-
-
-
-{{< callout type="info" >}}
 **Appears in:**
 
 - [ReleaseSource](#releasesource)
-{{< /callout >}}
+
 
 ReleaseSourceSpec is a discriminated union: exactly one source member must
 be set. v1 has only oci.
@@ -1499,15 +1492,14 @@ be set. v1 has only oci.
 </table>
 
 
-### ReleaseSourceStatus     {#releasesourcestatus}
+#### ReleaseSourceStatus     {#releasesourcestatus}
 
 
 
-{{< callout type="info" >}}
 **Appears in:**
 
 - [ReleaseSource](#releasesource)
-{{< /callout >}}
+
 
 ReleaseSourceStatus defines the observed state of ReleaseSource.
 
@@ -1612,15 +1604,14 @@ controller keeps walking older tags in policy-descending order.</td>
 </table>
 
 
-### Retention     {#retention}
+#### Retention     {#retention}
 
 
 
-{{< callout type="info" >}}
 **Appears in:**
 
 - [ReleaseSourceSpec](#releasesourcespec)
-{{< /callout >}}
+
 
 Retention mirrors Rollout.availableReleasesRetentionDays / MinCount.
 
@@ -1649,15 +1640,14 @@ Retention mirrors Rollout.availableReleasesRetentionDays / MinCount.
 </table>
 
 
-### SemVerPolicy     {#semverpolicy}
+#### SemVerPolicy     {#semverpolicy}
 
 
 
-{{< callout type="info" >}}
 **Appears in:**
 
 - [OrderPolicy](#orderpolicy)
-{{< /callout >}}
+
 
 SemVerPolicy orders tags by semantic version within a range.
 
@@ -1678,15 +1668,14 @@ SemVerPolicy orders tags by semantic version within a range.
 </table>
 
 
-### TagFilter     {#tagfilter}
+#### TagFilter     {#tagfilter}
 
 
 
-{{< callout type="info" >}}
 **Appears in:**
 
 - [OCISource](#ocisource)
-{{< /callout >}}
+
 
 TagFilter filters tags by regular expression (Flux ImagePolicy shape).
 
@@ -1714,16 +1703,15 @@ TagFilter filters tags by regular expression (Flux ImagePolicy shape).
 </tbody>
 </table>
 
-# Rollout API
+## Rollout API
 
-Latest release is rollout-controller v0.11.0. This page documents main at 9375945, which is not in a release yet, so newer fields may be missing from it.
+Latest release is rollout-controller v0.11.0. This page documents main at 9375945, so it also lists API changes that are not in a release yet.
 
-
-**Resource Types:**
+  
     
 
 
-## ApprovalPolicy     {#approvalpolicy}
+### ApprovalPolicy     {#approvalpolicy}
 
 
 
@@ -1763,163 +1751,7 @@ ApprovalPolicy is the Schema for the approvalpolicies API
 </table>
 
 
-### ApprovalPolicySpec     {#approvalpolicyspec}
-
-
-
-{{< callout type="info" >}}
-**Appears in:**
-
-- [ApprovalPolicy](#approvalpolicy)
-{{< /callout >}}
-
-ApprovalPolicySpec defines the desired state of ApprovalPolicy
-
-<table>
-<thead><tr><th width="30%">Field</th><th>Description</th></tr></thead>
-<tbody>
-    
-  
-<tr><td><code>rolloutSelector</code>
-      
-<br/>
-<a href="https://kubernetes.io/docs/reference/generated/kubernetes-api/v1.33/#labelselector-v1-meta"><code>LabelSelector</code></a>
-</td>
-<td>
-   RolloutSelector selects the Rollouts this policy applies to.
-An empty selector matches every Rollout.</td>
-</tr>
-</tbody>
-</table>
-
-
-### ApprovalPolicyStatus     {#approvalpolicystatus}
-
-
-
-{{< callout type="info" >}}
-**Appears in:**
-
-- [ApprovalPolicy](#approvalpolicy)
-{{< /callout >}}
-
-ApprovalPolicyStatus defines the observed state of ApprovalPolicy.
-
-<table>
-<thead><tr><th width="30%">Field</th><th>Description</th></tr></thead>
-<tbody>
-    
-  
-<tr><td><code>rollouts</code>
-      
-<br/>
-<code>[]string</code>
-</td>
-<td>
-   Rollouts lists the matched Rollouts, sorted.</td>
-</tr>
-<tr><td><code>conditions</code>
-      
-<br/>
-<a href="https://kubernetes.io/docs/reference/generated/kubernetes-api/v1.33/#condition-v1-meta"><code>[]Condition</code></a>
-</td>
-<td>
-   conditions represent the current state of the ApprovalPolicy resource.
-Each condition has a unique type and reflects the status of a specific aspect of the resource.<br/><br/>Standard condition types include:
-- "Available": the resource is fully functional
-- "Progressing": the resource is being created or updated
-- "Degraded": the resource failed to reach or maintain its desired state<br/><br/>The status of each condition is one of True, False, or Unknown.</td>
-</tr>
-</tbody>
-</table>
-
-
-### ApprovalRecord     {#approvalrecord}
-
-
-
-{{< callout type="info" >}}
-**Appears in:**
-
-- [DeploymentHistoryEntry](#deploymenthistoryentry)
-{{< /callout >}}
-
-ApprovalRecord is a copy of the RolloutApproval that allowed a deployment,
-taken when the history entry was written.
-
-<table>
-<thead><tr><th width="30%">Field</th><th>Description</th></tr></thead>
-<tbody>
-    
-  
-<tr><td><code>name</code>
-      
-<br/>
-<code>string</code>
-</td>
-<td>
-   Name of the RolloutApproval, in the Rollout's namespace.</td>
-</tr>
-<tr><td><code>by</code>
-      
-<br/>
-<code>string</code>
-</td>
-<td>
-   By is the approval.kuberik.com/by annotation at deploy time, if set.</td>
-</tr>
-</tbody>
-</table>
-
-
-### BlockedRelease     {#blockedrelease}
-
-
-
-{{< callout type="info" >}}
-**Appears in:**
-
-- [RolloutDependencyStatus](#rolloutdependencystatus)
-{{< /callout >}}
-
-BlockedRelease describes a consumer release candidate held back by this
-dependency, and why.
-
-<table>
-<thead><tr><th width="30%">Field</th><th>Description</th></tr></thead>
-<tbody>
-    
-  
-<tr><td><code>tag</code>
-      
-<br/>
-<code>string</code>
-</td>
-<td>
-   Tag is the image tag of the blocked release candidate.</td>
-</tr>
-<tr><td><code>requiredVersion</code>
-      
-<br/>
-<code>string</code>
-</td>
-<td>
-   RequiredVersion is the version constraint the candidate places on the
-provider's contract, verbatim from its requires annotation.</td>
-</tr>
-<tr><td><code>reason</code>
-      
-<br/>
-<code>string</code>
-</td>
-<td>
-   Reason is a short, machine-readable reason the candidate is blocked.</td>
-</tr>
-</tbody>
-</table>
-
-
-## ClusterApprovalPolicy     {#clusterapprovalpolicy}
+### ClusterApprovalPolicy     {#clusterapprovalpolicy}
 
 
 
@@ -1959,87 +1791,7 @@ ClusterApprovalPolicy is the Schema for the clusterapprovalpolicies API
 </table>
 
 
-### ClusterApprovalPolicySpec     {#clusterapprovalpolicyspec}
-
-
-
-{{< callout type="info" >}}
-**Appears in:**
-
-- [ClusterApprovalPolicy](#clusterapprovalpolicy)
-{{< /callout >}}
-
-ClusterApprovalPolicySpec defines the desired state of ClusterApprovalPolicy
-
-<table>
-<thead><tr><th width="30%">Field</th><th>Description</th></tr></thead>
-<tbody>
-    
-  
-<tr><td><code>rolloutSelector</code>
-      
-<br/>
-<a href="https://kubernetes.io/docs/reference/generated/kubernetes-api/v1.33/#labelselector-v1-meta"><code>LabelSelector</code></a>
-</td>
-<td>
-   RolloutSelector selects the Rollouts this policy applies to.
-An empty selector matches every Rollout.</td>
-</tr>
-<tr><td><code>namespaceSelector</code>
-      
-<br/>
-<a href="https://kubernetes.io/docs/reference/generated/kubernetes-api/v1.33/#labelselector-v1-meta"><code>LabelSelector</code></a>
-</td>
-<td>
-   NamespaceSelector restricts the policy to Rollouts in matching namespaces.
-A nil selector matches every namespace.</td>
-</tr>
-</tbody>
-</table>
-
-
-### ClusterApprovalPolicyStatus     {#clusterapprovalpolicystatus}
-
-
-
-{{< callout type="info" >}}
-**Appears in:**
-
-- [ClusterApprovalPolicy](#clusterapprovalpolicy)
-{{< /callout >}}
-
-ClusterApprovalPolicyStatus defines the observed state of ClusterApprovalPolicy.
-
-<table>
-<thead><tr><th width="30%">Field</th><th>Description</th></tr></thead>
-<tbody>
-    
-  
-<tr><td><code>rollouts</code>
-      
-<br/>
-<code>[]string</code>
-</td>
-<td>
-   Rollouts lists the matched Rollouts, sorted, as <namespace>/<name>.</td>
-</tr>
-<tr><td><code>conditions</code>
-      
-<br/>
-<a href="https://kubernetes.io/docs/reference/generated/kubernetes-api/v1.33/#condition-v1-meta"><code>[]Condition</code></a>
-</td>
-<td>
-   conditions represent the current state of the ClusterApprovalPolicy resource.
-Each condition has a unique type and reflects the status of a specific aspect of the resource.<br/><br/>Standard condition types include:
-- "Available": the resource is fully functional
-- "Progressing": the resource is being created or updated
-- "Degraded": the resource failed to reach or maintain its desired state<br/><br/>The status of each condition is one of True, False, or Unknown.</td>
-</tr>
-</tbody>
-</table>
-
-
-## ClusterRolloutSchedule     {#clusterrolloutschedule}
+### ClusterRolloutSchedule     {#clusterrolloutschedule}
 
 
 
@@ -2079,15 +1831,482 @@ ClusterRolloutSchedule is the Schema for the clusterrolloutschedules API.
 </table>
 
 
-### ClusterRolloutScheduleSpec     {#clusterrolloutschedulespec}
+### HealthCheck     {#healthcheck}
 
 
 
-{{< callout type="info" >}}
+
+HealthCheck is the Schema for the healthchecks API.
+
+<table>
+<thead><tr><th width="30%">Field</th><th>Description</th></tr></thead>
+<tbody>
+    
+  
+<tr><td><code>metadata</code>
+      
+<br/>
+<a href="https://kubernetes.io/docs/reference/generated/kubernetes-api/v1.33/#objectmeta-v1-meta"><code>ObjectMeta</code></a>
+</td>
+<td>
+   <em>No description provided. </em>Refer to the Kubernetes API documentation for the fields of the <code>metadata</code> field.</td>
+</tr>
+<tr><td><code>spec</code>
+      
+<br/>
+<a href="#healthcheckspec"><code>HealthCheckSpec</code></a>
+</td>
+<td>
+   <em>No description provided. </em></td>
+</tr>
+<tr><td><code>status</code>
+      
+<br/>
+<a href="#healthcheckstatus"><code>HealthCheckStatus</code></a>
+</td>
+<td>
+   <em>No description provided. </em></td>
+</tr>
+</tbody>
+</table>
+
+
+### Rollout     {#rollout}
+
+
+
+
+Rollout is the Schema for the rollouts API.
+
+<table>
+<thead><tr><th width="30%">Field</th><th>Description</th></tr></thead>
+<tbody>
+    
+  
+<tr><td><code>metadata</code>
+      
+<br/>
+<a href="https://kubernetes.io/docs/reference/generated/kubernetes-api/v1.33/#objectmeta-v1-meta"><code>ObjectMeta</code></a>
+</td>
+<td>
+   <em>No description provided. </em>Refer to the Kubernetes API documentation for the fields of the <code>metadata</code> field.</td>
+</tr>
+<tr><td><code>spec</code>
+      
+<br/>
+<a href="#rolloutspec"><code>RolloutSpec</code></a>
+</td>
+<td>
+   <em>No description provided. </em></td>
+</tr>
+<tr><td><code>status</code>
+      
+<br/>
+<a href="#rolloutstatus"><code>RolloutStatus</code></a>
+</td>
+<td>
+   <em>No description provided. </em></td>
+</tr>
+</tbody>
+</table>
+
+
+### RolloutApproval     {#rolloutapproval}
+
+
+
+
+RolloutApproval is the Schema for the rolloutapprovals API
+
+<table>
+<thead><tr><th width="30%">Field</th><th>Description</th></tr></thead>
+<tbody>
+    
+  
+<tr><td><code>metadata,omitzero</code>
+      
+<br/>
+<a href="https://kubernetes.io/docs/reference/generated/kubernetes-api/v1.33/#objectmeta-v1-meta"><code>ObjectMeta</code></a>
+</td>
+<td>
+   metadata is a standard object metadataRefer to the Kubernetes API documentation for the fields of the <code>metadata</code> field.</td>
+</tr>
+<tr><td><code>spec</code>
+      
+<br/>
+<a href="#rolloutapprovalspec"><code>RolloutApprovalSpec</code></a>
+</td>
+<td>
+   spec defines the desired state of RolloutApproval</td>
+</tr>
+</tbody>
+</table>
+
+
+### RolloutDependency     {#rolloutdependency}
+
+
+
+
+RolloutDependency is the Schema for the rolloutdependencies API
+
+<table>
+<thead><tr><th width="30%">Field</th><th>Description</th></tr></thead>
+<tbody>
+    
+  
+<tr><td><code>metadata,omitzero</code>
+      
+<br/>
+<a href="https://kubernetes.io/docs/reference/generated/kubernetes-api/v1.33/#objectmeta-v1-meta"><code>ObjectMeta</code></a>
+</td>
+<td>
+   metadata is a standard object metadataRefer to the Kubernetes API documentation for the fields of the <code>metadata</code> field.</td>
+</tr>
+<tr><td><code>spec</code>
+      
+<br/>
+<a href="#rolloutdependencyspec"><code>RolloutDependencySpec</code></a>
+</td>
+<td>
+   spec defines the desired state of RolloutDependency</td>
+</tr>
+<tr><td><code>status,omitzero</code>
+      
+<br/>
+<a href="#rolloutdependencystatus"><code>RolloutDependencyStatus</code></a>
+</td>
+<td>
+   status defines the observed state of RolloutDependency</td>
+</tr>
+</tbody>
+</table>
+
+
+### RolloutGate     {#rolloutgate}
+
+
+
+
+RolloutGate is the Schema for the rolloutgates API.
+
+<table>
+<thead><tr><th width="30%">Field</th><th>Description</th></tr></thead>
+<tbody>
+    
+  
+<tr><td><code>metadata</code>
+      
+<br/>
+<a href="https://kubernetes.io/docs/reference/generated/kubernetes-api/v1.33/#objectmeta-v1-meta"><code>ObjectMeta</code></a>
+</td>
+<td>
+   <em>No description provided. </em>Refer to the Kubernetes API documentation for the fields of the <code>metadata</code> field.</td>
+</tr>
+<tr><td><code>spec</code>
+      
+<br/>
+<a href="#rolloutgatespec"><code>RolloutGateSpec</code></a>
+</td>
+<td>
+   <em>No description provided. </em></td>
+</tr>
+<tr><td><code>status</code>
+      
+<br/>
+<a href="#rolloutgatestatus"><code>RolloutGateStatus</code></a>
+</td>
+<td>
+   <em>No description provided. </em></td>
+</tr>
+</tbody>
+</table>
+
+
+### RolloutSchedule     {#rolloutschedule}
+
+
+
+
+RolloutSchedule is the Schema for the rolloutschedules API.
+
+<table>
+<thead><tr><th width="30%">Field</th><th>Description</th></tr></thead>
+<tbody>
+    
+  
+<tr><td><code>metadata</code>
+      
+<br/>
+<a href="https://kubernetes.io/docs/reference/generated/kubernetes-api/v1.33/#objectmeta-v1-meta"><code>ObjectMeta</code></a>
+</td>
+<td>
+   <em>No description provided. </em>Refer to the Kubernetes API documentation for the fields of the <code>metadata</code> field.</td>
+</tr>
+<tr><td><code>spec</code>
+      
+<br/>
+<a href="#rolloutschedulespec"><code>RolloutScheduleSpec</code></a>
+</td>
+<td>
+   <em>No description provided. </em></td>
+</tr>
+<tr><td><code>status</code>
+      
+<br/>
+<a href="#rolloutschedulestatus"><code>RolloutScheduleStatus</code></a>
+</td>
+<td>
+   <em>No description provided. </em></td>
+</tr>
+</tbody>
+</table>
+
+### Definitions
+
+This section contains definitions for objects used in the Rollout API API.
+
+    
+
+
+#### ApprovalPolicySpec     {#approvalpolicyspec}
+
+
+
+**Appears in:**
+
+- [ApprovalPolicy](#approvalpolicy)
+
+
+ApprovalPolicySpec defines the desired state of ApprovalPolicy
+
+<table>
+<thead><tr><th width="30%">Field</th><th>Description</th></tr></thead>
+<tbody>
+    
+  
+<tr><td><code>rolloutSelector</code>
+      
+<br/>
+<a href="https://kubernetes.io/docs/reference/generated/kubernetes-api/v1.33/#labelselector-v1-meta"><code>LabelSelector</code></a>
+</td>
+<td>
+   RolloutSelector selects the Rollouts this policy applies to.
+An empty selector matches every Rollout.</td>
+</tr>
+</tbody>
+</table>
+
+
+#### ApprovalPolicyStatus     {#approvalpolicystatus}
+
+
+
+**Appears in:**
+
+- [ApprovalPolicy](#approvalpolicy)
+
+
+ApprovalPolicyStatus defines the observed state of ApprovalPolicy.
+
+<table>
+<thead><tr><th width="30%">Field</th><th>Description</th></tr></thead>
+<tbody>
+    
+  
+<tr><td><code>rollouts</code>
+      
+<br/>
+<code>[]string</code>
+</td>
+<td>
+   Rollouts lists the matched Rollouts, sorted.</td>
+</tr>
+<tr><td><code>conditions</code>
+      
+<br/>
+<a href="https://kubernetes.io/docs/reference/generated/kubernetes-api/v1.33/#condition-v1-meta"><code>[]Condition</code></a>
+</td>
+<td>
+   conditions represent the current state of the ApprovalPolicy resource.
+Each condition has a unique type and reflects the status of a specific aspect of the resource.<br/><br/>Standard condition types include:
+- "Available": the resource is fully functional
+- "Progressing": the resource is being created or updated
+- "Degraded": the resource failed to reach or maintain its desired state<br/><br/>The status of each condition is one of True, False, or Unknown.</td>
+</tr>
+</tbody>
+</table>
+
+
+#### ApprovalRecord     {#approvalrecord}
+
+
+
+**Appears in:**
+
+- [DeploymentHistoryEntry](#deploymenthistoryentry)
+
+
+ApprovalRecord is a copy of the RolloutApproval that allowed a deployment,
+taken when the history entry was written.
+
+<table>
+<thead><tr><th width="30%">Field</th><th>Description</th></tr></thead>
+<tbody>
+    
+  
+<tr><td><code>name</code>
+      
+<br/>
+<code>string</code>
+</td>
+<td>
+   Name of the RolloutApproval, in the Rollout's namespace.</td>
+</tr>
+<tr><td><code>by</code>
+      
+<br/>
+<code>string</code>
+</td>
+<td>
+   By is the approval.kuberik.com/by annotation at deploy time, if set.</td>
+</tr>
+</tbody>
+</table>
+
+
+#### BlockedRelease     {#blockedrelease}
+
+
+
+**Appears in:**
+
+- [RolloutDependencyStatus](#rolloutdependencystatus)
+
+
+BlockedRelease describes a consumer release candidate held back by this
+dependency, and why.
+
+<table>
+<thead><tr><th width="30%">Field</th><th>Description</th></tr></thead>
+<tbody>
+    
+  
+<tr><td><code>tag</code>
+      
+<br/>
+<code>string</code>
+</td>
+<td>
+   Tag is the image tag of the blocked release candidate.</td>
+</tr>
+<tr><td><code>requiredVersion</code>
+      
+<br/>
+<code>string</code>
+</td>
+<td>
+   RequiredVersion is the version constraint the candidate places on the
+provider's contract, verbatim from its requires annotation.</td>
+</tr>
+<tr><td><code>reason</code>
+      
+<br/>
+<code>string</code>
+</td>
+<td>
+   Reason is a short, machine-readable reason the candidate is blocked.</td>
+</tr>
+</tbody>
+</table>
+
+
+#### ClusterApprovalPolicySpec     {#clusterapprovalpolicyspec}
+
+
+
+**Appears in:**
+
+- [ClusterApprovalPolicy](#clusterapprovalpolicy)
+
+
+ClusterApprovalPolicySpec defines the desired state of ClusterApprovalPolicy
+
+<table>
+<thead><tr><th width="30%">Field</th><th>Description</th></tr></thead>
+<tbody>
+    
+  
+<tr><td><code>rolloutSelector</code>
+      
+<br/>
+<a href="https://kubernetes.io/docs/reference/generated/kubernetes-api/v1.33/#labelselector-v1-meta"><code>LabelSelector</code></a>
+</td>
+<td>
+   RolloutSelector selects the Rollouts this policy applies to.
+An empty selector matches every Rollout.</td>
+</tr>
+<tr><td><code>namespaceSelector</code>
+      
+<br/>
+<a href="https://kubernetes.io/docs/reference/generated/kubernetes-api/v1.33/#labelselector-v1-meta"><code>LabelSelector</code></a>
+</td>
+<td>
+   NamespaceSelector restricts the policy to Rollouts in matching namespaces.
+A nil selector matches every namespace.</td>
+</tr>
+</tbody>
+</table>
+
+
+#### ClusterApprovalPolicyStatus     {#clusterapprovalpolicystatus}
+
+
+
+**Appears in:**
+
+- [ClusterApprovalPolicy](#clusterapprovalpolicy)
+
+
+ClusterApprovalPolicyStatus defines the observed state of ClusterApprovalPolicy.
+
+<table>
+<thead><tr><th width="30%">Field</th><th>Description</th></tr></thead>
+<tbody>
+    
+  
+<tr><td><code>rollouts</code>
+      
+<br/>
+<code>[]string</code>
+</td>
+<td>
+   Rollouts lists the matched Rollouts, sorted, as <namespace>/<name>.</td>
+</tr>
+<tr><td><code>conditions</code>
+      
+<br/>
+<a href="https://kubernetes.io/docs/reference/generated/kubernetes-api/v1.33/#condition-v1-meta"><code>[]Condition</code></a>
+</td>
+<td>
+   conditions represent the current state of the ClusterApprovalPolicy resource.
+Each condition has a unique type and reflects the status of a specific aspect of the resource.<br/><br/>Standard condition types include:
+- "Available": the resource is fully functional
+- "Progressing": the resource is being created or updated
+- "Degraded": the resource failed to reach or maintain its desired state<br/><br/>The status of each condition is one of True, False, or Unknown.</td>
+</tr>
+</tbody>
+</table>
+
+
+#### ClusterRolloutScheduleSpec     {#clusterrolloutschedulespec}
+
+
+
 **Appears in:**
 
 - [ClusterRolloutSchedule](#clusterrolloutschedule)
-{{< /callout >}}
+
 
 ClusterRolloutScheduleSpec defines the desired state of ClusterRolloutSchedule.
 
@@ -2145,15 +2364,14 @@ Defaults to "UTC" if not specified.</td>
 </table>
 
 
-### ClusterRolloutScheduleStatus     {#clusterrolloutschedulestatus}
+#### ClusterRolloutScheduleStatus     {#clusterrolloutschedulestatus}
 
 
 
-{{< callout type="info" >}}
 **Appears in:**
 
 - [ClusterRolloutSchedule](#clusterrolloutschedule)
-{{< /callout >}}
+
 
 ClusterRolloutScheduleStatus defines the observed state of ClusterRolloutSchedule.
 
@@ -2215,15 +2433,14 @@ Format: "namespace/name"</td>
 </table>
 
 
-### DateRange     {#daterange}
+#### DateRange     {#daterange}
 
 
 
-{{< callout type="info" >}}
 **Appears in:**
 
 - [ScheduleRule](#schedulerule)
-{{< /callout >}}
+
 
 DateRange represents a date range.
 
@@ -2252,31 +2469,29 @@ DateRange represents a date range.
 </table>
 
 
-### DayOfWeek     {#dayofweek}
+#### DayOfWeek     {#dayofweek}
 
 
 (Alias of `string`)
 
-{{< callout type="info" >}}
 **Appears in:**
 
 - [ScheduleRule](#schedulerule)
-{{< /callout >}}
+
 
 DayOfWeek represents a day of the week.
 
 
 
 
-### DeploymentHistoryEntry     {#deploymenthistoryentry}
+#### DeploymentHistoryEntry     {#deploymenthistoryentry}
 
 
 
-{{< callout type="info" >}}
 **Appears in:**
 
 - [RolloutStatus](#rolloutstatus)
-{{< /callout >}}
+
 
 DeploymentHistoryEntry represents a single entry in the deployment history.
 
@@ -2402,15 +2617,14 @@ approval gate. Nil when no approval gate applied, or when gates were bypassed.</
 </table>
 
 
-### FailedHealthCheck     {#failedhealthcheck}
+#### FailedHealthCheck     {#failedhealthcheck}
 
 
 
-{{< callout type="info" >}}
 **Appears in:**
 
 - [DeploymentHistoryEntry](#deploymenthistoryentry)
-{{< /callout >}}
+
 
 FailedHealthCheck represents a health check that failed during bake.
 
@@ -2457,57 +2671,16 @@ survives the health check recovering.</td>
 </table>
 
 
-## HealthCheck     {#healthcheck}
+#### HealthCheckObservation     {#healthcheckobservation}
 
 
 
-
-HealthCheck is the Schema for the healthchecks API.
-
-<table>
-<thead><tr><th width="30%">Field</th><th>Description</th></tr></thead>
-<tbody>
-    
-  
-<tr><td><code>metadata</code>
-      
-<br/>
-<a href="https://kubernetes.io/docs/reference/generated/kubernetes-api/v1.33/#objectmeta-v1-meta"><code>ObjectMeta</code></a>
-</td>
-<td>
-   <em>No description provided. </em>Refer to the Kubernetes API documentation for the fields of the <code>metadata</code> field.</td>
-</tr>
-<tr><td><code>spec</code>
-      
-<br/>
-<a href="#healthcheckspec"><code>HealthCheckSpec</code></a>
-</td>
-<td>
-   <em>No description provided. </em></td>
-</tr>
-<tr><td><code>status</code>
-      
-<br/>
-<a href="#healthcheckstatus"><code>HealthCheckStatus</code></a>
-</td>
-<td>
-   <em>No description provided. </em></td>
-</tr>
-</tbody>
-</table>
-
-
-### HealthCheckObservation     {#healthcheckobservation}
-
-
-
-{{< callout type="info" >}}
 **Appears in:**
 
 - [FailedHealthCheck](#failedhealthcheck)
 
 - [HealthCheckStatus](#healthcheckstatus)
-{{< /callout >}}
+
 
 HealthCheckObservation is one typed fact a health check evaluated.
 Numeric fields are decimal strings (e.g. "8.2", "0.082") so no precision is lost
@@ -2604,47 +2777,44 @@ can mark the offending one when several are listed.</td>
 </table>
 
 
-### HealthCheckObservationDirection     {#healthcheckobservationdirection}
+#### HealthCheckObservationDirection     {#healthcheckobservationdirection}
 
 
 (Alias of `string`)
 
-{{< callout type="info" >}}
 **Appears in:**
 
 - [HealthCheckObservation](#healthcheckobservation)
-{{< /callout >}}
+
 
 HealthCheckObservationDirection says which side of a Threshold limit is bad.
 
 
 
 
-### HealthCheckObservationKind     {#healthcheckobservationkind}
+#### HealthCheckObservationKind     {#healthcheckobservationkind}
 
 
 (Alias of `string`)
 
-{{< callout type="info" >}}
 **Appears in:**
 
 - [HealthCheckObservation](#healthcheckobservation)
-{{< /callout >}}
+
 
 HealthCheckObservationKind selects how an observation is drawn.
 
 
 
 
-### HealthCheckSelectorConfig     {#healthcheckselectorconfig}
+#### HealthCheckSelectorConfig     {#healthcheckselectorconfig}
 
 
 
-{{< callout type="info" >}}
 **Appears in:**
 
 - [RolloutSpec](#rolloutspec)
-{{< /callout >}}
+
 
 HealthCheckSelectorConfig defines how to select HealthChecks for a rollout.
 
@@ -2674,15 +2844,14 @@ If not specified, only HealthChecks in the same namespace as the Rollout will be
 </table>
 
 
-### HealthCheckSpec     {#healthcheckspec}
+#### HealthCheckSpec     {#healthcheckspec}
 
 
 
-{{< callout type="info" >}}
 **Appears in:**
 
 - [HealthCheck](#healthcheck)
-{{< /callout >}}
+
 
 HealthCheckSpec defines the desired state of HealthCheck.
 
@@ -2703,15 +2872,14 @@ HealthCheckSpec defines the desired state of HealthCheck.
 </table>
 
 
-### HealthCheckStatus     {#healthcheckstatus}
+#### HealthCheckStatus     {#healthcheckstatus}
 
 
 
-{{< callout type="info" >}}
 **Appears in:**
 
 - [HealthCheck](#healthcheck)
-{{< /callout >}}
+
 
 HealthCheckStatus defines the observed state of HealthCheck.
 
@@ -2766,30 +2934,28 @@ stays the human sentence. Providers may leave this empty.</td>
 </table>
 
 
-### HealthStatus     {#healthstatus}
+#### HealthStatus     {#healthstatus}
 
 
 (Alias of `string`)
 
-{{< callout type="info" >}}
 **Appears in:**
 
 - [HealthCheckStatus](#healthcheckstatus)
-{{< /callout >}}
 
 
 
 
 
-### ProviderRolloutReference     {#providerrolloutreference}
+
+#### ProviderRolloutReference     {#providerrolloutreference}
 
 
 
-{{< callout type="info" >}}
 **Appears in:**
 
 - [RolloutDependencySpec](#rolloutdependencyspec)
-{{< /callout >}}
+
 
 ProviderRolloutReference identifies the Rollout that provides a contract.
 
@@ -2819,15 +2985,14 @@ Defaults to the namespace of the RolloutDependency.</td>
 </table>
 
 
-### ReleaseCandidate     {#releasecandidate}
+#### ReleaseCandidate     {#releasecandidate}
 
 
 
-{{< callout type="info" >}}
 **Appears in:**
 
 - [RolloutStatus](#rolloutstatus)
-{{< /callout >}}
+
 
 ReleaseCandidate is a release the Rollout could deploy next. It is
 deliberately lean: full release metadata (digest, revision, version,
@@ -2882,15 +3047,14 @@ requires) lives in the ReleaseSlice catalogue and in history entries.
 </table>
 
 
-### ReleaseSourceStatusRef     {#releasesourcestatusref}
+#### ReleaseSourceStatusRef     {#releasesourcestatusref}
 
 
 
-{{< callout type="info" >}}
 **Appears in:**
 
 - [RolloutStatus](#rolloutstatus)
-{{< /callout >}}
+
 
 ReleaseSourceStatusRef is a Rollout's view of its ReleaseSource.
 
@@ -2943,87 +3107,14 @@ ReleaseSourceStatusRef is a Rollout's view of its ReleaseSource.
 </table>
 
 
-## Rollout     {#rollout}
+#### RolloutApprovalSpec     {#rolloutapprovalspec}
 
 
 
-
-Rollout is the Schema for the rollouts API.
-
-<table>
-<thead><tr><th width="30%">Field</th><th>Description</th></tr></thead>
-<tbody>
-    
-  
-<tr><td><code>metadata</code>
-      
-<br/>
-<a href="https://kubernetes.io/docs/reference/generated/kubernetes-api/v1.33/#objectmeta-v1-meta"><code>ObjectMeta</code></a>
-</td>
-<td>
-   <em>No description provided. </em>Refer to the Kubernetes API documentation for the fields of the <code>metadata</code> field.</td>
-</tr>
-<tr><td><code>spec</code>
-      
-<br/>
-<a href="#rolloutspec"><code>RolloutSpec</code></a>
-</td>
-<td>
-   <em>No description provided. </em></td>
-</tr>
-<tr><td><code>status</code>
-      
-<br/>
-<a href="#rolloutstatus"><code>RolloutStatus</code></a>
-</td>
-<td>
-   <em>No description provided. </em></td>
-</tr>
-</tbody>
-</table>
-
-
-## RolloutApproval     {#rolloutapproval}
-
-
-
-
-RolloutApproval is the Schema for the rolloutapprovals API
-
-<table>
-<thead><tr><th width="30%">Field</th><th>Description</th></tr></thead>
-<tbody>
-    
-  
-<tr><td><code>metadata,omitzero</code>
-      
-<br/>
-<a href="https://kubernetes.io/docs/reference/generated/kubernetes-api/v1.33/#objectmeta-v1-meta"><code>ObjectMeta</code></a>
-</td>
-<td>
-   metadata is a standard object metadataRefer to the Kubernetes API documentation for the fields of the <code>metadata</code> field.</td>
-</tr>
-<tr><td><code>spec</code>
-      
-<br/>
-<a href="#rolloutapprovalspec"><code>RolloutApprovalSpec</code></a>
-</td>
-<td>
-   spec defines the desired state of RolloutApproval</td>
-</tr>
-</tbody>
-</table>
-
-
-### RolloutApprovalSpec     {#rolloutapprovalspec}
-
-
-
-{{< callout type="info" >}}
 **Appears in:**
 
 - [RolloutApproval](#rolloutapproval)
-{{< /callout >}}
+
 
 RolloutApprovalSpec defines the desired state of RolloutApproval
 
@@ -3053,55 +3144,14 @@ against releaseCandidates[].tag. It may name a version that does not exist yet.<
 </table>
 
 
-## RolloutDependency     {#rolloutdependency}
+#### RolloutDependencySpec     {#rolloutdependencyspec}
 
 
 
-
-RolloutDependency is the Schema for the rolloutdependencies API
-
-<table>
-<thead><tr><th width="30%">Field</th><th>Description</th></tr></thead>
-<tbody>
-    
-  
-<tr><td><code>metadata,omitzero</code>
-      
-<br/>
-<a href="https://kubernetes.io/docs/reference/generated/kubernetes-api/v1.33/#objectmeta-v1-meta"><code>ObjectMeta</code></a>
-</td>
-<td>
-   metadata is a standard object metadataRefer to the Kubernetes API documentation for the fields of the <code>metadata</code> field.</td>
-</tr>
-<tr><td><code>spec</code>
-      
-<br/>
-<a href="#rolloutdependencyspec"><code>RolloutDependencySpec</code></a>
-</td>
-<td>
-   spec defines the desired state of RolloutDependency</td>
-</tr>
-<tr><td><code>status,omitzero</code>
-      
-<br/>
-<a href="#rolloutdependencystatus"><code>RolloutDependencyStatus</code></a>
-</td>
-<td>
-   status defines the observed state of RolloutDependency</td>
-</tr>
-</tbody>
-</table>
-
-
-### RolloutDependencySpec     {#rolloutdependencyspec}
-
-
-
-{{< callout type="info" >}}
 **Appears in:**
 
 - [RolloutDependency](#rolloutdependency)
-{{< /callout >}}
+
 
 RolloutDependencySpec defines the desired state of RolloutDependency.<br/><br/>A RolloutDependency gates a consumer Rollout on the deployed contract version
 of a provider Rollout. Each release candidate of the consumer declares what it
@@ -3150,15 +3200,14 @@ Defaults to the name of the provider Rollout.</td>
 </table>
 
 
-### RolloutDependencyStatus     {#rolloutdependencystatus}
+#### RolloutDependencyStatus     {#rolloutdependencystatus}
 
 
 
-{{< callout type="info" >}}
 **Appears in:**
 
 - [RolloutDependency](#rolloutdependency)
-{{< /callout >}}
+
 
 RolloutDependencyStatus defines the observed state of RolloutDependency.
 
@@ -3232,55 +3281,14 @@ Capped at the newest entries; see maxPublishedReleases.</td>
 </table>
 
 
-## RolloutGate     {#rolloutgate}
+#### RolloutGateSpec     {#rolloutgatespec}
 
 
 
-
-RolloutGate is the Schema for the rolloutgates API.
-
-<table>
-<thead><tr><th width="30%">Field</th><th>Description</th></tr></thead>
-<tbody>
-    
-  
-<tr><td><code>metadata</code>
-      
-<br/>
-<a href="https://kubernetes.io/docs/reference/generated/kubernetes-api/v1.33/#objectmeta-v1-meta"><code>ObjectMeta</code></a>
-</td>
-<td>
-   <em>No description provided. </em>Refer to the Kubernetes API documentation for the fields of the <code>metadata</code> field.</td>
-</tr>
-<tr><td><code>spec</code>
-      
-<br/>
-<a href="#rolloutgatespec"><code>RolloutGateSpec</code></a>
-</td>
-<td>
-   <em>No description provided. </em></td>
-</tr>
-<tr><td><code>status</code>
-      
-<br/>
-<a href="#rolloutgatestatus"><code>RolloutGateStatus</code></a>
-</td>
-<td>
-   <em>No description provided. </em></td>
-</tr>
-</tbody>
-</table>
-
-
-### RolloutGateSpec     {#rolloutgatespec}
-
-
-
-{{< callout type="info" >}}
 **Appears in:**
 
 - [RolloutGate](#rolloutgate)
-{{< /callout >}}
+
 
 RolloutGateSpec defines the desired state of RolloutGate.
 
@@ -3317,30 +3325,28 @@ RolloutGateSpec defines the desired state of RolloutGate.
 </table>
 
 
-### RolloutGateStatus     {#rolloutgatestatus}
+#### RolloutGateStatus     {#rolloutgatestatus}
 
 
 
-{{< callout type="info" >}}
 **Appears in:**
 
 - [RolloutGate](#rolloutgate)
-{{< /callout >}}
+
 
 RolloutGateStatus defines the observed state of RolloutGate.
 
 
 
 
-### RolloutGateStatusSummary     {#rolloutgatestatussummary}
+#### RolloutGateStatusSummary     {#rolloutgatestatussummary}
 
 
 
-{{< callout type="info" >}}
 **Appears in:**
 
 - [RolloutStatus](#rolloutstatus)
-{{< /callout >}}
+
 
 RolloutGateStatusSummary summarizes the status of a gate relevant to this rollout.
 
@@ -3395,73 +3401,31 @@ gates are marked.</td>
 </table>
 
 
-## RolloutSchedule     {#rolloutschedule}
-
-
-
-
-RolloutSchedule is the Schema for the rolloutschedules API.
-
-<table>
-<thead><tr><th width="30%">Field</th><th>Description</th></tr></thead>
-<tbody>
-    
-  
-<tr><td><code>metadata</code>
-      
-<br/>
-<a href="https://kubernetes.io/docs/reference/generated/kubernetes-api/v1.33/#objectmeta-v1-meta"><code>ObjectMeta</code></a>
-</td>
-<td>
-   <em>No description provided. </em>Refer to the Kubernetes API documentation for the fields of the <code>metadata</code> field.</td>
-</tr>
-<tr><td><code>spec</code>
-      
-<br/>
-<a href="#rolloutschedulespec"><code>RolloutScheduleSpec</code></a>
-</td>
-<td>
-   <em>No description provided. </em></td>
-</tr>
-<tr><td><code>status</code>
-      
-<br/>
-<a href="#rolloutschedulestatus"><code>RolloutScheduleStatus</code></a>
-</td>
-<td>
-   <em>No description provided. </em></td>
-</tr>
-</tbody>
-</table>
-
-
-### RolloutScheduleAction     {#rolloutscheduleaction}
+#### RolloutScheduleAction     {#rolloutscheduleaction}
 
 
 (Alias of `string`)
 
-{{< callout type="info" >}}
 **Appears in:**
 
 - [ClusterRolloutScheduleSpec](#clusterrolloutschedulespec)
 
 - [RolloutScheduleSpec](#rolloutschedulespec)
-{{< /callout >}}
+
 
 RolloutScheduleAction defines the action to take when the schedule is active.
 
 
 
 
-### RolloutScheduleSpec     {#rolloutschedulespec}
+#### RolloutScheduleSpec     {#rolloutschedulespec}
 
 
 
-{{< callout type="info" >}}
 **Appears in:**
 
 - [RolloutSchedule](#rolloutschedule)
-{{< /callout >}}
+
 
 RolloutScheduleSpec defines the desired state of RolloutSchedule.
 
@@ -3510,15 +3474,14 @@ Defaults to "UTC" if not specified.</td>
 </table>
 
 
-### RolloutScheduleStatus     {#rolloutschedulestatus}
+#### RolloutScheduleStatus     {#rolloutschedulestatus}
 
 
 
-{{< callout type="info" >}}
 **Appears in:**
 
 - [RolloutSchedule](#rolloutschedule)
-{{< /callout >}}
+
 
 RolloutScheduleStatus defines the observed state of RolloutSchedule.
 
@@ -3579,15 +3542,14 @@ RolloutScheduleStatus defines the observed state of RolloutSchedule.
 </table>
 
 
-### RolloutSpec     {#rolloutspec}
+#### RolloutSpec     {#rolloutspec}
 
 
 
-{{< callout type="info" >}}
 **Appears in:**
 
 - [Rollout](#rollout)
-{{< /callout >}}
+
 
 RolloutSpec defines the desired state of Rollout.
 
@@ -3692,15 +3654,14 @@ If not specified, the rollout will wait indefinitely for bake to start.</td>
 </table>
 
 
-### RolloutStatus     {#rolloutstatus}
+#### RolloutStatus     {#rolloutstatus}
 
 
 
-{{< callout type="info" >}}
 **Appears in:**
 
 - [Rollout](#rollout)
-{{< /callout >}}
+
 
 RolloutStatus defines the observed state of Rollout.
 
@@ -3827,17 +3788,16 @@ This field is set once for the entire rollout based on the latest available rele
 </table>
 
 
-### ScheduleRule     {#schedulerule}
+#### ScheduleRule     {#schedulerule}
 
 
 
-{{< callout type="info" >}}
 **Appears in:**
 
 - [ClusterRolloutScheduleSpec](#clusterrolloutschedulespec)
 
 - [RolloutScheduleSpec](#rolloutschedulespec)
-{{< /callout >}}
+
 
 ScheduleRule defines a time-based rule.
 The schedule is active if the current time/date matches this rule.
@@ -3883,15 +3843,14 @@ The schedule is active if the current time/date matches this rule.
 </table>
 
 
-### TimeRange     {#timerange}
+#### TimeRange     {#timerange}
 
 
 
-{{< callout type="info" >}}
 **Appears in:**
 
 - [ScheduleRule](#schedulerule)
-{{< /callout >}}
+
 
 TimeRange represents a time range within a day.
 
@@ -3920,15 +3879,14 @@ TimeRange represents a time range within a day.
 </table>
 
 
-### TriggeredByInfo     {#triggeredbyinfo}
+#### TriggeredByInfo     {#triggeredbyinfo}
 
 
 
-{{< callout type="info" >}}
 **Appears in:**
 
 - [DeploymentHistoryEntry](#deploymenthistoryentry)
-{{< /callout >}}
+
 
 TriggeredByInfo indicates what triggered a deployment.
 
@@ -3960,17 +3918,16 @@ For system-triggered deployments, this is typically "rollout-controller".</td>
 </table>
 
 
-### VersionInfo     {#versioninfo}
+#### VersionInfo     {#versioninfo}
 
 
 
-{{< callout type="info" >}}
 **Appears in:**
 
 - [DeploymentHistoryEntry](#deploymenthistoryentry)
 
 - [RolloutStatus](#rolloutstatus)
-{{< /callout >}}
+
 
 VersionInfo represents detailed information about a version.
 
