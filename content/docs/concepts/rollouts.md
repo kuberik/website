@@ -60,7 +60,7 @@ A Rollout does not care what its versions point at. Annotate a `Kustomization` a
 
 ## When a deploy is held
 
-Before an automatic deploy, the build must be allowed by every gate that targets the Rollout. A gate either lets a build through or holds it; a held build is evaluated again whenever a gate changes, and nothing is rejected for good. Gates do not apply to a Rollout's first deploy (if no release passes them, the newest release deploys) or to deploys you start by hand.
+Before an automatic deploy, the build must be allowed by every gate that targets the Rollout. A gate either lets a build through or holds it; a held build is evaluated again whenever a gate changes, and nothing is rejected for good. Gates never hold deploys you start by hand. On a Rollout's first deploy they never hold either: it deploys the newest release the gates allow, or the newest release if they allow none.
 
 Automatic deploys also wait while any selected health check reports `Unhealthy`. The Rollout then sets `DeploymentBlocked=True` with the name of the check. A check that is still `Pending` holds nothing, and a Rollout's first deploy and deploys you start by hand go ahead regardless.
 
