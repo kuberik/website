@@ -1,64 +1,128 @@
 ---
-title: "Automated Promotion"
-weight: 3
+title: "Promote Across Environments"
+linkTitle: "Promote Across Environments"
+description: "Deploy to production only after staging has shipped the same release."
+type_: guide
+weight: 20
 ---
 
-Chain environments together so production deploys only after staging succeeds. Requires the [GitHub Integration](/docs/integrations/github/).
+Production deploys only the releases staging has already deployed and baked, with no pipeline between the clusters. Each cluster runs its own Rollout and [Environment](/docs/concepts/environments/), and GitHub deployments carry the result from one to the next.
 
-## Define Environments
+Works with environment-controller after v0.1.5, a GitHub token Secret in each app namespace (see [GitHub](/docs/integrations/github/)), and Rollouts that take their releases from a [ReleaseSource](/docs/guides/publishing-releases/).
 
-Both environments must use the same backend project so they can coordinate via shared deployment status.
+## Create the staging Environment
 
-Create the upstream environment (staging):
+Staging is the first tier this app uses, so its gate does not restrict releases. Apply this in the staging cluster, next to the `hello-world` Rollout:
 
 ```yaml {filename="staging.yaml"}
 apiVersion: environments.kuberik.com/v1alpha1
 kind: Environment
 metadata:
-  name: my-app-staging
+  name: hello-world-staging
+  namespace: hello-world
 spec:
   rolloutRef:
-    name: my-app
-  name: staging
+    name: hello-world
+  name: hello-world        # the same name in every cluster
+  environment: staging
   backend:
     type: github
-    project: org/repo
-    secret: github-credentials
+    project: acme/hello-world
 ```
 
-Create the downstream environment (production) with a relationship:
+```bash {filename="Terminal"}
+kubectl apply -f staging.yaml
+```
+
+The controller creates a RolloutGate for the Rollout and records each deploy as a GitHub deployment in the environment `kuberik/hello-world/staging`. The token comes from the Secret `github-token` in the `hello-world` namespace, the default when `backend.secret` is not set.
+
+## Create the production Environment
+
+Production comes after staging in the tier order, so its gate allows only the releases staging baked successfully. Apply this in the production cluster:
 
 ```yaml {filename="production.yaml"}
 apiVersion: environments.kuberik.com/v1alpha1
 kind: Environment
 metadata:
-  name: my-app-production
+  name: hello-world-production
+  namespace: hello-world
 spec:
   rolloutRef:
-    name: my-app
-  name: production
+    name: hello-world
+  name: hello-world
+  environment: production
   backend:
     type: github
-    project: org/repo
-    secret: github-credentials
-  relationship:
-    environment: staging
-    type: After
+    project: acme/hello-world
 ```
 
-{{< callout >}}
-The controller automatically creates RolloutGate resources based on relationships. With `type: After`, only versions successfully baked in staging become available for production.
+```bash {filename="Terminal"}
+kubectl apply -f production.yaml
+```
 
-![The promotion pipeline of one app: dev and staging on the newest build, production waiting on its gates](/screenshots/dashboard/app.png)
-{{< /callout >}}
+When staging finishes the bake of `1.4.0`, the production gate adds `1.4.0` to its `allowedVersions` and the production Rollout deploys it as soon as its other gates allow. A failed bake in staging never reaches production. The order comes from the tier names alone: there is nothing to configure between the two objects.
 
-## Relationship Types
+## Roll production out in waves
 
-| Type | Behavior |
-|------|----------|
-| `After` | Deploy only after the related environment succeeds |
-| `Parallel` | Deploy in parallel with the related environment |
+Give each production cluster a site, and put the clusters that should go later into a later wave. This Environment, in a second production cluster, starts a release only after the wave-1 site `eu-west-1` baked it:
 
-## Recommended: Add a Schedule
+```yaml {filename="production-us-east-1.yaml"}
+apiVersion: environments.kuberik.com/v1alpha1
+kind: Environment
+metadata:
+  name: hello-world-production
+  namespace: hello-world
+spec:
+  rolloutRef:
+    name: hello-world
+  name: hello-world
+  environment: production
+  site: us-east-1
+  wave: 2                  # starts after every wave-1 site baked the release
+  backend:
+    type: github
+    project: acme/hello-world
+```
 
-Combine with a [Deployment Schedule](/docs/guides/schedules/) to prevent automatic promotions when your team isn't around.
+Set `site: eu-west-1` (and the default `wave: 1`) on the first production cluster's Environment. Changing the site of an existing Environment deregisters its old site in GitHub and registers the new one. To keep production on one release until every wave has it, set `lockstep: true` on the wave-1 Environment.
+
+## Check the result
+
+Read the Environment's conditions in the production cluster:
+
+```bash {filename="Terminal"}
+kubectl get environment hello-world-production -n hello-world \
+  -o jsonpath='{range .status.conditions[*]}{.type}={.status} {.reason}: {.message}{"\n"}{end}'
+```
+
+```text {filename="Output"}
+WaveReady=True Ready: site may deploy the allowed versions
+LockstepConsistent=True Consistent: all members agree on lockstep
+```
+
+Then list the releases the gate allows, newest first:
+
+```bash {filename="Terminal"}
+kubectl get rolloutgate -n hello-world \
+  -o jsonpath='{range .items[*]}{.metadata.name}: {.spec.allowedVersions}{"\n"}{end}'
+```
+
+The gate whose name starts with `ghd-` belongs to the Environment. In GitHub, the repository's **Environments** page lists `kuberik/hello-world/staging` and `kuberik/hello-world/production` with every deploy and its bake result. The dashboard shows the same order on the app page.
+
+![The promotion pipeline of one app: development and staging on the newest build, production waiting on its gates](/screenshots/dashboard/app.png)
+
+## Troubleshoot
+
+| Symptom | Cause | Fix |
+|---|---|---|
+| `WaveReady=False`, reason `WaitingFor` | Staging (or an earlier wave) has not baked the release yet, or its bake failed. The message names the site. | Wait for the bake, or fix the failure in staging. |
+| `WaveReady=False`, reason `WaitingForCandidate` | The revision staging deployed has no release tag in the production Rollout's ReleaseSource. | Check that both clusters read the same releases. |
+| `WaveReady=False`, reason `InvalidTopology` | Two names of one tier are in use (`staging` and `preprod`), or the waves have a gap. | Use one tier name, and number waves from 1 without gaps. |
+| `WaveReady=False`, reason `DuplicateSite` | Another Environment already owns this site of the tier. | Give each cluster its own `site`, or annotate the new one with `environments.kuberik.com/take-over-site=true`. |
+| Production deploys releases staging never ran | No staging site is registered for this `name`, so production has no upstream. | Check that both Environments use the same `name` and `backend.project`. |
+
+## Next steps
+
+- [Set Deployment Windows](/docs/guides/schedules/) so promotions happen when your team is around.
+- [Environments](/docs/concepts/environments/) explains tiers, sites and waves in full.
+- [GitHub](/docs/integrations/github/) sets up the token the Environments use.
