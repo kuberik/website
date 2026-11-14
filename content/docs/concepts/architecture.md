@@ -5,7 +5,7 @@ type_: concept
 weight: 10
 ---
 
-Kuberik is a GitOps-native orchestration layer that extends the standard controller pattern to handle complex deployment lifecycles.
+See which Kuberik resources take part in a release, how they connect to Flux, and what happens to a build from discovery to verification.
 
 ## System Overview
 
@@ -61,8 +61,8 @@ flowchart TB
 | **Rollout** | The core state machine. Reads the releases a `ReleaseSource` discovers and orchestrates releases. Drives either a `Kustomization` substitution or an `OCIRepository` tag. |
 | **ReleaseSource** | Lists the tags of an OCI repository, orders them by a policy and keeps the catalogue of releases (served by the release-controller). A Rollout points at one with `spec.releaseSourceRef`. |
 | **Environment** | Maps a Rollout to a logical target (e.g. "production") and syncs status to external backends (GitHub). |
-| **HealthCheck** | Probes system health during the bake period (HTTP, Datadog, Script). |
-| **RolloutGate** | Blocks a Rollout from proceeding until specific conditions (manual approval, API check) are met. |
+| **HealthCheck** | Reports health from a Flux `Kustomization` or from Datadog monitors. The Rollout reads it before and during the bake. |
+| **RolloutGate** | Holds builds until it allows them: written by hand, or by schedules, approval policies, service dependencies and Environments. |
 
 ![One rollout in the dashboard: the running build, its deployment pipeline, the health checks it watches and the resources it manages](/screenshots/dashboard/overview.png)
 
@@ -72,11 +72,11 @@ flowchart TB
 
 ### Discovery
 
-Flux detects a new image tag. Kuberik creates a pending `Release`.
+A `ReleaseSource` finds a new tag in the OCI repository and adds it to its catalogue of releases. The Rollout lists every release newer than the deployed one in `status.candidates`.
 
 ### Gating
 
-`RolloutGates` are evaluated. If any gate fails or is pending, the release waits.
+`RolloutGates` are evaluated. If any gate does not allow the build, the build waits until a gate changes.
 
 ### Execution
 
@@ -84,13 +84,13 @@ Kuberik updates the Flux source it owns: a substitution variable on a `Kustomiza
 
 ### Bake Time
 
-Kuberik waits for a defined stabilization period.
+Once every selected health check is healthy, Kuberik waits for `bakeTime` and watches for errors.
 
 ### Verification
 
-`HealthChecks` run continuously.
+`HealthChecks` report continuously, and the deploy ends with one bake status:
 
-- {{< badge content="Available" color="green" >}} All health checks pass — release is promoted.
-- {{< badge content="Failed" color="red" >}} A health check fails — release is halted.
+- {{< badge content="Succeeded" color="green" >}} No health check reported an error since the deploy, and the bake ran its full `bakeTime`. Downstream environments can now admit the build through their gates.
+- {{< badge content="Failed" color="red" >}} A health check reported an error. The build keeps running and further automatic deploys are held until someone acts; see [When a Bake Fails](/docs/concepts/rollouts/#when-a-bake-fails).
 
 {{% /steps %}}
