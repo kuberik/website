@@ -1,0 +1,1 @@
+import{m as t}from"./section-Dq36NktC.js";import{o as e,T as m}from"./overview-DAH9IUy9.js";import"./svelte-BM29j39N.js";import"./detail-store.svelte-D7sHPBGh.js";import"../islands.js";import"./targets-Br-91JYG.js";import"./worlds-QPhbZ50w.js";const n=o=>t(o,e("section-health","health-checks",{times:[14.9,m],rest:1,holdMs:4e3,fadeMs:400}));export{n as mount};

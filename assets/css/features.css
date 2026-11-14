@@ -5,10 +5,12 @@
             >= 644 px, the width at which the product's Gates card draws its two-column #145 graph (454 tall at 644-724,
             438 at 767, 460 at 1047). A 7-span (island 627) would show the stacked list (676), so Gates gets the row.
             Linear's alternating wide row (ref3), Stripe's copy-in-card (ref1).
-     Row 2  Canary 7, spanning two sub-rows | Health 5 over GitOps 5. Canary's Progress card is ~641 tall at 627; Health
-            (~231) + GitOps (~141) + their copy + one gap come to within ~70 px of it, so no canvas is mostly empty.
-     Row 3  Dashboard 7 | Releases 5. Change History ~373 at 627 beside Builds ~463 at 425: ~90 px of tinted ground under
-            the shorter one, inside the 140 px budget.
+     Row 2  Canary 7, spanning two sub-rows | Health 5 over GitOps 5. Canary's Progress card is ~669 tall at 627 (641 from a
+            634 island, where its release line is one row; dashboard b4d94a20); Health (~231) + GitOps (~141) + their copy + one
+            gap come to within ~100 px of it, so no canvas is mostly empty.
+     Row 3  Dashboard 7 | Releases 5. Change History ~373 beside Builds (483 below a 482 island, 413 at 482-561, 369 from
+            562; dashboard b4d94a20): from 1200 Builds is 369 at its 7-span (below); 1024-1199 at 6 | 6 puts ~110 px of tinted ground
+            under History, inside the 140 px budget.
    Every card spans a copy track and a canvas track of the parent grid (subgrid), so the canvases in a row start at one y
    and end at one y; the shorter island stays top-anchored on its tinted dot ground (designed space, as on Stripe).
    Canvas hues (lagoon / mint, data/landing.yaml): Gates L; Canary M, Health M, GitOps L; Dashboard L, Releases M. A full
@@ -88,7 +90,7 @@ html.js .fx .reveal:nth-child(4){transition-delay:120ms}
 @media(min-width:1200px){
   .fx-canary{grid-column:1 / span 7}
   .fx-health,.fx-gitops{grid-column:8 / -1}
-  /* row 3 flips to Dashboard 5 | Releases 7: History is 373 tall at every width, Builds is 369 from an island of 590 up,
+  /* row 3 flips to Dashboard 5 | Releases 7: History is 373 tall at every width, Builds is 369 from an island of 562 up,
      so the pair matches (AD r2: a 7-wide Dashboard beside a 463-tall 5-wide Releases left ~115 px of dead canvas) */
   .fx-dashboard{grid-column:1 / span 5}
   .fx-releases{grid-column:6 / -1}

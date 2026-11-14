@@ -85,6 +85,7 @@ lib/components/StarToggle.svelte
 lib/components/StatementBanner.svelte
 lib/components/StatusMark.svelte
 lib/components/StatusSpinner.svelte
+lib/components/StepDisc.svelte
 lib/components/StillTryingNotice.svelte
 lib/components/StuckBadge.svelte
 lib/components/Toast.svelte
@@ -100,6 +101,7 @@ lib/components/atoms/atoms-live.svelte.ts
 lib/components/home/depot/depot-data.ts
 lib/components/home/pocket/pocket-data.ts
 lib/components/home/roster/roster-data.ts
+lib/components/home/roster/v09/rowstate.ts
 lib/components/home/sketch/fleet-source.svelte.ts
 lib/components/home/sketch/home-data.ts
 lib/components/home/sketch/home-view.ts
@@ -139,7 +141,9 @@ lib/components/new/change/ChangeHistory.svelte
 lib/components/new/change/ChangeKindMark.svelte
 lib/components/new/change/ChangeStrip.svelte
 lib/components/new/change/detail-model.ts
+lib/components/new/change/service-spread.ts
 lib/components/new/data.ts
+lib/components/new/derivation-scope.ts
 lib/components/new/environments-page.ts
 lib/components/new/envs-model.ts
 lib/components/new/held-chain.ts

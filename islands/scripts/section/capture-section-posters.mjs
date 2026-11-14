@@ -21,7 +21,11 @@ const PAGE = process.argv[2] ?? 'http://192.168.1.102:1340/';
    fractional host (424.7) takes its rounded poster (425), never the one below it. */
 const BASE = [256, 296, 311, 326, 348, 365, 366, 395, 398, 425, 454, 485, 525, 527, 543, 555, 576, 590, 608, 627, 638, 644, 654, 686, 718, 720, 725, 736, 767, 782, 814, 840, 866, 888, 909, 951, 992, 1047];
 const WIDE = [...BASE, 930, 970, 989, 1422].sort((a, b) => a - b);
-const ISLANDS = { 'gates-card': WIDE, 'health-card': BASE, 'releases-card': BASE, 'canary-card': BASE, 'dashboard-card': BASE, 'gitops-card': BASE };
+/* dashboard b4d94a20 (#183): the Builds card's place rows take one form per list at a 480 and a 560 px container (stacked / 168 px chip track /
+   desktop; the rows sit inside the card's 1 px border, so 482 and 562 in island terms), and the Progress card's release line splits in two below a 600 px line (a 634 px card) */
+const RELEASES = [...BASE, 482, 562].sort((a, b) => a - b);
+const CANARY = [...BASE, 634].sort((a, b) => a - b);
+const ISLANDS = { 'gates-card': WIDE, 'health-card': BASE, 'releases-card': RELEASES, 'canary-card': CANARY, 'dashboard-card': BASE, 'gitops-card': BASE };
 const only = process.argv.slice(3);
 const OUT = new URL('../../../static/island-poster/', import.meta.url).pathname;
 const DATA = new URL('../../../data/section_poster.yaml', import.meta.url).pathname;

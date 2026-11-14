@@ -151,8 +151,8 @@ holds it in us-east-1 because payments-svc, which it needs at ^3.1.0, is still b
 |---|---|---|---|
 | Gates | `gates.ts` | rollout Gates tab, its Gates card (list below 644 px, the #145 two-column graph from 644) | `worldAt(7, depHold, no approval)`, prod us-east-1 |
 | Health checks | `health.ts` | rollout Overview, Health checks card | `payments(t)`, prod us-east-1: loop 14.9 (2 pending) -> 16.8 (3/3) |
-| Canary and waves | `canary.ts` | App page Progress tab, Progress card | `payments(t)`: loop 11.4, 12.9, 16.8 (step 1, 2, 4 of 5; waves 2 and 3 not reached) |
-| Releases | `releases.ts` | App page, Builds card | `held(7)` |
+| Canary and waves | `canary.ts` | App page Progress tab, Progress card | `payments(t)`: loop 11.4, 12.9, 16.8 (step 1, 2, 4 of 5; waves 2 and 3 not reached). 677 tall below a 425 island, 669 to 633, 641 from 634 (the release line is one row from a 600 px line) |
+| Releases | `releases.ts` | App page, Builds card | `held(7)`. 483 tall below a 482 island (every place row stacked), 413 at 482-561 (168 px chip track), 369 from 562 |
 | Dashboard | `dashboard.ts` | Change page for #112, History card | `held(7)` |
 | GitOps | `gitops.ts` | rollout Overview, Resources card (staging) | `held(7, 'staging')`. The product has no view of the version Kuberik substitutes into the Kustomization; this is Flux's side |
 
@@ -196,5 +196,6 @@ holds it in us-east-1 because payments-svc, which it needs at ^3.1.0, is still b
 `sections/gates.ts`: the real Gates tab (`RolloutShell` + the tab route) for checkout-api in prod us-east-1 at story second 7 of a sibling world
 (`worldAt(t, { depHold: true, approval: false })`: payments-svc still baking the 3.1.0 that 4.46.0-46 requires holds the release; staging's promotion passed;
 Business hours open; no approval gate). The frame is the whole Gates card. From an island width of 644 px it is the compact two-column graph with #145's
-wires (454 px tall); below that the stacked list (about 656-692 px). Re-measure when the pin moves.
+wires (454 px tall); below that the stacked list (about 656-692 px). Re-measure when the pin moves: `capture-section-posters.mjs` lists each
+card's product breakpoints in island terms (`RELEASES`, `CANARY`); a new container query in a framed component needs its width added there.
 

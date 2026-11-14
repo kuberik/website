@@ -163,13 +163,14 @@ export function mountSection<W extends SectionWorld>(ctx: CustomCtx, spec: Secti
 	};
 	let C: Component<any> | undefined;
 	/* one render at a time: two would share spec.id's world part, and the first one's dropPart would pull it from under the second; a width change
-	   mid-render queues ONE more, run when this one ends if the layout width still differs from what was drawn */
+	   mid-render queues ONE more; when one ends it always re-checks the layout width against what was drawn (a resize that returned to the width
+	   drawn before the render began queued nothing, and the render then left the frame at the in-between width) */
 	let rendering = false, rerun = false;
 	async function render() {
 		if (rendering) { rerun = true; return; }
 		rendering = true;
 		try { await renderOnce(); } finally { rendering = false; }
-		if (rerun && my0 === gen) { rerun = false; if (spec.canvas(host.clientWidth) !== cw) void render(); }
+		if (my0 === gen) { rerun = false; if (spec.canvas(host.clientWidth) !== cw) void render(); }
 	}
 	const my0 = gen;
 	async function renderOnce() {
