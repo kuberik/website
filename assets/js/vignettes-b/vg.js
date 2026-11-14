@@ -10,8 +10,11 @@
       first); __vgBuilt() lists the built hosts; VG.spec(name) gives a scene's spec (the poster generator reads its boxes).
    5. Remount on a breakpoint flip re-observes the host (unobserve, then observe) so the observer delivers a fresh entry for the
       new scene; without it a card that was playing froze after the viewport crossed 640 px.
-   6. One card plays at a time (start(): elect/go/settle). Among the built hosts at >= 35 % in view the one with the largest visible
-      area plays; the turn changes only when a challenger shows 15 % more area. Every other card shows its REST frame: a card that
+   6. One card plays at a time (start(): elect/go/settle/rotate). Among the built hosts at >= 35 % in view the one with the largest
+      visible area takes the first turn; a partly visible holder loses it to a challenger with 15 % more area, a (90 %+) fully
+      visible one keeps it. A turn is one loop: then the turn passes to the next card in view in page order (rotate), so on a wide
+      bento where several cards are on screen every card plays in turn (area alone starved Health, GitOps and Dashboard at 1440).
+      The hand-off happens at the rest frame (the loop's end), so the outgoing card simply stops on rest. Every other card shows its REST frame: a card that
       leaves the screen or loses the turn is paused and dissolved to rest (160 ms out, 220 ms in; a plain seek when it is off
       screen), so no card is left on the blank reset beat of the loop (that beat exists only inside a playing loop); an elected card
       plays from rest. A hidden tab pauses in place and resumes in place. The observer uses 21 thresholds so the area is current.
@@ -164,9 +167,10 @@
     let cur = null, announced = null;
     const announce = () => { const on = !!cur && !document.hidden; if (on !== announced) { announced = on; dispatchEvent(new CustomEvent('vg-play', { detail: on })); } };
     const toRest = (v) => { if (v.anim) { v.anim.pause(); v.anim.set(v.s.rest); } else { v.t = v.s.rest; v.render(v.t); } v.settling = false; v.atRest = true; };
-    const settle = (v) => {
+    const settle = (v, atEnd) => {
       const tok = v.tok = (v.tok || 0) + 1, svg = v.host.firstElementChild;
       if (v.anim) v.anim.pause();                                   // stop moving at once
+      if (atEnd) { toRest(v); return; }                             // a turn ends at the loop's end = the rest frame: no dissolve
       if (!v.anim && v.t === v.s.rest) return;
       if (!svg || !svg.animate || !(v.ratio > 0.02)) { toRest(v); return; }   // not on screen: nobody sees the seek
       v.settling = true;
@@ -179,12 +183,33 @@
       if (v.settling) toRest(v);                                    // re-elected mid-dissolve: start from rest
       if (v.anim && !document.hidden) v.anim.play();
     };
+    // turns: a card that wins plays one loop (from rest back to rest), then rotate() passes the turn to the next card in view
+    let turn = null, next = null;
+    const order = (v) => hosts().indexOf(v.host);
+    const rotate = () => {
+      turn = null;
+      if (!cur) return;
+      if (document.hidden) { schedule(cur); return; }
+      const el = live.filter((v) => v.ratio >= MIN).sort((a, b) => order(a) - order(b));
+      if (el.length < 2 || !el.includes(cur)) { schedule(cur); return; }
+      next = el[(el.indexOf(cur) + 1) % el.length]; elect();
+    };
+    // the turn ends when the card's clock is next back at rest (measured from its clock, so a hidden-tab pause cannot skew it)
+    const schedule = (v) => {
+      clearTimeout(turn);
+      const L = v.s.loop, now = v.anim ? v.anim.time() : v.t;
+      let rem = (((v.s.rest - now) % L) + L) % L; if (rem < 0.05) rem = L;
+      turn = setTimeout(rotate, rem * 1000);
+    };
     const elect = () => {
       let best = null;
       for (const v of live) if (v.ratio >= MIN && (!best || v.area > best.area)) best = v;
-      const keep = cur && live.includes(cur) && cur.ratio >= MIN && cur.area * 1.15 >= (best ? best.area : 0);
-      const win = keep ? cur : best;
-      for (const v of live) { const want = v === win; if (want === v.on && (want || v.atRest)) continue; v.on = want; want ? go(v) : settle(v); }
+      const keep = cur && live.includes(cur) && cur.ratio >= MIN && (cur.ratio >= 0.9 || cur.area * 1.15 >= (best ? best.area : 0));
+      const handoff = next && live.includes(next) && next.ratio >= MIN ? next : null;
+      next = null;
+      const win = handoff || (keep ? cur : best);
+      for (const v of live) { const want = v === win; if (want === v.on && (want || v.atRest)) continue; v.on = want; want ? go(v) : settle(v, v === cur && handoff); }
+      if (win !== cur || handoff) { clearTimeout(turn); turn = null; if (win) schedule(win); }
       cur = win; announce();
     };
     io = new IntersectionObserver((es) => {
@@ -192,7 +217,7 @@
       elect(); kick();
     }, { threshold: Array.from({ length: 21 }, (_, i) => i / 20) });
     lazy = new IntersectionObserver((es) => { for (const e of es) { if (!e.isIntersecting) continue; lazy.unobserve(e.target); const v = build(e.target); if (v) io.observe(e.target); } }, { rootMargin: '100% 0px 100% 0px' });
-    document.addEventListener('visibilitychange', () => { for (const v of live) if (v.anim && v.on) document.hidden ? v.anim.pause() : v.anim.play(); announce(); kick(); });
+    document.addEventListener('visibilitychange', () => { for (const v of live) if (v.anim && v.on) document.hidden ? v.anim.pause() : v.anim.play(); clearTimeout(turn); turn = null; if (!document.hidden && cur) schedule(cur); announce(); kick(); });
     for (const h of hosts()) lazy.observe(h);
     let last = null, running = false;
     const FPS = +(q.get('vg-fps') || 0), minDt = FPS ? 1000 / FPS - 2 : 0;
