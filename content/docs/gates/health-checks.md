@@ -7,78 +7,148 @@ weight: 10
 aliases: ["/docs/guides/health-checks/"]
 ---
 
-Use `HealthCheck` to verify deployments. Kuberik monitors health checks during deployment and bake time—bake only starts once all checks transition from pending to healthy. Any failed health check marks the deployment as failed.
+A Rollout with health checks marks a deploy succeeded only after its checks stay healthy for the bake time, and fails it when a check turns unhealthy. While a check is unhealthy, new automatic deploys wait.
 
-## Kustomization Health
+Works with: Flux Kustomizations (built into rollout-controller) and [Datadog](/docs/integrations/datadog/) monitors and incidents (datadog-controller).
 
-Monitor a Flux Kustomization. The check passes when all resources deployed by the Kustomization are reconciled, as evaluated by [kstatus](https://github.com/kubernetes-sigs/cli-utils/blob/master/pkg/kstatus/README.md).
+## Add a health check
 
-```yaml {filename="health-check.yaml"}
+A [`HealthCheck`](/docs/reference/api/) reports `Healthy`, `Unhealthy` or `Pending` in `status.status`; its `spec.class` names the controller that fills it in. This one follows a Flux Kustomization:
+
+```yaml {filename="healthcheck.yaml"}
 apiVersion: kuberik.com/v1alpha1
 kind: HealthCheck
 metadata:
-  name: my-app-health
+  name: hello-world
+  namespace: hello-world
   labels:
-    app: my-app
+    app: hello-world  # the Rollout selects on this
   annotations:
-    healthcheck.kuberik.com/kustomization: "my-app"
+    healthcheck.kuberik.com/kustomization: "hello-world"
 spec:
   class: kustomization
 ```
 
-The annotation `healthcheck.kuberik.com/kustomization` specifies which Flux Kustomization to monitor.
+The annotation takes the Kustomization's name, or `<namespace>/<name>` for one in another namespace.
 
-## Connect to Rollout
+## Select health checks from the Rollout
 
-Configure your Rollout to select health checks by label.
+Set `healthCheckSelector` on the [`Rollout`](/docs/concepts/rollouts/), and a bake time the checks must hold:
 
 ```yaml {filename="rollout.yaml"}
 apiVersion: kuberik.com/v1alpha1
 kind: Rollout
 metadata:
-  name: my-app
+  name: hello-world
+  namespace: hello-world
 spec:
   releaseSourceRef:
-    name: my-app
-  bakeTime: 5m
+    name: hello-world
+  bakeTime: 10m  # healthy this long after bake starts
+  deployTimeout: 15m  # fail if bake has not started by then
   healthCheckSelector:
     selector:
       matchLabels:
-        app: my-app
+        app: hello-world
 ```
 
-Kuberik continuously evaluates all matching health checks. Bake time starts once all checks become healthy.
+Each deploy, and each retry, then goes through these rules:
 
-![Health checks on the rollout page: a Flux check and two Datadog monitors, each with its state, next to the pipeline they gate](/screenshots/dashboard/overview-prod.png)
+| Moment | What happens |
+|---|---|
+| Deploy starts | Every selected HealthCheck in the Rollout's namespace is reset to `Pending`, and the deploy's `bakeStatus` is `Deploying` |
+| Every check is `Healthy` again | Bake starts: `bakeStatus` is `InProgress` |
+| Any check reports an error after the deploy started | The deploy fails (`bakeStatus` `Failed`, `Ready` reason `BakeTimeFailed`), before or during bake |
+| `deployTimeout` passes before bake starts | The deploy fails |
+| `bakeTime` passes with no error | The deploy succeeds. Without `bakeTime`, it succeeds as soon as bake starts |
 
-{{% details title="Advanced: Cross-Namespace Selection" %}}
+A Rollout without `healthCheckSelector` has no checks: bake starts at once.
 
-Select health checks from other namespaces using `namespaceSelector`.
+## Hold deploys on an unhealthy check
 
-```yaml {filename="rollout-cross-ns.yaml"}
+You do not configure this: while any selected HealthCheck is `Unhealthy`, the Rollout starts no new automatic deploy and reports `DeploymentBlocked=True` with reason `UnhealthyHealthChecks`. `Pending` does not block. The very first deploy and manual deploys (a pin in `spec.wantedVersion` or `rollout.kuberik.com/force-deploy`) are not held.
+
+A manual deploy made while a check is `Unhealthy`, and any deploy that follows one that did not succeed, sets `BakeFailureDisabled=True` (reasons `DeployedWithUnhealthyHealthChecks` and `PreviousBakeFailed`). For that deploy, health-check errors and `deployTimeout` do not fail it, so a fix can land during an incident.
+
+```bash {filename="Terminal"}
+kubectl -n hello-world get rollout hello-world -o jsonpath='{range .status.conditions[*]}{.type}={.status} ({.reason}){"\n"}{end}'
+```
+
+## Choose how a Kustomization is checked
+
+With `spec.wait: false` (the default) on the Kustomization, the check reads the Kustomization and every resource it manages with kstatus. With `spec.wait: true`, it reads only the Kustomization's `Ready` condition and assumes kustomize-controller runs with the `CancelHealthCheckOnNewRevision` feature gate (Flux 2.7 or later); without it, a failing revision holds the next one until `spec.timeout`.
+
+```yaml {filename="kustomization.yaml"}
+apiVersion: kustomize.toolkit.fluxcd.io/v1
+kind: Kustomization
+metadata:
+  name: hello-world
+  namespace: hello-world
+spec:
+  interval: 10m
+  prune: true
+  wait: true  # health from Ready only; needs Flux 2.7+ with the feature gate
+  timeout: 5m
+  sourceRef:
+    kind: OCIRepository
+    name: hello-world
+```
+
+[Flux](/docs/integrations/fluxcd/#report-kustomization-health) lists which `Ready` reasons count as unhealthy.
+
+## Select health checks in other namespaces
+
+Add `namespaceSelector` to read HealthChecks from every namespace whose labels match, for example checks a platform team keeps in a shared namespace. It replaces the Rollout's own namespace, so label that namespace too if its checks should still count.
+
+```yaml {filename="rollout-cross-namespace.yaml"}
 apiVersion: kuberik.com/v1alpha1
 kind: Rollout
 metadata:
-  name: my-app
+  name: hello-world
+  namespace: hello-world
 spec:
+  releaseSourceRef:
+    name: hello-world
   healthCheckSelector:
     selector:
       matchLabels:
-        app: my-app
+        app: hello-world
     namespaceSelector:
       matchLabels:
-        monitoring: enabled
+        kuberik.com/health-checks: "true"
 ```
 
-{{< callout type="info" >}}
-**Use Cases:**
-- Shared monitoring infrastructure
-- Multi-tenant clusters with namespace isolation
-- Health checks managed by platform teams
-{{< /callout >}}
+## Check the result
 
-{{% /details %}}
+List the checks and the latest deploy's bake state:
 
-## Datadog Monitors
+```bash {filename="Terminal"}
+kubectl -n hello-world get healthchecks -o custom-columns=NAME:.metadata.name,STATUS:.status.status,MESSAGE:.status.message
+kubectl -n hello-world get rollout hello-world -o jsonpath='{.status.history[0].bakeStatus}: {.status.history[0].bakeStatusMessage}{"\n"}'
+```
 
-See the [Datadog Integration](/docs/integrations/datadog/) guide for using Datadog monitors as health checks.
+```text {filename="Output"}
+NAME          STATUS    MESSAGE
+hello-world   Healthy   Kustomization and all managed resources are healthy
+InProgress: Bake started, monitoring for errors.
+```
+
+A failed deploy lists the checks that failed it in `status.history[0].failedHealthChecks`. The dashboard shows the same checks on the rollout page:
+
+![Health checks on the rollout page: a Flux check and two Datadog monitors, each with its state, next to the pipeline they gate](/screenshots/dashboard/overview-prod.png)
+
+## Troubleshoot
+
+| Symptom | Cause | Fix |
+|---|---|---|
+| Bake never starts | A selected check stays `Pending` or `Unhealthy` | Read its `status.message`; set `deployTimeout` so the deploy fails instead of waiting |
+| New releases are not deployed | `DeploymentBlocked=True`, reason `UnhealthyHealthChecks` | Fix the failing check, or deploy a version by hand |
+| A check never changes | No controller handles its `spec.class` | Use `kustomization`, or install datadog-controller for the `datadog` classes |
+
+## Next steps
+
+{{< cards >}}
+  {{< card title="Flux" link="/docs/integrations/fluxcd/" icon="switch-horizontal" subtitle="Kustomization health in both modes" >}}
+  {{< card title="Datadog" link="/docs/integrations/datadog/" icon="chart-bar" subtitle="Gate on monitors and incidents" >}}
+  {{< card title="Roll Out with a Canary" link="/docs/releases/canary/" icon="adjustments" subtitle="Bake each traffic step" >}}
+{{< /cards >}}

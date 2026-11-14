@@ -1,29 +1,157 @@
 ---
 title: "Flux"
-description: "Let Kuberik drive Flux Kustomizations and OCIRepositories and read their health."
+description: "Let Kuberik choose the version Flux applies, through a Kustomization substitute or an OCIRepository tag, and gate deploys on Kustomization health."
 type_: integration
 weight: 10
 ---
 
-Kuberik uses FluxCD for GitOps deployments. Flux applies your manifests; Kuberik decides which version it applies, and discovers new versions itself with a [`ReleaseSource`](#release-source-setup).
+Flux applies your manifests and Kuberik decides which version it applies. A [`Rollout`](/docs/concepts/rollouts/) writes the chosen version into a Flux `Kustomization` or `OCIRepository`, and reads the Kustomization's health back to decide whether the deploy succeeded.
 
-## Overview
+## What you need
 
-FluxCD provides the delivery half of Kuberik:
+| Requirement | Why |
+|---|---|
+| Flux 2.6 or later | Kuberik writes `kustomize.toolkit.fluxcd.io/v1` Kustomizations and `source.toolkit.fluxcd.io/v1` OCIRepositories |
+| Flux 2.7 or later, with the kustomize-controller feature gate `CancelHealthCheckOnNewRevision` | Only for Kustomizations with `wait: true` (see [Report Kustomization health](#report-kustomization-health)) |
+| A `ReleaseSource` in the Rollout's namespace | Lists your releases. Flux image automation is not used |
+| The Kustomization or OCIRepository in the Rollout's namespace | The Rollout looks for annotated Flux objects only in its own namespace |
 
-| Component | Purpose |
-|-----------|---------|
-| **GitRepository** | Holds the manifests in image tag mode |
-| **Kustomization** | Applies versioned manifests to the cluster |
-| **OCIRepository** | Pulls rendered manifests published as an OCI artifact |
+Kuberik drives one of two Flux objects. Annotate a Kustomization and the Rollout sets a `postBuild.substitute` variable; annotate an OCIRepository and the Rollout sets its tag. [Propagation Modes](/docs/concepts/propagation/) compares the two.
 
-Kuberik drives one of two of these. Annotate a `Kustomization` and Kuberik substitutes the version into it; annotate an `OCIRepository` and Kuberik moves its tag. See [Propagation Modes](/docs/concepts/propagation/).
+## Discover releases
 
-{{< callout type="warning" >}}
-**Everything in the Rollout's Namespace**
+A `ReleaseSource` lists the tags of an OCI repository, orders them by a policy, and keeps the catalogue the Rollout reads through `spec.releaseSourceRef`:
 
-Kuberik resolves the `ReleaseSource` and lists `Kustomization` and `OCIRepository` resources in the Rollout's own namespace. Resources in `flux-system` are not seen by a Rollout in `my-app`.
-{{< /callout >}}
+```yaml {filename="releasesource.yaml"}
+apiVersion: kuberik.com/v1alpha1
+kind: ReleaseSource
+metadata:
+  name: hello-world
+  namespace: hello-world
+spec:
+  oci:
+    image: ghcr.io/acme/hello-world
+    policy:
+      semver:
+        range: ">=1.0.0"
+```
+
+If you already run a Flux `ImagePolicy`, set `spec.oci.imagePolicyRef.name` instead of `image` and `policy`; the ReleaseSource reads the image, filter and policy from it. [Publish Releases from CI](/docs/releases/publish/) covers tag schemes and private registries.
+
+## Set a Kustomization substitute
+
+Annotate the Kustomization with `rollout.kuberik.com/substitute.<variable>.from: <rollout name>`. The Rollout writes the release tag into `spec.postBuild.substitute.<variable>`:
+
+```yaml {filename="kustomization.yaml"}
+apiVersion: kustomize.toolkit.fluxcd.io/v1
+kind: Kustomization
+metadata:
+  name: hello-world
+  namespace: hello-world
+  annotations:
+    rollout.kuberik.com/substitute.APP_VERSION.from: "hello-world"
+spec:
+  interval: 10m
+  prune: true
+  path: ./deploy/production
+  sourceRef:
+    kind: GitRepository
+    name: hello-world
+  postBuild:
+    substitute:
+      APP_VERSION: "1.0.0"  # overwritten by the Rollout
+```
+
+Use the variable in the manifests under `path`:
+
+```yaml {filename="deploy/production/deployment.yaml"}
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: hello-world
+  namespace: hello-world
+spec:
+  replicas: 2
+  selector:
+    matchLabels:
+      app: hello-world
+  template:
+    metadata:
+      labels:
+        app: hello-world
+    spec:
+      containers:
+        - name: hello-world
+          image: ghcr.io/acme/hello-world:${APP_VERSION}
+```
+
+One Kustomization can carry several of these annotations, one per variable, each naming its own Rollout. A frontend and a backend Rollout can then deploy into the same Kustomization independently.
+
+## Set an OCIRepository tag
+
+Annotate an OCIRepository with `rollout.kuberik.com/rollout: <rollout name>`. The Rollout owns `spec.ref.tag` and sets it to the release tag. Give each environment its own artifact path and OCIRepository, so a rollback in production moves one tag and leaves every other environment alone:
+
+```yaml {filename="ocirepository.yaml"}
+apiVersion: source.toolkit.fluxcd.io/v1
+kind: OCIRepository
+metadata:
+  name: hello-world
+  namespace: hello-world
+  annotations:
+    rollout.kuberik.com/rollout: "hello-world"
+spec:
+  interval: 1m
+  url: oci://ghcr.io/acme/hello-world/production/manifests
+```
+
+Point a Kustomization at it. The artifact holds rendered manifests, so there is no substitution:
+
+```yaml {filename="kustomization-oci.yaml"}
+apiVersion: kustomize.toolkit.fluxcd.io/v1
+kind: Kustomization
+metadata:
+  name: hello-world
+  namespace: hello-world
+spec:
+  interval: 10m
+  prune: true
+  sourceRef:
+    kind: OCIRepository
+    name: hello-world
+```
+
+`OCIRepository` can verify a Cosign signature with `spec.verify`, so an unsigned artifact never reaches the cluster.
+
+## Report Kustomization health
+
+A `HealthCheck` with class `kustomization` reports the health of one Kustomization. The Rollout selects it with `healthCheckSelector` and fails the deploy if it turns `Unhealthy`:
+
+```yaml {filename="healthcheck.yaml"}
+apiVersion: kuberik.com/v1alpha1
+kind: HealthCheck
+metadata:
+  name: hello-world
+  namespace: hello-world
+  labels:
+    app: hello-world  # match this in the Rollout's healthCheckSelector
+  annotations:
+    healthcheck.kuberik.com/kustomization: "hello-world"  # or "<namespace>/<name>"
+spec:
+  class: kustomization
+```
+
+How the check reads health depends on the Kustomization's `spec.wait`:
+
+| `spec.wait` | What is checked | `Unhealthy` when |
+|---|---|---|
+| `false` (default) | The Kustomization, then every resource in its inventory, with [kstatus](https://github.com/kubernetes-sigs/cli-utils/blob/master/pkg/kstatus/README.md) | The Kustomization or any managed resource has failed |
+| `true` | Only the Kustomization's `Ready` condition | `Ready` is `False` for a reason other than `Progressing`, `ProgressingWithRetry`, `HealthCheckCanceled`, `DependencyNotReady` or `ArtifactFailed` |
+
+With `wait: true`, Kuberik trusts kustomize-controller's own health checks and assumes it runs with `CancelHealthCheckOnNewRevision` (Flux 2.7 or later). Without that feature gate, a failing revision blocks the next one until the Kustomization's `spec.timeout`, so a fix cannot roll out quickly.
+
+The check polls every 30 seconds and on every Kustomization change. Set `healthcheck.kuberik.com/requeue-interval` (for example `"60s"`, minimum `5s`) to change the poll. [Verify with Health Checks](/docs/gates/health-checks/) explains how the Rollout uses the result.
+
+## How it works
 
 ```mermaid
 flowchart LR
@@ -61,271 +189,24 @@ flowchart LR
     class FluxCD,Kuberik boundary
 ```
 
----
-
-
-
-## Release Source Setup
-
-New versions are discovered by a Kuberik `ReleaseSource`, not by Flux image automation. It lists the tags of an OCI repository, orders them by a policy, and keeps the result as the catalogue your Rollout reads. You do not need `ImageRepository` or `ImagePolicy` resources for this.
-
-### Create a ReleaseSource
-
-Point it at your application image, or at the manifest artifact your CI publishes for this environment, and pick how tags are ordered:
-
-{{< tabs >}}
-  {{< tab name="SemVer" >}}
-  **Semantic Versioning (Recommended)**
-
-  ```yaml {filename="releasesource-semver.yaml"}
-  apiVersion: kuberik.com/v1alpha1
-  kind: ReleaseSource
-  metadata:
-    name: my-app
-    namespace: my-app
-  spec:
-    oci:
-      image: ghcr.io/my-org/my-app
-      # For private registries
-      secretRef:
-        name: registry-credentials
-      policy:
-        semver:
-          range: ">=1.0.0"
-  ```
-  {{< /tab >}}
-
-  {{< tab name="Numerical" >}}
-  **Numerical / Alphabetical**
-
-  Useful for timestamps or build numbers. `filterTags` keeps matching tags and extracts the part to order by:
-
-  ```yaml {filename="releasesource-numerical.yaml"}
-  apiVersion: kuberik.com/v1alpha1
-  kind: ReleaseSource
-  metadata:
-    name: my-app
-    namespace: my-app
-  spec:
-    oci:
-      image: ghcr.io/my-org/my-app
-      filterTags:
-        pattern: '^main-[a-f0-9]+-(?P<ts>[0-9]+)'
-        extract: '$ts'
-      policy:
-        numerical:
-          order: asc
-  ```
-  {{< /tab >}}
-{{< /tabs >}}
-
-Then reference it from the Rollout with `spec.releaseSourceRef`.
-
-{{< callout type="info" >}}
-**Already have an ImagePolicy?**
-
-A ReleaseSource can reuse it: set `spec.oci.imagePolicyRef.name` instead of `image` and `policy`. `spec.releasesImagePolicy` on the Rollout is deprecated and ignored.
-{{< /callout >}}
-
-### Verify Discovery
-
-Check that the source found your tags:
-
-```bash
-kubectl get releasesource -n my-app my-app
-```
-
-The source reports `Ready` once its catalogue is populated, and shows the newest release it found.
-
----
-
-## Kustomization Integration
-
-### Version Substitution
-
-Kuberik updates Kustomizations by modifying `postBuild.substitute` values:
-
-```yaml {filename="kustomization.yaml"}
-apiVersion: kustomize.toolkit.fluxcd.io/v1
-kind: Kustomization
-metadata:
-  name: my-app
-  namespace: my-app
-  annotations:
-    # Kuberik reads the version from this Rollout
-    rollout.kuberik.com/substitute.APP_VERSION.from: "my-app"
-spec:
-  interval: 10m
-  path: ./k8s/overlays/production
-  sourceRef:
-    kind: GitRepository
-    name: my-app
-  postBuild:
-    substitute:
-      APP_VERSION: "1.0.0"  # Default, overwritten by Kuberik
-```
-
-{{< callout type="info" >}}
-**Multiple Rollouts per Kustomization**
-
-A single Kustomization can be driven by multiple Rollouts. Declare one annotation per substitution variable, each pointing to its own Rollout — for example, a frontend and backend version managed by independent rollouts targeting the same Kustomization.
-{{< /callout >}}
-
-{{< callout type="info" >}}
-**Repository Structure**
-
-Your Git repository should be organized with Kustomize overlays for different environments:
-{{< /callout >}}
-
-{{< filetree/container >}}
-  {{< filetree/folder name="k8s" >}}
-    {{< filetree/folder name="base" >}}
-      {{< filetree/file name="deployment.yaml" >}}
-      {{< filetree/file name="service.yaml" >}}
-      {{< filetree/file name="kustomization.yaml" >}}
-    {{< /filetree/folder >}}
-    {{< filetree/folder name="overlays" >}}
-      {{< filetree/folder name="staging" >}}
-        {{< filetree/file name="kustomization.yaml" >}}
-        {{< filetree/file name="patches.yaml" >}}
-      {{< /filetree/folder >}}
-      {{< filetree/folder name="production" >}}
-        {{< filetree/file name="kustomization.yaml" >}}
-        {{< filetree/file name="patches.yaml" >}}
-      {{< /filetree/folder >}}
-    {{< /filetree/folder >}}
-  {{< /filetree/folder >}}
-{{< /filetree/container >}}
-
-Your base deployment uses the substitution variable:
-
-```yaml {filename="k8s/base/deployment.yaml"}
-apiVersion: apps/v1
-kind: Deployment
-metadata:
-  name: my-app
-spec:
-  template:
-    spec:
-      containers:
-        - name: app
-          image: ghcr.io/my-org/my-app:${APP_VERSION}
-```
-
----
-
-## OCIRepository Integration
-
-### Tag Management
-
-Kuberik owns `spec.ref.tag` on the annotated OCIRepository. Each environment gets its own artifact path and its own OCIRepository, so a rollback in production moves one tag and leaves every other environment alone.
-
-```yaml {filename="ocirepository.yaml"}
-apiVersion: source.toolkit.fluxcd.io/v1
-kind: OCIRepository
-metadata:
-  name: my-app
-  namespace: my-app
-  annotations:
-    # Kuberik reads the version from this Rollout
-    rollout.kuberik.com/rollout: "my-app"
-spec:
-  interval: 60s
-  url: oci://ghcr.io/my-org/my-app/production/manifests
-  # For private registries
-  secretRef:
-    name: registry-credentials
-```
-
-Point a Kustomization at it and reconcile the artifact directly. No `path`, no substitution, no build tooling in the cluster:
-
-```yaml {filename="kustomization-oci.yaml"}
-apiVersion: kustomize.toolkit.fluxcd.io/v1
-kind: Kustomization
-metadata:
-  name: my-app
-  namespace: my-app
-spec:
-  interval: 10m
-  prune: true
-  sourceRef:
-    kind: OCIRepository
-    name: my-app
-```
-
-{{< callout type="info" >}}
-**Cosign Verification**
-
-`OCIRepository` supports `spec.verify` natively. The signature is checked before reconciliation, so an unsigned or tampered artifact is rejected before it reaches the API server.
-{{< /callout >}}
-
----
-
-## Health Check Integration
-
-Use Kustomization health status as a deployment gate:
-
-```yaml
-apiVersion: kuberik.com/v1alpha1
-kind: HealthCheck
-metadata:
-  name: my-app-health
-  annotations:
-    healthcheck.kuberik.com/kustomization: "my-app"
-spec:
-  class: "kustomization"
-```
-
-This checks if the Kustomization's `Ready` condition is true.
+The ReleaseSource lists releases from the registry. When the Rollout picks a release, it writes the tag with server-side apply under the field manager `rollout-controller`: into the substitute variable, or into the OCIRepository's `spec.ref.tag`. Flux then reconciles as usual.
 
 ![The Kustomization health check beside the Flux resources the rollout manages, each with its current state](/screenshots/dashboard/overview-prod.png)
 
----
+## Troubleshoot
 
-{{% details title="Troubleshooting" %}}
+| Symptom | Cause | Fix |
+|---|---|---|
+| The Kustomization substitute never changes | The annotation value is not the Rollout's name, or the Kustomization is in another namespace | Set `rollout.kuberik.com/substitute.<variable>.from` to the exact Rollout name, in the Rollout's namespace |
+| The Rollout has no releases | The ReleaseSource cannot reach the registry (`SourceReachable` is `False`) | Run `kubectl -n hello-world describe releasesource hello-world` and check the image path and `spec.oci.secretRef` |
+| HealthCheck `Unhealthy`: `Kustomization not found` | Wrong name in `healthcheck.kuberik.com/kustomization` | Use the Kustomization's name, or `<namespace>/<name>` if it lives in another namespace |
+| HealthCheck stays `Pending`: `Kustomization has no managed resources` | The Kustomization has not applied anything yet, or its inventory is empty | Check the Kustomization with `flux get kustomizations -n hello-world` |
+| With `wait: true`, a fixed release waits for the failed one to time out | kustomize-controller runs without `CancelHealthCheckOnNewRevision` | Enable the feature gate (Flux 2.7 or later), or set `wait: false` |
 
-### ReleaseSource not finding versions
-
-1. Check the ReleaseSource status and conditions:
-   ```bash
-   kubectl describe releasesource -n my-app my-app
-   ```
-
-2. Verify registry authentication:
-   ```bash
-   kubectl get secret -n my-app registry-credentials
-   ```
-
-### Kustomization not updating
-
-1. Check Kuberik annotation is present
-2. Verify Rollout name matches annotation value
-3. Check Rollout status:
-   ```bash
-   kubectl describe rollout my-app
-   ```
-
-### Common Issues
-
-{{< callout type="warning" >}}
-**ReleaseSource not ready, `SourceReachable` false**
-
-Usually indicates authentication issues or an invalid image path. Check the image name matches your container registry exactly.
-{{< /callout >}}
-
-{{< callout type="info" >}}
-**Kustomization stuck on old version**
-
-Ensure the annotation `rollout.kuberik.com/substitute.VAR_NAME.from` exactly matches your Rollout name.
-{{< /callout >}}
-
-{{% /details %}}
-
----
-
-## Next Steps
+## Next steps
 
 {{< cards >}}
-  {{< card title="Verifying Deployments" link="/docs/gates/health-checks/" icon="shield-check" subtitle="Active health verification" >}}
-  {{< card title="Manual Approvals" link="/docs/gates/approvals/" icon="key" subtitle="Human sign-off with gates" >}}
+  {{< card title="Verify with Health Checks" link="/docs/gates/health-checks/" icon="shield-check" subtitle="How bake and health checks decide a deploy" >}}
+  {{< card title="Propagation Modes" link="/docs/concepts/propagation/" icon="switch-horizontal" subtitle="Kustomization substitute or OCIRepository tag" >}}
+  {{< card title="Require a Manual Approval" link="/docs/gates/approvals/" icon="key" subtitle="Hold a deploy until a person approves it" >}}
 {{< /cards >}}
