@@ -184,3 +184,14 @@ html.dark .vg .kb .band-teal.band-bake{fill:oklch(.43 .07 184);opacity:1}
 /* v6h (b14 fix 3): with the prod card's edge light gone, Gates' row wash alone marks the landing. In dark the teal tint is
    darker than the fig card (the wash measured invisible), so the wash takes an opaque teal a step above the card. Light as v6g. */
 html.dark .vg .kb .band-teal.wash-land{fill:oklch(.47 .07 184);opacity:1}
+
+/* ---- production additions (not in v6h) ---- */
+/* the host never draws wider than 1.15x its design box (--vg-w, the scene's viewBox width, set on the host by the poster
+   partial): the canvas centres it. On the phone the composition is 326 wide and the canvas gives it exactly that. */
+.vg{max-width:calc(var(--vg-w,780) * 1.15px);margin-inline:auto}
+@media(max-width:640px){.vg{max-width:none}}
+/* the rest posters (layouts/_partials/landing-vignettes, generated): both compositions inside the host, switched by the
+   engine's own query; the live build empties the host and draws the scene in their place */
+.vg .vg-p{position:absolute;inset:0}
+.vg .vg-p-m{display:none}
+@media(max-width:640px){.vg .vg-p-d{display:none}.vg .vg-p-m{display:block}}
