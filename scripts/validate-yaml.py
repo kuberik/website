@@ -37,6 +37,11 @@ def strictify(s):
             t = s.get("type")
             if t:
                 s["type"] = [t, "null"]
+        if isinstance(s.get("required"), list) and isinstance(s.get("properties"), dict):
+            # the API server applies defaults before validating
+            s["required"] = [r for r in s["required"] if not (isinstance(s["properties"].get(r), dict) and "default" in s["properties"][r])]
+            if not s["required"]:
+                del s["required"]
         if "properties" in s and "additionalProperties" not in s and not s.get("x-kubernetes-preserve-unknown-fields"):
             s["additionalProperties"] = False
         return s
@@ -91,7 +96,12 @@ def main():
                     continue
                 key = (d.get("apiVersion"), d["kind"])
                 if key not in crds:
-                    skipped += 1
+                    group = str(key[0] or "").split("/")[0]
+                    if group.endswith("kuberik.com") or group == "datadoghq.com":
+                        print(f"{md}:{line}: {key[1]} {d.get('metadata', {}).get('name', '')}: unknown apiVersion/kind {key[0]} {key[1]}")
+                        errors += 1
+                    else:
+                        skipped += 1
                     continue
                 sch, repo, sha = crds[key]
                 checked += 1
