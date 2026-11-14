@@ -45,6 +45,8 @@ theme = 'hextra'
     [markup.goldmark.renderer]
       unsafe = true
   [markup.highlight]
+    # classes, not inline styles: docs.css colours code with the landing's code-window tokens
+    noClasses = false
     style = 'github-dark'
 
 [menu]

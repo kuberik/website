@@ -1,0 +1,37 @@
+{{- /* Code window (docs visual redesign, DIRECTION.md 3): the landing's code window (spec.css .cwin / install.css .term),
+     dark in both themes, with a 47px head that always shows what the block is: the filename, or the language
+     ("Terminal" for shell). The copy button container follows the code div (hextra code-copy.js reads
+     button.parentElement.previousElementSibling) and is placed in the head by CSS. */ -}}
+{{- $filename := .filename | default "" -}}
+{{- $base_url := .base_url | default "" -}}
+{{- $lang := .lang | default "" -}}
+{{- $content := .content -}}
+{{- $options := .options | default (dict) -}}
+{{- $names := dict "bash" "Terminal" "sh" "Terminal" "shell" "Terminal" "console" "Terminal" "zsh" "Terminal" "yaml" "YAML" "yml" "YAML" "json" "JSON" "promql" "PromQL" "go" "Go" "text" "Text" "toml" "TOML" "hcl" "HCL" "dockerfile" "Dockerfile" "" "Text" -}}
+{{- $isTerm := in (slice "bash" "sh" "shell" "console" "zsh") $lang -}}
+{{- $langLabel := index $names $lang | default (upper $lang) -}}
+<div class="kd-code-head not-prose" dir="auto">
+  <span class="kd-code-name">
+    {{- if $isTerm -}}
+      <svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="m3.5 4.5 3 3-3 3M8.5 11.5h4"/></svg>
+    {{- else -}}
+      <svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.4" stroke-linejoin="round" aria-hidden="true"><path d="M4 1.75h5.25L12.5 5v9.25H4z"/><path d="M9 1.75V5.25h3.5"/></svg>
+    {{- end -}}
+    {{- if $filename -}}
+      {{- if $base_url -}}
+        {{- $file_url := urls.JoinPath (strings.TrimSuffix "/" $base_url) (strings.TrimPrefix "/" $filename) -}}
+        <a href="{{ $file_url }}" target="_blank" rel="noopener noreferrer">{{ $filename }}</a>
+      {{- else -}}
+        <span>{{ $filename }}</span>
+      {{- end -}}
+    {{- else -}}
+      <span>{{ $langLabel }}</span>
+    {{- end -}}
+  </span>
+  {{- if and $filename (not $isTerm) $lang }}<span class="kd-code-lang">{{ $langLabel }}</span>{{ end -}}
+</div>
+{{- if transform.CanHighlight $lang -}}
+  <div class="kd-code-body">{{- highlight $content $lang $options -}}</div>
+{{- else -}}
+  <div class="kd-code-body"><pre><code>{{ $content }}</code></pre></div>
+{{- end -}}
