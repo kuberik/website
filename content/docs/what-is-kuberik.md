@@ -1,59 +1,34 @@
 ---
-title: "What is Kuberik"
-weight: 3
+title: "What Is Kuberik"
+description: "What Kuberik does after your CI publishes a release, and what it leaves to you."
+type_: concept
+weight: -20
 ---
 
-Kuberik is a Kubernetes-native delivery orchestrator. It takes over **after** your CI publishes a new version — a container image or rendered manifests — and handles everything that happens next: safe rollout, verification, and promotion.
+Kuberik deploys the versions your CI publishes to Kubernetes: it picks up each new release, holds it until its gates allow it, deploys it through Flux and verifies it during bake time.
 
-## You Release, Kuberik Delivers
+## What Kuberik does with a release
 
-| | Owner | Example |
+A release is a tagged artifact in a registry: the application image, or the rendered manifests for one environment pushed as an OCI artifact. From the moment the tag exists, Kuberik takes it through five stages without further input. See [Propagation Modes](/docs/concepts/propagation/) for how the two kinds of artifact compare.
+
+| Stage | What happens | Resources |
 |---|---|---|
-| **When to release** | You (developer/CI) | Push a git tag, merge to main |
-| **How to deliver** | Kuberik | Rollout, verify health, promote across environments |
+| Detect | A `ReleaseSource` lists the new tag and adds it to its catalogue of releases. | `ReleaseSource` |
+| Gate | The `Rollout` makes the release a candidate and checks it against every gate: deployment windows, approvals, service dependencies. | `Rollout`, `RolloutGate` |
+| Deploy | Kuberik writes the tag into a Kustomization substitution, or moves the tag on an OCIRepository, and Flux applies it. | `Kustomization`, `OCIRepository` |
+| Verify | Health checks must report healthy, then stay healthy for the bake time. | `HealthCheck` |
+| Record | The deploy is recorded in the Rollout's history as `Succeeded` or `Failed`. | `Rollout` |
 
-Your CI pipeline publishes a tagged artifact: the application image itself, or the rendered manifests for an environment pushed as an OCI artifact. Kuberik detects the new tag and orchestrates the delivery — gating, deploying, verifying, and promoting — without any further input from you. See [Propagation Modes](/docs/concepts/propagation/) for how the two modes compare.
-
-Kuberik does not build images, decide when to release, or replace your GitOps tool. It works alongside FluxCD at the application delivery layer.
-
-## How It Works
-
-{{% steps %}}
-
-### Publish
-
-Your CI publishes a tagged image or manifest artifact to a container registry.
-
-### Detect
-
-A `ReleaseSource` detects the new tag and adds it to the catalogue of releases.
-
-### Gate
-
-Kuberik creates a release candidate and evaluates gates.
-
-### Deploy
-
-Kuberik writes the version into the Kustomization, or moves the OCIRepository tag to the new manifests.
-
-### Verify
-
-Health checks verify the deployment during bake time.
-
-### Complete
-
-The release is marked as succeeded or failed.
-
-{{% /steps %}}
+A failed bake stops automatic deploys of that Rollout. They resume when someone deploys a version by hand, pins one, or unblocks the Rollout.
 
 ![The dashboard home: what is deploying right now, what a rule is holding, and your merged changes with how far each one got](/screenshots/dashboard/home.png)
 
-For a detailed component breakdown, see [Architecture](/docs/concepts/architecture/).
+## What stays with you
 
-## Next Steps
+Your CI builds the artifact and decides when a release exists by pushing its tag. Flux stays your GitOps tool: it fetches sources and applies manifests, and Kuberik only changes which version Flux applies. Kuberik does not build images, run CI, or replace Flux.
 
-{{< cards >}}
-  {{< card title="Install Kuberik" link="/docs/installation/" icon="download" subtitle="Set up the controller" >}}
-  {{< card title="Getting Started" link="/docs/getting-started/" icon="academic-cap" subtitle="Deploy your first app" >}}
-  {{< card title="Publishing Releases" link="/docs/guides/publishing-releases/" icon="upload" subtitle="Set up your CI pipeline" >}}
-{{< /cards >}}
+## Related
+
+- [How Kuberik Works](/docs/concepts/architecture/): the controllers and the resources each one owns
+- [Deploy Your First App](/docs/getting-started/): a ReleaseSource, a Rollout and Flux, end to end
+- [Publish Releases from CI](/docs/releases/publish/): tag builds so Kuberik picks them up

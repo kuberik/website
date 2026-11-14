@@ -1,6 +1,10 @@
 ---
-title: "Service Dependencies"
-weight: 4
+title: "Wait for Service Dependencies"
+linkTitle: "Service Dependencies"
+description: "Hold a service until the service it needs has shipped a compatible version."
+type_: guide
+weight: 40
+aliases: ["/docs/guides/service-dependencies/"]
 ---
 
 Hold a service until the service it depends on has shipped the version it needs, in every environment, without hand-sequencing deploys. Requires rollout-controller v0.9.0 or newer.
@@ -39,13 +43,13 @@ apiVersion: kuberik.com/v1alpha1
 kind: RolloutDependency
 metadata:
   name: frontend-needs-api
-  namespace: shop-prod
+  namespace: production
 spec:
   rolloutRef:
     name: frontend            # the consumer being gated
   providerRef:
     name: api                 # the Rollout that provides the contract
-    # namespace: platform-prod  # defaults to this namespace
+    # namespace: platform  # defaults to this namespace
   contract: api               # matches com.kuberik.rollout.requires.api
                               # defaults to the provider Rollout name
 ```
@@ -61,18 +65,18 @@ Because the verdict is an allow list, a dependency holds back only the releases 
 ## Watch It
 
 ```bash {filename="inspect.sh"}
-kubectl -n shop-prod get rolloutdependency
+kubectl -n production get rolloutdependency
 # NAME                 ROLLOUT    PROVIDER   PROVIDED   SATISFIED
 # frontend-needs-api   frontend   api        1.64.0     False
 
-kubectl -n shop-prod get rolloutdependency frontend-needs-api \
+kubectl -n production get rolloutdependency frontend-needs-api \
   -o jsonpath='{.status.blockedReleases}'
 # [{"reason":"ConstraintNotSatisfied","requiredVersion":"^1.66.0","tag":"rel-66"}]
 ```
 
-The dashboard shows the same on the rollout's **Dependencies** tab: what the consumer waits on, the version it needs against the version running, and the contract across every environment. The home page and the Environments page name the provider on every held card.
+The dashboard shows the same on the rollout's **Gates** tab: what the consumer waits on, the version it needs against the version running, and the contract across every environment. The home page and the Environments page name the provider on every held card.
 
-![Dependencies of a rollout: what it waits on, the version it needs against the version running, and the same contract across every environment](/screenshots/dashboard/rollout-dependencies.png)
+![The rollout's Gates tab: the gate graph, what the rollout waits on, and the version it needs against the version running](/images/docs/rollout-dependencies.png)
 
 Once the provider bakes, the consumer follows a few seconds later, unprompted.
 

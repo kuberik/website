@@ -1,0 +1,18 @@
+{{- /* Section index cards (docs shell lane; STYLE.md s2 "index"). One card per child page or sub-section of the
+     section, in sidebar order, title = the child's linkTitle, subtitle = its `description` front matter, so index
+     pages need no hand-written card list. Icon: the child's `icon` front matter (a hextra icon name), else one per
+     page type (type_). Pages with sidebar.exclude are left out, as in the sidebar.
+     Rendered automatically under the content of every `type_: index` page (docs/page.html) unless the page already
+     carries a {{< cards >}} block; place it by hand with {{< section-cards >}}. Drawn with hextra's card partials, so
+     docs.css draws them in the landing feature-card shell like every other docs card. */ -}}
+{{- $p := . -}}
+{{- $icons := dict "concept" "light-bulb" "guide" "document-text" "tutorial" "academic-cap" "integration" "puzzle" "reference" "book-open" "index" "folder" -}}
+{{- $kids := where (union $p.RegularPages $p.Sections) "Params.sidebar.exclude" "!=" true -}}
+{{- with $kids -}}
+  {{- $inner := "" -}}
+  {{- range .ByWeight -}}
+    {{- $icon := .Params.icon | default (index $icons (.Params.type_ | default "guide")) | default "document-text" -}}
+    {{- $inner = printf "%s%s" $inner (partial "shortcodes/card" (dict "link" .RelPermalink "title" .LinkTitle "icon" $icon "subtitle" (.Description | default ""))) -}}
+  {{- end -}}
+  <div class="kd-section-cards">{{ partial "shortcodes/cards" (dict "cols" 2 "content" ($inner | safeHTML)) }}</div>
+{{- end -}}

@@ -121,6 +121,24 @@ html.dark .kd-wash::before{opacity:.5}
 .hextra-sidebar-container ul ul a.hextra-sidebar-active-item::before{content:'';position:absolute;left:-11px;top:6px;bottom:6px;width:2px;background:var(--mint)}
 .hextra-sidebar-collapsible-button svg{color:var(--ink-subtle)}
 @media(max-width:767px){.hextra-sidebar-container a{min-height:44px;padding:12px 12px;font-size:16px;line-height:20px}}
+/* sidebar groups (layouts/_partials/sidebar.html): uppercase group labels, always open; Stripe/Linear by-job grouping */
+.kd-tree{display:flex;flex-direction:column;gap:24px}
+.kd-group-label{margin:0 0 6px;padding:0 10px}
+.kd-group-label > :is(a,span){display:block;min-height:0!important;padding:4px 0!important;border-radius:0!important;background:none!important;font:600 12px/16px var(--sans)!important;letter-spacing:.06em;text-transform:uppercase;color:var(--ink-subtle)!important}
+.kd-group-label > a:hover,.kd-group-label > a.kd-active{color:var(--ink)!important}
+.kd-rows,.kd-sub{display:flex;flex-direction:column;gap:2px;margin:0;padding:0;list-style:none}
+.hextra-sidebar-container .kd-row{display:flex;align-items:center;color:var(--ink-muted);font-weight:400}
+.hextra-sidebar-container .kd-row.kd-active{background:var(--kd-wash);color:var(--mint-ink);font-weight:600}
+.kd-sub{position:relative;margin:2px 0 4px 14px;padding-left:10px}
+.kd-sub::before{content:'';position:absolute;left:0;top:4px;bottom:4px;width:1px;background:var(--line)}
+.kd-sub .kd-row.kd-active{position:relative}
+.kd-sub .kd-row.kd-active::before{content:'';position:absolute;left:-11px;top:6px;bottom:6px;width:2px;background:var(--mint)}
+.kd-group-site{display:none}
+@media(max-width:767px){
+  .kd-tree{gap:28px}
+  .kd-group-label > :is(a,span){padding:6px 0!important;font-size:13px!important;line-height:20px!important}
+  .kd-group-site{display:block;padding-top:20px;border-top:1px solid var(--line)}
+}
 
 /* right TOC */
 .hextra-toc > div{top:64px;padding:40px 0 32px;margin:0}
@@ -135,6 +153,7 @@ html.dark .kd-wash::before{opacity:.5}
 .hextra-toc a.hextra-toc-active::before{content:'';position:absolute;left:-1px;top:4px;bottom:4px;width:2px;background:var(--mint)}
 .hextra-toc > div > div{margin-top:24px;padding-top:16px;border-top:1px solid var(--line)!important;background:transparent!important;box-shadow:none!important}
 .hextra-toc > div > div a{padding-left:0!important;font-size:13px}
+.hextra-toc > div > div:first-child{display:none}  /* no headings (index pages): no stray rule under an empty TOC */
 
 /* ---------- article type ---------- */
 .kd-content{font:400 16px/28px var(--sans);color:var(--ink-muted)}
@@ -159,8 +178,8 @@ html.dark .kd-wash::before{opacity:.5}
 .kd-content blockquote{padding-left:16px;border-left:2px solid var(--line);color:var(--ink-muted);font-style:normal}
 
 /* links */
-.kd-content a:not(.hextra-card):not(.kd-eyebrow):not(.subheading-anchor):not(.kd-pager-card){color:var(--kd-link);text-decoration:underline;text-decoration-thickness:1px;text-underline-offset:3px;text-decoration-color:var(--kd-link-line);transition:text-decoration-color .15s}
-.kd-content a:not(.hextra-card):not(.kd-eyebrow):not(.subheading-anchor):not(.kd-pager-card):hover{text-decoration-color:currentColor}
+.kd-content a:not(.hextra-card):not(.kd-eyebrow):not(.subheading-anchor):not(.kd-pager-card):not(.kd-next-card){color:var(--kd-link);text-decoration:underline;text-decoration-thickness:1px;text-underline-offset:3px;text-decoration-color:var(--kd-link-line);transition:text-decoration-color .15s}
+.kd-content a:not(.hextra-card):not(.kd-eyebrow):not(.subheading-anchor):not(.kd-pager-card):not(.kd-next-card):hover{text-decoration-color:currentColor}
 
 /* inline code: the landing's title-body code chip */
 .kd-content :where(code):not(:where(.hextra-code-block code,pre code)){padding:1px 6px;border:1px solid var(--line);border-radius:6px;background:var(--page-alt);color:var(--ink);font:500 .84em/1 var(--mono);white-space:nowrap}
@@ -287,6 +306,30 @@ html.dark .kd-content table th{background:oklch(1 0 0/.03)}
 .kd-pager-label svg{width:14px;height:14px}
 .kd-pager-title{font:600 15px/22px var(--sans);color:var(--ink);letter-spacing:-.01em}
 @media(max-width:640px){.kd-pager{grid-template-columns:minmax(0,1fr)}.kd-pager-next{grid-column:1}}
+
+/* ---------- section index pages: no TOC, so the card grid takes the TOC's track too (no lone column at 1440+) ---------- */
+.kd-is-index .hextra-toc{display:none}
+.kd-is-index .kd-main{max-width:calc(var(--kd-read) + var(--kd-toc) + var(--kd-gap))}
+@media(min-width:1280px){.kd-is-index .kd-section-cards .hextra-cards{grid-template-columns:repeat(3,minmax(0,1fr))!important}}
+
+/* ---------- next steps / related: compact link cards (docs/page.html list transform, {{< next >}} shortcode).
+   The pager card's shell (radius 12, card border/fill, mint border on hover) with the title over a one-line outcome
+   and an arrow; hextra card blocks under the same headings are drawn the same way, so one role has one look. ---------- */
+.kd-content ul.kd-next{display:grid;grid-template-columns:repeat(auto-fill,minmax(240px,1fr));gap:12px;margin:20px 0 0;padding:0;list-style:none}
+.kd-content ul.kd-next > li{margin:0}
+.kd-next-card{position:relative;display:flex;flex-direction:column;gap:2px;height:100%;padding:12px 40px 14px 16px;border:1px solid var(--card-border);border-radius:12px;background:var(--card-fill);text-decoration:none!important;transition:border-color .15s}
+.kd-next-card::after{content:'';position:absolute;right:16px;top:16px;width:14px;height:14px;background:var(--ink-subtle);transition:transform .15s,background-color .15s;-webkit-mask:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 16 16'%3E%3Cpath d='M3 8h10M9 4l4 4-4 4' fill='none' stroke='black' stroke-width='1.5' stroke-linecap='round' stroke-linejoin='round'/%3E%3C/svg%3E") center/14px no-repeat;mask:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 16 16'%3E%3Cpath d='M3 8h10M9 4l4 4-4 4' fill='none' stroke='black' stroke-width='1.5' stroke-linecap='round' stroke-linejoin='round'/%3E%3C/svg%3E") center/14px no-repeat}
+.kd-next-card:hover{border-color:color-mix(in oklab,var(--mint) 55%,var(--line))}
+.kd-next-card:hover::after{background:var(--mint-ink);transform:translateX(2px)}
+.kd-next-title{font:600 15px/22px var(--sans);letter-spacing:-.01em;color:var(--ink)}
+.kd-next-title code{font-size:.84em}
+.kd-next-desc{font:400 14px/20px var(--sans);color:var(--ink-muted)}
+.kd-next-desc:empty{display:none}
+.kd-next-desc::first-letter{text-transform:uppercase}
+.kd-content h2:has(> span[id^="next-steps"],> span[id^="related"]) + .hextra-cards{grid-template-columns:repeat(auto-fill,minmax(240px,1fr))!important;gap:12px!important;margin-top:20px}
+.kd-content h2:has(> span[id^="next-steps"],> span[id^="related"]) + .hextra-cards a.hextra-card{padding:12px 16px 14px;box-shadow:none!important}
+.kd-content h2:has(> span[id^="next-steps"],> span[id^="related"]) + .hextra-cards .hextra-card-icon svg{width:28px;height:28px;padding:6px}
+.kd-content h2:has(> span[id^="next-steps"],> span[id^="related"]) + .hextra-cards .hextra-card-subtitle{padding-left:40px!important;padding-top:2px!important}
 
 /* ---------- phones ---------- */
 @media(max-width:640px){

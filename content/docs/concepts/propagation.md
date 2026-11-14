@@ -1,6 +1,8 @@
 ---
 title: "Propagation Modes"
-weight: 3
+description: "Move an image tag or rendered manifests through your environments."
+type_: concept
+weight: 40
 ---
 
 A Rollout decides **which version** is allowed to run in an environment. What that version points at is your choice: the **image tag** of your application, or the **rendered manifests** for that environment. Kuberik supports both, and the difference is one annotation.
@@ -13,7 +15,7 @@ A Rollout decides **which version** is allowed to run in an environment. What th
 | Flux source | `GitRepository` | `OCIRepository` |
 | A release changes | One variable | Everything in the artifact |
 
-Everything above this layer is identical. Gates, health checks, bake time, rollback, and cross-environment promotion behave the same way regardless of which mode you pick.
+Gates, health checks, bake time and cross-environment promotion work the same way in both modes.
 
 ## Image Tag
 
@@ -39,7 +41,7 @@ spec:
       APP_VERSION: "1.0.0"  # Default, overwritten by Kuberik
 ```
 
-A rollout in this mode changes exactly one thing: the image tag. Config changes reach the cluster through a separate path, whenever the Kustomization next reconciles git. That makes rollouts narrow and fast to reason about, and it means a rollback restores the image, not the configuration that shipped with it.
+A rollout in this mode changes exactly one thing: the image tag. Config changes reach the cluster through a separate path, whenever the Kustomization next reconciles git. That keeps each rollout narrow, and it means deploying an older build by hand restores the image, not the configuration that shipped with it.
 
 Reach for this when your deployments are a single service whose changes are almost always "new build of the same code", and when you want the smallest possible setup.
 
@@ -81,9 +83,9 @@ spec:
     name: my-app
 ```
 
-A release in this mode is a tag bump on one `OCIRepository`. A promotion is the same tag bump on the next environment's `OCIRepository`. A rollback in production moves that one tag back, and staging is not dragged along with it. Because the artifact carries the whole desired state, a config change is a release: it goes through the same gates, the same bake time, and the same automatic rollback as a code change.
+A release in this mode is a tag bump on one `OCIRepository`. A promotion is the same tag bump on the next environment's `OCIRepository`. Deploying an older build by hand in production moves that one tag back and leaves staging where it is. Because the artifact carries the whole desired state, a config change is a release: it goes through the same gates, health checks and bake time as a code change, and a failed bake holds further deploys the same way.
 
-This does not replace committing rendered manifests to git. Render once, ship twice: the commit is what humans review in a pull request, the artifact is what the cluster pulls. Same bytes, two destinations.
+This does not replace committing rendered manifests to git. You can do both from the same render: people review the commit in a pull request, and the cluster pulls the artifact built from it.
 
 Reach for this when config changes are as risky as code changes, when you want promotion to move a byte-identical artifact between environments, or when the cluster should not need source access or build tooling to produce its own desired state.
 
@@ -99,11 +101,11 @@ The two modes are not exclusive. A common setup gives one service two Rollouts: 
 
 {{< fig id="propagation" caption="Two Rollouts on one service: one moves the manifests tag, the other sets the app version." >}}
 
-The manifests Rollout gates changes to the deployment shape. The app Rollout gates changes to the running code. Each gets its own schedule, its own approvals, and its own rollback behavior, which lets you auto-deploy code all day while holding infrastructure changes for a maintenance window.
+The manifests Rollout gates changes to the workload's configuration, and the app Rollout gates new builds of the code. Each has its own schedule, approvals and health checks, so you can deploy code automatically all day and hold configuration changes for a maintenance window.
 
 ## Related
 
 - [Getting Started](/docs/getting-started/) sets up either mode step by step
 - [FluxCD Integration](/docs/integrations/fluxcd/) covers the Flux resources in detail
-- [Publishing Releases](/docs/guides/publishing-releases/) shows the CI side
-- [Annotations Reference](/docs/reference/annotations/) lists every annotation
+- [Publishing Releases](/docs/releases/publish/) shows the CI side
+- [Annotations](/docs/reference/annotations/) lists every annotation

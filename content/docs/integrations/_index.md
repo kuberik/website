@@ -1,14 +1,10 @@
 ---
 title: "Integrations"
-weight: 5
+description: "Connect Kuberik to Flux, GitHub and Datadog."
+type_: index
+weight: 60
 sidebar:
   open: true
 ---
 
-Kuberik integrates with the tools you already use.
-
-{{< cards >}}
-  {{< card title="FluxCD" link="fluxcd/" icon="switch-horizontal" subtitle="GitOps deployments" >}}
-  {{< card title="GitHub" link="github/" icon="github" subtitle="Deployment coordination" >}}
-  {{< card title="Datadog" link="datadog/" icon="chart-bar" subtitle="Metrics-based health checks" >}}
-{{< /cards >}}
+Connect Kuberik to Flux, GitHub and Datadog.

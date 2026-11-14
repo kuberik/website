@@ -1,6 +1,8 @@
 ---
-title: "Writing Documentation"
-weight: 99
+title: "Contribute to the Docs"
+description: "How the Kuberik docs are written."
+type_: guide
+weight: 90
 sidebar:
   exclude: true
 ---

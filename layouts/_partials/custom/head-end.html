@@ -4,6 +4,11 @@
 {{- $docsCss := slice (resources.Get "css/tokens.css") (resources.Get "css/base.css") (resources.Get "css/footer.css") (resources.Get "css/docs.css") (resources.Get "css/docs-figs.css") | resources.Concat "css/docs-all.css" | minify | fingerprint -}}
 <link rel="preload" href="{{ "islands/fonts/inter-latin-opsz.woff2" | relURL }}" as="font" type="font/woff2" crossorigin>
 <link rel="stylesheet" href="{{ $docsCss.RelPermalink }}" integrity="{{ $docsCss.Data.Integrity }}">
+{{- /* the docs home (layout: docs-home) also draws the kit figure (thesis.css fig rules) and its own regions */ -}}
+{{- if eq .Layout "docs-home" }}
+{{- $homeCss := slice (resources.Get "css/thesis.css") (resources.Get "css/docs-home.css") | resources.Concat "css/docs-home-all.css" | minify | fingerprint }}
+<link rel="stylesheet" href="{{ $homeCss.RelPermalink }}" integrity="{{ $homeCss.Data.Integrity }}">
+{{- end }}
 
 {{/* Link previews: image dimensions + author. The theme emits og:image from
      `images` front matter but not its size; scrapers such as LinkedIn treat a
