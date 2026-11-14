@@ -12,7 +12,7 @@ Every field of the Kuberik resources, generated from the `api/v1alpha1` types on
 
 ## Environment API
 
-Latest release is environment-controller v0.1.5. This page documents main at ee03b0b, so it also lists API changes that are not in a release yet.
+Latest release is environment-controller v0.1.5. This page documents main at 599e1aa, so it also lists API changes that are not in a release yet.
 
   
     
@@ -1705,7 +1705,7 @@ TagFilter filters tags by regular expression (Flux ImagePolicy shape).
 
 ## Rollout API
 
-Latest release is rollout-controller v0.11.0. This page documents main at 9375945, so it also lists API changes that are not in a release yet.
+Latest release is rollout-controller v0.11.0. This page documents main at ea507f9, so it also lists API changes that are not in a release yet.
 
   
     
@@ -2534,7 +2534,7 @@ DeploymentHistoryEntry represents a single entry in the deployment history.
 This field contains human-readable information about the deployment context.
 For automatic deployments, it includes information about gate bypass and failed bake unblock.
 For manual deployments (when wantedVersion is specified), it can contain a custom message
-provided via the "rollout.kuberik.com/deployment-message" annotation, or defaults to "Manual deployment".</td>
+provided via the "rollout.kuberik.com/deploy-message" annotation, or defaults to "Manual deployment".</td>
 </tr>
 <tr><td><code>triggeredBy</code>
       
