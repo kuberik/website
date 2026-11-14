@@ -59,7 +59,7 @@ spec:
 | Annotation | Value |
 |---|---|
 | `healthcheck.kuberik.com/prometheus-url` | Required. The Prometheus base URL, without `/api/v1` |
-| `healthcheck.kuberik.com/prometheus-alert-labels` | Required. Comma-separated `key=value` pairs. An alert is selected when it carries all of them |
+| `healthcheck.kuberik.com/prometheus-alert-labels` | Required. Comma-separated `key=value` pairs, including `alertname`. An alert is selected when it carries all of them |
 | `healthcheck.kuberik.com/prometheus-credentials-secret` | Optional. A Secret name, or `namespace/name` for a Secret in another namespace |
 | `healthcheck.kuberik.com/requeue-interval` | Optional. How often to poll Prometheus. Default `30s`, minimum `5s` |
 
@@ -69,7 +69,7 @@ The labels become an exact-match selector on the `ALERTS` series. The example ab
 ALERTS{alertname="HighErrorRate",service="hello-world"}
 ```
 
-Any label on the alert works, including labels that come from the alerting series, such as `namespace` or `instance`. Values match exactly: regular expressions are not supported. Each poll covers the time since the previous poll, so an alert that fired and resolved between two polls still turns the check `Unhealthy`.
+Always include `alertname`, so each HealthCheck selects one alert. If the labels select several alerts, a pending one can hide a firing one: the check reports `Pending` and the deploy does not fail. Other labels narrow the alert further, including labels from the alerting series such as `namespace` or `instance`. Values match exactly: regular expressions are not supported. Each poll covers the time since the previous poll, so an alert that fired and resolved between two polls still turns the check `Unhealthy`.
 
 ## Authenticate to Prometheus
 
@@ -101,7 +101,7 @@ The controller writes one of these into the HealthCheck status. The message list
 
 The message names your selector, not the labels of the series that fired. To see which series fired, run the `ALERTS` query in Prometheus.
 
-The controller also writes one entry to `status.observations`, which rollout-dashboard after v0.9.2 draws as the check's figure. To show the alert's value against its limit, declare the limit, because the Prometheus API does not expose it:
+The controller also writes one entry to `status.observations`, which rollout-dashboard after v0.9.2 draws as the check's figure. While the alert is pending or firing, the entry shows the alert's value against its limit. Declare the limit, because the Prometheus API does not expose it:
 
 | Annotation | Value |
 |---|---|
@@ -110,7 +110,7 @@ The controller also writes one entry to `status.observations`, which rollout-das
 | `healthcheck.kuberik.com/observation-unit` | Optional. A unit such as `Percent` or `Milliseconds` |
 | `healthcheck.kuberik.com/observation-name` | Optional. Defaults to the `alertname` label |
 
-Without these annotations, the controller reads the limit from a rule expression of the form `<expr> > N` (or `>=`, `<`, `<=`). Otherwise the observation is a count named `firing alerts`.
+Without these annotations, the controller reads the limit from a rule expression of the form `<expr> > N` (or `>=`, `<`, `<=`). When no alert is active there is no value: with a declared limit the entry is a healthy or unhealthy state, otherwise a count named `firing alerts`.
 
 ## Select the checks from the Rollout
 
