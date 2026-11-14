@@ -117,10 +117,5 @@ The manifests Rollout gates changes to the workload's configuration, and the app
 
 - [Getting Started](/docs/getting-started/) sets up either mode step by step
 - [FluxCD Integration](/docs/integrations/fluxcd/) covers the Flux resources in detail
-<<<<<<< HEAD
-- [Publishing Releases](/docs/releases/publish/) shows the CI side
-- [Annotations Reference](/docs/reference/annotations/) lists every annotation
-=======
 - [Publishing Releases](/docs/releases/publish/) shows the CI side
 - [Annotations](/docs/reference/annotations/) lists every annotation
->>>>>>> docs/rollout-operations

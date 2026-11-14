@@ -4,10 +4,7 @@ linkTitle: "Manual Approvals"
 description: "Hold a deploy until a person approves it."
 type_: guide
 weight: 20
-<<<<<<< HEAD:content/docs/gates/approvals.md
 aliases: ["/docs/guides/manual-approvals/"]
-=======
->>>>>>> docs/rollout-operations:content/docs/guides/manual-approvals.md
 ---
 
 Hold every new build of a Rollout until a person approves it, with a `RolloutGate` that lists the approved versions.

@@ -95,13 +95,7 @@ The bake still has to start: it starts the first time every check is `Healthy` a
 ## Related
 
 - [Propagation Modes](/docs/concepts/propagation/): image tag or rendered manifests
-<<<<<<< HEAD
-- [Health Checks](/docs/gates/health-checks/): configure verification
-- [Manual Approvals](/docs/gates/approvals/): add approval gates
-- [Deployment Schedules](/docs/gates/schedules/): control deployment time windows
-=======
 - [Health Checks](/docs/gates/health-checks/): configure verification
 - [Require a Manual Approval](/docs/gates/approvals/): add approval gates
 - [Deployment Schedules](/docs/gates/schedules/): control deployment time windows
->>>>>>> docs/rollout-operations
 - [Operate a Rollout by Hand](/docs/operate/manual-actions/): pin, deploy, bypass gates and recover from a failed bake

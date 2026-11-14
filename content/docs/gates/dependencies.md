@@ -4,10 +4,7 @@ linkTitle: "Service Dependencies"
 description: "Hold a service until the service it needs has shipped a compatible version."
 type_: guide
 weight: 40
-<<<<<<< HEAD:content/docs/gates/dependencies.md
 aliases: ["/docs/guides/service-dependencies/"]
-=======
->>>>>>> docs/rollout-operations:content/docs/guides/service-dependencies.md
 ---
 
 Hold a service until the service it depends on has shipped the version it needs, in every environment, without hand-sequencing deploys. Requires rollout-controller v0.9.0 or newer.
