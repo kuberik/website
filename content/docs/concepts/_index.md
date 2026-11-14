@@ -14,4 +14,5 @@ Understand the core building blocks of Kuberik.
   {{< card title="Rollouts" link="/docs/concepts/rollouts/" icon="refresh" subtitle="Version lifecycle management" >}}
   {{< card title="Propagation Modes" link="/docs/concepts/propagation/" icon="switch-horizontal" subtitle="Image tag or rendered manifests" >}}
   {{< card title="Environments" link="/docs/concepts/environments/" icon="server" subtitle="Multi-cluster coordination" >}}
+  {{< card title="Gates" link="/docs/concepts/gates/" icon="lock-closed" subtitle="What holds a deploy back, and when it is skipped" >}}
 {{< /cards >}}
