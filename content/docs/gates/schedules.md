@@ -146,7 +146,7 @@ business-hours   Allow    false    1          3h
 
 While the window is closed, the dashboard holds the rollout and names the schedule, its hours, and when automatic deploys resume.
 
-![A rollout held by a deploy window: the banner names the schedule, its hours and when automatic deploys resume](/screenshots/dashboard/held-schedule.png)
+![The Gates tab of a production rollout: held builds wait for an approval and for the deploy window, and the Business Hours Only schedule is closed until Monday 14:00 UTC](/images/docs/gates/schedules-held.png)
 
 `status.activeRules` lists the rules that match now and `status.nextTransition` says when the schedule next opens or closes.
 
