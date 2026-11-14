@@ -150,7 +150,7 @@ Rollouts whose gates hold a release:
 kuberik_rollout_condition{type="GatesPassing"} == 0
 ```
 
-The `reason` label says which kind of gate: `NoAllowedVersions` when a waiting release is missing from an `allowedVersions` list (approvals, dependencies, environments), `SomeGatesBlocking` when a gate has `passing: false`. `SomeGatesBlocking` also shows while a schedule's window is closed and nothing is waiting, so expect it outside deployment windows.
+The `reason` label says which kind of gate: `NoAllowedVersions` when a waiting release is missing from an `allowedVersions` list (approvals, dependencies, environments), `SomeGatesBlocking` when a gate has `passing: false`. Both appear only while a release is waiting, so an up-to-date Rollout behind a closed deployment window does not fire the alert.
 
 ## Alert on failed and stuck deploys
 
@@ -186,7 +186,7 @@ groups:
           severity: info
         annotations:
           summary: "Rollout {{ $labels.namespace }}/{{ $labels.name }} is held by gates"
-          description: "Gates have held this Rollout for over an hour."
+          description: "A release has waited behind this Rollout's gates for over an hour."
 ```
 
 A deploy stays in `Deploying` until every selected health check reports healthy, and fails only when a check reports an error or the Rollout's `deployTimeout` passes; without `deployTimeout` it can wait forever. `InProgress` always ends when bake time does, so an alert on it needs a threshold above your longest `bakeTime`.

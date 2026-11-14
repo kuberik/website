@@ -86,7 +86,7 @@ The dashboard shows the same on the rollout's **Gates** tab: what the consumer w
 
 Once the provider bakes, the consumer follows a few seconds later, unprompted.
 
-## Limits
+## Know the limits
 
 - The consumer must be in the same namespace as the `RolloutDependency`, because a `RolloutGate` can only reference a Rollout in its own namespace. The provider may live elsewhere via `spec.providerRef.namespace`.
 - The provider's `org.opencontainers.image.version` must be a semantic version. A git SHA there cannot be ordered against a constraint.
