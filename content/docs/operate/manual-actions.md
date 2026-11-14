@@ -124,10 +124,15 @@ kubectl -n hello-world get rollout hello-world \
   -o jsonpath='{.status.history[0].version.tag} {.status.history[0].message} {.status.history[0].bakeStatus}{"\n"}'
 ```
 
-A deploy that follows a failed or cancelled bake, or a hand deploy that starts while a health check is `Unhealthy`, runs with `BakeFailureDisabled=True` (reason `PreviousBakeFailed` or `DeployedWithUnhealthyHealthChecks`). Health-check errors and `deployTimeout` do not fail that deploy; it succeeds once the checks are healthy for `bakeTime`.
+A deploy that follows a failed or cancelled bake, or a hand deploy that starts while a health check is `Unhealthy`, runs with `BakeFailureDisabled=True` (reason `PreviousBakeFailed` or `DeployedWithUnhealthyHealthChecks`). Health-check errors and `deployTimeout` do not fail that deploy: it succeeds `bakeTime` after every check first turns healthy, even if a check reports an error during that window.
 
 ## Next steps
 
 - [Rollouts](/docs/concepts/rollouts/): gating, the bake and the failed-bake hold
+<<<<<<< HEAD
 - [Manual Approvals](/docs/gates/approvals/): gates that wait for a person
 - [Annotations Reference](/docs/reference/annotations/#rollout-action-annotations): every annotation on this page
+=======
+- [Require a Manual Approval](/docs/gates/approvals/): gates that wait for a person
+- [Annotations](/docs/reference/annotations/#rollout-action-annotations): every annotation on this page
+>>>>>>> docs/rollout-operations

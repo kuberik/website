@@ -4,30 +4,34 @@ linkTitle: "Manual Approvals"
 description: "Hold a deploy until a person approves it."
 type_: guide
 weight: 20
+<<<<<<< HEAD:content/docs/gates/approvals.md
 aliases: ["/docs/guides/manual-approvals/"]
+=======
+>>>>>>> docs/rollout-operations:content/docs/guides/manual-approvals.md
 ---
 
-Use `RolloutGate` to block deployments until explicitly approved.
+Hold every new build of a Rollout until a person approves it, with a `RolloutGate` that lists the approved versions.
 
-## Create a Gate
+## Create a gate
 
 ```yaml {filename="gate.yaml"}
 apiVersion: kuberik.com/v1alpha1
 kind: RolloutGate
 metadata:
   name: production-approval
+  namespace: hello-world
   annotations:
     gate.kuberik.com/pretty-name: "Production Approval"
     gate.kuberik.com/description: "Requires sign-off before production deploy"
 spec:
   rolloutRef:
-    name: my-app
-  allowedVersions: []
+    name: hello-world
+  allowedVersions: []  # holds every build until you add one
 ```
 
 With an empty `allowedVersions` list the gate holds every new build: after its first deploy, the Rollout keeps running its current version until you approve a newer one. A gate without `allowedVersions` holds nothing, so keep the empty list.
 
-## Approve a Version
+## Approve a version
 
 {{< callout type="info" >}}
 Pick one place to approve from. When Flux applies the gate from Git, Flux owns `allowedVersions` and puts the list back to what Git says on its next reconcile, so approve in Git. To approve with `kubectl patch`, apply the gate once with `kubectl apply` and keep it out of your Flux sources.
@@ -44,7 +48,7 @@ Pick one place to approve from. When Flux applies the gate from Git, Flux owns `
   Add the version to the allowed list:
 
   ```bash {filename="Terminal"}
-  kubectl patch rolloutgate production-approval --type=json \
+  kubectl -n hello-world patch rolloutgate production-approval --type=json \
     -p='[{"op": "add", "path": "/spec/allowedVersions/-", "value": "v1.2.3"}]'
   ```
 
@@ -59,9 +63,10 @@ Pick one place to approve from. When Flux applies the gate from Git, Flux owns `
   kind: RolloutGate
   metadata:
     name: production-approval
+    namespace: hello-world
   spec:
     rolloutRef:
-      name: my-app
+      name: hello-world
     allowedVersions:
       - "v1.2.3"
       - "v1.2.4"
@@ -71,7 +76,7 @@ Pick one place to approve from. When Flux applies the gate from Git, Flux owns `
   {{< /tab >}}
 {{< /tabs >}}
 
-## Deploy Without Approval
+## Deploy without approval
 
 To ship a build the gate holds, deploy it by hand or let it past the gates once:
 
@@ -79,3 +84,20 @@ To ship a build the gate holds, deploy it by hand or let it past the gates once:
 - `rollout.kuberik.com/force-deploy: <version>` deploys the build now. It skips gates, the unhealthy-check hold and the failed-bake hold, and it is what the dashboard's **Deploy** does.
 
 [Operate a Rollout by Hand](/docs/operate/manual-actions/) covers both, along with pinning a version and recovering from a failed bake.
+
+## Check the result
+
+Each candidate shows whether it is through every gate and, if not, which gates hold it:
+
+```bash {filename="Terminal"}
+kubectl -n hello-world get rollout hello-world \
+  -o jsonpath='{range .status.candidates[*]}{.tag}{" gated="}{.gated}{" blockedBy="}{.blockedBy}{"\n"}{end}'
+```
+
+A held build lists `production-approval` under `blockedBy`. Once you approve it, `gated` turns `true` and the Rollout deploys it, unless another gate, an `Unhealthy` health check or a failed bake still holds it.
+
+## Next steps
+
+- [Operate a Rollout by Hand](/docs/operate/manual-actions/): pin, deploy or bypass gates for one build
+- [Deployment Schedules](/docs/gates/schedules/): hold deploys outside a time window
+- [Rollouts](/docs/concepts/rollouts/): how gates, health checks and the bake decide a deploy

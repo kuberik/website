@@ -9,7 +9,7 @@ A **Rollout** deploys the builds of one OCI artifact into one environment, one b
 
 ## How a build is chosen
 
-A Rollout reads its releases from a [`ReleaseSource`](/docs/reference/api/), which lists the tags of an OCI repository. Every release newer than the deployed one is a candidate in `status.candidates`. The Rollout deploys the newest candidate that every [gate](#when-a-deploy-is-held) allows, by writing the version to the Flux source it owns: a `Kustomization` substitution variable or an `OCIRepository` tag. It then [bakes](#how-a-deploy-is-verified) the build and records the outcome in `status.history`.
+A Rollout reads its releases from a [`ReleaseSource`](/docs/reference/api/), which lists the tags of an OCI repository. Every release newer than the deployed one is a candidate. The Rollout deploys the newest candidate that every [gate](#when-a-deploy-is-held) allows, by writing the version to the Flux source it owns: a `Kustomization` substitution variable or an `OCIRepository` tag. It then [bakes](#how-a-deploy-is-verified) the build and records the outcome in `status.history`.
 
 Kuberik deploys one version at a time. If `v1.2.0` is deploying or baking when `v1.3.0` and `v1.4.0` arrive, both wait as candidates. When `v1.2.0` succeeds, the Rollout deploys the newest candidate the gates allow, `v1.4.0`, and skips `v1.3.0`.
 
@@ -52,9 +52,9 @@ kubectl -n hello-world get rollout hello-world -o yaml
 ```
 
 - `history`: deployments, newest first. `history[0].version.tag` is the running version; each entry records its `message`, `triggeredBy` and `bakeStatus` (`Deploying`, `InProgress`, `Succeeded`, `Failed` or `Cancelled`).
-- `candidates`: releases newer than the deployed one. `gated: true` means every gate lets the release through; `blockedBy` names the gates that hold it.
+- `candidates`: the newest releases newer than the deployed one (20 by default, set by the controller flag `--release-candidates`), plus any tag a gate, the pin or an action annotation names, up to 64. Gates and selection see every release; this list is what the status shows. `gated: true` means every gate lets the release through; `blockedBy` names the gates that hold it.
 - `gates`: each gate that targets this Rollout, whether it is passing, and the versions it allows.
-- `conditions`: `Ready`, `GatesPassing`, `DeploymentBlocked` (a health check is unhealthy) and `BakeFailureDisabled` (see [When a bake fails](#when-a-bake-fails)).
+- `conditions` include `Ready`, `GatesPassing`, `DeploymentBlocked` (a health check is unhealthy), `BakeFailureDisabled` (see [When a bake fails](#when-a-bake-fails)), and `ReleasesUpdated` and `ReleaseSourceReady` (whether releases can be read from the `ReleaseSource`).
 
 ## What a Rollout propagates
 
@@ -62,7 +62,7 @@ A Rollout does not care what its versions point at. Annotate a `Kustomization` a
 
 ## When a deploy is held
 
-Before an automatic deploy, the build must be allowed by every gate that targets the Rollout. A gate either lets a build through or holds it; a held build is evaluated again whenever a gate changes, and nothing is rejected for good. Gates do not apply to a Rollout's first deploy (if no release passes them, the newest release deploys) or to deploys you start by hand.
+Before an automatic deploy, the build must be allowed by every gate that targets the Rollout. A gate either lets a build through or holds it; a held build is evaluated again whenever a gate changes, and nothing is rejected for good. Gates never hold deploys you start by hand. On a Rollout's first deploy they never hold either: it deploys the newest release the gates allow, or the newest release if they allow none.
 
 Automatic deploys also wait while any selected health check reports `Unhealthy`. The Rollout then sets `DeploymentBlocked=True` with the name of the check. A check that is still `Pending` holds nothing, and a Rollout's first deploy and deploys you start by hand go ahead regardless.
 
@@ -90,12 +90,18 @@ When a deploy starts, the Rollout sets the `BakeFailureDisabled` condition for i
 | `PreviousBakeFailed` | The previous deploy did not end with a successful bake: it failed, or this deploy cancelled its bake. |
 | `DeployedWithUnhealthyHealthChecks` | A deploy you started by hand began while a selected health check was `Unhealthy`. |
 
-The deploy still has to bake: it succeeds once the checks are healthy for `bakeTime`. If they never recover, it stays in `Deploying` and the next build has to be deployed by hand. The condition holds until the next deploy starts.
+The bake still has to start: it starts the first time every check is `Healthy` after the deploy, and the deploy succeeds `bakeTime` later. Errors during that window do not fail it, so a recovery deploy is not verified the way a normal one is. If the checks never turn healthy, it stays in `Deploying` and the next build has to be deployed by hand. The condition holds until the next deploy starts.
 
 ## Related
 
 - [Propagation Modes](/docs/concepts/propagation/): image tag or rendered manifests
+<<<<<<< HEAD
 - [Health Checks](/docs/gates/health-checks/): configure verification
 - [Manual Approvals](/docs/gates/approvals/): add approval gates
 - [Deployment Schedules](/docs/gates/schedules/): control deployment time windows
+=======
+- [Health Checks](/docs/gates/health-checks/): configure verification
+- [Require a Manual Approval](/docs/gates/approvals/): add approval gates
+- [Deployment Schedules](/docs/gates/schedules/): control deployment time windows
+>>>>>>> docs/rollout-operations
 - [Operate a Rollout by Hand](/docs/operate/manual-actions/): pin, deploy, bypass gates and recover from a failed bake
