@@ -135,7 +135,7 @@ InProgress: Bake started, monitoring for errors.
 
 A failed deploy lists the checks that failed it in `status.history[0].failedHealthChecks`. The dashboard shows the same checks on the rollout page:
 
-![Health checks on the rollout page: a Flux check and two Datadog monitors, each with its state, next to the pipeline they gate](/screenshots/dashboard/overview-prod.png)
+![The Health checks card of a production rollout: a Flux Deployment check and two Prometheus alerts, App Down Alert and High Error Rate Alert, all passing](/images/docs/gates/health-checks.png)
 
 ## Troubleshoot
 
