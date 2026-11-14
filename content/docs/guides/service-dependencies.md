@@ -70,7 +70,7 @@ kubectl -n shop-prod get rolloutdependency frontend-needs-api \
 # [{"reason":"ConstraintNotSatisfied","requiredVersion":"^1.66.0","tag":"rel-66"}]
 ```
 
-The dashboard shows the same on the rollout's **Dependencies** tab: what the consumer waits on, the version it needs against the version running, and the contract across every environment. The home page and the Environments page name the provider on every held card.
+The dashboard shows the same on the rollout's **Gates** tab: what the consumer waits on, the version it needs against the version running, and the contract across every environment. The home page and the Environments page name the provider on every held card.
 
 ![Dependencies of a rollout: what it waits on, the version it needs against the version running, and the same contract across every environment](/screenshots/dashboard/rollout-dependencies.png)
 
