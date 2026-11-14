@@ -1,4 +1,6 @@
-/* RELEASES v6h (b14 fix 6): no edge light on the Release. The climax is the trace arriving at the commit: as the revision's
+/* RELEASES v6i (b15): fix 1 the Release's revision ring resolves to the teal dot as its trace sets off (2.02); fix 2 at 390 the
+   ReleaseSource wire runs at the chip lane's right side (x 98) and its caption sits 14 px off it, as 1440's sits 14 px over its wire.
+   Was RELEASES v6h (b14 fix 6): no edge light on the Release. The climax is the trace arriving at the commit: as the revision's
    wire fills to the commit (2.26) the commit mark pops (spring, 3.1 % overshoot, 240 ms: the hollow ring hands over to a teal
    dot) and settles, on the beat its value turns teal.
    Was RELEASES v6g (climax audit: the completed trace lands as a beat, the Release's edge lights as its mark rests).
@@ -100,15 +102,16 @@ VG.def('releases', {
       box2 = { x: xs - 2, y: yr - 6, w: xe - xs + 4, h: gy - yr + 8 }; ax2 = 'x'; from2 = 'end';
       capA = [xs + 4, ya - 14, 'ReleaseSource', 'start'];
     } else {
-      const xa = R.x + 44, xd = R.x + R.w - 36, y1 = R.y + R.h, y2 = D.y - 8, y3 = D.y + D.h + 8, y4 = G.y;
+      const xa = R.x + 86, xd = R.x + R.w - 36, y1 = R.y + R.h, y2 = D.y - 8, y3 = D.y + D.h + 8, y4 = G.y;
       A = [`M${xa} ${y1}V${y2}`, VG.chevronDown(xa, y2)];
       D1 = [`M${xd} ${y1 + 8}V${y2 + 8}`, chevUp(xd, y1 + 8)];
       D2 = [`M${xd} ${y3 - 8}V${y4 - 8}`, VG.chevronDown(xd, y4 - 8)];
       boxA = { x: xa - 6, y: y1 - 1, w: 12, h: y2 - y1 + 3 }; axA = 'y';
       box1 = { x: xd - 6, y: y1 - 1, w: 12, h: y2 - y1 + 10 }; ax1 = 'y'; from1 = 'end';
       box2 = { x: xd - 6, y: y3 - 9, w: 12, h: y4 - y3 + 4 }; ax2 = 'y'; from2 = 'start';
-      // v6f (b-r5 fix 3): the caption sits clear of the chip's lane (the chip spans x 24-104 as it drops), 12 px right of it
-      capA = [R.x + CW + 24, (y1 + y2) / 2 + 4, 'ReleaseSource', 'start'];
+      // v6i (b15 fix 2): the wire runs at the chip lane's right side (x 98, under the chip's last 8 px) so the caption sits 14 px
+      // off the wire and stays clear of the chip (lane x 24-106) for the whole travel. Was v6f: wire x 56, caption x 116 (60 px off).
+      capA = [xa + 14, (y1 + y2) / 2 + 4, 'ReleaseSource', 'start'];
     }
     for (const [d, c] of [A, D1, D2]) KB.path(st, d, 'w-q', c);
     KB.text(st, capA[0], capA[1], capA[2], 'tag', capA[3]);
@@ -130,7 +133,16 @@ VG.def('releases', {
     const row = (sp, y, k, val, dot, on) => {
       const p = sp.g;
       KB.text(p, D.x + 18, y, k, 'tag');
-      if (dot) el('circle', { cx: D.x + 89, cy: y - 4, r: 3, class: 'md-wait nsl', style: 'stroke-dasharray:none;stroke:var(--b-muted)', 'stroke-width': 1.2 }, p);
+      // v6i (b15 fix 1): the Release's revision mark resolves too. It was a hollow ring for good; now, as the revision's trace
+      // sets off from it (2.02, the beat its value turns teal at 390), the ring hands over to the teal dot with the commit's own
+      // pop (vg spring 0 -> 1.031 -> 1, 240 ms). The trace then runs to the commit, which pops at 2.26: Release end, then source end.
+      if (dot) {
+        const RP0 = 2.02, rpop = (t) => w(t, RP0, RP0 + 0.24, 'spring');
+        const d0 = S.sprite({ x: D.x + 83, y: y - 10, w: 12, h: 12, parent: sp, track: tt((t) => ({ o: 1 - w(t, RP0, RP0 + 0.08) })) });
+        el('circle', { cx: D.x + 89, cy: y - 4, r: 3, class: 'md-wait nsl', style: 'stroke-dasharray:none;stroke:var(--b-muted)', 'stroke-width': 1.2 }, d0.g);
+        const d1 = S.sprite({ x: D.x + 83, y: y - 10, w: 12, h: 12, parent: sp, track: tt((t) => ({ o: t < RP0 ? 0 : 1, s: Math.max(0.001, rpop(t)) })) });
+        el('circle', { cx: D.x + 89, cy: y - 4, r: 3.5, class: 'md-rest' }, d1.g);
+      }
       const vx = D.x + (dot ? 98 : 84);
       if (!ph) { KB.text(p, vx, y, val, 'mono'); return; }
       const v0 = S.sprite({ x: vx - 2, y: y - 16, w: D.w - (vx - D.x), h: 22, parent: sp, track: tt((t) => ({ o: 1 - on(t) })) });

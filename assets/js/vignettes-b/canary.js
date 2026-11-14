@@ -1,4 +1,4 @@
-/* CANARY AND WAVES v6g (climax audit: the baked beat lights the card edge and releases wave 2 on the same beat; work/climax-audit.md). Was v6f (b-r5 fixes 6, 8: the wave 2 spinner reads in dark; the first pod turns at 0.3). Was v6e: no fan-open (copy audit). The card and its ten pods are there from the first frame; the pods turn over
+/* CANARY AND WAVES v6i (b15 fix 4: wave 1's deploying mark lifted in dark, as wave 2's). Was v6g (climax audit: the baked beat lights the card edge and releases wave 2 on the same beat; work/climax-audit.md). Was v6f (b-r5 fixes 6, 8: the wave 2 spinner reads in dark; the first pod turns at 0.3). Was v6e: no fan-open (copy audit). The card and its ten pods are there from the first frame; the pods turn over
    in batches with the traffic steps (1 at 10 %, 4 at 50 %, 5 at 100 %) and the % is a plain value change; wave 2 and 3 sit
    below the card, wave 2's regions still spring in sideways once wave 1 is baked. Was: CANARY AND WAVES v6 (kit v6; v4's composition, materials and timing, polished). One card fans out (Railway Block 3 "Grow big").
    Claim: "Each region waits for the one before it to bake." The payments-svc 3.1.0 card for prod us-east-1 (wave 1) fans open
@@ -113,7 +113,10 @@ VG.def('canary', {
     KB.text(hd, C.x + 66, C.y + 72.5, 'us-east-1', 'label');
     const wv = { deploy: (t) => 1 - dep(t), check: (t) => dep(t) * (1 - baked(t)), done: baked };
     KB.states(S, { x: C.x + C.w - 80, y: C.y + 16, w: 16, h: 16 }, ['deploy', 'check', 'done'], (k, g) => KB.waveOne(g, C.x + C.w - 72, C.y + 24, [[k, 0, 1]]), tt((t) => ({ deploy: wv.deploy(t), check: wv.check(t), done: wv.done(t) })));
-    KB.mark(S, C.x + C.w - 24, C.y + 68, ['act', 'prog', 'rest'], tt((t) => ({ act: 1 - dep(t), prog: dep(t) * (1 - baked(t)), rest: baked(t) })), { loop: LOOP });
+    // v6i (b15 fix 4): dark lifts wave 1's deploying mark like wave 2's (kb.css .w1): its act-tint disc sat darker than the mint
+    // card (1.46:1, ring 1.29:1) and read as a pale hole; dark now fills it with the act hue and turns the arc white
+    const w1 = S.sprite({ x: C.x + C.w - 34, y: C.y + 58, w: 20, h: 20 }); w1.div.classList.add('w1');
+    KB.mark(S, C.x + C.w - 24, C.y + 68, ['act', 'prog', 'rest'], tt((t) => ({ act: 1 - dep(t), prog: dep(t) * (1 - baked(t)), rest: baked(t) })), { loop: LOOP, parent: w1 });
     const sx = C.x + C.w - 40;
     [['deploying', 'meta', (t) => 1 - dep(t)], ['baking', 'meta', (t) => dep(t) * (1 - baked(t))], ['baked', 'teal', baked]].forEach(([s, k, o]) => {
       const sp = S.sprite({ x: sx - 80, y: C.y + 58, w: 80, h: 20, track: tt((t) => ({ o: o(t) })) });

@@ -155,8 +155,9 @@ html.dark .vg .kb .band-prog{fill:oklch(.39 .058 87);opacity:1}
 
 /* v6f (review b-r5 fix 6): dark only. Canary's wave 2 'deploying' mark sits on the page card, where the act tint disc measured
    1.07:1. There the disc takes the act hue itself (3.88:1 on --b-card) and the turning arc goes white (3.30:1 on the disc). */
-html.dark .vg .kb-sp.w2 .m-act .md{fill:var(--b-act);stroke:var(--b-act)}
-html.dark .vg .kb-sp.w2 .m-act .mg{stroke:#fff}
+html.dark .vg .kb-sp.w2 .m-act .md,html.dark .vg .kb-sp.w1 .m-act .md{fill:var(--b-act);stroke:var(--b-act)}
+html.dark .vg .kb-sp.w2 .m-act .mg,html.dark .vg .kb-sp.w1 .m-act .mg{stroke:#fff}
+/* v6i: Canary's wave-1 deploying mark gets wave 2's dark treatment (act-tint disc was 1.46:1 on the mint card in dark). */
 /* v6f (review b-r5 fix 7): dark only. The 11 px mono labels (KB 'tag': mono subtle) measured 3.03:1 on the fig card; they take
    the next ink step, --b-muted (5.04:1 on --b-fig, 6.89:1 on --b-card). Light keeps --b-subtle. */
 html.dark .vg .kb .mono.subtle{fill:var(--b-muted)}

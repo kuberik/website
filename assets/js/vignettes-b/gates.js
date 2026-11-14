@@ -1,4 +1,6 @@
-/* GATES v6h (b14, coordinator fixes 1-3): 4.45.0-45 fades out (150 ms ease-in) and is gone before the build reaches the slot
+/* GATES v6i (b15 fix 3): 390 turned over (prod on top, gates below, wires run up); the build rises from under the card
+   straight into checkout-api's row through the card's bottom edge, crossing no header, divider or text. 1440 unchanged.
+   Was GATES v6h (b14, coordinator fixes 1-3): 4.45.0-45 fades out (150 ms ease-in) and is gone before the build reaches the slot
    (every frame at 10 and 25 fps, all four cells); 1440: the prod card's checkout-api row is the lane: the trunk arrives inside
    that row (above its text, on the middle gate's line as before), so the build crosses no divider and no text, then sets down
    into the version slot; the prod card's edge light is gone (the row's teal wash alone marks the landing).
@@ -30,12 +32,12 @@ VG.def('gates', {
     const base = S.base;
     const tt = (fn) => (T) => fn(T >= EXIT_END ? 0 : T);
     // ---- layout
-    const N = ph ? { x: 12, w: 228, h: 44, ys: [12, 66, 120] } : { x: 20, w: 232, h: 52, ys: [36, 164, 292] };
+    const N = ph ? { x: 12, w: 228, h: 44, ys: [252, 306, 360] } : { x: 20, w: 232, h: 52, ys: [36, 164, 292] };
     const cy = N.ys.map((y) => y + N.h / 2);
     const CW = 80; // the build chip "4.46.0-46"
     // v6h: 1440's card moves up 16 and grows 6 so the checkout-api row's band holds the build's lane above its text; the trunk
     // stays on the middle gate's line (jy 190), which is now inside that row
-    const R = ph ? { x: 12, y: 278, w: 302, h: 132 } : { x: 540, y: 68, w: 232, h: 186 };
+    const R = ph ? { x: 12, y: 12, w: 302, h: 132 } : { x: 540, y: 68, w: 232, h: 186 };
     // row A = checkout-api (where the build lands), row B = payments-svc (baking 3.1.0)
     // v6c: payments-svc first at both widths (v4's order) and v4's row at both widths: mark | name | version at the right, so
     // the card is used edge to edge. 390: the three wires fill the right of the gates, merge into one bus and the trunk comes
@@ -44,7 +46,7 @@ VG.def('gates', {
     const RA = ph ? R.y + 112 : R.y + 146, RB = ph ? R.y + 66 : R.y + 80;
     const D = ph ? (RA + RB) / 2 : R.y + 106; // the divider between the two rows
     const SLOT = { x: R.x + R.w - 16 - CW, y: RA - 10 };
-    const B0 = ph ? { x: 162, y: 214 } : { x: 420, y: D + 6 }; // parked at the junction, on the trunk
+    const B0 = ph ? { x: R.x + R.w - 16 - CW, y: 176 } : { x: 420, y: D + 6 }; // parked at the junction, on the trunk
     const LANE = (RA + RB) / 2 - 10;
     // ---- wires: gate -> junction (the #145 elbow), then the trunk into prod
     let wd, trunkD, trunkBox, jx, jy;
@@ -54,19 +56,23 @@ VG.def('gates', {
       trunkD = [`M${jx + 2} ${jy}H${R.x - 8}`, VG.chevron(R.x - 8, jy)];
       trunkBox = { x: jx, y: jy - 6, w: R.x - jx - 4, h: 12 };
     } else {
-      const x1 = N.x + N.w; jx = B0.x + CW / 2; jy = B0.y - 6;
-      const JB = 186; // the bus the three wires merge into, under the gates
+      // v6i (b15 fix 3): 390 is turned over: prod on top, the gates below, the wires run UP. The build parks under the card on
+      // the version slot's column and rises straight through the card's bottom edge into checkout-api's row (the bottom row):
+      // no header, divider or text is on its way. Was v6h: prod at the bottom, the build fell through its header.
+      const x1 = N.x + N.w; jx = B0.x + CW / 2; jy = B0.y + 26;
+      const JB = 228; // the bus the three wires merge into, over the gates
+      const up = (x, y, d = 4, h = 3.5) => `M${x - h} ${y + d}L${x} ${y}L${x + h} ${y + d}`;
       wd = cy.map((y, i) => {
-        const lx = 304 - i * 16;
-        const d = `M${x1} ${y}H${lx - 8}A8 8 0 0 1 ${lx} ${y + 8}V${JB - 8}A8 8 0 0 1 ${lx - 8} ${JB}H${jx + 8}A8 8 0 0 0 ${jx} ${JB + 8}V${jy}`;
-        return [d, i === 1 ? VG.chevronDown(jx, jy) : null];
+        const lx = 282 + i * 14;
+        const d = `M${x1} ${y}H${lx - 8}A8 8 0 0 0 ${lx} ${y - 8}V${JB + 8}A8 8 0 0 0 ${lx - 8} ${JB}H${jx + 8}A8 8 0 0 1 ${jx} ${JB - 8}V${jy}`;
+        return [d, i === 1 ? up(jx, jy) : null];
       });
-      trunkD = [`M${jx} ${jy + 2}V${R.y - 8}`, VG.chevronDown(jx, R.y - 8)];
-      trunkBox = { x: jx - 6, y: jy, w: 12, h: R.y - jy - 4 };
+      trunkD = [`M${jx} ${jy - 2}V${R.y + R.h + 8}`, up(jx, R.y + R.h + 8)];
+      trunkBox = { x: jx - 6, y: R.y + R.h + 4, w: 12, h: jy - R.y - R.h - 4 };
     }
-    // ---- the timeline (s). ph shifts nothing before the travel; 390's travel has three legs (down, along, drop)
+    // ---- the timeline (s). ph shifts nothing before the travel; 390 (v6i) rises in one leg
     const BH = 0.30, HELD = 0.50, STG = 0.75, CLEAR = 1.58, ALL = 2.05, GO = 2.53;
-    const LAND = ph ? 3.08 : 2.88;
+    const LAND = ph ? 2.85 : 2.88; // v6i: 390's rise is one leg (2.53-2.85)
     // v6g: every gate wire starts quiet and lights (250 ms) when ITS gate passes: gate -> junction at 1440, a light-up at 390
     wd.forEach(([d, c]) => KB.path(base, d, 'w-q', c));
     [[0, BH + 0.06], [2, STG + 0.06]].forEach(([i, a]) => {
@@ -130,8 +136,8 @@ VG.def('gates', {
     KB.mark(S, pmx, RB, ['rest'], tt((t) => ({ rest: done(t) })));
     // checkout-api's running version is pushed down out of the slot (150 ms ease-in). v6h: it is fully gone before the build
     // reaches the slot: 1440 ends as the build arrives over the slot (2.64), before it sets down (2.68); 390 ends before the drop
-    const OF = ph ? LAND - 0.30 : LAND - 0.39;
-    const oldV = S.sprite({ x: SLOT.x - 4, y: RA - 12, w: CW + 8, h: 24, track: tt((t) => { const o = w(t, OF, OF + 0.15, 'in'); return { o: 1 - o, y: 7 * o }; }) });
+    const OF = ph ? LAND - 0.40 : LAND - 0.39;
+    const oldV = S.sprite({ x: SLOT.x - 4, y: RA - 12, w: CW + 8, h: 24, track: tt((t) => { const o = w(t, OF, OF + 0.15, 'in'); return { o: 1 - o, y: (ph ? -7 : 7) * o }; }) });
     KB.text(oldV.g, R.x + R.w - 16, RA + 4.5, '4.45.0-45', 'mono', 'end');
     // its mark: running -> deploying -> done
     const dep = (t) => w(t, LAND + 0.08, LAND + 0.28), ok = (t) => w(t, LAND + 0.78, LAND + 0.98);
@@ -157,7 +163,7 @@ VG.def('gates', {
       dot(1, 'pk', tt((t) => { const P = at(t); return { o: run(t) > 0 && P.s <= Lw ? Math.min(1, (Lw - P.s) / 14) : 0, x: P.x, y: P.y }; }));
     });
     // ---- the trunk lights behind the build
-    KB.path(KB.reveal(S, trunkBox, tt((t) => w(t, GO, GO + 0.3)), { axis: ph ? 'y' : 'x' }).g, trunkD[0], 'w-lit', trunkD[1]);
+    KB.path(KB.reveal(S, trunkBox, tt((t) => w(t, GO, GO + 0.3)), ph ? { axis: 'y', from: 'end' } : { axis: 'x' }).g, trunkD[0], 'w-lit', trunkD[1]);
     // the neutral chip stays opaque under the teal one while it fades in (no see-through frame), then hides
     // ---- the build: parked neutral, lit teal on the all-green beat (3 % spring pop), then it moves (the one travel)
     const on = (t) => w(t, ALL + 0.05, ALL + 0.2);
@@ -171,7 +177,7 @@ VG.def('gates', {
     const drop = (t) => (ph ? w(t, LAND - 0.14, LAND, 'io') : w(t, LAND - 0.2, LAND, 'io'));
     const slide = (t) => w(t, GO + 0.22, GO + 0.44, 'io');
     const bg = S.sprite({ ...bb, track: tt((t) => (ph
-      ? { x: (SLOT.x - B0.x) * slide(t), y: -back(t) + (LANE - B0.y) * mv(t) + (SLOT.y - LANE) * drop(t) }
+      ? { y: back(t) + (SLOT.y - B0.y) * mv(t) }
       : { x: -back(t) + (SLOT.x - B0.x) * mv(t), y: (SLOT.y - B0.y) * drop(t) })) });
     KB.chip(S.sprite({ ...bb, parent: bg, track: tt((t) => ({ o: t < ALL + 0.2 ? 1 : 0, s: pop(t) })) }).g, B0.x, B0.y, '4.46.0-46', 'n', { mono: true });
     KB.chip(S.sprite({ ...bb, parent: bg, track: tt((t) => ({ o: on(t), s: pop(t) })) }).g, B0.x, B0.y, '4.46.0-46', 'build', { mono: true });
