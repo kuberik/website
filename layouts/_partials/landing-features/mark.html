@@ -1,8 +1,0 @@
-{{- /* 16px status mark = the dashboard's StatusMark: ok = 6px success dot (the norm spends the least ink), idle = hollow
-       ring, held = held-tint disc + thin pause, check = checking disc with its progress pie (64%, the bake below). */ -}}
-{{- $k := . -}}
-{{- if eq $k "ok" -}}<span class="mk mk-ok" aria-hidden="true"></span>
-{{- else if eq $k "held" -}}<span class="mk mk-held" aria-hidden="true"><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round"><path d="M9 5.5v13M15 5.5v13"/></svg></span>
-{{- else if eq $k "check" -}}<span class="mk mk-pie" aria-hidden="true"><svg width="16" height="16" viewBox="0 0 16 16"><circle class="pm-disc" cx="8" cy="8" r="7.5"/><path class="pm-pie" d="M8 8V3.75A4.25 4.25 0 1 1 4.725 10.709Z"/></svg></span>
-{{- else -}}<span class="mk mk-idle" aria-hidden="true"></span>
-{{- end -}}

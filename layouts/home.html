@@ -2,8 +2,10 @@
 {{- .Scratch.Set "getStarted" "/docs/getting-started/" -}}
 {{- .Scratch.Set "github" "https://github.com/kuberik/kuberik" -}}
 {{- $hero := site.Data.landing.hero -}}
-{{- $css := slice (resources.Get "css/tokens.css") (resources.Get "css/base.css") (resources.Get "css/hero.css") (resources.Get "css/integrations.css") (resources.Get "css/thesis.css") (resources.Get "css/features.css") (resources.Get "css/spec.css") (resources.Get "css/install.css") (resources.Get "css/footer.css") | resources.Concat "css/landing-all.css" | minify | fingerprint -}}
+{{- $css := slice (resources.Get "css/tokens.css") (resources.Get "css/base.css") (resources.Get "css/hero.css") (resources.Get "css/integrations.css") (resources.Get "css/thesis.css") (resources.Get "css/features.css") (resources.Get "css/vignettes.css") (resources.Get "css/spec.css") (resources.Get "css/install.css") (resources.Get "css/footer.css") | resources.Concat "css/landing-all.css" | minify | fingerprint -}}
 {{- $js := resources.Get "js/sections.js" | minify | fingerprint -}}
+{{- /* the six feature vignettes: engine, kit, scenes (take B v6h); built lazily, so page load pays nothing for them */ -}}
+{{- $vg := slice (resources.Get "js/vignettes-b/vg.js") (resources.Get "js/vignettes-b/kb.js") (resources.Get "js/vignettes-b/gates.js") (resources.Get "js/vignettes-b/canary.js") (resources.Get "js/vignettes-b/health.js") (resources.Get "js/vignettes-b/gitops.js") (resources.Get "js/vignettes-b/dashboard.js") (resources.Get "js/vignettes-b/releases.js") | resources.Concat "js/vignettes-b.js" | minify | fingerprint -}}
 {{- $spec := resources.Get "js/spec.js" | minify | fingerprint -}}
 <!DOCTYPE html>
 <html lang="en">
@@ -40,6 +42,9 @@
 (function(){
   var d=document.documentElement,nav=document.getElementById('nav');
   function sc(){nav.classList.toggle('scrolled',scrollY>8)}addEventListener('scroll',sc,{passive:true});sc();
+  /* the logo's SMIL rotation costs a main-thread frame per vsync while it runs; hold it (in place) while a feature vignette plays (vg.js dispatches vg-play) */
+  var lm=document.querySelector('.logo-mark');
+  if(lm&&lm.pauseAnimations)addEventListener('vg-play',function(e){e.detail?lm.pauseAnimations():lm.unpauseAnimations()});
   document.getElementById('theme').addEventListener('click',function(){
     var t=d.classList.contains('dark')?'light':'dark';
     d.classList.remove('light','dark');d.classList.add(t);d.style.colorScheme=t;
@@ -57,6 +62,7 @@
 </script>
 <script src="{{ $js.RelPermalink }}" integrity="{{ $js.Data.Integrity }}" defer></script>
 <script src="{{ $spec.RelPermalink }}" integrity="{{ $spec.Data.Integrity }}" defer></script>
+<script src="{{ $vg.RelPermalink }}" integrity="{{ $vg.Data.Integrity }}" defer></script>
 </body>
 </html>
 

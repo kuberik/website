@@ -1,0 +1,129 @@
+/* CANARY AND WAVES v6g (climax audit: the baked beat lights the card edge and releases wave 2 on the same beat; work/climax-audit.md). Was v6f (b-r5 fixes 6, 8: the wave 2 spinner reads in dark; the first pod turns at 0.3). Was v6e: no fan-open (copy audit). The card and its ten pods are there from the first frame; the pods turn over
+   in batches with the traffic steps (1 at 10 %, 4 at 50 %, 5 at 100 %) and the % is a plain value change; wave 2 and 3 sit
+   below the card, wave 2's regions still spring in sideways once wave 1 is baked. Was: CANARY AND WAVES v6 (kit v6; v4's composition, materials and timing, polished). One card fans out (Railway Block 3 "Grow big").
+   Claim: "Each region waits for the one before it to bake." The payments-svc 3.1.0 card for prod us-east-1 (wave 1) fans open
+   into its pods; traffic steps 10 -> 50 -> 100 % (the pods turn over in batches as solid fills, the counter rolls), the canary
+   test runs and passes between the first two steps, the pods turn teal, a short bake fills, the region is baked. The card
+   collapses (150 ms) and only then does wave 2 fan out sideways: eu-west-1 and us-east-2 spring in and start deploying.
+   v6: the card spans wave 2's two slots, so fanned out it covers them whole (no ghost peeking, no text under text); the
+   wave 2 slots leave before their regions spring in; page shadow; one dark surface system; resolved hold 1.4 s.
+   Loop 6.2 s, rest 4.6. */
+VG.def('canary', {
+  loop: 6.2, rest: 4.6, vb: (ph) => (ph ? [326, 440] : [630, 560]),
+  label: 'payments-svc 3.1.0 canary in prod us-east-1: traffic 10, 50, 100 percent, test passed, baked; then wave 2 regions start deploying',
+  build(svg, id, ph) {
+    const { el, w } = VG;
+    const LOOP = 6.2, EXIT = 5.4, EXIT_END = 5.7;
+    const [W, H] = ph ? [326, 440] : [630, 560];
+    const S = KB.stage(svg, W, H, LOOP);
+    KB.defs(svg, id);
+    const base = S.base;
+    const tt = (fn) => (T) => fn(T >= EXIT_END ? 0 : T);
+    // v6e: the card is whole from the first frame (no fan-open, no collapse: copy audit, Railway Block 3); wave 2 and 3 sit below it
+    const C = ph ? { x: 12, y: 12, w: 302 } : { x: 95, y: 28, w: 440 };
+    const HC = 88, HE = ph ? 228 : 248;
+    const y2 = C.y + HE + (ph ? 40 : 56), y3 = y2 + 76 + (ph ? 36 : 48), h3 = ph ? 40 : 76;
+    const slot = (y, h) => (ph ? [{ x: 12, y, w: 145, h }, { x: 169, y, w: 145, h }] : [{ x: 95, y, w: 200, h }, { x: 335, y, w: 200, h }]);
+    const E2 = slot(y2, 76).map((e, i) => ({ ...e, n: ['eu-west-1', 'us-east-2'][i] }));
+    const E3 = slot(y3, h3).map((e, i) => ({ ...e, n: ['eu-central-1', 'ap-south-1'][i] }));
+    // ---- the places not reached yet: dashed slots; wave 2's leave just before their regions spring in
+    const ghost = (p, e, wave) => {
+      el('rect', { x: e.x + 0.5, y: e.y + 0.5, width: e.w - 1, height: e.h - 1, rx: 7.5, class: 'c-slot nsl', 'stroke-width': 1 }, p);
+      const ny = e.h < 60 ? e.y + e.h / 2 + 4.5 : e.y + 27;
+      KB.text(p, e.x + 12, ny, e.n, 'label').setAttribute('class', 'subtle');
+      KB.markOne(p, e.x + e.w - 20, ny - 4.5, 'wait');
+      if (e.h >= 60) KB.text(p, e.x + 12, e.y + 58.5, wave, 'meta').setAttribute('class', 'subtle');
+    };
+    E3.forEach((e) => ghost(base, e, 'wave 3'));
+    // wave 2 -> wave 3 wires (quiet)
+    E2.forEach((e, i) => KB.path(base, `M${e.x + e.w / 2} ${e.y + e.h}V${E3[i].y - 8}`, 'w-q', VG.chevronDown(e.x + e.w / 2, E3[i].y - 8)));
+    E2.forEach((e) => ghost(S.sprite({ x: e.x, y: e.y, w: e.w, h: e.h, track: tt((t) => ({ o: 1 - w(t, 3.40, 3.53, 'in') })) }).g, e, 'wave 2'));
+    // ---- the fork (drawn when wave 2 moves)
+    const fx = C.x + C.w / 2, fy = C.y + HE;
+    const fk = (t) => w(t, 3.27, 3.52);
+    const fork = KB.reveal(S, { x: C.x, y: fy, w: C.w, h: y2 - fy }, tt(fk), { axis: 'y' });
+    E2.forEach((e) => KB.path(fork.g, VG.elbowV(fx, fy, e.x + e.w / 2, e.y - 8, e.y - (ph ? 22 : 30)), 'w-lit', VG.chevronDown(e.x + e.w / 2, e.y - 8)));
+    // ---- wave 2 regions (spring out sideways from the fork, the outer one 80 ms later)
+    E2.forEach((e, i) => {
+      const a = 3.48 + i * 0.08, s = (t) => w(t, a, a + 0.27, 'spring');
+      const g = S.sprite({ x: e.x, y: e.y, w: e.w, h: e.h, origin: [e.x + e.w / 2, e.y], track: tt((t) => ({ o: w(t, a, a + 0.1, 'out'), x: (fx - (e.x + e.w / 2)) * (1 - s(t)), y: -40 * (1 - s(t)), s: 0.9 + 0.1 * s(t) })) });
+      KB.card(g.g, id, { ...e, r: 8 });
+      KB.text(g.g, e.x + 12, e.y + 27, e.n, 'label');
+      KB.chip(g.g, e.x + 12, e.y + 44, 'PROD', 'prod', { caps: true });
+      KB.text(g.g, e.x + 64, e.y + 58.5, 'deploying', 'meta');
+      // v6f (b-r5 fix 6): dark lifts this mark (kb.css .w2): the act tint disc on the page card was 1.07:1
+      g.div.classList.add('w2');
+      KB.mark(S, e.x + e.w - 20, e.y + 22, ['act'], () => ({ act: 1 }), { parent: g, loop: LOOP });
+    });
+    // ---- the wave 1 card (the thesis tile), whole from the first frame
+    KB.card(base, id, { ...C, h: HE, tone: 'fig' });
+    const body = { g: S.stat() };
+    const B = C.y + HC;
+    KB.divider(body.g, C.x, C.x + C.w, B - 1);
+    // the fanned-out content (inside the body's window)
+    const cx0 = C.x + (ph ? 16 : 20);
+    // v6d: a plain whole-value change in kit timing (owner ruling 2026-11-14: no rolling counters). The step's first half
+    // fades the old value out (lifting 3 px), the second half fades the new one in (settling from 3 px below); no clip, no roll.
+    const swap = (x, y, vals, idx, { parent = null, w: bw = 100 } = {}) => vals.forEach((v, j) => {
+      const sp = S.sprite({ x: x - 4, y: y - 26, w: bw + 8, h: 34, parent, track: (t) => { const d = j - idx(t); if (Math.abs(d) >= 0.5) return { o: 0 }; return { o: 1 - 2 * Math.abs(d), y: 6 * d }; } });
+      KB.text(sp.g, x, y, v, 'num');
+    });
+    swap(cx0, B + (ph ? 46 : 50), ['0%', '10%', '50%', '100%'], tt((t) => w(t, 0.3, 0.5) + w(t, 1.55, 1.75) + w(t, 1.95, 2.15)), { w: 100 });
+    KB.text(body.g, cx0, B + (ph ? 68 : 72), 'traffic', 'meta');
+    const PW = ph ? 30 : 46, PH = ph ? 22 : 26, PG = ph ? 6 : 8, px0 = C.x + C.w - (ph ? 16 : 20) - (5 * PW + 4 * PG), py0 = B + (ph ? 18 : 22);
+    // v6f (b-r5 fix 8): the first step (pod 1, 0 -> 10 %) starts at 0.3, 150 ms after the card's fade-in ends (was 0.65):
+    // the loop seam no longer holds ~1.1 s of nothing (exit ends 5.7, the card is back at 0.15 and moves at 0.3)
+    // the order pods turn over: 1 (10 %), then 4 (50 %), then 5 (100 %): column-major from the left
+    const order = [0, 5, 1, 6, 2, 7, 3, 8, 4, 9];
+    const stepAt = (k) => (k < 1 ? 0.3 : k < 5 ? 1.55 + (k - 1) * 0.04 : 1.95 + (k - 5) * 0.04);
+    for (let r = 0; r < 2; r++) for (let c = 0; c < 5; c++) {
+      const x = px0 + c * (PW + PG), y = py0 + r * (PH + PG), k = order.indexOf(r * 5 + c);
+      const turn = (t) => w(t, stepAt(k), stepAt(k) + 0.13), fresh = (t) => w(t, 2.35 + k * 0.025, 2.5 + k * 0.025);
+      const wts = { old: (t) => 1 - turn(t), act: (t) => turn(t) * (1 - fresh(t)), new: fresh };
+      for (const sname of ['old', 'act', 'new']) {
+        const sp = S.sprite({ x: x - 1, y: y - 1, w: PW + 2, h: PH + 2, track: tt((t) => ({ o: wts[sname](t) })) });
+        el('rect', { x: x + 0.5, y: y + 0.5, width: PW - 1, height: PH - 1, rx: 3, class: `pod-${sname} nsl`, 'stroke-width': 1 }, sp.g);
+      }
+    }
+    // the canary test, between 10 % and 50 %
+    const TY = B + (ph ? 100 : 112);
+    const run = (t) => w(t, 0.9, 1.05), pass = (t) => w(t, 1.3, 1.5);
+    KB.mark(S, cx0 + 6, TY, ['wait', 'prog', 'rest'], tt((t) => ({ wait: 1 - run(t), prog: run(t) * (1 - pass(t)), rest: pass(t) })), {});
+    KB.text(body.g, cx0 + 22, TY + 4.5, 'Canary test', 'label');
+    const rx = C.x + C.w - (ph ? 16 : 20);
+    KB.text(S.sprite({ x: rx - 80, y: TY - 10, w: 80, h: 20, track: tt((t) => ({ o: run(t) * (1 - pass(t)) })) }).g, rx, TY + 4.5, 'running', 'meta', 'end');
+    KB.text(S.sprite({ x: rx - 80, y: TY - 10, w: 80, h: 20, track: tt((t) => ({ o: pass(t) })) }).g, rx, TY + 4.5, 'passed', 'meta', 'end');
+    // deployed -> bake (the fill is the claim, 700 ms) -> baked
+    const KY = B + (ph ? 124 : 138);
+    const dep = (t) => w(t, 2.35, 2.55), bake = (t) => w(t, 2.45, 3.15, 'lin'), baked = (t) => w(t, 3.15, 3.35);
+    el('path', { d: `M${cx0} ${KY}H${rx}`, class: 't-rail nsl', 'stroke-width': 1 }, body.g);
+    const kb = { x: cx0 - 2, y: KY - 3, w: rx - cx0 + 4, h: 6 };
+    const fill = KB.reveal(S, kb, tt(bake));
+    for (const [cls, o] of [['t-prog', (t) => 1 - baked(t)], ['t-teal', baked]]) {
+      const sp = S.sprite({ ...kb, parent: fill, track: tt((t) => ({ o: o(t) })) });
+      el('path', { d: `M${cx0} ${KY}H${rx}`, class: cls, 'stroke-width': 2, 'stroke-linecap': 'round' }, sp.g);
+    }
+    // ---- the header (over the cap): payments-svc 3.1.0, wave 1, PROD us-east-1 and its state
+    const hd = S.stat();
+    KB.text(hd, C.x + 16, C.y + 29, 'payments-svc', 'title');
+    KB.chip(hd, C.x + 124, C.y + 14, '3.1.0', 'n', { mono: true });
+    KB.text(hd, C.x + C.w - 16, C.y + 28.5, 'wave 1', 'meta', 'end');
+    KB.divider(hd, C.x, C.x + C.w, C.y + 47);
+    KB.chip(hd, C.x + 16, C.y + 58, 'PROD', 'prod', { caps: true });
+    KB.text(hd, C.x + 66, C.y + 72.5, 'us-east-1', 'label');
+    const wv = { deploy: (t) => 1 - dep(t), check: (t) => dep(t) * (1 - baked(t)), done: baked };
+    KB.states(S, { x: C.x + C.w - 80, y: C.y + 16, w: 16, h: 16 }, ['deploy', 'check', 'done'], (k, g) => KB.waveOne(g, C.x + C.w - 72, C.y + 24, [[k, 0, 1]]), tt((t) => ({ deploy: wv.deploy(t), check: wv.check(t), done: wv.done(t) })));
+    KB.mark(S, C.x + C.w - 24, C.y + 68, ['act', 'prog', 'rest'], tt((t) => ({ act: 1 - dep(t), prog: dep(t) * (1 - baked(t)), rest: baked(t) })), { loop: LOOP });
+    const sx = C.x + C.w - 40;
+    [['deploying', 'meta', (t) => 1 - dep(t)], ['baking', 'meta', (t) => dep(t) * (1 - baked(t))], ['baked', 'teal', baked]].forEach(([s, k, o]) => {
+      const sp = S.sprite({ x: sx - 80, y: C.y + 58, w: 80, h: 20, track: tt((t) => ({ o: o(t) })) });
+      const n = KB.text(sp.g, sx, C.y + 72.5, s, 'meta', 'end'); if (k === 'teal') n.setAttribute('class', 'teal-ink');
+    });
+    // v6g (climax audit): the baked beat. The bar closes teal and, on the same beat, the wave 1 card's edge lights teal
+    // (130 ms in, 300 ms out); the fork lights down out of the card (250 ms) and wave 2 springs in at its ends: the next
+    // region starts BECAUSE this one baked, with no dead air between them (v6f: 0.27 s of nothing)
+    const edge = S.sprite({ x: C.x - 2, y: C.y - 2, w: C.w + 4, h: HE + 4, track: tt((t) => ({ o: w(t, 3.15, 3.28, 'out') * (1 - w(t, 3.4, 3.7, 'in')) })) });
+    el('rect', { x: C.x + 0.5, y: C.y + 0.5, width: C.w - 1, height: HE - 1, rx: 11.5, class: 'ln-teal nsl', 'stroke-width': 1.5 }, edge.g);
+    return S.finish(KB.inoutTrack(EXIT, EXIT_END));
+  }
+});

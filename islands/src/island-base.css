@@ -19,11 +19,3 @@
 :host([data-island="hero"]), :host([data-island="health"]) { contain: layout style; }
 /* the story windows are fixed-height frames: the island fills its host so the frame (not its content) decides the height */
 :host([data-island="hero"]) .k-island, :host([data-island="health"]) .k-island { height: 100%; }
-/* SECTION ISLANDS (islands/sections/section.ts): the host's box is reserved by the page (CSS per breakpoint); the frame fills it and clips the product's
-   canvas to the framed element. The stage is where the live render lays out, unseen. */
-:host([data-section]) { position: relative; contain: strict; }
-:host([data-section]) .k-island { position: absolute; inset: 0; }
-.sec-frame { position: absolute; inset: 0; overflow: hidden; }
-.sec-still { position: absolute; left: 0; top: 0; will-change: opacity; }
-.sec-stage { position: absolute; left: 0; top: 0; visibility: hidden; pointer-events: none; }
-.sec-canvas { container-type: inline-size; container-name: kc; background: var(--k-ground); }

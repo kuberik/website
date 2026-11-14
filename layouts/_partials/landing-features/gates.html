@@ -1,6 +1,0 @@
-{{- /* gates: a SECTION ISLAND (islands/src/islands/sections/gates.ts), the product's own Gates card (the rollout Gates tab) for checkout-api in prod us-east-1: staging's promotion passed, Business hours open, payments-svc still baking the 3.1.0 that release 4.46.0-46 requires, so it holds the release.
-       The island IS the product Card, header included (DIRECTION.md §3): the landing draws no header or shell here (the card shell around it is the
-       page's, features.html). Nothing inside is drawn by the landing: the poster is the island's own frame, re-shot by
-       islands/scripts/section/capture-section-posters.mjs. The host reserves the product's natural height per width (data/section_poster.yaml `h`);
-       the page's CSS may set its window height over it, and data-align-x / data-align-y / data-pad ("attrs") re-place the frame in it. */ -}}
-{{ partial "section-island.html" (dict "name" "gates-card" "class" "fv-sec") }}

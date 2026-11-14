@@ -1,1 +1,0 @@
-function r(e){const a=e.searchParams.get("scenario")?.replace(/^home-/,"");return a==="incident"||a==="calm"||a==="quiet"?a:e.searchParams.get("quiet")==="1"?"quiet":e.searchParams.get("calm")==="1"?"calm":null}const n=e=>r(e)??"incident";export{n as s};
