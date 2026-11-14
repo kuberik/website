@@ -12,16 +12,7 @@ tabs:
 
 Deploy `hello-world` with Kuberik. At the end, every build your CI publishes is picked up by a `ReleaseSource` and deployed by a `Rollout` through Flux.
 
-Before you start, you need a cluster with [Flux](https://fluxcd.io) and [Kuberik](/docs/installation/helm/) installed (the Helm chart includes the release-controller that serves `ReleaseSource`), and a GitHub repository, here `acme/hello-world`, whose CI can push to `ghcr.io/acme/hello-world`.
-
-Kuberik moves one of two things through your environments:
-
-| Mode | What Kuberik moves | Where your manifests come from |
-|------|--------------------|--------------------------------|
-| Image tag | The application image tag, written into a Flux `Kustomization` as a substitution variable | A Flux `GitRepository` |
-| Rendered manifests | The tag on a Flux `OCIRepository` holding the manifests CI already rendered | An `OCIRepository`, one artifact per environment |
-
-Pick a mode in the tabs below and it carries through the page. Both modes use the same `Rollout`. See [Propagation Modes](/docs/concepts/propagation/) for how to choose.
+Before you start, you need a cluster with [Flux](https://fluxcd.io) 2.6 or later and [Kuberik](/docs/installation/helm/) installed, and a GitHub repository, here `acme/hello-world`, whose CI can push to `ghcr.io/acme/hello-world`. `ReleaseSource` is served by the release-controller, which the Helm chart installs from the next chart release. Pick Image tag or Rendered manifests in the tabs below; [Propagation Modes](/docs/concepts/propagation/) explains the difference.
 
 {{% steps %}}
 
@@ -51,7 +42,7 @@ A [`ReleaseSource`](/docs/concepts/architecture/) lists the tags of an OCI repos
     oci:
       image: ghcr.io/acme/hello-world
       filterTags:
-        pattern: '^main-[a-f0-9]+-(?P<ts>[0-9]+)'
+        pattern: '^main-[a-f0-9]+-(?P<ts>[0-9]+)$'
         extract: '$ts'
       policy:
         numerical:
@@ -72,7 +63,7 @@ A [`ReleaseSource`](/docs/concepts/architecture/) lists the tags of an OCI repos
     oci:
       image: ghcr.io/acme/hello-world/production/manifests
       filterTags:
-        pattern: '^main-[a-f0-9]+-(?P<ts>[0-9]+)'
+        pattern: '^main-[a-f0-9]+-(?P<ts>[0-9]+)$'
         extract: '$ts'
       policy:
         numerical:
@@ -89,9 +80,21 @@ For a private registry, add `secretRef` under `oci` with the name of an image pu
 
 ### Create the Rollout
 
-The [`Rollout`](/docs/concepts/rollouts/) reads releases from the `ReleaseSource` and decides which one to deploy. It is the same in both modes.
+The [`Rollout`](/docs/concepts/rollouts/) reads releases from the `ReleaseSource` and decides which one to deploy. The `HealthCheck` follows the Flux Kustomization you create in the next step, and the Rollout selects it, so a deploy succeeds only after Flux has applied it and it stayed healthy for the bake time. Both resources are identical in the two modes.
 
 ```yaml {filename="rollout.yaml"}
+apiVersion: kuberik.com/v1alpha1
+kind: HealthCheck
+metadata:
+  name: hello-world
+  namespace: hello-world
+  labels:
+    app: hello-world
+  annotations:
+    healthcheck.kuberik.com/kustomization: "hello-world"
+spec:
+  class: kustomization
+---
 apiVersion: kuberik.com/v1alpha1
 kind: Rollout
 metadata:
@@ -100,7 +103,14 @@ metadata:
 spec:
   releaseSourceRef:
     name: hello-world
+  bakeTime: 5m  # healthy this long before the deploy succeeds
+  healthCheckSelector:
+    selector:
+      matchLabels:
+        app: hello-world
 ```
+
+Without a health check, a deploy succeeds as soon as Kuberik writes the tag, before Flux applies anything. See [Verify with Health Checks](/docs/gates/health-checks/) for the other checks.
 
 ```bash {filename="Terminal"}
 kubectl apply -f rollout.yaml
@@ -216,10 +226,10 @@ kubectl get releasesource -n hello-world hello-world
 
 ```text {filename="Output"}
 NAME          NEWEST                    COUNT   READY   AGE
-hello-world   main-3f9c2ab-1763049600   1       True    2m
+hello-world   main-3f9c2ab-1794583200   1       True    2m
 ```
 
-The Rollout records each deploy in `status.history`, newest first. `Deploying` means Kuberik wrote the tag and waits for health checks; `InProgress` means bake time is running; `Succeeded` means the release is live and verified.
+The Rollout records each deploy in `status.history`, newest first. `Deploying` means Kuberik wrote the tag and waits for the health check to report healthy; `InProgress` means bake time is running; `Succeeded` means the check stayed healthy for the whole bake time. This first deploy skipped gates: a new Rollout always deploys its first release, and gates apply from the second deploy on.
 
 ```bash {filename="Terminal"}
 kubectl get rollout -n hello-world hello-world \
@@ -228,7 +238,7 @@ kubectl get rollout -n hello-world hello-world \
 
 ```text {filename="Output"}
 VERSION                   BAKE        MESSAGE
-main-3f9c2ab-1763049600   Succeeded   Automatic deployment
+main-3f9c2ab-1794583200   Succeeded   Automatic deployment
 ```
 
 The dashboard shows the same rollout: the running build, the pipeline it moved through, and its health checks.

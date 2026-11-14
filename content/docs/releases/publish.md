@@ -253,7 +253,7 @@ kubectl get releasesource -n hello-world hello-world -o jsonpath='{.status.newes
 ```
 
 ```json {filename="Output"}
-{"created":"2026-11-13T15:20:00Z","revision":"3f9c2ab0d1e84b6f9a7c5e2d4b1a8f6c3e9d0b7a","tag":"main-3f9c2ab-1763047200"}
+{"created":"2026-11-13T15:20:00Z","revision":"3f9c2ab0d1e84b6f9a7c5e2d4b1a8f6c3e9d0b7a","tag":"main-3f9c2ab-1794583200"}
 ```
 
 If the tag is missing, compare it with `filterTags.pattern`: tags that do not match are not releases. If `revision` is missing, the annotations were written to the per-platform manifests instead of the image index.
