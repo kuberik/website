@@ -105,6 +105,7 @@ The controller reports the gate decision as conditions on the Environment, with 
 | `WaveReady=False` | `WaitingForCandidate`, `CandidatesUnresolved` | The revision has no release tag, or the release catalogue cannot be read. |
 | `WaveReady=False` | `Pinned`, `LockstepWaiting` | A follower's Rollout is pinned to another release than the wave's pick, or lockstep holds the leader. |
 | `WaveReady=False` | `DuplicateSite`, `InvalidTopology`, `UnknownTier` | The setup is wrong; the gate allows nothing. |
+| `LockstepConsistent=False` | `LockstepMismatch` | A site's `lockstep` differs from the wave-1 leader's. Informational: the gate is unchanged. |
 | `Deprecated=True` | `RelationshipIgnored` | `spec.relationship` is set and ignored. |
 
 ## When a site leaves
