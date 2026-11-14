@@ -2,7 +2,7 @@
 title: "Datadog"
 description: "Fail a deploy when a Datadog monitor alerts, and hold deploys while a Datadog incident is open."
 type_: integration
-weight: 30
+weight: 3
 ---
 
 Kuberik reads Datadog monitors and incidents as health checks. A monitor that alerts after a deploy fails that deploy, and an open incident holds new deploys until it is resolved.

@@ -3,7 +3,7 @@ title: "Roll Out with a Canary"
 linkTitle: "Canary Rollouts"
 description: "Shift traffic to a new version in steps, with a bake time and a test Job holding each step."
 type_: guide
-weight: 40
+weight: 4
 ---
 
 Move traffic to a new version in steps, and let each step continue only after it has stayed ready for a bake time and its tests have passed. Use it for user-facing services where problems show only under real traffic.

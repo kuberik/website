@@ -3,7 +3,7 @@ title: "Verify with Health Checks"
 linkTitle: "Health Checks"
 description: "Fail a deploy when the new version turns unhealthy, and hold new deploys while a health check is failing."
 type_: guide
-weight: 10
+weight: 1
 ---
 
 A Rollout with health checks marks a deploy succeeded only after its checks stay healthy for the bake time, and fails it when a check turns unhealthy. While a check is unhealthy, new automatic deploys wait.

@@ -2,7 +2,7 @@
 title: "Flux"
 description: "Let Kuberik choose the version Flux applies, through a Kustomization substitute or an OCIRepository tag, and gate deploys on Kustomization health."
 type_: integration
-weight: 10
+weight: 1
 ---
 
 Flux applies your manifests and Kuberik decides which version it applies. A [`Rollout`](/docs/concepts/rollouts/) writes the chosen version into a Flux `Kustomization` or `OCIRepository`, and reads the Kustomization's health back to decide whether the deploy succeeded.
