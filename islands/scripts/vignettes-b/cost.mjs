@@ -21,6 +21,7 @@ async function page(theme, frozen, vh = 900, q = '', vw = 1440) {
 	if (!process.env.ISLANDS) await ctx.route(/\/islands\/.*\.js(\?.*)?$/, (r) => r.abort());
 	const p = await ctx.newPage(), s = await ctx.newCDPSession(p);
 	await p.goto(URL + (frozen ? '?vg-t=0' : '?x=1') + q + (process.env.VGQ ?? ''), { waitUntil: 'load' }); // VGQ: extra player params, e.g. &vg-fps=30
+	if (frozen) await p.evaluate(() => dispatchEvent(new CustomEvent('vg-play', { detail: true }))); // the baseline holds the nav logo's SMIL spin like the live page does while a card plays, so the delta is the vignettes' work alone
 	if (process.env.CSS) await p.addStyleTag({ content: process.env.CSS }); // experiments: extra page CSS
 	return { ctx, p, s };
 }
