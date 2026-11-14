@@ -167,7 +167,7 @@ groups:
           severity: warning
         annotations:
           summary: "Rollout {{ $labels.namespace }}/{{ $labels.name }} failed its bake"
-          description: "A health check reported an error after the deploy. Automatic deploys of this Rollout are stopped."
+          description: "A health check reported an error, or deployTimeout passed before the bake started. Automatic deploys of this Rollout are stopped."
       - alert: RolloutDeployStuck
         expr: |
           kuberik_rollout_bake_status{bake_status="Deploying"} == 1
