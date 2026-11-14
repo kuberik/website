@@ -112,6 +112,27 @@ A brand-new Rollout deploys its first release without waiting: gates, approval g
 
 A deploy by hand also skips the gate. Pinning a version with `spec.wantedVersion`, or **Change version** in the dashboard, deploys the build without an approval. `rollout.kuberik.com/bypass-gates` lets one build past every gate, and that deploy records no approval. [Operate a Rollout by Hand](/docs/operate/manual-actions/) covers all three.
 
+## Use a hand-written gate on v0.11.0
+
+rollout-controller v0.11.0 has no approval kinds. There, write a `RolloutGate` that allows nothing and add each approved version to its list. Newer controllers still honour such a gate, and `hack/migrate-approval-gates.sh` in the rollout-controller repository turns its versions into `RolloutApproval` objects when you upgrade.
+
+```yaml {filename="gate.yaml"}
+apiVersion: kuberik.com/v1alpha1
+kind: RolloutGate
+metadata:
+  name: production-approval
+  namespace: hello-world
+spec:
+  rolloutRef:
+    name: hello-world
+  allowedVersions: []  # holds every build until you add one
+```
+
+```bash {filename="Terminal"}
+kubectl -n hello-world patch rolloutgate production-approval --type=json \
+  -p='[{"op": "add", "path": "/spec/allowedVersions/-", "value": "v1.4.0"}]'
+```
+
 ## Check the result
 
 The policy lists the Rollouts it matched, and its `Ready` condition reads `True` with reason `GatesSynced`:
@@ -167,27 +188,6 @@ kubectl -n hello-world auth can-i create rolloutapprovals.kuberik.com
 ```
 
 If it answers `no`, ask an admin to bind `kuberik-rollout-approver` to you, as in [Choose who may approve](#choose-who-may-approve).
-
-## Use a hand-written gate on v0.11.0
-
-rollout-controller v0.11.0 has no approval kinds. There, write a `RolloutGate` that allows nothing and add each approved version to its list. Newer controllers still honour such a gate, and `hack/migrate-approval-gates.sh` in the rollout-controller repository turns its versions into `RolloutApproval` objects when you upgrade.
-
-```yaml {filename="gate.yaml"}
-apiVersion: kuberik.com/v1alpha1
-kind: RolloutGate
-metadata:
-  name: production-approval
-  namespace: hello-world
-spec:
-  rolloutRef:
-    name: hello-world
-  allowedVersions: []  # holds every build until you add one
-```
-
-```bash {filename="Terminal"}
-kubectl -n hello-world patch rolloutgate production-approval --type=json \
-  -p='[{"op": "add", "path": "/spec/allowedVersions/-", "value": "v1.4.0"}]'
-```
 
 ## Next steps
 
