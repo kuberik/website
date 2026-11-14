@@ -17,7 +17,7 @@ Kuberik is a set of controllers that decide which build of your app runs in each
 |-----------|---------|
 | [**Rollout**](/docs/concepts/rollouts/) | The core state machine. Reads the releases a `ReleaseSource` discovers and orchestrates releases. Drives either a `Kustomization` substitution or an `OCIRepository` tag. |
 | **ReleaseSource** | Lists the tags of an OCI repository, orders them by a policy and keeps the catalogue of releases (served by the release-controller). A Rollout points at one with `spec.releaseSourceRef`. |
-| [**Environment**](/docs/concepts/environments/) | Maps a Rollout to a logical target (e.g. "production") and syncs status to external backends (GitHub). |
+| [**Environment**](/docs/concepts/environments/) | Places a Rollout in an environment tier (e.g. "production"), records each deploy as a GitHub deployment, and writes a `RolloutGate` that admits only the releases the upstream tier baked. |
 | [**HealthCheck**](/docs/gates/health-checks/) | Reports health from a Flux `Kustomization` or from an integration (Datadog monitors, Prometheus alerts). The Rollout reads it before and during the bake. |
 | [**RolloutGate**](/docs/concepts/gates/) | Holds builds until it allows them: written by hand, or by schedules, approval policies, service dependencies and Environments. |
 
