@@ -63,6 +63,8 @@ The controller creates a [RolloutGate](/docs/reference/api/) named `ghd-<random>
 - With an upstream, the gate allows the releases that every registered site of the upstream's last wave baked successfully.
 - When nothing qualifies, the gate allows nothing (`allowedVersions: []`) and the Rollout stays on its current release.
 
+A Rollout's first deploy ignores gates: with an empty history it deploys the newest release even when the gate allows nothing. Pin a new Rollout (`spec.wantedVersion`) to a release the upstream baked, or create it after the upstream has one.
+
 GitHub records Git revisions, and the gate lists release tags. The controller maps one to the other through the release catalogue of the Rollout's [ReleaseSource](/docs/guides/publishing-releases/), so the Rollout must take its releases from a ReleaseSource, and each release must carry the commit it was built from. A revision with no matching tag is left out.
 
 Pinning the Rollout (`spec.wantedVersion`) overrides the wave's choice and the Environment reports `Pinned`. Deleting the Environment deletes its gate, which leaves the Rollout ungated: pin the Rollout first if it must not move.
