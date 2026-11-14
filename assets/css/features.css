@@ -1,30 +1,28 @@
-/* ===== FEATURES (landing v6, lane B). DIRECTION 1.4 / 2 / 3, row plan re-made against the islands' real heights. =====
+/* ===== FEATURES (landing v6). DIRECTION 1.4 / 2 / 3; the canvases hold the take B v6h feature vignettes. =====
 
-   ROW PLAN (>= 1200; island = the real product Card at natural scale, never cropped or scaled)
-     Row 1  Gates, the full row. Copy in a left column (32%, 360-440), the canvas beside it. The canvas gives the island
-            >= 644 px, the width at which the product's Gates card draws its two-column #145 graph (454 tall at 644-724,
-            438 at 767, 460 at 1047). A 7-span (island 627) would show the stacked list (676), so Gates gets the row.
-            Linear's alternating wide row (ref3), Stripe's copy-in-card (ref1).
-     Row 2  Canary 7, spanning two sub-rows | Health 5 over GitOps 5. Canary's Progress card is ~669 tall at 627 (641 from a
-            634 island, where its release line is one row; dashboard b4d94a20); Health (~231) + GitOps (~141) + their copy + one
-            gap come to within ~100 px of it, so no canvas is mostly empty.
-     Row 3  Dashboard 7 | Releases 5. Change History ~373 beside Builds (483 below a 482 island, 413 at 482-561, 369 from
-            562; dashboard b4d94a20): from 1200 Builds is 369 at its 7-span (below); 1024-1199 at 6 | 6 puts ~110 px of tinted ground
-            under History, inside the 140 px budget.
-   Every card spans a copy track and a canvas track of the parent grid (subgrid), so the canvases in a row start at one y
-   and end at one y; the shorter island stays top-anchored on its tinted dot ground (designed space, as on Stripe).
-   Canvas hues (lagoon / mint, data/landing.yaml): Gates L; Canary M, Health M, GitOps L; Dashboard L, Releases M. A full
-   row over a stacked pair makes a three-way meeting that two hues cannot checker; the one same-hue neighbour is
-   Canary | Health, chosen because it keeps Gates, GitOps and row 3 all alternating.
-   >= 2400 (container 1920): Canary 5 | the stacked pair 7, then Dashboard 7 | Releases 5. Any Canary island wider than
-            767 (a 6- or 7-span here) turns the Progress card into its wide form (~255-311 tall), which leaves ~400 px of
-            empty canvas beside the pair; a 5-span keeps it at 724, its 641 form. Row 3 turns to Dashboard 5 | Releases 7
-            (373 beside 369): at a 1047 island the History card grows the change page's side rail, which the frame clips.
-   1024-1199: the same plan at 6 | 6, Gates copy above its canvas (island = container - 66, graph from 710).
-   641-1023: one column, copy over canvas; Gates graph from an 854 viewport, its own stacked list below that.
-   <= 640: the cards drop their shell; copy sits on the stage, canvas radius 12, padding 12 (island 326), 56 between.
-   Heights are never written here: each island host reserves its own height per width (data/section_poster.yaml,
-   under :where()), so the poster, the live frame and the row heights are known before JS. CLS 0. */
+   Each card = a copy track + a canvas track of the parent grid (subgrid), so the canvases in a row start and end at one y.
+   The canvas centres its vignette. A vignette is never drawn wider than 1.15x its design box (--vg-w on the host,
+   assets/css/vignettes.css): Gates 780 (897 max), Canary and Releases 630 (725), Health, GitOps, Dashboard 430 (495).
+   Design heights at 1.0: Gates 380, Canary 560, Releases 330, Dashboard 330, Health 300, GitOps 280. The plan pairs by height.
+
+   >= 1440 (container 1200; 24 columns so Canary can take 15 / 9, the split that keeps its canvas within ~90 px of the pair's):
+     Row 1  Gates, the full row: copy in a left column (30%, 360-440), the canvas beside it (Linear's split row, Stripe's copy-in-card).
+     Row 2  Canary 15 | Health 9 over GitOps 9. Canary is 560 tall and Health + GitOps are 300 + 280, so the pair stands in a
+            canvas as tall as Canary's: Canary draws at 1.08, the pair at 0.87. A 14/10 split (Canary 1.0, pair 0.99) left
+            ~170 px of empty ground above and below Canary; 16/8 (pair 0.75) made the pair's text 9 px.
+     Row 3  Dashboard 10 | Releases 14 (5 | 7): both ~330 tall at ~1.0.
+   >= 1920 (container 1440): Canary 16 | pair 8 (Canary 1.15, pair 0.94).
+   >= 2400 (container 1920): Gates, Canary and Releases are full split rows (copy column 40%), Health | GitOps | Dashboard three across.
+            Stood against the stacked pair, Canary's canvas would be 300 px shorter than the pair's (hosts stop at 1.15);
+            every host is capped at 1.15 and centred, and no column is alone.
+   1024-1439: Gates and Canary are each a full row, copy left and canvas right (Canary's 560 canvas beside its copy, so no
+            pair of unequal heights has to be stood against it), then Health | GitOps (6 | 6) and Dashboard | Releases (6 | 6).
+            Below 1200 the copy column narrows to 300 px.
+   641-1023: one column, copy over canvas.
+   <= 640: the cards drop their shell; copy sits on the stage, canvas radius 12, padding 12 (the phone composition is 326
+            wide: one object, big), 56 between cards.
+   Canvas hues (data/landing.yaml): Gates L; Canary M, Health M, GitOps L; Dashboard L, Releases M.
+   Every host reserves its box from its aspect ratio (--vg-ar, --vg-ar-m): CLS 0 before JS and before the live build. */
 
 #features{
   --fx-ink-mint:oklch(.5 .09 182);--fx-ink-lagoon:oklch(.5 .075 206);
@@ -58,11 +56,8 @@ html.dark .fx-stage .b2{background:radial-gradient(closest-side,oklch(.4 .07 182
 .fx-canvas{flex:1;position:relative;margin:0 var(--canvas-m) var(--canvas-m);padding:var(--canvas-pad);border-radius:8px;min-width:0;
   background-color:var(--canvas-lagoon);background-image:radial-gradient(circle,var(--fx-dot) 1px,transparent 1.2px);background-size:20px 20px;background-position:-9px -9px}
 .fx-mint .fx-canvas{background-color:var(--canvas-mint)}
-/* the product Card floats on the canvas the way it sits on the dashboard's ground */
-.fx-canvas > *{position:relative}
-/* Stripe's float (ref1): the product Card lifts off its tinted ground with a soft drop, the dashboard dialog shadow at low strength */
-.fx-canvas .sec-host{border-radius:8px;box-shadow:0 1px 2px oklch(.195 .014 222/.06),0 16px 36px -14px oklch(.3 .05 206/.28)}
-html.dark .fx-canvas .sec-host{box-shadow:0 16px 40px -14px oklch(0 0 0/.6)}
+/* the vignette sits centred on its canvas; its host is capped at 1.15x its design width (assets/css/vignettes.css) */
+.fx-vg{display:flex;align-items:center;justify-content:center}
 /* rows of the reveal stagger: 60 ms per card (DIRECTION 5) */
 html.js .fx .reveal:nth-child(2n){transition-delay:60ms}
 html.js .fx .reveal:nth-child(4){transition-delay:120ms}
@@ -74,38 +69,52 @@ html.js .fx .reveal:nth-child(4){transition-delay:120ms}
 
 /* ---- >= 1024: the bento. Each card = a copy track + a canvas track (subgrid), so a row's canvases share top and bottom. ---- */
 @media(min-width:1024px){
-  .fx{grid-template-columns:repeat(12,minmax(0,1fr));grid-template-rows:repeat(2,auto) repeat(6,auto);row-gap:0;column-gap:var(--fx-gap)}
+  .fx{grid-template-columns:repeat(12,minmax(0,1fr));grid-template-rows:repeat(2,auto) repeat(2,auto) repeat(2,auto) repeat(2,auto);row-gap:0;column-gap:var(--fx-gap)}
   .fx-card{display:grid;grid-template-rows:subgrid;row-gap:0;margin-bottom:var(--fx-gap)}
   .fx-card > .fx-copy{grid-row:1}
   .fx-card > .fx-canvas{grid-row:2 / -1;align-self:stretch}
   .fx-gates{grid-column:1 / -1;grid-row:1 / span 2}
-  .fx-canary{grid-column:1 / span 6;grid-row:3 / span 4}
-  .fx-health{grid-column:7 / -1;grid-row:3 / span 2}
+  .fx-canary{grid-column:1 / -1;grid-row:3 / span 2}
+  .fx-health{grid-column:1 / span 6;grid-row:5 / span 2}
   .fx-gitops{grid-column:7 / -1;grid-row:5 / span 2}
-  .fx-dashboard{grid-column:1 / span 6;grid-row:7 / span 2}
-  .fx-releases{grid-column:7 / -1;grid-row:7 / span 2}
+  .fx-dashboard{grid-column:1 / span 5;grid-row:7 / span 2}
+  .fx-releases{grid-column:6 / -1;grid-row:7 / span 2}
   .fx-releases,.fx-dashboard{margin-bottom:0}
-  /* the copy -> canvas gap is the copy block's own 24 px; the stacked pair's canvases end a gap above their neighbour's copy */
-}
-@media(min-width:1200px){
-  .fx-canary{grid-column:1 / span 7}
-  .fx-health,.fx-gitops{grid-column:8 / -1}
-  /* row 3 flips to Dashboard 5 | Releases 7: History is 373 tall at every width, Builds is 369 from an island of 562 up,
-     so the pair matches (AD r2: a 7-wide Dashboard beside a 463-tall 5-wide Releases left ~115 px of dead canvas) */
-  .fx-dashboard{grid-column:1 / span 5}
-  .fx-releases{grid-column:6 / -1}
-  /* Gates: copy in a left column, canvas beside it, the copy centred on the graph (Linear's split row) */
-  .fx-gates{grid-template-rows:none;grid-template-columns:clamp(360px,30%,440px) minmax(0,1fr);align-items:stretch}
-  .fx-gates > .fx-copy{grid-row:1;grid-column:1;align-self:start;padding:var(--card-pad) 32px var(--card-pad) var(--card-pad)}
-  .fx-gates > .fx-canvas{grid-row:1;grid-column:2;margin:var(--canvas-m) var(--canvas-m) var(--canvas-m) 0}
+  /* Gates and Canary: copy in a left column, the canvas beside it */
+  .fx-gates,.fx-canary{grid-template-rows:none;grid-template-columns:clamp(300px,30%,440px) minmax(0,1fr);align-items:stretch}
+  .fx-gates > .fx-copy,.fx-canary > .fx-copy{grid-row:1;grid-column:1;align-self:start;padding:var(--card-pad) 32px var(--card-pad) var(--card-pad)}
+  .fx-gates > .fx-canvas,.fx-canary > .fx-canvas{grid-row:1;grid-column:2;margin:var(--canvas-m) var(--canvas-m) var(--canvas-m) 0}
   .fx-gates .fx-title{font-size:calc(var(--t-card-title-s) + 4px);line-height:calc(var(--t-card-title-l) + 4px)}
 }
-
+@media(min-width:1440px){
+  .fx{grid-template-columns:repeat(24,minmax(0,1fr));grid-template-rows:repeat(2,auto) repeat(4,auto)}
+  .fx-gates{grid-row:1 / span 2}
+  .fx-canary{grid-column:1 / span 15;grid-row:3 / span 4;grid-template-rows:subgrid;grid-template-columns:none}
+  .fx-canary > .fx-copy{grid-row:1;grid-column:auto;align-self:auto;padding:var(--card-pad) var(--card-pad) 24px}
+  .fx-canary > .fx-canvas{grid-row:2 / -1;grid-column:auto;margin:0 var(--canvas-m) var(--canvas-m)}
+  .fx-health{grid-column:16 / -1;grid-row:3 / span 2}
+  .fx-gitops{grid-column:16 / -1;grid-row:5 / span 2}
+  .fx-dashboard{grid-column:1 / span 10;grid-row:7 / span 2}
+  .fx-releases{grid-column:11 / -1;grid-row:7 / span 2}
+}
+@media(min-width:1920px){
+  .fx-canary{grid-column:1 / span 16}
+  .fx-health,.fx-gitops{grid-column:17 / -1}
+}
 @media(min-width:2400px){
-  .fx-canary{grid-column:1 / span 5}
-  .fx-health,.fx-gitops{grid-column:6 / -1}
-  .fx-dashboard{grid-column:1 / span 5}
-  .fx-releases{grid-column:6 / -1}
+  /* Canary stood against the stacked pair is 300 px shorter than the pair here (hosts stop at 1.15), so: Canary a full split
+     row, Health | GitOps | Dashboard three across (each host at its 1.15 cap in ~556 px), Releases a full split row */
+  .fx{grid-template-rows:repeat(8,auto)}
+  .fx-canary{grid-column:1 / -1;grid-row:3 / span 2;grid-template-rows:none;grid-template-columns:40% minmax(0,1fr)}
+  .fx-canary > .fx-copy{grid-row:1;grid-column:1;align-self:start;padding:var(--card-pad) 32px var(--card-pad) var(--card-pad)}
+  .fx-canary > .fx-canvas{grid-row:1;grid-column:2;margin:var(--canvas-m) var(--canvas-m) var(--canvas-m) 0}
+  .fx-health{grid-column:1 / span 8;grid-row:5 / span 2}
+  .fx-gitops{grid-column:9 / span 8;grid-row:5 / span 2}
+  .fx-dashboard{grid-column:17 / -1;grid-row:5 / span 2;margin-bottom:var(--fx-gap)}
+  .fx-releases{grid-column:1 / -1;grid-row:7 / span 2;grid-template-rows:none;grid-template-columns:40% minmax(0,1fr);align-items:stretch}
+  .fx-releases > .fx-copy{grid-row:1;grid-column:1;align-self:start;padding:var(--card-pad) 32px var(--card-pad) var(--card-pad)}
+  .fx-releases > .fx-canvas{grid-row:1;grid-column:2;margin:var(--canvas-m) var(--canvas-m) var(--canvas-m) 0}
+  .fx-gates{grid-template-columns:40% minmax(0,1fr)}
 }
 
 /* ---- <= 640: no card shell; copy on the stage, then its canvas ---- */
