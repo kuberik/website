@@ -9,7 +9,7 @@
   {{- $eyebrow = cond (eq $section.RelPermalink "/docs/") "Docs" $section.LinkTitle -}}
   {{- $eyebrowURL = $section.RelPermalink -}}
 {{- end -}}
-<div class="kd-shell">
+<div class="kd-wash"><div class="kd-shell">
   {{ partial "sidebar.html" (dict "context" .) }}
   {{ partial "toc.html" . }}
   <article class="kd-article">
@@ -22,4 +22,5 @@
       {{ partial "components/pager.html" . }}
     </main>
   </article>
+</div>
 </div>
