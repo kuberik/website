@@ -20,7 +20,7 @@
 {{- end }}
 [data-island="{{ $n }}"] .ph-poster{position:absolute;inset:0;z-index:1;background-repeat:no-repeat;background-size:auto;background-position:left top;transition:opacity .2s ease-out;pointer-events:none}
 {{- range $i, $w := .w }}
-{{ if $i }}@container (min-width:{{ sub $w 0.5 }}px){ {{ end }}html:not(.dark) [data-island="{{ $n }}"] .ph-poster{background-image:url({{ $p }}s-{{ $n }}-{{ $w }}-light.webp?v={{ $d.v }})}html.dark [data-island="{{ $n }}"] .ph-poster{background-image:url({{ $p }}s-{{ $n }}-{{ $w }}-dark.webp?v={{ $d.v }})}{{ if $i }}}{{ end }}
+{{ if $i }}@container (min-width:{{ sub $w 0.5 }}px){ {{ end }}{{ printf `html:not(.dark) [data-island="%s"] .ph-poster{background-image:url(%ss-%s-%v-light.webp?v=%v)}html.dark [data-island="%s"] .ph-poster{background-image:url(%ss-%s-%v-dark.webp?v=%v)}` $n $p $n $w $d.v $n $p $n $w $d.v | safeCSS }}{{ if $i }}}{{ end }}
 {{- end }}
 </style>
 {{- end }}
