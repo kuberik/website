@@ -10,7 +10,7 @@ Export every Rollout's latest deploy, bake state and gate state as Prometheus me
 
 The dashboard reads the same fields: its Activity page is the deploy feed across every cluster, and each rollout page shows the bake and health-check state these metrics export.
 
-![The Activity page: every deployment across clusters, grouped by day, with failures called out](/screenshots/dashboard/activity.png)
+![The Activity page: no failed deploys, 99 deploys in seven days, the median time to production and a chart of deploys per day](/images/docs/operate/monitoring-activity.png)
 
 ## Export Rollout status with kube-state-metrics
 

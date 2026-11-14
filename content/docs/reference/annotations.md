@@ -155,7 +155,7 @@ metadata:
     gate.kuberik.com/description: "Explanation for operators"
 ```
 
-![How the dashboard shows them: the pretty name and description of each gate holding a build](/screenshots/dashboard/held-approval.png)
+![The Holding card on the app page: the gates holding builds by their pretty names, Business Hours Only and Manual Approval Required, each with what releases it](/images/docs/reference/annotations-holding.png)
 
 ---
 

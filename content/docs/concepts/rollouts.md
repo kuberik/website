@@ -45,7 +45,7 @@ spec:
 
 ## Rollout status
 
-![Rollout history in the dashboard: each deployment with the commits it shipped, who triggered it and how long it took](/screenshots/dashboard/history.png)
+![The History tab of a staging rollout: each deploy grouped by day, with its build, when it turned healthy and how long ago it ran](/images/docs/concepts/rollouts-history.png)
 
 ```bash {filename="Terminal"}
 kubectl -n hello-world get rollout hello-world -o yaml
