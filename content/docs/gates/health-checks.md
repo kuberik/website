@@ -56,13 +56,13 @@ Each deploy, and each retry, then goes through these rules:
 
 | Moment | What happens |
 |---|---|
-| Deploy starts | Every selected HealthCheck in the Rollout's namespace is reset to `Pending`, and the deploy's `bakeStatus` is `Deploying` |
+| Deploy starts | Every selected HealthCheck is reset to `Pending` and its `lastErrorTime` is cleared, and the deploy's `bakeStatus` is `Deploying` |
 | Every check is `Healthy` again | Bake starts: `bakeStatus` is `InProgress` |
 | Any check reports an error after the deploy started | The deploy fails (`bakeStatus` `Failed`, `Ready` reason `BakeTimeFailed`), before or during bake |
 | `deployTimeout` passes before bake starts | The deploy fails |
 | `bakeTime` passes with no error | The deploy succeeds. Without `bakeTime`, it succeeds as soon as bake starts |
 
-`deployTimeout` fails the deploy if bake has not started by then. The Rollout reads HealthChecks from its own namespace only. A Rollout without `healthCheckSelector` has no checks: bake starts at once.
+`deployTimeout` fails the deploy if bake has not started by then. A Rollout without `healthCheckSelector` has no checks: bake starts at once.
 
 ## Hold deploys on an unhealthy check
 
@@ -97,6 +97,30 @@ spec:
 ```
 
 [Flux](/docs/integrations/fluxcd/#report-kustomization-health) lists which `Ready` reasons count as unhealthy.
+
+## Select health checks in other namespaces
+
+Add `namespaceSelector` to read HealthChecks from every namespace whose labels match, for example checks a platform team keeps in a shared namespace. It replaces the Rollout's own namespace, so label that namespace too if its checks should still count.
+
+```yaml {filename="rollout-cross-namespace.yaml"}
+apiVersion: kuberik.com/v1alpha1
+kind: Rollout
+metadata:
+  name: hello-world
+  namespace: hello-world
+spec:
+  releaseSourceRef:
+    name: hello-world
+  healthCheckSelector:
+    selector:
+      matchLabels:
+        app: hello-world
+    namespaceSelector:
+      matchLabels:
+        kuberik.com/health-checks: "true"
+```
+
+A deploy resets each selected check to `Pending` and clears its `lastErrorTime`. A check that several Rollouts select through `namespaceSelector` resets whenever any of them deploys, so keep the label `selector` narrow enough that each Rollout selects only its own checks.
 
 ## Check the result
 
