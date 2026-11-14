@@ -29,7 +29,8 @@ function plate({ x, y, w, h, kind = 'n', title, sub = [], mono = false, key = fa
     s += `<text class="df-title" x="${x + 14}" y="${ty}">${esc(title)}</text>`;
   }
   subs.forEach((t, i) => {
-    s += `<text class="df-sub${mono ? ' is-mono' : ''}" x="${x + 14}" y="${y + 42 + i * 16}">${esc(t)}</text>`;
+    const m = mono || t.startsWith('`');
+    s += `<text class="df-sub${m ? ' is-mono' : ''}" x="${x + 14}" y="${y + 42 + i * 16}">${esc(t.replace(/`/g, ''))}</text>`;
   });
   return s + '</g>';
 }
@@ -423,6 +424,99 @@ figs.datadog = {
       plate({ x: 0, y: 288, w: 168, kind: 'k', key: true, title: 'Rollout', sub: 'bakes the deploy' }),
       chipSvg({ x: 192, cy: 316, text: 'Failed', state: 'red', anchor: 'start' }),
       text({ x: 0, y: 372, t: 'An error after the deploy fails the bake.', role: 'note' }),
+    ].join('')
+  }
+};
+
+// ============ release-stages: one release, left to right (what-is-kuberik) ============
+const eyebrow = (x, y, t) => `<text class="df-glabel" x="${x}" y="${y}">${esc(t)}</text>`;
+figs['release-stages'] = {
+  title: 'One release from tag to record: detect, gate, deploy, verify, record',
+  desc: 'Your CI pushes a tag to a registry. Kuberik detects it with a ReleaseSource, checks it against the RolloutGates (condition GatesPassing), and the Rollout hands it to Flux by setting a Kustomization substitute or an OCIRepository tag. HealthChecks verify the deploy while it bakes, Deploying then InProgress, and the Rollout records the result in its history as Succeeded or Failed. After a Failed bake automatic deploys stop until someone acts.',
+  wide: {
+    w: 632, h: 236, body: [
+      eyebrow(0, 12, 'Your CI'), eyebrow(164, 12, 'Detect'), eyebrow(328, 12, 'Gate'), eyebrow(492, 12, 'Deploy'),
+      plate({ x: 0, y: 24, w: 140, kind: 'f', title: 'Registry', sub: 'a new tag' }),
+      plate({ x: 164, y: 24, w: 140, kind: 'k', title: 'ReleaseSource', sub: 'lists the tag' }),
+      plate({ x: 328, y: 24, w: 140, kind: 'k', title: 'RolloutGate', sub: 'GatesPassing', mono: true }),
+      plate({ x: 492, y: 24, w: 140, kind: 'f', title: 'Kustomization', sub: 'or OCIRepository' }),
+      edge([[140, 52], [161, 52]]), edge([[304, 52], [325, 52]]), edge([[468, 52], [489, 52]], { kind: 'act' }),
+      eyebrow(506, 132, 'Verify'), eyebrow(342, 132, 'Record'),
+      edge([[600, 80], [600, 141]]),
+      plate({ x: 492, y: 144, w: 140, kind: 'k', title: 'HealthCheck', sub: 'bakes the deploy' }),
+      plate({ x: 328, y: 144, w: 140, kind: 'k', key: true, title: 'Rollout', sub: 'status.history', mono: true }),
+      edge([[492, 172], [471, 172]]),
+      edge([[328, 172], [278, 172]]),
+      chipSvg({ x: 272, cy: 172, text: 'Failed', state: 'red', anchor: 'end' }),
+      text({ x: 196, y: 176, t: 'or', anchor: 'middle' }),
+      chipSvg({ x: 186, cy: 172, text: 'Succeeded', state: 'green', anchor: 'end' }),
+      text({ x: 120, y: 212, t: ['Failed: automatic deploys stop', 'until someone acts.'] }),
+    ].join('')
+  },
+  narrow: {
+    w: 318, h: 560, body: [
+      ...[['Your CI', 0], ['Detect', 80], ['Gate', 160], ['Deploy', 240], ['Verify', 320], ['Record', 400]].map(([t, y]) => eyebrow(0, y + 32, t)),
+      plate({ x: 84, y: 0, w: 234, kind: 'f', title: 'Registry', sub: 'a new tag' }),
+      plate({ x: 84, y: 80, w: 234, kind: 'k', title: 'ReleaseSource', sub: 'lists the tag' }),
+      plate({ x: 84, y: 160, w: 234, kind: 'k', title: 'RolloutGate', sub: 'GatesPassing', mono: true }),
+      plate({ x: 84, y: 240, w: 234, kind: 'f', title: 'Kustomization', sub: 'or OCIRepository' }),
+      plate({ x: 84, y: 320, w: 234, kind: 'k', title: 'HealthCheck', sub: 'bakes the deploy' }),
+      plate({ x: 84, y: 400, w: 234, kind: 'k', key: true, title: 'Rollout', sub: 'status.history', mono: true }),
+      ...[56, 136, 216, 296, 376].map((y) => edge([[201, y], [201, y + 21]], { kind: y === 216 ? 'act' : 'ink' })),
+      edge([[201, 456], [201, 477]]),
+      chipSvg({ x: 84, cy: 492, text: 'Succeeded', state: 'green', anchor: 'start' }),
+      text({ x: 192, y: 496, t: 'or' }),
+      chipSvg({ x: 214, cy: 492, text: 'Failed', state: 'red', anchor: 'start' }),
+      text({ x: 84, y: 530, t: ['Failed: automatic deploys stop', 'until someone acts.'] }),
+    ].join('')
+  }
+};
+
+// ============ gate-model: four writers, one RolloutGate kind, one decision (concepts/gates) ============
+function stack({ x, y, w, h }) {
+  return `<g class="df-plate df-k df-stack"><rect x="${x + 8}" y="${y - 8}" width="${w}" height="${h}" rx="8"/><rect x="${x + 4}" y="${y - 4}" width="${w}" height="${h}" rx="8"/></g>`;
+}
+const reasonRows = (x, y) => [['AllGatesPassing', 'green'], ['SomeGatesBlocking', 'amber'], ['NoAllowedVersions', 'amber']]
+  .map(([t, st], i) => `<circle class="df-dot df-dot-${st}" cx="${x + 4}" cy="${y + i * 20 - 4}" r="3.5"/><text class="df-mono" x="${x + 14}" y="${y + i * 20}">${t}</text>`).join('');
+figs['gate-model'] = {
+  title: 'Every gate is a RolloutGate; the Rollout deploys only what every gate lets through',
+  desc: 'Four writers make RolloutGates: a RolloutSchedule sets passing (schedule-gate-…), an ApprovalPolicy with RolloutApprovals sets allowedVersions (approval-gate-…), a RolloutDependency sets allowedVersions (dependency-<name>), and you or an Environment write one directly. The Rollout reads them all and reports the GatesPassing condition: AllGatesPassing, SomeGatesBlocking or NoAllowedVersions. Separately, an Unhealthy HealthCheck holds automatic deploys with DeploymentBlocked=True.',
+  wide: {
+    w: 632, h: 312, body: [
+      plate({ x: 0, y: 0, w: 168, kind: 'k', title: 'RolloutSchedule', sub: ['a time window', '`passing`'] }),
+      plate({ x: 0, y: 80, w: 168, kind: 'k', title: 'ApprovalPolicy', sub: ['+ RolloutApproval', '`allowedVersions`'] }),
+      plate({ x: 0, y: 160, w: 168, kind: 'k', title: 'RolloutDependency', sub: ['upstream baked', '`allowedVersions`'] }),
+      plate({ x: 0, y: 240, w: 168, kind: 'n', title: 'You or an Environment', sub: ['write one directly', '`either field`'] }),
+      edge([[168, 36], [204, 36], [204, 146], [221, 146]]),
+      edge([[168, 116], [196, 116], [196, 164], [221, 164]]),
+      edge([[168, 196], [188, 196], [188, 182], [221, 182]]),
+      edge([[168, 276], [180, 276], [180, 200], [221, 200]]),
+      stack({ x: 224, y: 104, w: 196, h: 112 }),
+      plate({ x: 224, y: 104, w: 196, h: 112, kind: 'k', title: 'RolloutGate', sub: ['schedule-gate-…', 'approval-gate-…', 'dependency-<name>', 'your name, ghd-…'], mono: true }),
+      edge([[428, 160], [469, 160]]),
+      plate({ x: 472, y: 132, w: 160, kind: 'k', key: true, title: 'Rollout', sub: 'GatesPassing', mono: true }),
+      reasonRows(472, 216),
+      plate({ x: 472, y: 0, w: 160, kind: 'k', title: 'HealthCheck', sub: 'Unhealthy', mono: true }),
+      edge([[600, 56], [600, 129]], { kind: 'held' }),
+      text({ x: 592, y: 92, t: 'DeploymentBlocked=True', role: 'mono', anchor: 'end' }),
+    ].join('')
+  },
+  narrow: {
+    w: 318, h: 520, body: [
+      plate({ x: 0, y: 0, w: 155, kind: 'k', title: 'RolloutSchedule', sub: ['a time window', '`passing`'] }),
+      plate({ x: 163, y: 0, w: 155, kind: 'k', title: 'ApprovalPolicy', sub: ['+ RolloutApproval', '`allowedVersions`'] }),
+      plate({ x: 0, y: 80, w: 155, kind: 'k', title: 'RolloutDependency', sub: ['upstream baked', '`allowedVersions`'] }),
+      plate({ x: 163, y: 80, w: 155, kind: 'n', title: 'You, Environment', sub: ['write one directly', '`either field`'] }),
+      edge([[159, 152], [159, 197]], { label: { x: 167, y: 180, t: 'each writes one' } }),
+      stack({ x: 0, y: 208, w: 306, h: 112 }),
+      plate({ x: 0, y: 208, w: 306, h: 112, kind: 'k', title: 'RolloutGate', sub: ['schedule-gate-…', 'approval-gate-…', 'dependency-<name>', 'your name, ghd-…'], mono: true }),
+      edge([[80, 320], [80, 365]]),
+      plate({ x: 0, y: 368, w: 160, kind: 'k', key: true, title: 'Rollout', sub: 'GatesPassing', mono: true }),
+      reasonRows(0, 452),
+      plate({ x: 186, y: 368, w: 132, kind: 'k', title: 'HealthCheck', sub: 'Unhealthy', mono: true }),
+      edge([[186, 396], [163, 396]], { kind: 'held' }),
+      text({ x: 186, y: 446, t: 'DeploymentBlocked', role: 'mono' }),
+      text({ x: 186, y: 464, t: '=True', role: 'mono' }),
     ].join('')
   }
 };

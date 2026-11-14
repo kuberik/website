@@ -81,3 +81,4 @@ html.dark .df{
 .df-note-k{font-weight:600;fill:var(--ink)}
 .df-dot{fill:var(--ink-subtle)}
 .df-dot-amber{fill:var(--df-held)}.df-dot-red{fill:var(--kd-chip-red-line)}
+.df-dot-green{fill:var(--df-pass)}
