@@ -21,7 +21,7 @@ spec:
   rolloutRef:
     name: hello-world
   name: hello-world            # same on every Environment of this app
-  environment: production      # the tier
+  environment: production
   backend:
     type: github
     project: acme/hello-world
