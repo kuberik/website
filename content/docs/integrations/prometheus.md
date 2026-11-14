@@ -69,7 +69,7 @@ The labels become an exact-match selector on the `ALERTS` series. The example ab
 ALERTS{alertname="HighErrorRate",service="hello-world"}
 ```
 
-Always include `alertname`, so each HealthCheck selects one alert. If the labels select several alerts, a pending one can hide a firing one: the check reports `Pending` and the deploy does not fail. Other labels narrow the alert further, including labels from the alerting series such as `namespace` or `instance`. Values match exactly: regular expressions are not supported. Each poll covers the time since the previous poll, so an alert that fired and resolved between two polls still turns the check `Unhealthy`.
+Always include `alertname`, so each HealthCheck follows one alert. If the labels select several series, the worst state wins: one firing series turns the check `Unhealthy` while others are pending. Other labels narrow the alert further, including labels from the alerting series such as `namespace` or `instance`. Values match exactly: regular expressions are not supported. Each poll covers the time since the previous poll, so an alert that fired and resolved between two polls still turns the check `Unhealthy`.
 
 ## Authenticate to Prometheus
 
@@ -101,7 +101,7 @@ The controller writes one of these into the HealthCheck status. The message list
 
 The message names your selector, not the labels of the series that fired. To see which series fired, run the `ALERTS` query in Prometheus.
 
-The controller also writes one entry to `status.observations`, which rollout-dashboard after v0.9.2 draws as the check's figure. While the alert is pending or firing, the entry shows the alert's value against its limit. Declare the limit, because the Prometheus API does not expose it:
+The controller also writes one entry to `status.observations`, which rollout-dashboard newer than v0.9.3-rc.0 draws as the check's figure. While the alert is pending or firing, the entry shows the alert's value against its limit. Declare the limit, because the Prometheus API does not expose it:
 
 | Annotation | Value |
 |---|---|
