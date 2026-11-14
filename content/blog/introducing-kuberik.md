@@ -27,6 +27,6 @@ Kuberik is a delivery controller, not a stack of scripts. It watches your contai
 
 The design encodes a set of behaviours that are easy to get wrong when you reimplement them in a script. Each environment is autonomous, so rollback is always a local operation. Kuberik will not roll out into an unhealthy environment. It will not undo a manual deployment made during an incident. It processes versions sequentially so every version gets properly verified. You can attach test hooks at any stage of the rollout. You can force deploy a specific version when you need to bypass the gates entirely. You can define deployment windows and Kuberik enforces them. Getting all of this right in a CI pipeline means writing and maintaining the logic yourself, in every pipeline, across every team. With Kuberik, the model scales across every service: written once, reused everywhere.
 
-Deploying to production should just work. Check out [how Kuberik works](/docs/what-is-kuberik/#you-release-kuberik-delivers) and the [getting started guide](/docs/getting-started/).
+Deploying to production should just work. Check out [how Kuberik works](/docs/what-is-kuberik/#what-kuberik-does-with-a-release) and the [getting started guide](/docs/getting-started/).
 
 For the story behind Kuberik, see [Building Kuberik](https://littlechimera.com/posts/building-kuberik/) on my personal blog.
