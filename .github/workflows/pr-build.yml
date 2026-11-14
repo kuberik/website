@@ -1,0 +1,37 @@
+name: Build and check links
+
+on:
+  pull_request:
+    branches: [main]
+
+permissions:
+  contents: read
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+        with:
+          submodules: recursive
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+          cache: npm
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Build
+        env:
+          HUGO_ENVIRONMENT: production
+        run: npx hugo --minify --panicOnWarning=false 2>&1 | tee hugo.log
+
+      - name: Fail on build errors
+        run: '! grep -q "^ERROR" hugo.log'
+
+      - name: Check internal links and anchors in docs and blog
+        run: python3 scripts/linkcheck.py public --fail
