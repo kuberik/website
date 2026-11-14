@@ -340,6 +340,11 @@ html.dark #kd-article .mermaid svg .edgeLabel :is(span,p,rect,.labelBkg){backgro
 .kd-pager-title{font:600 15px/22px var(--sans);color:var(--ink);letter-spacing:-.01em}
 @media(max-width:640px){.kd-pager{grid-template-columns:minmax(0,1fr)}.kd-pager-next{grid-column:1}}
 
+/* ---------- section index pages: no TOC, so the card grid takes the TOC's track too (no lone column at 1440+) ---------- */
+.kd-is-index .hextra-toc{display:none}
+.kd-is-index .kd-main{max-width:calc(var(--kd-read) + var(--kd-toc) + var(--kd-gap))}
+@media(min-width:1280px){.kd-is-index .kd-section-cards .hextra-cards{grid-template-columns:repeat(3,minmax(0,1fr))!important}}
+
 /* ---------- next steps / related: compact link cards (docs/page.html list transform, {{< next >}} shortcode).
    The pager card's shell (radius 12, card border/fill, mint border on hover) with the title over a one-line outcome
    and an arrow; hextra card blocks under the same headings are drawn the same way, so one role has one look. ---------- */
