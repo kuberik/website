@@ -64,9 +64,9 @@ The Rollout reports the combined result of its gates in the `GatesPassing` condi
 
 | Reason | Status | Meaning |
 |---|---|---|
-| `AllGatesPassing` | `True` | At least one release passes every gate. |
-| `SomeGatesBlocking` | `False` | A gate has `passing: false`. |
-| `NoAllowedVersions` | `False` | No release is allowed by every gate. This includes having no newer release to deploy. |
+| `AllGatesPassing` | `True` | A waiting release passes every gate, or no release is waiting. |
+| `SomeGatesBlocking` | `False` | A gate has `passing: false`, whether or not a release is waiting. |
+| `NoAllowedVersions` | `False` | Releases are waiting, but none is in every gate's `allowedVersions`. |
 | `GatesBypassed` | `True` | A bypass lets one named build through. |
 
 ## When gates are skipped
