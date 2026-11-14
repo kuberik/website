@@ -149,7 +149,8 @@ for (const [W, vw, H, Wmin] of BANDS) {
 		const cbox = () => m.tight ? { cl: +(m.padL + m.cols[0] + m.gap).toFixed(2), cr: +(m.padR + m.cols[2] + m.gap).toFixed(2) } : { cl: m.padL, cr: m.padR };
 		const ov = [[L, C], [C, Rt], ...(clipL ? [] : [[L, Rt]])].filter(([a, c]) => a && c && a.x1 > c.x0);
 		if (ov.length) throw new Error(`chrome pieces overlap at W ${W}: ${JSON.stringify(ov)}`);
-		for (const n of ['w', 'm', 'l', 'c', 'r', 't']) if (existsSync(`${tmp}-${n}.png`)) webp(`${tmp}-${n}.png`, `${OUT}p-${W}-${n}-${theme}.webp`);
+		/* a piece this band has not (c: null on the phone) leaves no poster behind from an earlier shoot */
+		for (const n of ['w', 'm', 'l', 'c', 'r', 't']) if (existsSync(`${tmp}-${n}.png`)) webp(`${tmp}-${n}.png`, `${OUT}p-${W}-${n}-${theme}.webp`); else rmSync(`${OUT}p-${W}-${n}-${theme}.webp`, { force: true });
 		for (const f of readdirSync(OUT).filter((f) => f.startsWith(`.cap-${W}-${theme}`))) rmSync(OUT + f);
 		if (theme === 'light') bands.push({ w: W, from: Wmin, hb: Hc, phone: W < 600, px: Math.round(P.x), py: Math.round(P.y), pw_in: Math.round(m.host.w - P.r), ph,
 			l: L.x1, ...cbox(), lclip: clipL ? +(m.panel.r - m.scroll.r).toFixed(2) : null, c: C ? { w: C.x1 - C.x0, dx: +((C.x0 + C.x1) / 2 - (cbox().cl + (pw - cbox().cr)) / 2).toFixed(2) } : null, r: Rt ? pw - Rt.x0 : 0, cw: CW, mx: +((mx / W) * 100).toFixed(4), my: +((my / W) * 100).toFixed(4), fw: +((footW / W) * 100).toFixed(4), cy });
