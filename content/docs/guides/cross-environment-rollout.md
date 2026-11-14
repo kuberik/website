@@ -84,7 +84,7 @@ spec:
     project: acme/hello-world
 ```
 
-Set `site: eu-west-1` (and the default `wave: 1`) on the first production cluster's Environment. Changing the site of an existing Environment deregisters its old site in GitHub and registers the new one. To keep production on one release until every wave has it, set `lockstep: true` on the wave-1 Environment.
+Set `site: eu-west-1` (and the default `wave: 1`) on the first production cluster's Environment. Changing the site of an existing Environment deregisters its old site in GitHub and registers the new one. To keep production on one release until every wave has it, set `lockstep: true` on every production Environment, in every wave. A site that differs from the wave-1 leader puts `LockstepConsistent=False`, reason `LockstepMismatch`, on every production Environment.
 
 ## Check the result
 

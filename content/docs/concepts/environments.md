@@ -75,7 +75,7 @@ One environment can run in several clusters. Each cluster's Environment is a sit
 
 Sites roll out in waves. `spec.wave` defaults to 1, and wave N starts a release only after every site of wave N-1 baked it. In each wave the site whose name sorts first is the leader: it picks the release, and the other sites (followers) deploy exactly that pick. The next tier waits for the last wave.
 
-With `lockstep: true` on the wave-1 leader, the leader picks no new release until every wave of the environment has baked the current one. A site that disagrees with the leader reports `LockstepConsistent=False`.
+With `lockstep: true`, the wave-1 leader picks no new release until every wave of the environment has baked the current one. Set it the same on every site of the environment: the wave-1 leader's value governs, and a site that differs puts `LockstepConsistent=False`, reason `LockstepMismatch`, on every Environment of the tier, with the differing sites named in the message.
 
 Only one Environment, across all clusters, can own a site of a tier for one `name`. A second one posts nothing, closes its gate and reports `DuplicateSite`.
 
