@@ -200,7 +200,7 @@ html.dark .kd-content :where(code):not(:where(.hextra-code-block code,pre code))
 .hextra-code-block .chroma .hl{display:block;margin:0 -20px;padding:0 20px;background:oklch(1 0 0/.06);box-shadow:inset 2px 0 0 oklch(.85 .11 182)}
 .hextra-code-block .chroma .ln,.hextra-code-block .chroma .lnt{color:var(--kd-code-dim);margin-right:16px}
 /* bare pre (no code fence attributes) */
-.kd-content pre:not(.chroma):not(.mermaid){border-radius:12px}
+.kd-content pre:not(.chroma){border-radius:12px}
 
 /* ---------- callout ---------- */
 .kd-callout{display:flex;gap:12px;margin:24px 0 0;padding:14px 16px;border:1px solid var(--kd-info-line);border-radius:8px;background:var(--kd-info-bg);font:400 15px/24px var(--sans);color:var(--ink-muted);overflow-x:auto}
@@ -274,39 +274,6 @@ html.dark .kd-content table th{background:oklch(1 0 0/.03)}
 
 /* ---------- filetree ---------- */
 .kd-content .hextra-filetree,.kd-content div:has(> ul > li > .hextra-filetree-folder){border-radius:12px}
-
-/* ---------- mermaid recoloured to the kit ----------
-   Diagrams carry classDef colours (kuberik blue, flux teal, success green...). Mermaid writes them as
-   #mermaid-N .cls>*{...!important}, so these rules hang off #kd-article to outrank them. Each classDef keeps its
-   meaning, drawn in the product's palette: the product (kuberik, env, crd) mint, Flux lagoon, Datadog violet,
-   outcomes as state chips, everything else neutral. */
-.kd-content pre.mermaid{margin:24px 0 0;padding:24px;border:1px solid var(--line);border-radius:12px;background:var(--page-alt);text-align:center;overflow-x:auto}
-html.dark .kd-content pre.mermaid{background:oklch(1 0 0/.03)}
-#kd-article .mermaid svg{font-family:var(--sans)!important;max-width:100%;--m-fill:var(--page);--m-line:var(--line);--m-ink:var(--ink)}
-#kd-article .mermaid svg :is(.nodeLabel,.label,.edgeLabel,.cluster-label,text,span,p){font-family:var(--sans)!important}
-#kd-article .mermaid svg .node > :is(rect,polygon,circle,path,ellipse){fill:var(--m-fill)!important;stroke:var(--m-line)!important;stroke-width:1px!important}
-#kd-article .mermaid svg .node :is(.nodeLabel,span,p,div){color:var(--m-ink)!important;fill:var(--m-ink)!important;font-weight:500!important}
-#kd-article .mermaid svg .node text{fill:var(--m-ink)!important}
-#kd-article .mermaid svg .node rect{rx:8px;ry:8px}
-#kd-article .mermaid svg :is(.node.kuberik,.node.env,.node.crd){--m-fill:var(--canvas-mint);--m-line:color-mix(in oklab,var(--mint) 60%,transparent);--m-ink:var(--mint-ink)}
-#kd-article .mermaid svg .node.flux{--m-fill:var(--canvas-lagoon);--m-line:color-mix(in oklab,var(--kd-eyebrow) 45%,transparent);--m-ink:var(--kd-eyebrow)}
-#kd-article .mermaid svg .node.datadog{--m-fill:var(--kd-chip-violet-bg);--m-line:var(--kd-chip-violet-line);--m-ink:var(--kd-chip-violet-ink)}
-#kd-article .mermaid svg .node.success{--m-fill:var(--kd-chip-green-bg);--m-line:var(--kd-chip-green-line);--m-ink:var(--kd-chip-green-ink)}
-#kd-article .mermaid svg .node.failure{--m-fill:var(--kd-chip-red-bg);--m-line:var(--kd-chip-red-line);--m-ink:var(--kd-chip-red-ink)}
-#kd-article .mermaid svg .node.decision{--m-fill:var(--kd-chip-amber-bg);--m-line:var(--kd-chip-amber-line);--m-ink:var(--kd-chip-amber-ink)}
-#kd-article .mermaid svg .cluster > rect{fill:var(--page)!important;stroke:var(--line)!important;stroke-width:1px!important;stroke-dasharray:4 4!important;rx:12px;ry:12px}
-html.dark #kd-article .mermaid svg .cluster > rect{fill:oklch(1 0 0/.02)!important}
-#kd-article .mermaid svg .cluster :is(.nodeLabel,.cluster-label,span,p,text){color:var(--ink-subtle)!important;fill:var(--ink-subtle)!important;font-weight:600!important;font-size:12px!important}
-#kd-article .mermaid svg :is(.flowchart-link,.edgePath .path,.messageLine0,.messageLine1,.relation,.transition){stroke:var(--ink-subtle)!important;stroke-width:1.25px!important}
-#kd-article .mermaid svg :is(marker path,.arrowheadPath,.arrowMarkerPath){fill:var(--ink-subtle)!important;stroke:var(--ink-subtle)!important}
-#kd-article .mermaid svg .edgeLabel :is(rect,.labelBkg){fill:var(--page-alt)!important;background:var(--page-alt)!important;opacity:1}
-#kd-article .mermaid svg .edgeLabel :is(span,p,.edgeLabel){background:var(--page-alt)!important;color:var(--ink-muted)!important;font-size:12px!important}
-html.dark #kd-article .mermaid svg .edgeLabel :is(span,p,rect,.labelBkg){background:var(--page)!important;fill:var(--page)!important}
-#kd-article .mermaid svg :is(.actor,rect.actor){fill:var(--page)!important;stroke:var(--line)!important}
-#kd-article .mermaid svg text.actor > tspan{fill:var(--ink)!important}
-#kd-article .mermaid svg .note{fill:var(--kd-tip-bg)!important;stroke:var(--kd-tip-line)!important}
-#kd-article .mermaid svg :is(.messageText,.noteText,.labelText,.loopText){fill:var(--ink-muted)!important}
-#kd-article .mermaid svg :is(.stateGroup rect,.statediagram-state rect){fill:var(--page)!important;stroke:var(--line)!important}
 
 /* ---------- images ---------- */
 .kd-content img{border-radius:12px;border:1px solid var(--line);margin-top:24px}

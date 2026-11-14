@@ -24,14 +24,3 @@
   </article>
 </div>
 </div>
-{{- if .Store.Get "hasMermaid" }}
-{{- /* Mermaid writes classDef colours as inline !important styles on node shapes, which no stylesheet can outrank.
-     Strip them once a diagram renders so docs.css draws each class in the kit's palette (classes stay on the node). */}}
-<script>
-(function(){
-  function strip(root){root.querySelectorAll('.mermaid svg .node > :is(rect,polygon,circle,path,ellipse), .mermaid svg .cluster > rect').forEach(function(e){e.removeAttribute('style')})}
-  var mo=new MutationObserver(function(){strip(document)});
-  document.querySelectorAll('pre.mermaid').forEach(function(p){mo.observe(p,{childList:true,subtree:true})});
-})();
-</script>
-{{- end }}
