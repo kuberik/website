@@ -1,15 +1,176 @@
 ---
 title: "Require a Manual Approval"
 linkTitle: "Manual Approvals"
-description: "Hold a deploy until a person approves it."
+description: "Hold each new build of a Rollout until a person approves it in the dashboard or with kubectl."
 type_: guide
 weight: 20
 aliases: ["/docs/guides/manual-approvals/"]
 ---
 
-Hold every new build of a Rollout until a person approves it, with a `RolloutGate` that lists the approved versions.
+A deploy waits until a person approves the build. An `ApprovalPolicy` holds every new build of the Rollouts it selects, and a `RolloutApproval` lets one version through.
 
-## Create a gate
+## Require an approval
+
+Label the [Rollouts](/docs/concepts/rollouts/) that need a person, then select them with an `ApprovalPolicy` in their namespace. The label is yours to choose; the policy only matches it.
+
+```bash {filename="Terminal"}
+kubectl -n hello-world label rollout hello-world approval.kuberik.com/required=true
+```
+
+```yaml {filename="approval-policy.yaml"}
+apiVersion: kuberik.com/v1alpha1
+kind: ApprovalPolicy
+metadata:
+  name: production-approval
+  namespace: hello-world
+  annotations:
+    gate.kuberik.com/pretty-name: "Production approval"  # shown in the dashboard
+spec:
+  rolloutSelector:
+    matchLabels:
+      approval.kuberik.com/required: "true"
+```
+
+For each matched Rollout the controller creates one [RolloutGate](/docs/concepts/gates/) named `approval-gate-<suffix>`. Its `allowedVersions` lists the versions approved for that Rollout and nothing else, so every newer build waits. An empty `rolloutSelector` matches every Rollout in the namespace.
+
+To require approvals across namespaces, use a `ClusterApprovalPolicy`. Its `namespaceSelector` picks the namespaces; leave it out to match all of them.
+
+```yaml {filename="cluster-approval-policy.yaml"}
+apiVersion: kuberik.com/v1alpha1
+kind: ClusterApprovalPolicy
+metadata:
+  name: production-approval
+spec:
+  namespaceSelector:
+    matchLabels:
+      environment: production
+  rolloutSelector: {}  # every Rollout in those namespaces
+```
+
+{{< callout type="important" >}}
+`ApprovalPolicy`, `ClusterApprovalPolicy` and `RolloutApproval` need a rollout-controller release after v0.11.0, and the kuberik Helm chart does not install them yet.
+{{< /callout >}}
+
+## Approve a build
+
+In the [dashboard](/docs/operate/dashboard/), open the rollout's **Gates** tab and select **Approve** on the approval gate that reads **Needs you**. The dashboard creates the `RolloutApproval` as you, so your own Kubernetes permissions apply. It approves only current release candidates.
+
+With kubectl, create the `RolloutApproval` yourself. It can name a version that does not exist yet, and its `spec` cannot change once created.
+
+```yaml {filename="approval.yaml"}
+apiVersion: kuberik.com/v1alpha1
+kind: RolloutApproval
+metadata:
+  name: hello-world-v1-4-0
+  namespace: hello-world
+  annotations:
+    approval.kuberik.com/by: emma.clarke@acme.com  # must be your own username
+spec:
+  rolloutRef:
+    name: hello-world
+  version: v1.4.0
+```
+
+```bash {filename="Terminal"}
+kubectl apply -f approval.yaml
+```
+
+The name `hello-world-v1-4-0` is the one the dashboard uses for the same build, so both ways of approving land on one object. One approval satisfies every approval gate of the Rollout. To withdraw it before the build deploys, delete it:
+
+```bash {filename="Terminal"}
+kubectl -n hello-world delete rolloutapproval hello-world-v1-4-0
+```
+
+## Choose who may approve
+
+Approving means creating a `RolloutApproval`. rollout-controller ships the ClusterRole `kuberik-rollout-approver` for that, and it is not part of `edit` or `admin`: bind it per namespace.
+
+```yaml {filename="approvers.yaml"}
+apiVersion: rbac.authorization.k8s.io/v1
+kind: RoleBinding
+metadata:
+  name: hello-world-approvers
+  namespace: hello-world
+roleRef:
+  apiGroup: rbac.authorization.k8s.io
+  kind: ClusterRole
+  name: kuberik-rollout-approver
+subjects:
+  - apiGroup: rbac.authorization.k8s.io
+    kind: User
+    name: emma.clarke@acme.com
+  - apiGroup: rbac.authorization.k8s.io
+    kind: User
+    name: james.porter@acme.com
+```
+
+Two admission policies come with the controller and need Kubernetes 1.30 or later. `kuberik-rolloutapproval-by` rejects an `approval.kuberik.com/by` that is not the requesting user, so the name on an approval is trustworthy; the dashboard shows it only where that policy denies. `kuberik-approval-gate-guard` lets only the controller change an approval gate, so editing the gate's `allowedVersions` is refused.
+
+## Know when approval is skipped
+
+A brand-new Rollout deploys its first release without waiting: gates, approval gates included, apply from the second deploy on. This is intended, so the Rollout always reaches a running version.
+
+A deploy by hand also skips the gate. Pinning a version with `spec.wantedVersion`, or **Change version** in the dashboard, deploys the build without an approval. `rollout.kuberik.com/bypass-gates` lets one build past every gate, and that deploy records no approval. [Operate a Rollout by Hand](/docs/operate/manual-actions/) covers all three.
+
+## Check the result
+
+The policy lists the Rollouts it matched, and its `Ready` condition reads `True` with reason `GatesSynced`:
+
+```bash {filename="Terminal"}
+kubectl -n hello-world get approvalpolicy production-approval \
+  -o jsonpath='{.status.rollouts}{" "}{.status.conditions[?(@.type=="Ready")].message}{"\n"}'
+```
+
+```text {filename="Output"}
+["hello-world"] 1 rollout(s) matched, gates in sync
+```
+
+A waiting build names the approval gate under `blockedBy`, and the Rollout's `GatesPassing` condition reads `False` with reason `NoAllowedVersions`:
+
+```bash {filename="Terminal"}
+kubectl -n hello-world get rollout hello-world \
+  -o jsonpath='{range .status.candidates[*]}{.tag}{" gated="}{.gated}{" blockedBy="}{.blockedBy}{"\n"}{end}'
+```
+
+Once approved, the build deploys unless another gate or a health check holds it. The history entry records the approval:
+
+```bash {filename="Terminal"}
+kubectl -n hello-world get rollout hello-world -o jsonpath='{.status.history[0].approval}{"\n"}'
+```
+
+```text {filename="Output"}
+{"by":"emma.clarke@acme.com","name":"hello-world-v1-4-0"}
+```
+
+## Troubleshoot
+
+### The policy's status.rollouts is empty
+
+The selector matches no Rollout. Compare the labels:
+
+```bash {filename="Terminal"}
+kubectl -n hello-world get rollouts --show-labels
+```
+
+Add the label to the Rollout, or fix `rolloutSelector`. A `Ready=False` condition with reason `InvalidSelector` means the selector itself does not parse.
+
+### Patching the gate fails with "only the rollout-controller may UPDATE a gate owned by an approval policy"
+
+The gate guard refuses hand edits to approval gates. Create a `RolloutApproval` instead, as in [Approve a build](#approve-a-build).
+
+### The dashboard reads Needs approval instead of Needs you
+
+You may not create `RolloutApproval` objects in that namespace. Check:
+
+```bash {filename="Terminal"}
+kubectl -n hello-world auth can-i create rolloutapprovals.kuberik.com
+```
+
+If it answers `no`, ask an admin to bind `kuberik-rollout-approver` to you, as in [Choose who may approve](#choose-who-may-approve).
+
+## Use a hand-written gate on v0.11.0
+
+rollout-controller v0.11.0 has no approval kinds. There, write a `RolloutGate` that allows nothing and add each approved version to its list. Newer controllers still honour such a gate, and `hack/migrate-approval-gates.sh` in the rollout-controller repository turns its versions into `RolloutApproval` objects when you upgrade.
 
 ```yaml {filename="gate.yaml"}
 apiVersion: kuberik.com/v1alpha1
@@ -17,84 +178,19 @@ kind: RolloutGate
 metadata:
   name: production-approval
   namespace: hello-world
-  annotations:
-    gate.kuberik.com/pretty-name: "Production Approval"
-    gate.kuberik.com/description: "Requires sign-off before production deploy"
 spec:
   rolloutRef:
     name: hello-world
   allowedVersions: []  # holds every build until you add one
 ```
 
-With an empty `allowedVersions` list the gate holds every new build: after its first deploy, the Rollout keeps running its current version until you approve a newer one. A gate without `allowedVersions` holds nothing, so keep the empty list.
-
-## Approve a version
-
-{{< callout type="info" >}}
-Pick one place to approve from. When Flux applies the gate from Git, Flux owns `allowedVersions` and puts the list back to what Git says on its next reconcile, so approve in Git. To approve with `kubectl patch`, apply the gate once with `kubectl apply` and keep it out of your Flux sources.
-{{< /callout >}}
-
-{{< tabs >}}
-  {{< tab name="Dashboard" >}}
-  Open the Rollout in the Kuberik Dashboard. Held builds are listed under **Newer builds**; the `HELD` chip names the gate that is waiting. Approve the gate through the CLI or Git so the build promotes on its own, or press **Deploy** on the build to ship it by hand. A hand deploy overrides the gate, applies immediately and records the note you type.
-
-  ![Newer builds on a production rollout: each held build says how many rules hold it, and Deploy ships one by hand](/images/docs/gates/approvals-held.png)
-  {{< /tab >}}
-
-  {{< tab name="CLI" >}}
-  Add the version to the allowed list:
-
-  ```bash {filename="Terminal"}
-  kubectl -n hello-world patch rolloutgate production-approval --type=json \
-    -p='[{"op": "add", "path": "/spec/allowedVersions/-", "value": "v1.2.3"}]'
-  ```
-
-  The `-` appends to the existing list, which is why the gate starts with `allowedVersions: []`.
-  {{< /tab >}}
-
-  {{< tab name="GitOps" >}}
-  Commit the approved versions to your Git repository:
-
-  ```yaml {filename="gate.yaml"}
-  apiVersion: kuberik.com/v1alpha1
-  kind: RolloutGate
-  metadata:
-    name: production-approval
-    namespace: hello-world
-  spec:
-    rolloutRef:
-      name: hello-world
-    allowedVersions:
-      - "v1.2.3"
-      - "v1.2.4"
-  ```
-
-  Flux syncs the updated gate, and the rollout proceeds.
-  {{< /tab >}}
-{{< /tabs >}}
-
-## Deploy without approval
-
-To ship a build the gate holds, deploy it by hand or let it past the gates once:
-
-- `rollout.kuberik.com/bypass-gates: <version>` lets one build past every gate, once. Health checks and a failed bake still hold it.
-- `rollout.kuberik.com/force-deploy: <version>` deploys the build now. It skips gates, the unhealthy-check hold and the failed-bake hold, and it is what the dashboard's **Deploy** does.
-
-[Operate a Rollout by Hand](/docs/operate/manual-actions/) covers both, along with pinning a version and recovering from a failed bake.
-
-## Check the result
-
-Each candidate shows whether it is through every gate and, if not, which gates hold it:
-
 ```bash {filename="Terminal"}
-kubectl -n hello-world get rollout hello-world \
-  -o jsonpath='{range .status.candidates[*]}{.tag}{" gated="}{.gated}{" blockedBy="}{.blockedBy}{"\n"}{end}'
+kubectl -n hello-world patch rolloutgate production-approval --type=json \
+  -p='[{"op": "add", "path": "/spec/allowedVersions/-", "value": "v1.4.0"}]'
 ```
-
-A held build lists `production-approval` under `blockedBy`. Once you approve it, `gated` turns `true` and the Rollout deploys it, unless another gate, an `Unhealthy` health check or a failed bake still holds it.
 
 ## Next steps
 
+- [Use the Dashboard](/docs/operate/dashboard/): approve, skip once or pin from the Gates tab
 - [Operate a Rollout by Hand](/docs/operate/manual-actions/): pin, deploy or bypass gates for one build
-- [Deployment Schedules](/docs/gates/schedules/): hold deploys outside a time window
-- [Rollouts](/docs/concepts/rollouts/): how gates, health checks and the bake decide a deploy
+- [Gates](/docs/concepts/gates/): how gates, health checks and the bake decide a deploy
