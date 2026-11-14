@@ -89,6 +89,6 @@ Once every selected health check is healthy, Kuberik waits for `bakeTime` and wa
 `HealthChecks` report continuously, and the deploy ends with one bake status:
 
 - {{< badge content="Succeeded" color="green" >}} No health check reported an error since the deploy, and the bake ran its full `bakeTime`. Downstream environments can now admit the build through their gates.
-- {{< badge content="Failed" color="red" >}} A health check reported an error. The build keeps running and further automatic deploys are held until someone acts; see [When a Bake Fails](/docs/concepts/rollouts/#when-a-bake-fails).
+- {{< badge content="Failed" color="red" >}} A health check reported an error, or the checks were not healthy within `deployTimeout`. The build keeps running and further automatic deploys are held until someone acts; see [When a Bake Fails](/docs/concepts/rollouts/#when-a-bake-fails).
 
 {{% /steps %}}
