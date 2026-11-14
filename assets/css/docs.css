@@ -37,6 +37,7 @@
 }
 html.dark{
   --hx-color-dark:#0e1619;
+  --kd-code-fill:oklch(.165 .014 215);
   --kd-eyebrow:oklch(.8 .07 200);
   --kd-link-line:color-mix(in oklab,var(--mint-ink) 45%,transparent);
   --kd-wash:color-mix(in oklab,var(--mint) 12%,transparent);
@@ -81,6 +82,12 @@ main{padding-bottom:0}
 @media(max-width:640px){.kd-nav .links{display:none}}
 
 /* ---------- shell ---------- */
+/* the landing's mint stage, as a wash: the hero gradient and its 20px dot grid, fading out under the page head */
+.kd-wash{position:relative;isolation:isolate}
+.kd-wash::before{content:'';position:absolute;inset:0 0 auto;height:420px;z-index:-1;pointer-events:none;
+  background:radial-gradient(circle,var(--dots) 1px,transparent 1.2px) 0 0/20px 20px,var(--st-hero);
+  -webkit-mask-image:linear-gradient(180deg,#000 0%,rgba(0,0,0,.55) 45%,transparent 100%);mask-image:linear-gradient(180deg,#000 0%,rgba(0,0,0,.55) 45%,transparent 100%);opacity:.55}
+html.dark .kd-wash::before{opacity:.5}
 .kd-shell{display:flex;width:min(var(--cont),100% - 2*var(--gut));margin-inline:auto;gap:var(--kd-gap);align-items:flex-start}
 .kd-article{flex:1 1 auto;min-width:0;display:flex;justify-content:center;order:2}
 .kd-main{width:100%;max-width:var(--kd-read);min-width:0;padding:40px 0 72px}
@@ -91,7 +98,7 @@ main{padding-bottom:0}
 /* sidebar */
 .kd-shell .hextra-sidebar-container{order:1;background:var(--page)}
 @media(min-width:768px){
-  .kd-shell .hextra-sidebar-container{width:var(--kd-side);flex:none;top:64px}
+  .kd-shell .hextra-sidebar-container{width:var(--kd-side);flex:none;top:64px;background:transparent}
   .kd-shell .hextra-sidebar-container > .hextra-scrollbar{padding:32px 8px 32px 0;margin-left:-10px;height:calc(100vh - 64px)}
 }
 @media(max-width:767px){
@@ -156,10 +163,9 @@ main{padding-bottom:0}
 .kd-content :where(code):not(:where(.hextra-code-block code,pre code)){padding:1px 6px;border:1px solid var(--line);border-radius:6px;background:var(--page-alt);color:var(--ink);font:500 .84em/1 var(--mono);white-space:nowrap}
 html.dark .kd-content :where(code):not(:where(.hextra-code-block code,pre code)){background:oklch(1 0 0/.05);border-color:oklch(1 0 0/.1)}
 .kd-content a code{color:inherit}
-.kd-content td code{white-space:normal;overflow-wrap:anywhere}
 
 /* ---------- code window ---------- */
-.kd-content .hextra-code-block,.hextra-code-block{position:relative;margin:24px 0 0;border:1px solid var(--win-code-border);border-radius:12px;background:var(--win-code-fill);box-shadow:var(--kd-code-shadow);overflow:hidden;color:var(--kd-code-ink)}
+.kd-content .hextra-code-block,.hextra-code-block{position:relative;margin:24px 0 0;border:1px solid var(--win-code-border);border-radius:12px;background:var(--kd-code-fill,var(--win-code-fill));box-shadow:var(--kd-code-shadow);overflow:hidden;color:var(--kd-code-ink)}
 .kd-code-head{display:flex;align-items:center;gap:10px;height:47px;padding:0 104px 0 16px;border-bottom:1px solid var(--kd-code-line);font:500 13px/20px var(--mono);color:var(--band-ink)}
 .kd-code-name{display:inline-flex;align-items:center;gap:8px;min-width:0;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
 .kd-code-name > span,.kd-code-name > a{overflow:hidden;text-overflow:ellipsis}
