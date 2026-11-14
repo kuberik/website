@@ -14,8 +14,8 @@
      hides a page or a whole section. Rows: the dashboard nav-link (32 tall, 14/20 ink-muted, hover page-alt,
      active = mint-ink 600 on the mint wash), assets/css/docs.css. The same tree fills the phone drawer, with a
      phone-only group for the site links the phone header hides.
-     Replaces hextra's partial; the outer container keeps hextra's classes (its JS opens the drawer and scrolls the
-     active row into view). */ -}}
+     Replaces hextra's partial; the outer container keeps hextra's classes (its JS opens the phone drawer).
+     The active row is .kd-active, not hextra's class, so hextra does not pin it to the top (script below). */ -}}
 {{- $context := .context -}}
 {{- $disableSidebar := .disableSidebar | default false -}}
 {{- if $context.Params.sidebar.hide }}{{ $disableSidebar = true }}{{ end -}}
@@ -60,7 +60,7 @@
         {{- else if .IsSection -}}
           {{- $active := eq $pageURL .RelPermalink -}}
           <div class="kd-group">
-            <p class="kd-group-label"><a href="{{ .RelPermalink }}"{{ if $active }} class="hextra-sidebar-active-item is-active" aria-current="page"{{ end }}>{{ .LinkTitle }}</a></p>
+            <p class="kd-group-label"><a href="{{ .RelPermalink }}"{{ if $active }} class="kd-active is-active" aria-current="page"{{ end }}>{{ .LinkTitle }}</a></p>
             <ul class="kd-rows">
               {{- range (where (union .RegularPages .Sections) "Params.sidebar.exclude" "!=" true).ByWeight }}{{ template "kd-row" (dict "p" . "page" $context "url" $pageURL) }}{{ end -}}
             </ul>
@@ -78,6 +78,9 @@
         </ul>
       </div>
     </nav>
+    {{- /* hextra pins the active row (.hextra-sidebar-active-item) to the top of the list, hiding its group label; the
+         tree marks it .kd-active instead and scrolls only when the row is out of view, centring it */}}
+    <script>(function(){var s=document.currentScript.parentNode,a=s.querySelector('.kd-active');if(!a)return;var r=a.getBoundingClientRect(),c=s.getBoundingClientRect();if(r.bottom>c.bottom-24)s.scrollTop=r.top-c.top-c.height/2+r.height/2})()</script>
   </div>
 </aside>
 
@@ -87,7 +90,7 @@
   {{- $children := slice -}}
   {{- if $p.IsSection }}{{ $children = where (union $p.RegularPages $p.Sections) "Params.sidebar.exclude" "!=" true }}{{ end -}}
   <li{{ if or $active ($p.IsAncestor .page) }} class="open"{{ end }}>
-    <a class="kd-row{{ if $active }} hextra-sidebar-active-item{{ end }}" href="{{ $p.RelPermalink }}"{{ if $active }} aria-current="page"{{ end }}>{{ $p.LinkTitle }}</a>
+    <a class="kd-row{{ if $active }} kd-active{{ end }}" href="{{ $p.RelPermalink }}"{{ if $active }} aria-current="page"{{ end }}>{{ $p.LinkTitle }}</a>
     {{- with $children }}
     <ul class="kd-sub">
       {{- range .ByWeight }}{{ template "kd-row" (dict "p" . "page" $.page "url" $.url) }}{{ end -}}
