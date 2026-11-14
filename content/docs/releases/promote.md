@@ -9,7 +9,7 @@ aliases: ["/docs/guides/cross-environment-rollout/"]
 
 Production deploys only the releases staging has already deployed and baked, with no pipeline between the clusters. Each cluster runs its own Rollout and [Environment](/docs/concepts/environments/), and GitHub deployments carry the result from one to the next.
 
-Works with environment-controller after v0.1.5, a GitHub token Secret in each app namespace (see [GitHub](/docs/integrations/github/)), and Rollouts that take their releases from a [ReleaseSource](/docs/releases/publish/).
+Works with environment-controller newer than v0.2.0-rc.0, a GitHub token Secret in each app namespace (see [GitHub](/docs/integrations/github/)), and Rollouts that take their releases from a [ReleaseSource](/docs/releases/publish/).
 
 ## Create the staging Environment
 
