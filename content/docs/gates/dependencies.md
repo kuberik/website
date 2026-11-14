@@ -43,13 +43,13 @@ metadata:
   namespace: production
 spec:
   rolloutRef:
-    name: frontend  # the consumer being gated
+    name: frontend
   providerRef:
     name: api
   contract: api     # matches com.kuberik.rollout.requires.api
 ```
 
-`contract` defaults to the provider Rollout's name, and `providerRef.namespace` defaults to the dependency's namespace. Apply the object in every environment that has both Rollouts. Each environment waits on its own copy of the provider: production's frontend waits for production's api, not for staging's.
+`rolloutRef` names the consumer being gated. `contract` defaults to the provider Rollout's name, and `providerRef.namespace` defaults to the dependency's namespace. Apply the object in every environment that has both Rollouts. Each environment waits on its own copy of the provider: production's frontend waits for production's api, not for staging's.
 
 The controller compares each consumer release's requirement with the contract version of the most recent provider deploy whose bake succeeded. It publishes the verdict as a `RolloutGate` named `dependency-<name>`, whose `allowedVersions` lists the admitted releases. A dependency therefore holds back only the releases whose requirement is unmet. Older releases stay deployable, so you can roll back while a newer release waits.
 

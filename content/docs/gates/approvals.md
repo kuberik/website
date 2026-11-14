@@ -64,7 +64,7 @@ metadata:
   name: hello-world-v1-4-0
   namespace: hello-world
   annotations:
-    approval.kuberik.com/by: emma.clarke@acme.com  # must be your own username
+    approval.kuberik.com/by: emma.clarke@acme.com  # optional; must equal your username
 spec:
   rolloutRef:
     name: hello-world
@@ -108,7 +108,7 @@ Two admission policies come with the controller and need Kubernetes 1.30 or late
 
 ## Know when approval is skipped
 
-A brand-new Rollout deploys its first release without waiting: gates, approval gates included, apply from the second deploy on. This is intended, so the Rollout always reaches a running version.
+Gates never hold a Rollout's first deploy, so a brand-new Rollout does not wait for an approval. The approval gate still chooses the version: the first deploy takes the newest approved release, or the newest release when none is approved. This is intended, so the Rollout always reaches a running version.
 
 A deploy by hand also skips the gate. Pinning a version with `spec.wantedVersion`, or **Change version** in the dashboard, deploys the build without an approval. `rollout.kuberik.com/bypass-gates` lets one build past every gate, and that deploy records no approval. [Operate a Rollout by Hand](/docs/operate/manual-actions/) covers all three.
 
