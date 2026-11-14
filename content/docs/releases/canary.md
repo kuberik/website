@@ -1,19 +1,17 @@
 ---
 title: "Roll Out with a Canary"
 linkTitle: "Canary Rollouts"
-description: "Shift traffic in steps with OpenKruise, with bake time and tests at each step."
+description: "Shift traffic to a new version in steps, with a bake time and a test Job holding each step."
 type_: guide
 weight: 30
 aliases: ["/docs/guides/canary-rollouts/"]
 ---
 
-Shift traffic to a new version in steps using [OpenKruise Rollout](https://openkruise.io/rollouts/user-manuals/basic-usage), with Kuberik holding each step for a bake time and running tests before the next step. Use it for user-facing services where problems only show under real traffic. Canary rollouts need the [OpenKruise Controller](/docs/installation/#optional-controllers) in the cluster.
+Move traffic to a new version in steps, and let each step continue only after it has stayed ready for a bake time and its tests have passed. Use it for user-facing services where problems show only under real traffic.
 
-{{% details title="Installing OpenKruise" %}}
+Works with: [OpenKruise Rollout](https://openkruise.io/rollouts/user-manuals/basic-usage) and the Kuberik openkruise-controller, which you install with the Helm chart's `integrations.openkruise.enabled` or on its own:
 
-Follow the [OpenKruise installation guide](https://openkruise.io/rollouts/installation) or use the Kuberik-managed installation:
-
-```bash
+```bash {filename="Terminal"}
 kubectl apply --server-side -f https://github.com/kuberik/openkruise-controller/releases/download/v0.4.1/install.yaml
 ```
 
