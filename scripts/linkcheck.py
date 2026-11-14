@@ -34,6 +34,8 @@ def resolve(src,url):
         if os.path.isdir(tgt) or path.endswith('/'): tgt=os.path.join(tgt,'index.html')
     return tgt,u.fragment
 bad=[]; exts=set()
+if not any(os.path.relpath(p,root).startswith('docs') for p in pages):
+    print(f'BROKEN {root}: no docs/ pages found (missing or empty build output)'); sys.exit(1)
 only_docs='--all' not in sys.argv
 for p,x in pages.items():
     rel=os.path.relpath(p,root)
