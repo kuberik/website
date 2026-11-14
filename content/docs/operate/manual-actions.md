@@ -124,7 +124,7 @@ kubectl -n hello-world get rollout hello-world \
   -o jsonpath='{.status.history[0].version.tag} {.status.history[0].message} {.status.history[0].bakeStatus}{"\n"}'
 ```
 
-A deploy that follows a failed or cancelled bake, or a hand deploy that starts while a health check is `Unhealthy`, runs with `BakeFailureDisabled=True` (reason `PreviousBakeFailed` or `DeployedWithUnhealthyHealthChecks`). Health-check errors and `deployTimeout` do not fail that deploy; it succeeds once the checks are healthy for `bakeTime`.
+A deploy that follows a failed or cancelled bake, or a hand deploy that starts while a health check is `Unhealthy`, runs with `BakeFailureDisabled=True` (reason `PreviousBakeFailed` or `DeployedWithUnhealthyHealthChecks`). Health-check errors and `deployTimeout` do not fail that deploy: it succeeds `bakeTime` after every check first turns healthy, even if a check reports an error during that window.
 
 ## Next steps
 

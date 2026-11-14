@@ -88,7 +88,7 @@ When a deploy starts, the Rollout sets the `BakeFailureDisabled` condition for i
 | `PreviousBakeFailed` | The previous deploy did not end with a successful bake: it failed, or this deploy cancelled its bake. |
 | `DeployedWithUnhealthyHealthChecks` | A deploy you started by hand began while a selected health check was `Unhealthy`. |
 
-The deploy still has to bake: it succeeds once the checks are healthy for `bakeTime`. If they never recover, it stays in `Deploying` and the next build has to be deployed by hand. The condition holds until the next deploy starts.
+The bake still has to start: it starts the first time every check is `Healthy` after the deploy, and the deploy succeeds `bakeTime` later. Errors during that window do not fail it, so a recovery deploy is not verified the way a normal one is. If the checks never turn healthy, it stays in `Deploying` and the next build has to be deployed by hand. The condition holds until the next deploy starts.
 
 ## Related
 
