@@ -1,6 +1,9 @@
 ---
-title: "Manual Approvals"
-weight: 2
+title: "Require a Manual Approval"
+linkTitle: "Manual Approvals"
+description: "Hold a deploy until a person approves it."
+type_: guide
+weight: 20
 ---
 
 Hold every new build of a Rollout until a person approves it, with a `RolloutGate` that lists the approved versions.

@@ -1,6 +1,8 @@
 ---
-title: "Architecture"
-weight: 1
+title: "How Kuberik Works"
+description: "The controllers, the resources they own, and how a release travels from registry to cluster."
+type_: concept
+weight: 10
 ---
 
 See which Kuberik resources take part in a release, how they connect to Flux, and what happens to a build from discovery to verification.

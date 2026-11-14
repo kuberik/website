@@ -1,6 +1,8 @@
 ---
 title: "Rollouts"
-weight: 2
+description: "How a Rollout picks a version, gates it, deploys it and verifies it during bake time."
+type_: concept
+weight: 20
 ---
 
 A **Rollout** deploys the builds of one OCI artifact into one environment, one build at a time, and holds further deploys when a build fails its health checks. The artifact is either your container image or the rendered manifests for that environment.
@@ -94,6 +96,6 @@ The bake still has to start: it starts the first time every check is `Healthy` a
 
 - [Propagation Modes](/docs/concepts/propagation/): image tag or rendered manifests
 - [Health Checks](/docs/guides/health-checks/): configure verification
-- [Manual Approvals](/docs/guides/manual-approvals/): add approval gates
+- [Require a Manual Approval](/docs/guides/manual-approvals/): add approval gates
 - [Deployment Schedules](/docs/guides/schedules/): control deployment time windows
 - [Operate a Rollout by Hand](/docs/operate/manual-actions/): pin, deploy, bypass gates and recover from a failed bake
