@@ -16,14 +16,14 @@ Use the controller's own terms: if the code says `BakeFailed`, write "the bake f
 - Write in the second person, imperative and present tense: "Apply this Rollout."
 - Leave out "please", "simply", "just", "easily", "we recommend", "powerful" and "seamless".
 - Write no slogans, no mirrored "X. Y." pairs and no questions as headings.
-- Say "released" when a tag exists. Something on main without a tag is still documented, with a callout that says which release it needs.
+- Say "released" only when a tag exists. Document untagged features from main with a callout naming the release they need.
 - Spell out environment names in full: development, staging, production.
 - Capitalise a resource kind when you mean the resource (`Rollout`, `HealthCheck`) and write it in lower case when you mean the idea ("a rollout of 1.4.0").
 - Use the shared example names: app and namespace `hello-world`, org `acme`, registry `ghcr.io/acme/...`.
 
 ## Pick a page type
 
-Every page declares one type in its front matter as `type_` (with an underscore, because Hugo reserves `type`). The type fixes the skeleton:
+Every page declares `type_` in its front matter (Hugo reserves `type`). The type fixes the skeleton:
 
 | Type | Use for | Skeleton |
 |---|---|---|
@@ -36,7 +36,7 @@ Every page declares one type in its front matter as `type_` (with an underscore,
 
 The lead is the first paragraph: at most two sentences and 45 words, stating the outcome. Guide and tutorial titles are verbs ("Require a Manual Approval"), concept and reference titles are nouns ("Rollouts"), integration titles are the product ("Flux"). Page titles use Title Case and headings use sentence case. Use H2 for sections and H3 only under an H2. Add a `linkTitle` when the title is longer than 28 characters.
 
-Every page needs front matter like this:
+Front matter looks like this:
 
 ```yaml {filename="content/docs/gates/approvals.md"}
 title: "Require a Manual Approval"
@@ -86,7 +86,13 @@ Prerequisites are never a callout.
 
 ## Add figures and screenshots
 
-Draw diagrams as inline SVG figures in the site's own style, coloured from the theme so they work in light and dark mode. Do not add mermaid diagrams. A figure says one thing, has at most seven nodes, and every label is a real resource, field or state name.
+Figures are generated. Add a wide drawing (632 units) and a narrow one (318 units) to `scripts/docs-figs.mjs` and run `node scripts/docs-figs.mjs`. It writes `layouts/_partials/docs-figs/<id>.html`; never edit that file. Insert the figure with the `fig` shortcode:
+
+```markdown {filename="content/docs/concepts/rollouts.md"}
+{{</* fig id="rollout-bake" caption="The bake status of the newest deploy." */>}}
+```
+
+Colours come from the theme, so dark mode needs no second drawing. Do not add mermaid. A figure says one thing in at most seven nodes, and every label is a real resource, field or state name.
 
 Take screenshots from the dashboard in the light theme at 1x, cropped to the region that matters, with alt text that says what the reader should see.
 
@@ -106,14 +112,14 @@ When you move a page, keep its old URL in `aliases:` in the front matter.
 
 ## Check the result
 
-Build the site and check links. Hugo must report no errors and the link checker 0 broken internal links or anchors:
+Build the site and check links; both must report no errors:
 
 ```bash {filename="Terminal"}
 hugo -d public
 python3 scripts/linkcheck.py public
 ```
 
-Then open the page at phone and desktop widths, in light and dark mode. Keep pages within budget: a guide stays under 1,000 words, a concept under 1,200, an integration under 1,400 and a tutorial under 1,600.
+Open the page at phone and desktop widths, in light and dark mode. Word budgets: guide 1,000, concept 1,200, integration 1,400, tutorial 1,600.
 
 ## Next steps
 
