@@ -17,7 +17,12 @@
     if (tabs[i].scrollIntoView) tabs[i].scrollIntoView({ block: 'nearest', inline: 'nearest' });
   }
   function roles() {
-    panes.forEach(function (p) { if (mq.matches) p.setAttribute('role', 'tabpanel'); else p.removeAttribute('role'); });
+    panes.forEach(function (p) {
+      /* a named generic div is not allowed (ARIA 1.2): the label goes with the tabpanel role */
+      if (!p.dataset.lb) p.dataset.lb = p.getAttribute('aria-labelledby') || '';
+      if (mq.matches) { p.setAttribute('role', 'tabpanel'); if (p.dataset.lb) p.setAttribute('aria-labelledby', p.dataset.lb); }
+      else { p.removeAttribute('role'); p.removeAttribute('aria-labelledby'); }
+    });
   }
   tabs.forEach(function (t, i) {
     t.addEventListener('click', function () { select(i, false); });

@@ -2,7 +2,6 @@
    - .reveal fade-up on first view (everything shown at once under prefers-reduced-motion)
    - the thesis loop runs on one 12 s page clock only while its row is on screen (.is-live on .figs), never under
      reduced motion; the install staircase (.stair) plays once and is never re-armed
-   - the three non-rollout YAML files fold on phones (same breakpoint as sections.css .mf-fold, 1023)
    The hero window has its own loader (islands/); nothing here touches it. */
 (function () {
   var reduce = matchMedia('(prefers-reduced-motion: reduce)');
@@ -32,9 +31,4 @@
     }, { threshold: 0.4 });
     [].slice.call(document.querySelectorAll('.stair')).forEach(function (s) { once.observe(s); });
   }
-  var folds = [].slice.call(document.querySelectorAll('[data-mp-fold]'));
-  var phone = matchMedia('(max-width: 1023px)');
-  function apply() { folds.forEach(function (d) { if (phone.matches) d.removeAttribute('open'); else d.setAttribute('open', ''); }); }
-  if (folds.length) { apply(); phone.addEventListener('change', apply); }
-  [].slice.call(document.querySelectorAll('.mf-fold')).forEach(function (d) { d.querySelector('summary').addEventListener('click', function (e) { if (!phone.matches) e.preventDefault(); }); });
 })();

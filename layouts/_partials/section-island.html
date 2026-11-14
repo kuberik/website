@@ -11,8 +11,8 @@
 <style>
 [data-island="{{ $n }}"]{container-type:inline-size}
 {{- /* `h` (optional, data/section_poster.yaml): the product's natural height at each host width in `w`, reserved before JS so nothing shifts,
-       answered by the host's own width (its slot is the container). Natural height only falls as the host widens, so the reserve of the widest
-       measured width not wider than the host is never short. It sits under :where() (no specificity): the page's CSS sets a window height over it. */ -}}
+       answered by the host's own width (its slot is the container). The reserve is the measured height at the widest measured width not wider
+       than the host (the ladder covers every width the grid gives; islands/scripts/section/widths.mjs checks it). It sits under :where() (no specificity): the page's CSS sets a window height over it. */ -}}
 :where([data-island="{{ $n }}"]){position:relative}
 {{- with .h }}
 :where([data-island="{{ $n }}"]){height:{{ index . 0 }}px}
