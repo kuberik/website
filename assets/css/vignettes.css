@@ -1,0 +1,186 @@
+/* Feature vignettes (take B v6h): the compositor stage kit. Every rule is scoped under .vg (the host), so nothing here
+   reaches the rest of the page (v6h had global .bloom, .back, .glow, .shadow, .f-*, .s-*). Tokens: the scene hues are the
+   dashboard's own; page tokens (--sans, --mono, --page...) come from tokens.css. Verbatim v6h otherwise: vg.css then kb.css. */
+/* take B scene tokens. Every hue is the dashboard's own (styles/language.css --k-*, environment-theme.ts PRESET_RAMPS):
+   success (done), held (the pause), active (deploying), progress (checking / bake), PROD fuchsia, STAGING violet, DEV teal.
+   "hi" = the same hue lifted for the lit top of a glossy body; "glow" = the hue as light. */
+.vg{
+  --s-ok:oklch(.63 .14 155);--s-ok-hi:oklch(.8 .14 155);--s-ok-ink:oklch(.47 .11 155);
+  --s-held:oklch(.69 .16 48);--s-held-hi:oklch(.82 .12 60);--s-held-ink:oklch(.52 .15 42);
+  --s-act:oklch(.6 .19 262);--s-act-hi:oklch(.76 .13 262);--s-act-ink:oklch(.488 .217 264);
+  --s-prog:oklch(.82 .16 98);--s-prog-hi:oklch(.93 .12 105);--s-prog-ink:oklch(.51 .1 95);
+  --s-prod:#ed00ab;--s-prod-hi:#ff7ad9;--s-prod-ink:#a800b7;--s-prod-tint:#fdf4ff;--s-prod-line:#f4a8ff;
+  --s-stg:#7c3aed;--s-stg-ink:#5d0ec0;--s-stg-tint:#f5f3ff;--s-stg-line:#c4b4ff;
+  --s-dev:#009689;--s-dev-ink:#00786f;--s-dev-tint:#f0fdfa;--s-dev-line:#46ecd5;
+  --s-body:#ffffff;--s-body-lo:oklch(.955 .008 222);--s-rim:oklch(.86 .012 222);--s-rim-hi:#fff;
+  --s-wire:oklch(.78 .016 222);--s-ink:oklch(.195 .014 222);--s-ink-muted:oklch(.44 .019 222);--s-ink-subtle:oklch(.53 .018 222);
+  --s-shadow:oklch(.32 .06 206);--s-shadow-a:.22;--s-glow-a:.45;--s-bloom-a:.55;--s-back-blur:1.4px;--s-gloss-a:.3;
+  --s-on-solid:#fff;
+}
+.vg html.dark{
+  --s-ok:oklch(.7 .15 155);--s-ok-hi:oklch(.84 .13 155);--s-ok-ink:oklch(.8 .13 155);
+  --s-held:oklch(.72 .16 50);--s-held-hi:oklch(.84 .12 60);--s-held-ink:oklch(.8 .13 50);
+  --s-act:oklch(.65 .18 260);--s-act-hi:oklch(.78 .12 260);--s-act-ink:oklch(.77 .12 260);
+  --s-prog:oklch(.84 .15 98);--s-prog-hi:oklch(.93 .11 105);--s-prog-ink:oklch(.87 .12 98);
+  --s-prod:#ed00ab;--s-prod-hi:#ff8ee0;--s-prod-ink:#f6cfff;--s-prod-tint:#4b004f;--s-prod-line:#8a0194;
+  --s-stg:#8b5cf6;--s-stg-ink:#ddd6ff;--s-stg-tint:#2f0d68;--s-stg-line:#4d179a;
+  --s-dev:#14b8a6;--s-dev-ink:#96f7e4;--s-dev-tint:#022f2e;--s-dev-line:#005f5a;
+  --s-body:oklch(.33 .02 222);--s-body-lo:oklch(.255 .017 222);--s-rim:oklch(.44 .02 222);--s-rim-hi:oklch(1 0 0/.22);
+  --s-wire:oklch(.47 .02 222);--s-ink:oklch(.965 .005 222);--s-ink-muted:oklch(.8 .012 222);--s-ink-subtle:oklch(.66 .016 222);
+  --s-shadow:oklch(0 0 0);--s-shadow-a:.55;--s-glow-a:.7;--s-gloss-a:.1;--s-bloom-a:.6;
+  --s-on-solid:#fff;
+}
+.vg{position:relative;width:100%;aspect-ratio:var(--vg-ar,16/9);overflow:hidden;contain:layout paint}
+.vg-svg{position:absolute;inset:0;width:100%;height:100%;display:block;overflow:visible;will-change:transform}
+.vg text{font-family:var(--sans);font-feature-settings:'tnum' 1,'cv11' 1}
+.vg .mono{font-family:var(--mono);font-feature-settings:normal}
+/* paint roles */
+.vg .f-body{fill:var(--s-body)}.vg .f-ok{fill:var(--s-ok)}.vg .f-held{fill:var(--s-held)}.vg .f-act{fill:var(--s-act)}.vg .f-prog{fill:var(--s-prog)}.vg .f-prod{fill:var(--s-prod)}
+.vg .f-ink{fill:var(--s-ink)}.vg .f-muted{fill:var(--s-ink-muted)}.vg .f-subtle{fill:var(--s-ink-subtle)}.vg .f-on{fill:var(--s-on-solid)}
+.vg .f-prod-ink{fill:var(--s-prod-ink)}.vg .f-prod-tint{fill:var(--s-prod-tint)}.vg .f-ok-ink{fill:var(--s-ok-ink)}.vg .f-held-ink{fill:var(--s-held-ink)}.vg .f-act-ink{fill:var(--s-act-ink)}.vg .f-prog-ink{fill:var(--s-prog-ink)}
+.vg .s-wire{stroke:var(--s-wire)}.vg .s-ok{stroke:var(--s-ok)}.vg .s-ok-hi{stroke:var(--s-ok-hi)}.vg .s-held{stroke:var(--s-held)}.vg .s-act{stroke:var(--s-act)}.vg .s-prog{stroke:var(--s-prog)}.vg .s-rim{stroke:var(--s-rim)}.vg .s-rim-hi{stroke:var(--s-rim-hi)}
+.vg .s-prod-line{stroke:var(--s-prod-line)}.vg .s-prod{stroke:var(--s-prod)}.vg .s-on{stroke:var(--s-on-solid)}.vg .s-ink{stroke:var(--s-ink)}.vg .s-subtle{stroke:var(--s-ink-subtle)}
+.vg .st-ok-hi{stop-color:var(--s-ok-hi)}.vg .st-ok{stop-color:var(--s-ok)}.vg .st-held-hi{stop-color:var(--s-held-hi)}.vg .st-held{stop-color:var(--s-held)}
+.vg .st-act-hi{stop-color:var(--s-act-hi)}.vg .st-act{stop-color:var(--s-act)}.vg .st-prog-hi{stop-color:var(--s-prog-hi)}.vg .st-prog{stop-color:var(--s-prog)}
+.vg .st-body{stop-color:var(--s-body)}.vg .st-body-lo{stop-color:var(--s-body-lo)}.vg .st-prod-hi{stop-color:var(--s-prod-hi)}.vg .st-prod{stop-color:var(--s-prod)}
+.vg .st-0{stop-opacity:0}
+.vg .st-glow-ok{stop-color:var(--s-ok)}.vg .st-glow-held{stop-color:var(--s-held)}.vg .st-glow-act{stop-color:var(--s-act)}.vg .st-glow-prog{stop-color:var(--s-prog)}.vg .st-glow-prod{stop-color:var(--s-prod)}
+.vg .shadow{fill:var(--s-shadow);opacity:var(--s-shadow-a)}
+.vg .glow{opacity:var(--s-glow-a)}
+.vg .bloom{opacity:var(--s-bloom-a)}
+.vg .gloss{opacity:var(--s-gloss-a)}
+.vg .back{filter:blur(var(--s-back-blur))}
+
+@media(max-width:640px){.vg{aspect-ratio:var(--vg-ar-m,var(--vg-ar))}}
+
+/* take B kit v4: every colour from the page (tokens.css, features.css, thesis.css) or the dashboard (language.css --k-*).
+   Card = the page's card (--page / --card-fill, --line, the card shadow). Fig = the thesis tile (--fig-top, --fig-top-line).
+   Build = the fig cube's teal. Wires = --fig-wire; lit = --own-line teal. No glass, no glow. v3 palette: work/v3/kb.css. */
+.vg .kb{
+  --b-card:#ffffff;--b-card-line:#dee5e8;--b-div:#e8eef0;
+  --b-shd:oklch(.195 .014 222);--b-sa:.2;--b-sc:.06;--b-hi:0;
+  --b-fig:oklch(.975 .02 182);--b-fig-line:oklch(.72 .05 186);
+  --b-quiet:oklch(.97 .008 222);
+  --b-teal:#009689;--b-teal-ink:#00786f;--b-teal-tint:oklch(.95 .045 182);--b-teal-line:oklch(.8 .08 182);
+  --b-build:#00c9b5;--b-build-line:#009689;--b-build-ink:#ffffff;--b-build-hi:#77ecdb;
+  --b-held:oklch(.69 .16 48);--b-held-tint:oklch(.96 .058 55);--b-held-line:oklch(.84 .095 45);--b-held-ink:oklch(.52 .15 42);
+  --b-act:oklch(.6 .19 262);--b-act-tint:oklch(.955 .035 262);--b-act-line:oklch(.86 .06 262);--b-act-ink:oklch(.488 .217 264);
+  --b-prog:oklch(.82 .16 98);--b-prog-tint:oklch(.975 .08 112);--b-prog-line:oklch(.88 .09 100);--b-prog-ink:oklch(.51 .1 95);--b-prog-fill:oklch(.76 .16 92);
+  --b-prod-tint:#fdf4ff;--b-prod-line:#f4a8ff;--b-prod-ink:#a800b7;
+  --b-stg-tint:#f5f3ff;--b-stg-line:#c4b4ff;--b-stg-ink:#5d0ec0;
+  --b-dev-tint:#f0fdfa;--b-dev-line:#46ecd5;--b-dev-ink:#00786f;
+  --b-wire:oklch(.8 .014 222);--b-ink:#0e1619;--b-muted:#47555a;--b-subtle:#616e73;
+  --b-chip:#ffffff;--b-chip-line:#dee5e8;
+  --b-pod:oklch(.9 .012 214);--b-pod-line:oklch(.8 .018 214);
+  --b-cur:#ffffff;--b-cur-line:#0e1619;--b-focus:oklch(.8 .08 182);
+}
+html.dark .vg .kb{
+  --b-card:oklch(.315 .03 208);--b-card-line:oklch(1 0 0/.1);--b-div:oklch(1 0 0/.08);
+  --b-shd:oklch(0 0 0);--b-sa:.55;--b-sc:.25;--b-hi:.07;
+  --b-fig:oklch(.39 .052 186);--b-fig-line:oklch(.6 .06 186);
+  --b-quiet:oklch(.34 .03 206);
+  --b-teal:#3ad9c6;--b-teal-ink:#96f7e4;--b-teal-tint:oklch(.36 .06 184);--b-teal-line:oklch(.6 .09 184);
+  --b-build:#00b3a2;--b-build-line:#3ad9c6;--b-build-ink:#ffffff;--b-build-hi:#77ecdb;
+  --b-held:oklch(.72 .16 50);--b-held-tint:oklch(.318 .068 50);--b-held-line:oklch(.48 .12 50);--b-held-ink:oklch(.8 .13 50);
+  --b-act:oklch(.65 .18 260);--b-act-tint:oklch(.3 .07 262);--b-act-line:oklch(.46 .13 262);--b-act-ink:oklch(.77 .12 260);
+  --b-prog:oklch(.84 .15 98);--b-prog-tint:oklch(.352 .07 102);--b-prog-line:oklch(.52 .11 102);--b-prog-ink:oklch(.87 .12 98);--b-prog-fill:oklch(.84 .15 98);
+  --b-prod-tint:#4b004f;--b-prod-line:#8a0194;--b-prod-ink:#f6cfff;
+  --b-stg-tint:#2f0d68;--b-stg-line:#4d179a;--b-stg-ink:#ddd6ff;
+  --b-dev-tint:#022f2e;--b-dev-line:#005f5a;--b-dev-ink:#96f7e4;
+  --b-wire:oklch(.5 .02 222);--b-ink:#f0f4f6;--b-muted:#b6c0c3;--b-subtle:#889599;
+  --b-chip:oklch(1 0 0/.07);--b-chip-line:oklch(1 0 0/.15);
+  --b-pod:oklch(1 0 0/.1);--b-pod-line:oklch(1 0 0/.16);
+  --b-cur:#ffffff;--b-cur-line:#0e1619;--b-focus:oklch(.6 .09 184);
+}
+.vg .kb text{font-family:var(--sans);font-feature-settings:'tnum' 1,'cv11' 1}
+.vg .kb .mono{font-family:var(--mono);font-feature-settings:normal}
+.vg .kb .num{letter-spacing:-.02em}
+.vg .kb .nsl{vector-effect:non-scaling-stroke}
+.vg .kb .ink{fill:var(--b-ink)}.vg .kb .muted{fill:var(--b-muted)}.vg .kb .subtle{fill:var(--b-subtle)}.vg .kb .teal-ink{fill:var(--b-teal-ink)}
+.vg .kb .act-ink{fill:var(--b-act-ink)}.vg .kb .prog-ink{fill:var(--b-prog-ink)}.vg .kb .held-ink{fill:var(--b-held-ink)}
+/* cards */
+.vg .kb .c-sa{fill:var(--b-shd);opacity:var(--b-sa)}.vg .kb .c-sc{fill:var(--b-shd);opacity:var(--b-sc)}.vg .kb .c-hi{stroke:#fff;opacity:var(--b-hi);fill:none}
+.vg .kb .kg{fill:var(--b-muted)}
+.vg .kb .ic{fill:none;stroke:var(--b-muted);stroke-linecap:round;stroke-linejoin:round}
+.vg .kb .c-page{fill:var(--b-card);stroke:var(--b-card-line)}
+.vg .kb .c-fig{fill:var(--b-fig);stroke:var(--b-fig-line)}
+.vg .kb .c-quiet{fill:var(--b-quiet);stroke:var(--b-card-line)}
+.vg .kb .c-div{stroke:var(--b-div);fill:none}
+/* marks */
+.vg .kb .md-rest{fill:var(--b-teal)}
+.vg .kb .md-wait{fill:none;stroke:var(--b-subtle);stroke-dasharray:2.4 2}
+.vg .kb .m-held .md{fill:var(--b-held-tint);stroke:var(--b-held-line)}.vg .kb .m-held .mg{stroke:var(--b-held-ink)}
+.vg .kb .m-act .md{fill:var(--b-act-tint);stroke:var(--b-act-line)}.vg .kb .m-act .mg{stroke:var(--b-act-ink)}.vg .kb .m-act .mp{fill:var(--b-act)}
+.vg .kb .m-prog .md{fill:var(--b-prog-tint);stroke:var(--b-prog-line)}.vg .kb .m-prog .mg{stroke:var(--b-prog-ink)}.vg .kb .m-prog .mp{fill:var(--b-prog-ink)}
+html.dark .vg .kb .m-prog .mp{fill:var(--b-prog)}
+.vg .kb .mg{fill:none;stroke-linecap:round;stroke-linejoin:round}
+/* wave pie */
+.vg .kb .w-done{fill:var(--b-teal)}.vg .kb .w-check{fill:var(--b-prog-fill)}.vg .kb .w-deploy{fill:var(--b-act)}
+.vg .kb .w-wait{fill:none;stroke:var(--b-subtle);stroke-dasharray:2 1.6}
+.vg .kb .w-track{fill:var(--b-wire);opacity:.35}
+/* wires and packets */
+.vg .kb .w-q{fill:none;stroke:var(--b-wire);stroke-width:1;stroke-linecap:round;stroke-linejoin:round}
+.vg .kb .w-h{fill:none;stroke:var(--b-held);stroke-width:1;stroke-linecap:round;stroke-linejoin:round}
+.vg .kb .w-lit{fill:none;stroke:var(--b-teal);stroke-width:1;stroke-linecap:round;stroke-linejoin:round}
+.vg .kb .pk{fill:var(--b-teal)}.vg .kb .pk-held{fill:var(--b-held)}.vg .kb .pk-act{fill:var(--b-act)}
+/* tracks */
+.vg .kb .t-rail{stroke:var(--b-wire)}.vg .kb .t-prog{stroke:var(--b-prog-fill)}.vg .kb .t-teal{stroke:var(--b-teal)}.vg .kb .t-act{stroke:var(--b-act)}
+.vg .kb .band-prog{fill:var(--b-prog-tint)}.vg .kb .band-teal{fill:var(--b-teal-tint)}
+.vg .kb .ln-teal{fill:none;stroke:var(--b-teal);stroke-width:1.5;stroke-linejoin:round;stroke-linecap:round}
+.vg .kb .ln-thr{fill:none;stroke:var(--b-subtle);stroke-width:1;stroke-dasharray:3 3}
+/* chips */
+.vg .kb .c-n rect{fill:var(--b-chip);stroke:var(--b-chip-line)}.vg .kb .c-n text{fill:var(--b-ink)}
+.vg .kb .c-prod rect{fill:var(--b-prod-tint);stroke:var(--b-prod-line)}.vg .kb .c-prod text{fill:var(--b-prod-ink)}
+.vg .kb .c-stg rect{fill:var(--b-stg-tint);stroke:var(--b-stg-line)}.vg .kb .c-stg text{fill:var(--b-stg-ink)}
+.vg .kb .c-dev rect{fill:var(--b-dev-tint);stroke:var(--b-dev-line)}.vg .kb .c-dev text{fill:var(--b-dev-ink)}
+.vg .kb .c-held rect{fill:var(--b-held-tint);stroke:var(--b-held-line)}.vg .kb .c-held text{fill:var(--b-held-ink)}
+.vg .kb .c-teal rect{fill:var(--b-teal-tint);stroke:var(--b-teal-line)}.vg .kb .c-teal text{fill:var(--b-teal-ink)}
+.vg .kb .c-act rect{fill:var(--b-act-tint);stroke:var(--b-act-line)}.vg .kb .c-act text{fill:var(--b-act-ink)}
+.vg .kb .c-prog rect{fill:var(--b-prog-tint);stroke:var(--b-prog-line)}.vg .kb .c-prog text{fill:var(--b-prog-ink)}
+.vg .kb .c-build rect{fill:var(--b-build);stroke:var(--b-build-line)}.vg .kb .c-build text{fill:var(--b-build-ink)}
+.vg .kb .c-ghost rect{fill:var(--b-card);stroke:var(--b-chip-line);stroke-dasharray:3 2.5}.vg .kb .c-ghost text{fill:var(--b-subtle)}
+/* pods */
+.vg .kb .pod-old{fill:var(--b-pod);stroke:var(--b-pod-line)}.vg .kb .pod-act{fill:var(--b-act);stroke:none}.vg .kb .pod-new{fill:var(--b-teal);stroke:none}
+/* flap tiles */
+.vg .kb .fl-tile{fill:var(--b-card);stroke:var(--b-card-line)}.vg .kb .fl-face{fill:var(--b-card)}
+.vg .kb .fl-split{stroke:var(--b-card-line)}.vg .kb .fl-hl{fill:none;stroke:var(--b-teal)}
+/* the input and the cursor */
+.vg .kb .in-field{fill:var(--b-card);stroke:var(--b-card-line)}.vg .kb .in-focus{fill:none;stroke:var(--b-focus);stroke-width:3;opacity:.55}
+.vg .kb .caret{fill:var(--b-ink)}
+.vg .kb .cur{fill:var(--b-cur);stroke:var(--b-cur-line)}
+.vg .kb .c-slot{fill:none;stroke:var(--b-wire);stroke-dasharray:4 3}
+
+/* mint canvases: the dark page card sits one step above the mint canvas, in its hue */
+html.dark .fx-mint .vg .kb{--b-card:oklch(.355 .035 192);--b-quiet:oklch(.37 .035 192)}
+/* the compositor stage (kb.js): static layers painted once, sprites moved by WAAPI on transform / opacity */
+.vg .kb-root{position:absolute;inset:0;transform-origin:50% 50%}
+.vg .kb-layer{position:absolute;inset:0;width:100%;height:100%;display:block;overflow:visible}
+.vg .kb-sp{position:absolute;display:block}
+.vg .kb-sp > svg{position:absolute;inset:0;width:100%;height:100%;display:block;overflow:visible}
+.vg .kb .c-heldn{fill:var(--b-held-tint);stroke:var(--b-held-line)}
+/* health chart: the bake band stays quiet (the line is the subject), the area under the line is a light teal wash */
+.vg .kb .band-prog{opacity:.55}.vg .kb .band-teal{opacity:.6}html.dark .vg .kb .band-prog{opacity:.4}html.dark .vg .kb .band-teal{opacity:.45}
+.vg .kb .ar-teal{fill:var(--b-teal);opacity:.1}html.dark .vg .kb .ar-teal{opacity:.1}
+/* v6c: the baking wash in dark. Any yellow blended at low alpha over the teal card lands on olive (v6b .25 did); so the wash
+   is a solved, opaque warm-gold tint (the dark analogue of light's pale yellow: same family as the baking chip, hue nudged
+   warm so the teal surround does not pull it green). Reads gold beside the card, never olive or held orange (hue 50). */
+html.dark .vg .kb .band-prog{fill:oklch(.39 .058 87);opacity:1}
+
+/* v6f (review b-r5 fix 6): dark only. Canary's wave 2 'deploying' mark sits on the page card, where the act tint disc measured
+   1.07:1. There the disc takes the act hue itself (3.88:1 on --b-card) and the turning arc goes white (3.30:1 on the disc). */
+html.dark .vg .kb-sp.w2 .m-act .md{fill:var(--b-act);stroke:var(--b-act)}
+html.dark .vg .kb-sp.w2 .m-act .mg{stroke:#fff}
+/* v6f (review b-r5 fix 7): dark only. The 11 px mono labels (KB 'tag': mono subtle) measured 3.03:1 on the fig card; they take
+   the next ink step, --b-muted (5.04:1 on --b-fig, 6.89:1 on --b-card). Light keeps --b-subtle. */
+html.dark .vg .kb .mono.subtle{fill:var(--b-muted)}
+
+/* v6h (b14 fix 4): Health's resting (baked) bake band in dark. v6g's teal tint over the dark card measured 1.00:1 (the tint is
+   darker than the card), so at rest the band vanished. Dark lifts the fill to an opaque teal a step above the card and draws
+   the band's edge in teal at >= 3:1 on the card (work/b14/bandfill.log). Light is unchanged: the edge rect is not drawn. */
+.vg .kb .band-edge{display:none}
+html.dark .vg .kb .band-edge{display:inline;fill:none;stroke:oklch(.68 .1 184)}
+html.dark .vg .kb .band-teal.band-bake{fill:oklch(.43 .07 184);opacity:1}
+
+/* v6h (b14 fix 3): with the prod card's edge light gone, Gates' row wash alone marks the landing. In dark the teal tint is
+   darker than the fig card (the wash measured invisible), so the wash takes an opaque teal a step above the card. Light as v6g. */
+html.dark .vg .kb .band-teal.wash-land{fill:oklch(.47 .07 184);opacity:1}

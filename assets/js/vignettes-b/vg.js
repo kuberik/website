@@ -181,6 +181,7 @@
   window.__vgStills = () => Object.fromEntries(hosts().map((h) => [h.dataset.vg, (specOf(h) || {}).still || []]));
   window.__vgLoops = () => Object.fromEntries(hosts().map((h) => [h.dataset.vg, (specOf(h) || {}).loop]));
   window.__vgRest = (vg) => { const s = VG.spec(vg); return s ? s.rest : 0; };
-  // the scenes register on load (one script, defs first); start once the DOM is parsed
-  if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', start); else start();
+  // the scenes register after this engine in the same script (a deferred bundle runs while readyState is 'interactive'),
+  // so start on a microtask, after the whole bundle has run
+  if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', start); else Promise.resolve().then(start);
 })();
