@@ -109,9 +109,9 @@ Each metric carries the `namespace` and `name` of the Rollout.
 | `kuberik_rollout_latest_deployment_info` | Always 1 | `version`, `tag`, `revision` (git SHA), `bake_status`, `message`, for example `Automatic deployment` or `Manual deployment` |
 | `kuberik_rollout_latest_deployment_timestamp` | When the latest deploy started | |
 | `kuberik_rollout_bake_start_timestamp` | When every health check first reported healthy and bake time began | |
-| `kuberik_rollout_bake_end_timestamp` | When the deploy succeeded, failed or timed out | |
+| `kuberik_rollout_bake_end_timestamp` | When the deploy succeeded, failed, timed out, or was cancelled by a newer deploy | |
 | `kuberik_rollout_bake_status` | 1 for the current state, 0 for the others | `bake_status`: `Deploying`, `InProgress`, `Succeeded`, `Failed`, `Cancelled` |
-| `kuberik_rollout_available_releases` | Number of releases the Rollout can choose from | |
+| `kuberik_rollout_available_releases` | Number of releases in the `ReleaseSource` catalogue, older ones included | |
 | `kuberik_rollout_condition` | 1 when the condition is True, 0 when False | `type`, for example `Ready`, `GatesPassing`, `DeploymentBlocked`; `reason` |
 
 `Deploying` means Kuberik has written the new version and waits for the health checks to report healthy; `InProgress` means bake time is running.
@@ -154,7 +154,7 @@ Filter on the reason: `GatesPassing` is also 0 with reason `NoAllowedVersions` w
 
 ## Alert on failed and stuck deploys
 
-These rules fire when a bake fails, when a bake runs for more than 30 minutes, and when a closed gate has held a Rollout for an hour.
+These rules fire when a bake fails, when a deploy has waited more than 30 minutes for its health checks, and when a closed gate has held a Rollout for an hour.
 
 ```yaml {filename="kuberik-rules.yaml"}
 groups:
@@ -168,17 +168,17 @@ groups:
         annotations:
           summary: "Rollout {{ $labels.namespace }}/{{ $labels.name }} failed its bake"
           description: "A health check reported an error after the deploy. Automatic deploys of this Rollout are stopped."
-      - alert: RolloutBakeStuck
+      - alert: RolloutDeployStuck
         expr: |
-          kuberik_rollout_bake_status{bake_status="InProgress"} == 1
+          kuberik_rollout_bake_status{bake_status="Deploying"} == 1
             and on (namespace, name)
-          (time() - kuberik_rollout_bake_start_timestamp > 1800)
+          (time() - kuberik_rollout_latest_deployment_timestamp > 1800)
         for: 5m
         labels:
           severity: warning
         annotations:
-          summary: "Rollout {{ $labels.namespace }}/{{ $labels.name }} has baked for over 30 minutes"
-          description: "Bake time has been running for more than 30 minutes."
+          summary: "Rollout {{ $labels.namespace }}/{{ $labels.name }} has been deploying for over 30 minutes"
+          description: "The health checks have not reported healthy since the deploy started, so bake time has not begun."
       - alert: RolloutGatesBlocked
         expr: kuberik_rollout_condition{type="GatesPassing", reason="SomeGatesBlocking"} == 0
         for: 1h
@@ -188,6 +188,8 @@ groups:
           summary: "Rollout {{ $labels.namespace }}/{{ $labels.name }} is held by gates"
           description: "Gates have held this Rollout for over an hour."
 ```
+
+A deploy stays in `Deploying` until every selected health check reports healthy, and fails only when a check reports an error or the Rollout's `deployTimeout` passes; without `deployTimeout` it can wait forever. `InProgress` always ends when bake time does, so an alert on it needs a threshold above your longest `bakeTime`.
 
 Load the file with `rule_files` in Prometheus, or wrap the `groups` in a `PrometheusRule` when you run the Prometheus Operator.
 
