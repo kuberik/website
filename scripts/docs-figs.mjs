@@ -344,86 +344,96 @@ figs['env-tiers-github'] = {
   }
 };
 
-// ============ fluxcd: where Kuberik and Flux meet ============
-figs.fluxcd = {
-  title: 'Kuberik and Flux: Kuberik lists the tags and picks one, Flux fetches and applies it, a HealthCheck reports back',
-  desc: 'An OCI registry feeds two readers: Kuberik\'s ReleaseSource lists its tags and Flux\'s OCIRepository fetches the artifact. The Rollout reads the ReleaseSource, then moves the OCIRepository tag or sets a version on the Kustomization. The Kustomization applies the manifests; a HealthCheck of class kustomization watches it and reports health back to the Rollout.',
+// ============ flux-propagation: where Kuberik and Flux meet (integrations/fluxcd) ============
+figs['flux-propagation'] = {
+  title: 'The Rollout picks a release from the ReleaseSource and writes it into Flux; the Kustomization\'s health comes back as a HealthCheck',
+  desc: 'A registry feeds Kuberik\'s ReleaseSource, which the Rollout reads through spec.releaseSourceRef, and Flux\'s OCIRepository, which fetches the artifact. The Rollout writes spec.ref.tag on an OCIRepository annotated rollout.kuberik.com/rollout, or spec.postBuild.substitute on a Kustomization annotated rollout.kuberik.com/substitute.<VAR>.from. The OCIRepository feeds the Kustomization, which applies the workload; a HealthCheck of class kustomization watches the Kustomization and the Rollout reads its health.',
   wide: {
-    w: 632, h: 268, body: [
-      plate({ x: 0, y: 96, w: 120, kind: 'n', title: 'Registry', sub: 'OCI tags' }),
-      plate({ x: 168, y: 0, w: 148, kind: 'k', title: 'ReleaseSource', sub: 'lists the tags' }),
-      plate({ x: 168, y: 192, w: 148, kind: 'f', title: 'OCIRepository', sub: 'fetches artifact' }),
-      edge([[60, 96], [60, 28], [165, 28]]),
-      edge([[60, 152], [60, 220], [165, 220]]),
-      plate({ x: 364, y: 0, w: 120, kind: 'k', key: true, title: 'Rollout', sub: 'picks one' }),
-      edge([[316, 28], [361, 28]]),
-      plate({ x: 364, y: 192, w: 120, kind: 'f', title: 'Kustomization', sub: 'applies it' }),
-      edge([[316, 220], [361, 220]]),
-      edge([[392, 56], [392, 96], [242, 96], [242, 189]], { kind: 'act', label: { x: 250, y: 132, t: 'moves tag' } }),
-      edge([[440, 56], [440, 189]], { kind: 'act', label: { x: 432, y: 132, t: ['sets', 'version'], anchor: 'end' } }),
-      plate({ x: 516, y: 96, w: 116, kind: 'k', title: 'HealthCheck', sub: 'kustomization', mono: true }),
-      edge([[484, 228], [574, 228], [574, 155]], { label: { x: 582, y: 196, t: 'watches' } }),
-      edge([[574, 96], [574, 28], [487, 28]], { label: { x: 582, y: 64, t: 'health' } }),
+    w: 632, h: 292, body: [
+      plate({ x: 0, y: 0, w: 130, kind: 'n', title: 'Registry', sub: 'OCI tags' }),
+      plate({ x: 170, y: 0, w: 150, kind: 'k', title: 'ReleaseSource', sub: '`spec.oci`' }),
+      plate({ x: 360, y: 0, w: 130, kind: 'k', key: true, title: 'Rollout', sub: 'picks a release' }),
+      edge([[130, 28], [167, 28]]), edge([[320, 28], [357, 28]]),
+      plate({ x: 502, y: 96, w: 130, kind: 'k', title: 'HealthCheck', sub: '`kustomization`' }),
+      edge([[567, 96], [567, 28], [493, 28]], { label: { x: 575, y: 66, t: 'health' } }),
+      plate({ x: 0, y: 200, w: 226, h: 72, kind: 'f', title: 'OCIRepository', sub: ['fetches the artifact', '`rollout.kuberik.com/rollout`'] }),
+      plate({ x: 246, y: 200, w: 226, h: 88, kind: 'f', title: 'Kustomization', sub: ['applies it', '`rollout.kuberik.com/`', '`substitute.<VAR>.from`'] }),
+      plate({ x: 502, y: 216, w: 130, kind: 'n', title: 'Workload' }),
+      edge([[65, 56], [65, 197]]),
+      edge([[380, 56], [380, 150], [150, 150], [150, 197]], { kind: 'act', label: { x: 265, y: 142, t: 'spec.ref.tag', anchor: 'middle', role: 'mono' } }),
+      edge([[446, 56], [446, 197]], { kind: 'act', label: { x: 438, y: 180, t: 'spec.postBuild.substitute', anchor: 'end', role: 'mono' } }),
+      edge([[226, 236], [243, 236]]),
+      edge([[472, 236], [499, 236]]),
+      edge([[462, 200], [462, 124], [499, 124]]),
     ].join('')
   },
   narrow: {
-    w: 318, h: 446, body: [
-      plate({ x: 99, y: 0, w: 120, kind: 'n', title: 'Registry', sub: 'OCI tags' }),
-      edge([[130, 56], [130, 72], [74, 72], [74, 105]]),
-      edge([[188, 56], [188, 72], [244, 72], [244, 249]]),
-      plate({ x: 0, y: 108, w: 148, kind: 'k', title: 'ReleaseSource', sub: 'lists the tags' }),
-      edge([[74, 164], [74, 193]]),
-      plate({ x: 0, y: 196, w: 148, kind: 'k', key: true, title: 'Rollout', sub: 'picks one' }),
-      plate({ x: 170, y: 252, w: 148, kind: 'f', title: 'OCIRepository', sub: 'fetches artifact' }),
-      edge([[148, 224], [208, 224], [208, 249]], { kind: 'act', label: { x: 156, y: 216, t: 'moves tag' } }),
-      plate({ x: 170, y: 340, w: 148, kind: 'f', title: 'Kustomization', sub: 'applies it' }),
-      edge([[244, 308], [244, 337]]),
-      plate({ x: 0, y: 340, w: 148, kind: 'k', title: 'HealthCheck', sub: 'kustomization', mono: true }),
-      edge([[170, 368], [151, 368]], {}),
-      edge([[74, 340], [74, 255]], { label: { x: 82, y: 300, t: 'health' } }),
-      text({ x: 170, y: 420, t: 'or the Rollout sets a', role: 'note' }),
-      text({ x: 170, y: 436, t: 'version on it instead', role: 'note' }),
+    w: 318, h: 504, body: [
+      plate({ x: 0, y: 0, w: 130, kind: 'n', title: 'Registry', sub: 'OCI tags' }),
+      plate({ x: 170, y: 0, w: 148, kind: 'k', title: 'ReleaseSource', sub: '`spec.oci`' }),
+      edge([[130, 28], [167, 28]]),
+      plate({ x: 0, y: 96, w: 130, kind: 'k', title: 'HealthCheck', sub: '`kustomization`' }),
+      plate({ x: 170, y: 96, w: 148, kind: 'k', key: true, title: 'Rollout', sub: 'picks a release' }),
+      edge([[244, 56], [244, 93]]),
+      edge([[130, 124], [167, 124]]),
+      edge([[110, 56], [110, 72], [150, 72], [150, 209]]),
+      edge([[210, 152], [210, 209]], { kind: 'act', label: { x: 218, y: 186, t: 'spec.ref.tag', role: 'mono' } }),
+      plate({ x: 16, y: 212, w: 264, h: 72, kind: 'f', title: 'OCIRepository', sub: ['fetches the artifact', '`rollout.kuberik.com/rollout`'] }),
+      edge([[300, 152], [300, 327]], { kind: 'act' }),
+      text({ x: 292, y: 316, t: 'spec.postBuild.substitute', role: 'mono', anchor: 'end' }),
+      edge([[60, 284], [60, 327]]),
+      plate({ x: 16, y: 330, w: 302, h: 88, kind: 'f', title: 'Kustomization', sub: ['applies it', '`rollout.kuberik.com/`', '`substitute.<VAR>.from`'] }),
+      edge([[16, 374], [6, 374], [6, 172], [65, 172], [65, 155]]),
+      plate({ x: 16, y: 448, w: 140, kind: 'n', title: 'Workload' }),
+      edge([[86, 418], [86, 445]]),
     ].join('')
   }
 };
 
-// ============ datadog: a monitor in Alert fails the bake ============
-figs.datadog = {
-  title: 'Datadog monitors as health: a monitor in Alert makes the HealthCheck Unhealthy, which fails the bake',
-  desc: 'The datadog-controller polls Datadog every 60 seconds for the monitors a HealthCheck of class datadog selects. A monitor in Alert makes the HealthCheck Unhealthy and stamps lastErrorTime; a Rollout baking a deploy made before that time marks the bake Failed.',
+// ============ datadog-health-paths: two ways Datadog state reaches a Rollout (integrations/datadog) ============
+const hcChips = (x, cy) => chipSvg({ x, cy, text: 'Healthy', state: 'green', anchor: 'start' }) +
+  chipSvg({ x: x + chipW('Healthy') + 8, cy, text: 'Unhealthy', state: 'red', anchor: 'start' }) +
+  chipSvg({ x: x + chipW('Healthy') + chipW('Unhealthy') + 16, cy, text: 'Pending', state: 'amber', anchor: 'start' });
+figs['datadog-health-paths'] = {
+  title: 'datadog-controller turns monitors and incidents into HealthChecks; the Rollout reads only the HealthChecks',
+  desc: 'Two paths. Through the API: datadog-controller reads Datadog monitors and incidents with DD_API_KEY and DD_APP_KEY and writes HealthChecks of class datadog or datadog-incidents. Through the Datadog Operator: a DatadogMonitor resource synced by the operator and annotated kuberik.com/health-check: "true" makes datadog-controller write a HealthCheck datadog-check-<name> of class datadog-monitor-crd. The Rollout selects both with healthCheckSelector. A HealthCheck is Healthy, Unhealthy or Pending.',
   wide: {
-    w: 632, h: 160, body: [
-      plate({ x: 0, y: 0, w: 140, kind: 'f', title: 'Datadog', sub: 'monitors' }),
-      plate({ x: 164, y: 0, w: 140, kind: 'k', title: 'datadog-controller', sub: 'polls every 60s' }),
-      plate({ x: 328, y: 0, w: 140, kind: 'k', title: 'HealthCheck', sub: 'class: datadog', mono: true }),
-      plate({ x: 492, y: 0, w: 140, kind: 'k', key: true, title: 'Rollout', sub: 'bakes the deploy' }),
-      edge([[140, 28], [161, 28]]),
-      edge([[304, 28], [325, 28]], { kind: 'act' }),
-      edge([[468, 28], [489, 28]]),
-      chipSvg({ x: 14, cy: 92, text: 'Alert', state: 'red', anchor: 'start' }),
-      chipSvg({ x: 342, cy: 92, text: 'Unhealthy', state: 'red', anchor: 'start' }),
-      chipSvg({ x: 506, cy: 92, text: 'Failed', state: 'red', anchor: 'start' }),
-      edge([[80, 92], [339, 92]], { kind: 'held', label: { x: 210, y: 84, t: 'one monitor alerting', anchor: 'middle' } }),
-      edge([[446, 92], [503, 92]], { kind: 'held' }),
-      text({ x: 342, y: 124, t: 'lastErrorTime', role: 'mono' }),
-      text({ x: 342, y: 143, t: 'stamped', role: 'label' }),
-      text({ x: 506, y: 124, t: ['error after the', 'deploy: bake fails'], role: 'label' }),
+    w: 632, h: 290, body: [
+      plate({ x: 0, y: 96, w: 120, h: 72, kind: 'f', title: 'Datadog', sub: ['monitors,', 'incidents'] }),
+      plate({ x: 152, y: 24, w: 150, kind: 'k', title: 'datadog-controller', sub: 'polls every 60s' }),
+      plate({ x: 152, y: 168, w: 150, h: 72, kind: 'f', title: 'DatadogMonitor', sub: ['synced by the', 'Datadog Operator'] }),
+      edge([[120, 116], [136, 116], [136, 52], [149, 52]]),
+      text({ x: 136, y: 40, t: 'API', anchor: 'middle' }),
+      edge([[120, 148], [136, 148], [136, 196], [149, 196]]),
+      edge([[227, 168], [227, 83]]),
+      plate({ x: 334, y: 24, w: 176, h: 72, kind: 'k', title: 'HealthCheck', sub: ['`datadog`', '`datadog-incidents`'] }),
+      plate({ x: 334, y: 168, w: 176, h: 72, kind: 'k', title: 'HealthCheck', sub: ['`datadog-check-<name>`', '`datadog-monitor-crd`'] }),
+      edge([[302, 52], [331, 52]], { kind: 'act' }),
+      edge([[302, 72], [318, 72], [318, 196], [331, 196]], { kind: 'act' }),
+      plate({ x: 536, y: 104, w: 96, h: 72, kind: 'k', key: true, title: 'Rollout', sub: ['reads only', 'HealthChecks'] }),
+      edge([[510, 60], [522, 60], [522, 128], [533, 128]]),
+      edge([[510, 204], [522, 204], [522, 152], [533, 152]]),
+      text({ x: 632, y: 200, t: 'healthCheckSelector', role: 'mono', anchor: 'end' }),
+      text({ x: 0, y: 280, t: 'HealthCheck status' }),
+      hcChips(124, 276),
     ].join('')
   },
   narrow: {
-    w: 318, h: 398, body: [
-      plate({ x: 0, y: 0, w: 168, kind: 'f', title: 'Datadog', sub: 'monitors' }),
-      chipSvg({ x: 192, cy: 28, text: 'Alert', state: 'red', anchor: 'start' }),
-      edge([[84, 56], [84, 101]], { label: { x: 92, y: 84, t: 'polled every 60s' } }),
-      plate({ x: 0, y: 104, w: 168, kind: 'k', title: 'datadog-controller' }),
-      edge([[84, 144], [84, 181]], { kind: 'act', label: { x: 92, y: 168, t: 'writes status' } }),
-      plate({ x: 0, y: 184, w: 168, kind: 'k', title: 'HealthCheck', sub: 'class: datadog', mono: true }),
-      chipSvg({ x: 192, cy: 212, text: 'Unhealthy', state: 'red', anchor: 'start' }),
-      text({ x: 192, y: 244, t: 'lastErrorTime', role: 'mono' }),
-      edge([[84, 240], [84, 285]], { label: { x: 92, y: 266, t: 'read during bake' } }),
-      plate({ x: 0, y: 288, w: 168, kind: 'k', key: true, title: 'Rollout', sub: 'bakes the deploy' }),
-      chipSvg({ x: 192, cy: 316, text: 'Failed', state: 'red', anchor: 'start' }),
-      text({ x: 0, y: 372, t: 'An error after the deploy fails the bake.', role: 'note' }),
+    w: 318, h: 486, body: [
+      plate({ x: 0, y: 0, w: 318, kind: 'f', title: 'Datadog', sub: 'monitors, incidents' }),
+      edge([[68, 56], [68, 85]], { label: { x: 76, y: 76, t: 'API' } }),
+      edge([[250, 56], [250, 85]]),
+      plate({ x: 0, y: 88, w: 140, kind: 'k', title: 'datadog-controller', sub: 'polls every 60s' }),
+      plate({ x: 168, y: 88, w: 150, kind: 'f', title: 'DatadogMonitor', sub: 'Datadog Operator' }),
+      edge([[168, 116], [143, 116]]),
+      edge([[60, 144], [60, 181]], { kind: 'act' }),
+      plate({ x: 16, y: 184, w: 286, kind: 'k', title: 'HealthCheck', sub: '`datadog, datadog-incidents`' }),
+      edge([[8, 144], [8, 292], [13, 292]], { kind: 'act' }),
+      plate({ x: 16, y: 264, w: 286, h: 72, kind: 'k', title: 'HealthCheck', sub: ['`datadog-check-<name>`', '`datadog-monitor-crd`'] }),
+      edge([[160, 336], [160, 377]]),
+      edge([[302, 212], [312, 212], [312, 408], [299, 408]]),
+      plate({ x: 16, y: 380, w: 280, kind: 'k', key: true, title: 'Rollout', sub: '`healthCheckSelector`' }),
+      hcChips(16, 466),
     ].join('')
   }
 };
