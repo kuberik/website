@@ -40,7 +40,7 @@ const CHIP_CH = 8.2;
 function chipW(text) { return Math.round(text.length * CHIP_CH + 14); }
 function chipSvg({ x, cy, text, state = 'gray', anchor = 'middle' }) {
   const w = chipW(text);
-  const x0 = anchor === 'middle' ? x - w / 2 : x;
+  const x0 = anchor === 'middle' ? x - w / 2 : anchor === 'end' ? x - w : x;
   return `<g class="df-chip df-chip-${state}"><rect x="${n(x0)}" y="${cy - 10}" width="${w}" height="20" rx="4"/>` +
     `<text x="${n(x0 + w / 2)}" y="${cy + 4}" text-anchor="middle">${esc(text.toUpperCase())}</text></g>`;
 }
@@ -300,43 +300,45 @@ figs.propagation = {
   }
 };
 
-// ============ environments: promotion across clusters through GitHub Deployments ============
-figs.environments = {
-  title: 'Promotion across clusters: Environments share bake results through GitHub Deployments',
-  desc: 'In the staging cluster an Environment with environment: staging reads its Rollout and posts each deploy and bake result as a GitHub Deployment status. In the production cluster an Environment with environment: prod reads which versions baked in the nearest earlier tier and writes them to a RolloutGate as allowedVersions, which gates the production Rollout.',
+// ============ env-tiers-github: promotion across clusters through GitHub deployments ============
+const ghName = 'kuberik/hello-world/staging';
+figs['env-tiers-github'] = {
+  title: 'Two clusters that never connect: Environments promote through GitHub deployments',
+  desc: 'The staging cluster runs a Rollout and an Environment with tier staging; the Environment reports each deploy and its bake to the GitHub deployment kuberik/hello-world/staging, status success. The production cluster runs an Environment with tier production that reads that upstream status and sets allowedVersions on its RolloutGate ghd-…; the production Rollout deploys only what the gate allows.',
   wide: {
-    w: 632, h: 296, body: [
-      group({ x: 0, y: 0, w: 384, h: 112, chip: { text: 'staging', state: 'violet' }, label: 'cluster', kind: 'n' }),
-      plate({ x: 12, y: 40, w: 160, kind: 'k', title: 'Rollout', sub: 'deploys, bakes' }),
-      plate({ x: 212, y: 40, w: 160, kind: 'k', key: true, title: 'Environment', sub: 'environment: staging', mono: true }),
-      edge([[172, 68], [209, 68]]),
-      plate({ x: 448, y: 40, w: 184, kind: 'f', title: 'GitHub Deployments', sub: 'status per version' }),
-      edge([[372, 68], [445, 68]], { kind: 'act', label: { x: 410, y: 60, t: 'posts', anchor: 'middle' } }),
-      group({ x: 0, y: 160, w: 632, h: 136, chip: { text: 'production', state: 'prod' }, label: 'cluster', kind: 'n' }),
-      plate({ x: 448, y: 200, w: 172, kind: 'k', key: true, title: 'Environment', sub: 'environment: prod', mono: true }),
-      edge([[540, 96], [540, 197]], { kind: 'ink', label: { x: 532, y: 136, t: ['reads what', 'baked upstream'], anchor: 'end' } }),
-      plate({ x: 232, y: 200, w: 172, kind: 'k', title: 'RolloutGate', sub: 'allowedVersions', mono: true }),
-      edge([[448, 228], [407, 228]], { kind: 'act' }),
-      text({ x: 426, y: 220, t: 'writes', anchor: 'middle' }),
-      plate({ x: 12, y: 200, w: 172, kind: 'k', title: 'Rollout', sub: 'deploys what is allowed' }),
-      edge([[232, 228], [187, 228]]),
+    w: 632, h: 404, body: [
+      plate({ x: 196, y: 10, w: 240, h: 56, kind: 'f', title: 'GitHub deployment', sub: [ghName], mono: true }),
+      chipSvg({ x: 422, cy: 30, text: 'success', state: 'green', anchor: 'end' }),
+      group({ x: 0, y: 120, w: 250, h: 196, chip: { text: 'staging', state: 'violet' }, label: 'cluster', kind: 'n' }),
+      plate({ x: 12, y: 160, w: 190, kind: 'k', key: true, title: 'Environment', sub: 'environment: staging', mono: true }),
+      plate({ x: 12, y: 248, w: 190, kind: 'k', title: 'Rollout', sub: 'deploys and bakes' }),
+      edge([[107, 248], [107, 219]]),
+      edge([[60, 160], [60, 48], [193, 48]], { kind: 'act', label: { x: 68, y: 100, t: ['reports deploy', '+ bake'] } }),
+      group({ x: 382, y: 120, w: 250, h: 284, chip: { text: 'production', state: 'prod' }, label: 'cluster', kind: 'n' }),
+      edge([[436, 38], [572, 38], [572, 157]], { label: { x: 564, y: 100, t: 'reads upstream', anchor: 'end' } }),
+      plate({ x: 394, y: 160, w: 226, kind: 'k', key: true, title: 'Environment', sub: 'environment: production', mono: true }),
+      edge([[440, 216], [440, 245]], { kind: 'act', label: { x: 448, y: 236, t: 'sets allowedVersions' } }),
+      plate({ x: 394, y: 248, w: 226, kind: 'k', title: 'RolloutGate', sub: 'ghd-…  allowedVersions', mono: true }),
+      edge([[440, 304], [440, 333]]),
+      plate({ x: 394, y: 336, w: 226, kind: 'k', title: 'Rollout', sub: 'deploys only what it allows' }),
     ].join('')
   },
   narrow: {
-    w: 318, h: 484, body: [
+    w: 318, h: 500, body: [
       group({ x: 0, y: 0, w: 318, h: 112, chip: { text: 'staging', state: 'violet' }, label: 'cluster', kind: 'n' }),
-      plate({ x: 12, y: 40, w: 120, kind: 'k', title: 'Rollout', sub: 'deploys, bakes' }),
-      plate({ x: 150, y: 40, w: 156, kind: 'k', key: true, title: 'Environment', sub: 'tier: staging' }),
-      edge([[132, 68], [147, 68]]),
-      edge([[228, 96], [228, 149]], { kind: 'act', label: { x: 236, y: 132, t: 'posts' } }),
-      plate({ x: 70, y: 152, w: 178, kind: 'f', title: 'GitHub Deployments', sub: 'status per version' }),
-      edge([[159, 208], [159, 281]], { label: { x: 167, y: 226, t: 'reads upstream' } }),
-      group({ x: 0, y: 244, w: 318, h: 240, chip: { text: 'production', state: 'prod' }, label: 'cluster', kind: 'n' }),
-      plate({ x: 70, y: 284, w: 178, kind: 'k', key: true, title: 'Environment', sub: 'tier: prod' }),
-      edge([[110, 340], [110, 397]], { kind: 'act', label: { x: 102, y: 374, t: 'writes', anchor: 'end' } }),
-      plate({ x: 12, y: 400, w: 140, kind: 'k', title: 'RolloutGate', sub: 'allowedVersions', mono: true }),
-      plate({ x: 178, y: 400, w: 128, kind: 'k', title: 'Rollout', sub: 'deploys it' }),
-      edge([[152, 428], [175, 428]]),
+      plate({ x: 12, y: 40, w: 110, kind: 'k', title: 'Rollout', sub: 'deploys, bakes' }),
+      plate({ x: 140, y: 40, w: 166, kind: 'k', key: true, title: 'Environment', sub: 'tier: staging' }),
+      edge([[122, 68], [137, 68]]),
+      edge([[223, 96], [223, 149]], { kind: 'act', label: { x: 231, y: 128, t: ['reports', 'deploy + bake'] } }),
+      plate({ x: 0, y: 152, w: 318, h: 56, kind: 'f', title: 'GitHub deployment', sub: [ghName], mono: true }),
+      chipSvg({ x: 304, cy: 20 + 152 - 0, text: 'success', state: 'green', anchor: 'end' }),
+      edge([[159, 208], [159, 297]], { label: { x: 167, y: 236, t: 'reads upstream' } }),
+      group({ x: 0, y: 256, w: 318, h: 244, chip: { text: 'production', state: 'prod' }, label: 'cluster', kind: 'n' }),
+      plate({ x: 48, y: 300, w: 222, kind: 'k', key: true, title: 'Environment', sub: 'tier: production' }),
+      edge([[110, 356], [110, 413]], { kind: 'act', label: { x: 118, y: 390, t: 'sets allowedVersions' } }),
+      plate({ x: 12, y: 416, w: 156, kind: 'k', title: 'RolloutGate', sub: 'allowedVersions', mono: true }),
+      plate({ x: 192, y: 416, w: 114, kind: 'k', title: 'Rollout', sub: 'deploys it' }),
+      edge([[168, 444], [189, 444]]),
     ].join('')
   }
 };

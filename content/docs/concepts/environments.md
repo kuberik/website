@@ -69,7 +69,7 @@ During deployment:
 2. State is recorded (Pending → Success/Failure)
 3. Downstream environments watch for success events
 
-{{< fig id="environments" caption="Environments in different clusters share bake results through GitHub Deployments; the next tier only gets versions that baked upstream." >}}
+{{< fig id="env-tiers-github" caption="Two clusters never connect: the staging Environment reports to GitHub, and the production Environment lets through only what baked upstream." >}}
 
 ## Environment Relationships
 
