@@ -5,7 +5,7 @@ type_: concept
 weight: 30
 ---
 
-An Environment puts a [Rollout](/docs/concepts/rollouts/) into a tier, such as staging or production, and lets it deploy only the releases the earlier tier has already deployed and baked. Clusters coordinate through GitHub deployments, so they never connect to each other.
+An [Environment](/docs/reference/api/#environment) puts a [Rollout](/docs/concepts/rollouts/) into a tier, such as staging or production, and lets it deploy only the releases the earlier tier has already deployed and baked. Clusters coordinate through GitHub deployments, so they never connect to each other.
 
 {{< fig id="env-tiers-github" caption="Two clusters never connect: the staging Environment reports to GitHub, and the production Environment lets through only what baked upstream." >}}
 
@@ -39,7 +39,7 @@ spec:
 | `site`, `wave`, `lockstep` | Optional. Split one environment across clusters, see [Sites and waves](#sites-and-waves). |
 
 {{< callout type="important" >}}
-Tiers, sites and waves need environment-controller after v0.1.5. In v0.1.5 the order came from `spec.relationship`, which later versions accept and ignore (the Environment reports `Deprecated`, reason `RelationshipIgnored`).
+Tiers, sites and waves need environment-controller newer than v0.2.0-rc.0. Up to v0.2.0-rc.0 the order came from `spec.relationship`, which later versions accept and ignore (the Environment reports `Deprecated`, reason `RelationshipIgnored`).
 {{< /callout >}}
 
 ## How tiers set the order
@@ -59,7 +59,7 @@ Use one name per tier. If an app registers both `staging` and `preprod`, every E
 
 ## How a release is admitted
 
-The controller creates a [RolloutGate](/docs/reference/api/) named `ghd-<random>` for the Rollout, owned by the Environment, and keeps its `allowedVersions` up to date:
+The controller creates a [RolloutGate](/docs/concepts/gates/) named `ghd-<random>` for the Rollout, owned by the Environment, and keeps its `allowedVersions` up to date:
 
 - With no upstream, the gate does not restrict versions.
 - With an upstream, the gate allows the releases that every registered site of the upstream's last wave baked successfully.
@@ -75,7 +75,9 @@ A pin on the Rollout (`spec.wantedVersion`) is a manual deploy that skips the ga
 
 One environment can run in several clusters. Each cluster's Environment is a site, named by `spec.site` (for example `eu-west-1`). Without `spec.site`, the controller uses its default site: the `site` key of the `kuberik-cluster-info` ConfigMap in the controller's namespace, else `default`.
 
-Sites roll out in waves. `spec.wave` defaults to 1, and wave N starts a release only after every site of wave N-1 baked it. In each wave the registered site whose name sorts first is the leader: it picks the release, and the other sites (followers) deploy exactly that pick. A leader keeps the role until every site of the wave has baked its pick, so a site that joins mid-rollout does not take over. The next tier waits for the last wave.
+Sites roll out in waves. `spec.wave` defaults to 1, and wave N starts a release only after every site of wave N-1 baked it. Number waves from 1 without gaps: a missing wave closes the gates of every site in that environment and sets `WaveReady=False`, reason `InvalidTopology`.
+
+In each wave the registered site whose name sorts first is the leader: it picks the release, and the other sites (followers) deploy exactly that pick. A leader keeps the role until every site of the wave has baked its pick, so a site that joins mid-rollout does not take over. The next tier waits for the last wave.
 
 With `lockstep: true`, the wave-1 leader picks no new release until every wave of the environment has baked the current one. Set it the same on every site of the environment: the wave-1 leader's value governs, and a site that differs puts `LockstepConsistent=False`, reason `LockstepMismatch`, on every Environment of the tier, with the differing sites named in the message.
 

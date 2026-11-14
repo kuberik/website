@@ -5,11 +5,11 @@ type_: concept
 weight: 40
 ---
 
-A Rollout decides which version runs in an environment, and that version can point at your app's image tag or at the rendered manifests for that environment. Kuberik supports both, and the difference is one annotation.
+A [Rollout](/docs/concepts/rollouts/) decides which version runs in an environment, and that version can point at your app's image tag or at the rendered manifests for that environment. Kuberik supports both, and the difference is one annotation.
 
 | | Image tag | Rendered manifests |
 |---|---|---|
-| Kuberik watches | A `ReleaseSource` over your app image | A `ReleaseSource` over your manifest artifact |
+| Kuberik watches | A [`ReleaseSource`](/docs/releases/publish/) over your app image | A `ReleaseSource` over your manifest artifact |
 | Kuberik writes | `postBuild.substitute` on a `Kustomization` | `spec.ref.tag` on an `OCIRepository` |
 | Annotation | `rollout.kuberik.com/substitute.<VAR>.from` | `rollout.kuberik.com/rollout` |
 | Flux source | Any source of the `Kustomization`, usually a `GitRepository` | `OCIRepository` |
@@ -33,7 +33,7 @@ metadata:
     rollout.kuberik.com/substitute.APP_VERSION.from: "hello-world"
 spec:
   interval: 10m
-  path: ./k8s/overlays/production
+  path: ./deploy/production
   prune: true
   sourceRef:
     kind: GitRepository

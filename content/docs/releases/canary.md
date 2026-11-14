@@ -53,7 +53,7 @@ spec:
 | `rollout.kuberik.io/step-<N>-bake-time` | How long step N must stay ready before it continues |
 | `rollout.kuberik.io/step-<N>-ready-timeout` | How long step N may take to become ready before the rollout stops and waits for you |
 
-`N` is 1-based and counts the `steps` in order. A step with neither a bake time nor a `RolloutTest` is never approved by Kuberik: it stays paused until you approve it in OpenKruise. A step with tests and no bake time continues when its tests pass. When Flux applies this Rollout from a Kustomization that a Kuberik [`Rollout`](/docs/concepts/rollouts/) drives, a failed bake on the Kuberik Rollout also stops the canary at its current step. See the [OpenKruise canary strategy](https://openkruise.io/rollouts/user-manuals/strategy-canary-update) for every step option.
+`N` is 1-based and counts the `steps` in order. A step with neither a bake time nor a [`RolloutTest`](/docs/reference/api/#rollouttest) is never approved by Kuberik: it stays paused until you approve it in OpenKruise. A step with tests and no bake time continues when its tests pass. When Flux applies this Rollout from a Kustomization that a Kuberik [`Rollout`](/docs/concepts/rollouts/) drives, a failed bake on the Kuberik Rollout also stops the canary at its current step. See the [OpenKruise canary strategy](https://openkruise.io/rollouts/user-manuals/strategy-canary-update) for every step option.
 
 ## Run tests at a step
 

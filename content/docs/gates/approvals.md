@@ -7,11 +7,11 @@ weight: 20
 aliases: ["/docs/guides/manual-approvals/"]
 ---
 
-A deploy waits until a person approves the build. An `ApprovalPolicy` holds every new build of the Rollouts it selects, and a `RolloutApproval` lets one version through.
+A deploy waits until a person approves the build. An [`ApprovalPolicy`](/docs/reference/api/#approvalpolicy) holds every new build of the [Rollouts](/docs/concepts/rollouts/) it selects, and a [`RolloutApproval`](/docs/reference/api/#rolloutapproval) lets one version through.
 
 ## Require an approval
 
-Label the [Rollouts](/docs/concepts/rollouts/) that need a person, then select them with an `ApprovalPolicy` in their namespace. The label is yours to choose; the policy only matches it.
+Label the Rollouts that need a person, then select them with an `ApprovalPolicy` in their namespace. The label is yours to choose; the policy only matches it.
 
 ```bash {filename="Terminal"}
 kubectl -n hello-world label rollout hello-world approval.kuberik.com/required=true
@@ -33,7 +33,7 @@ spec:
 
 For each matched Rollout the controller creates one [RolloutGate](/docs/concepts/gates/) named `approval-gate-<suffix>`. Its `allowedVersions` lists the versions approved for that Rollout and nothing else, so every newer build waits. An empty `rolloutSelector` matches every Rollout in the namespace.
 
-To require approvals across namespaces, use a `ClusterApprovalPolicy`. Its `namespaceSelector` picks the namespaces; leave it out to match all of them.
+To require approvals across namespaces, use a [`ClusterApprovalPolicy`](/docs/reference/api/#clusterapprovalpolicy). Its `namespaceSelector` picks the namespaces; leave it out to match all of them.
 
 ```yaml {filename="cluster-approval-policy.yaml"}
 apiVersion: kuberik.com/v1alpha1
@@ -64,7 +64,7 @@ metadata:
   name: hello-world-v1-4-0
   namespace: hello-world
   annotations:
-    approval.kuberik.com/by: emma.clarke@acme.com  # must be your own username
+    approval.kuberik.com/by: emma.clarke@acme.com  # optional; must equal your username
 spec:
   rolloutRef:
     name: hello-world
@@ -108,7 +108,7 @@ Two admission policies come with the controller and need Kubernetes 1.30 or late
 
 ## Know when approval is skipped
 
-A brand-new Rollout deploys its first release without waiting: gates, approval gates included, apply from the second deploy on. This is intended, so the Rollout always reaches a running version.
+Gates never hold a Rollout's first deploy, so a brand-new Rollout does not wait for an approval. The approval gate still chooses the version: the first deploy takes the newest approved release, or the newest release when none is approved. This is intended, so the Rollout always reaches a running version.
 
 A deploy by hand also skips the gate. Pinning a version with `spec.wantedVersion`, or **Change version** in the dashboard, deploys the build without an approval. `rollout.kuberik.com/bypass-gates` lets one build past every gate, and that deploy records no approval. [Operate a Rollout by Hand](/docs/operate/manual-actions/) covers all three.
 

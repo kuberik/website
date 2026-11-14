@@ -35,7 +35,7 @@ spec:
 kubectl -n hello-world patch rollout hello-world --type=merge -p '{"spec":{"wantedVersion":null}}'
 ```
 
-After you unpin, the Rollout deploys the newest release the gates allow that is newer than the pinned one. Pin a tag from the `ReleaseSource` catalogue: a tag outside it deploys, but after unpinning the Rollout cannot tell which releases are newer and deploys nothing on its own.
+After you unpin, the Rollout deploys the newest release the gates allow that is newer than the pinned one. Pin a tag from the [`ReleaseSource`](/docs/releases/publish/) catalogue: a tag outside it deploys, but after unpinning the Rollout cannot tell which releases are newer and deploys nothing on its own.
 
 In the dashboard, **Change version** with **Pin build** turned on sets the pin, and **Clear pin** removes it. Both are disabled while another field manager, such as Flux applying the Rollout from Git, owns `spec.wantedVersion`.
 
@@ -64,7 +64,7 @@ kubectl -n hello-world annotate rollout hello-world --overwrite rollout.kuberik.
 
 The tag must be a candidate, a release newer than the deployed one; for any other tag nothing happens. The history message reads "Automatic deployment, with gate bypass", and the controller removes the annotation after the next deploy.
 
-To skip only some gates, add `rollout.kuberik.com/bypass-gates-only` with a comma-separated list of `RolloutGate` names (available from the next rollout-controller release). The build then deploys once every gate not named allows it. A name that matches no gate of the Rollout raises a `BypassGatesUnknown` warning event, and the annotation does nothing without `bypass-gates`.
+To skip only some gates, add `rollout.kuberik.com/bypass-gates-only` with a comma-separated list of [`RolloutGate`](/docs/concepts/gates/) names (available from the next rollout-controller release). The build then deploys once every gate not named allows it. A name that matches no gate of the Rollout raises a `BypassGatesUnknown` warning event, and the annotation does nothing without `bypass-gates`.
 
 Schedules, approval policies and dependencies name their gates `schedule-gate-<suffix>`, `approval-gate-<suffix>` and `dependency-<name>`. List the names of the Rollout's gates first.
 
@@ -98,7 +98,7 @@ Set `rollout.kuberik.com/retry` (any value) to bake the same build again. If the
 kubectl -n hello-world annotate rollout hello-world --overwrite rollout.kuberik.com/retry=true
 ```
 
-For an OpenKruise canary, add `rollouttest.kuberik.com/retry-mode=skip` to mark failed RolloutTests as skipped instead of re-running them (`retry`, the default). The openkruise-controller removes it after the retry.
+For an OpenKruise canary, add `rollouttest.kuberik.com/retry-mode=skip` to mark failed [RolloutTests](/docs/releases/canary/) as skipped instead of re-running them (`retry`, the default). The openkruise-controller removes it after the retry.
 
 In the dashboard, **Retry** on the **Deployment failed** banner sets `retry`; when RolloutTests failed it offers **Retry tests** or **Skip tests**.
 
