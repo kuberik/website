@@ -96,106 +96,46 @@ node scripts/film/strip.mjs /tmp/jit 'cut gates' strip.png       # the ~60 fps f
 - The served page shows only the current film: re-shoot the posters with every first-frame change.
 - No music, no popover or site picker, no slogans, no overlays carrying numbers the product does not print.
 
-# Section islands: one real component per page section
+# Feature vignettes (the six feature cards)
 
-A section visual (a feature card, a later section) can be the dashboard's own component too, so it never drifts from the product. It is the same
-build as the film (shared runtime, shared stylesheet and fonts, the film's chunks reused), one small chunk per island (the Gates card: 2.5 KB gz of its
-own), started by the loader only once its host nears the viewport AND the hero has painted its first live frame.
+The six cards under "Every step of a release, declared." are not islands. Each canvas holds a designed motion graphic, take B v6h
+(owner pick, 2026-11-14), built from the dashboard's marks, chips, wires and tokens, not from the dashboard's components. They were
+section islands (real dashboard Cards at natural scale) until 2026-11-14; that mechanism, its posters, `data/section_poster.yaml` and
+`scripts/section/` are gone. The hero film is unchanged and is the only island left (`registry.ts` has one entry).
 
-## How a frame is made
+| Where | Holds |
+|---|---|
+| `assets/js/vignettes-b/vg.js` | The engine: bezier/spring easing, the product's wire/mark geometry, mount, the clock. Verbatim take B v6h plus the patch list in its header (no global `setAttribute` memo, start at rest, lazy build, `?vg-*` debug hooks). |
+| `assets/js/vignettes-b/kb.js` | The kit: cards, chips, marks, wave pies, the compositor stage (static layers painted once; sprites moved by WAAPI on transform/opacity). |
+| `assets/js/vignettes-b/{gates,canary,health,gitops,dashboard,releases}.js` | One scene each. Pure functions of loop time; `rest` is the poster frame. Verbatim v6h. |
+| `assets/css/vignettes.css` | Scene tokens (light/dark), the kit's classes, all scoped under `.vg`, plus the host box, the 1.15x width cap and the poster switch. |
+| `layouts/_partials/landing-vignettes/<card>.html` | GENERATED host + rest posters (desktop and phone compositions). Never hand-edit. |
+| `layouts/_partials/home/features.html`, `assets/css/features.css` | The card, and the bento plan (header comment of the CSS). |
 
-`src/islands/sections/section.ts` (`mountSection(ctx, spec)`):
+`layouts/home.html` concatenates the eight scripts (`resources.Concat | minify | fingerprint`, SRI) into one deferred bundle on the home page only.
 
-- The component is mounted LIVE under `shared/Scoped.svelte`: its own `$app/state` page and its own query answers (`shared/scope.ts`), so it can be
-  the same rollout as the film at another story second without reading or writing the film's. `vite.config.ts` `islandScope` rewrites every dashboard
-  `.svelte` file's `import { page } from '$app/state'` into `scopedPage()` at component init; the svelte-query stub captures the scope when a query is
-  created. Outside a section island both fall back to the globals: the film is unchanged.
-- It lays out on a canvas of the product's own width (container `kc`, as the film's canvas: the product's breakpoints answer it) offstage in the shadow
-  root, settles (fonts, no DOM change for 250 ms: the Gates graph measures its ports and draws its wires a frame later), is CLONED into the frame and
-  unmounted. The frame is the product's markup and CSS, inert, and nothing the film does later moves it.
-- Time: when the film drives the story clock, the section's world is rebased onto it (every ISO timestamp shifted by now - world.now), so its ages are
-  its own story's; with no film on the page the section drives the clock.
-- Its release catalogue is added to the shared source only if the film's does not already hold it (`base: false`, dropped after the clone).
-- Several story times = a calm loop of stills that dissolve (`times`, `holdMs`, `fadeMs`), paused off screen, in a hidden tab and under reduced motion
-  (the `rest` still). One time = a still.
-- A host width that moves the product's layout re-renders (debounced); any other only re-places the frame.
+## How it plays
 
-## Add one
+A host is built when it comes within one viewport of the screen (its poster is replaced by identical pixels), starts at `rest`, plays while
+>= 35 % in view, pauses off screen and in a hidden tab, and resumes where it paused. The phone composition (viewport <= 640 px) is chosen at
+build and re-chosen when the breakpoint flips, keeping each clock. Reduced motion and no JS leave the posters (the rest frame).
+Debug: `?vg-t=<s>` builds everything and freezes it at second s; `?vg-reduced=1` keeps the posters; `?vg-fps=n`;
+`window.__vgSet(t)`, `__vgSnap(t)` (serialised sprite state), `__vgRest(id)`, `__vgLoops()`, `__vgBuilt()` (they build every host first).
 
-```ts {filename="src/islands/sections/<name>.ts"}
-export const mount = (ctx: CustomCtx) => mountSection(ctx, {
-	id: 'section-<name>', load: () => import('$lib/components/<Component>.svelte').then((m) => m.default), props: (w) => ({ /* what the route passes */ }),
-	page: pageAt('/route/path', '/route/[id]', { /* params */ }), world: (t) => worldAt(t, { /* sibling-world options */ }),
-	answers: (w) => answersFrom(() => w.detail, () => w.fleet.rollouts as unknown[], () => w.github), times: [7],
-	canvas: (hw) => hw + 68, fit: 'width', frame: (root) => root.querySelector('<selector>'), align: { x: 'start', y: 'start' } });
+## Change a scene, re-shoot the posters
+
+Edit the scene, then (Hugo serving; `URL` defaults to `http://127.0.0.1:1381/`):
+
+```bash {filename="posters"}
+node scripts/vignettes-b/posters.mjs           # rewrites layouts/_partials/landing-vignettes/*.html
+node scripts/vignettes-b/posters.mjs --check   # exit 1 when a partial is stale
 ```
 
-1. The spec above, then a line in `src/registry.ts`: `'<name>': () => import('./islands/sections/<name>').then((m) => ({ custom: m.mount }))`.
-2. The host in Hugo: `{{ partial "section-island.html" (dict "name" "<name>" "class" "<slot classes>") }}`. Its box is reserved from
-   `data/section_poster.yaml` (step 3 measures it), under `:where()`, so the page's CSS can set a window height over it.
-3. Add the island and its island widths to `ISLANDS` in `scripts/section/capture-section-posters.mjs`; build; shoot the posters
-   (`node scripts/section/capture-section-posters.mjs <url> <name>`); commit `static/island-poster/s-<name>-*`, `data/section_poster.yaml` with the build.
-4. Check: `node scripts/section/cls.mjs 1440 900 light <name>` and `390 844` (total CLS, host box before JS vs live), `REDUCED=1` for reduced motion,
-   `node scripts/section/nojs.mjs <name> 1440 dark out.png` (the poster alone), and the film's `check-all.sh` (the hero must not change).
+The generator drives every scene to `rest`, clones each host and bakes every sprite's computed transform and opacity inline (a px
+translate back to percent of the sprite's box, so it scales with the host), prefixes ids per card and composition. Colours stay CSS
+variables, so one poster serves both themes. Commit the partials with the scene.
 
-`frame` returns an element or a rect (`rectOf(edges, [bottoms], grow)`: a span cropped on a gutter). `fit: 'width'` corrects the canvas once (then
-remembers the correction) until the framed rect is exactly the host's width, since the product's gutters change at its own breakpoints.
+## Verify
 
-## The six feature cards
-
-Each island is a whole product Card, header included (DIRECTION.md §3): the landing draws no header or shell inside its partial
-(`layouts/_partials/landing-features/<id>.html` is only the host). They tell one set of facts: checkout-api 4.46.0-46 runs in dev and staging; production
-holds it in us-east-1 because payments-svc, which it needs at ^3.1.0, is still baking 3.1.0 there.
-
-| Card | Island | Product component | World, story second |
-|---|---|---|---|
-| Gates | `gates.ts` | rollout Gates tab, its Gates card (list below 644 px, the #145 two-column graph from 644) | `worldAt(7, depHold, no approval)`, prod us-east-1 |
-| Health checks | `health.ts` | rollout Overview, Health checks card | `payments(t)`, prod us-east-1: loop 14.9 (2 pending) -> 16.8 (3/3) |
-| Canary and waves | `canary.ts` | App page Progress tab, Progress card | `payments(t)`: loop 11.4, 12.9, 16.8 (step 1, 2, 4 of 5; waves 2 and 3 not reached). 677 tall below a 425 island, 669 to 633, 641 from 634 (the release line is one row from a 600 px line) |
-| Releases | `releases.ts` | App page, Builds card | `held(7)`. 483 tall below a 482 island (every place row stacked), 413 at 482-561 (168 px chip track), 369 from 562 |
-| Dashboard | `dashboard.ts` | Change page for #112, History card | `held(7)` |
-| GitOps | `gitops.ts` | rollout Overview, Resources card (staging) | `held(7, 'staging')`. The product has no view of the version Kuberik substitutes into the Kustomization; this is Flux's side |
-
-- `sections/worlds.ts`: `held` is the scenario's held world under its own cluster names (`<env>-held`, never printed), so its release catalogue is its own
-  and a build's age does not follow the film's second (the dashboard keys a catalogue by cluster / namespace / source; `section.ts` compares the same key).
-  `payments` is the film's own CRs at a second where us-east-1 bakes, with checkout-api renamed payments-svc and its builds 3.0.1 / 3.0.2 / 3.1.0, the
-  dependency gate removed and the fleet's at-rest payments-svc left out; `paymentsAnswers` answers the rollout page's queries through the film's
-  `answersFrom` in checkout-api's names and renames the answers.
-- `source: true` in a spec: the page reads the whole fleet (App page, Change page). `vite.config.ts` `islandSource` rewrites the dashboard's `liveSource()`
-  to ask the island scope first (Svelte 5 evaluates every derived and effect under its component's context, so `getContext` works there); a scoped reader
-  never reads the film's source, so the film moving does not re-run it.
-- Calm loops: `times` with `rest` (the still shown first, under reduced motion and in the poster), `holdMs: 4000`, `fadeMs: 400`.
-
-### Frame a card
-
-- The host reserves the product's natural height per width from `data/section_poster.yaml` (`w` island widths, `h` the tallest still there), under
-  `:where()`, answered by the host's own width (`section-island.html` wraps it in a `.sec-slot` container). Natural height falls as the host widens within
-  one product layout; the widths include the product's breakpoints in island terms (canvas = island + 32: sm 608, md 736, lg 992) and the Gates graph's 644,
-  so the reserve of the widest width not wider than the host is never short.
-  The widths are every host width the page's grid gives an island (plateaus, the grid's breakpoints, common devices; the fluid ranges between filled
-  at <= ~30 px steps): `node scripts/section/widths.mjs <vw ...>` prints each host with JS off and live, and the poster it shows, MISMATCH where they
-  differ. Grid tracks are fractional (424.7): the container query is `min-width: w - 0.5px`, so a track takes its rounded poster, never the one below.
-  After a features.css change, run it at 390, 640, 641, 1023, 1024, 1199, 1200, 1280, 1440, 1920, 2399, 2400 and 2560 and add any new width.
-- The page's CSS may set a window height over it (the frame is top-left; a shorter window crops its foot). `"attrs" (dict "align-x" "center" "align-y"
-  "center" "pad" "12")` on the partial becomes `data-align-x` / `data-align-y` / `data-pad`, which `section.ts` reads when it places the frame.
-- Posters: `node scripts/section/capture-section-posters.mjs <url> [name-card ...]` lays each host out on its own bay at every width in its list
-  (reduced motion: the rest still), shoots light and dark at 1x, and writes the widths, heights and hash. `look.mjs` takes `W=<px>` (same bay),
-  `NATURAL=1` and `ALL=1` (every still of a loop).
-- Other checks in `scripts/section/` (playwright from the dashboard's node_modules; `URL` defaults to the preview):
-  - `probe.mjs <name> <vw>`: rects, relative to the still, of a few elements in one island's frozen still.
-  - `history-check.mjs <outdir> <vw> <theme> <runs>`: fresh loads; the Dashboard card cropped live and ~10 s later, with its event count and whether
-    Released and Held are there (5 events: Merged, Released, dev, staging, Held).
-  - `features-nojs.mjs <outdir> [vw ...]`: the features section with JavaScript off, light and dark, and each host's width beside the poster it shows.
-  - `product-shot.mjs <url> <vw> <theme> <selector> <out.png>`: one element of the running dashboard (hub or mock) at 1x, evidence beside an island.
-- No API: the landing has none. A product module that calls one is stubbed (`STUBBED_MODULES` in `vite.config.ts`: `api/pulls.ts` answers the Change
-  page's PR from the scope's answers or the fleet's changes feed); as a backstop `shared/no-api.ts` answers any same-origin `/api/` request 503 in the
-  page, without a network request, and warns once per path (a missing stub shows as a console warning).
-
-## The Gates card
-
-`sections/gates.ts`: the real Gates tab (`RolloutShell` + the tab route) for checkout-api in prod us-east-1 at story second 7 of a sibling world
-(`worldAt(t, { depHold: true, approval: false })`: payments-svc still baking the 3.1.0 that 4.46.0-46 requires holds the release; staging's promotion passed;
-Business hours open; no approval gate). The frame is the whole Gates card. From an island width of 644 px it is the compact two-column graph with #145's
-wires (454 px tall); below that the stacked list (about 656-692 px). Re-measure when the pin moves: `capture-section-posters.mjs` lists each
-card's product breakpoints in island terms (`RELEASES`, `CANARY`); a new container query in a framed component needs its width added there.
-
+`scripts/vignettes-b/check.mjs` (loop exactness, start at rest, off-screen pause, reduced motion, poster parity, console), `cls.mjs`,
+`cost.mjs` (main-thread ms/s at 4x CPU against the 60 budget) take `URL=` and run from `islands/` (playwright from the dashboard's node_modules).
