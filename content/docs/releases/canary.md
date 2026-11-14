@@ -7,26 +7,14 @@ weight: 30
 aliases: ["/docs/guides/canary-rollouts/"]
 ---
 
-Shift traffic progressively using [OpenKruise Rollout](https://openkruise.io/docs/rollouts/introduction). Kuberik adds bake time between steps and automated testing at each stage.
-
-{{< callout type="info" >}}
-**When to Use Canary Rollouts**
-
-Use canary deployments when you need to validate changes with real traffic before full deployment. This is ideal for user-facing services where issues might only surface under production load, or when you want to limit blast radius during risky changes.
-{{< /callout >}}
-
-{{< callout type="warning" >}}
-**Prerequisite**
-
-Canary rollouts require the [OpenKruise Controller](/docs/installation/#optional-controllers) to be installed in your cluster.
-{{< /callout >}}
+Shift traffic to a new version in steps using [OpenKruise Rollout](https://openkruise.io/rollouts/user-manuals/basic-usage), with Kuberik holding each step for a bake time and running tests before the next step. Use it for user-facing services where problems only show under real traffic. Canary rollouts need the [OpenKruise Controller](/docs/installation/#optional-controllers) in the cluster.
 
 {{% details title="Installing OpenKruise" %}}
 
-Follow the [OpenKruise installation guide](https://openkruise.io/docs/installation) or use the Kuberik-managed installation:
+Follow the [OpenKruise installation guide](https://openkruise.io/rollouts/installation) or use the Kuberik-managed installation:
 
 ```bash
-kubectl apply --server-side -f https://github.com/kuberik/openkruise-controller/releases/download/v0.3.3/install.yaml
+kubectl apply --server-side -f https://github.com/kuberik/openkruise-controller/releases/download/v0.4.1/install.yaml
 ```
 
 {{% /details %}}
@@ -63,12 +51,12 @@ spec:
 {{< callout type="default" >}}
 Kuberik watches the rollout and enforces bake time at each step before allowing progression. If health checks fail during bake, the rollout is paused.
 
-See the [OpenKruise Rollout documentation](https://openkruise.io/docs/rollouts/user-manuals/strategy-canary-update) for full canary strategy options.
+See the [OpenKruise Rollout documentation](https://openkruise.io/rollouts/user-manuals/strategy-canary-update) for full canary strategy options.
 {{< /callout >}}
 
 ## Run Tests at Steps
 
-Use `RolloutTest` to run a Job at a specific canary step. Kuberik pauses the rollout at that step, runs the Job, and proceeds only if it succeeds. If the test fails, the rollout stays paused for investigation or rollback.
+Use `RolloutTest` to run a Job at a specific canary step. Kuberik pauses the rollout at that step, runs the Job, and proceeds only if it succeeds. If the test fails, the rollout stays paused at that step until you retry the test or skip it.
 
 ![A stepped rollout in the dashboard: each canary step is a stage of the deployment pipeline, and the final check watches the health checks before the deploy counts as done](/screenshots/dashboard/overview-prod.png)
 
@@ -81,17 +69,19 @@ spec:
   rolloutName: my-app
   stepIndex: 1
   jobTemplate:
-    spec:
-      template:
-        spec:
-          restartPolicy: Never
-          containers:
-            - name: test
-              image: curlimages/curl
-              command: ["curl", "--fail", "http://my-app-canary"]
+    backoffLimit: 0
+    template:
+      spec:
+        restartPolicy: Never
+        containers:
+          - name: test
+            image: curlimages/curl
+            command: ["curl", "--fail", "http://my-app-canary"]
 ```
 
-The `stepIndex` is 1-based and corresponds to the steps defined in the OpenKruise Rollout. You can create multiple `RolloutTest` resources targeting different steps.
+`jobTemplate` is a Kubernetes Job spec. `stepIndex` is 1-based and matches the steps defined in the OpenKruise Rollout. Create one `RolloutTest` per step you want to test.
+
+Once the deploy has failed, retry it from the dashboard's **Retry** button or with the `rollout.kuberik.com/retry` annotation on the Kuberik Rollout, and the failed tests at the current step run again. To let the step continue without them, also set `rollouttest.kuberik.com/retry-mode: skip` on the Kuberik Rollout: the failed tests are marked `Skipped` and count as passed.
 
 {{< callout type="warning" >}}
 Tests configured on the last step won't run. OpenKruise Rollouts completes without pausing at the final step, so the controller never gets a chance to execute them. Only configure `RolloutTest` for steps that aren't the last one.
