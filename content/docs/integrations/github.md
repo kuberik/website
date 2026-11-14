@@ -11,7 +11,7 @@ Kuberik records every deploy as a GitHub deployment, which is how [Environments]
 
 | For | You need | Notes |
 |---|---|---|
-| Environments | environment-controller after v0.1.5 | The Helm chart installs it with `--set integrations.environment.enabled=true`. |
+| Environments | environment-controller after v0.1.5 | The Helm chart's environment integration (`integrations.environment.enabled=true`) still installs v0.1.5; tiers, sites and waves need the next chart release. |
 | Environments | A GitHub token per app namespace | Classic: `repo_deployment` for public repositories, `repo` for private ones. Fine-grained: **Deployments: Read and write** on the repository. |
 | Dashboard changes | A GitHub App, on the cluster that serves the dashboard | Read-only access to **Contents**, **Pull requests** and **Checks**. |
 
@@ -95,7 +95,7 @@ kubectl -n kuberik-system create secret generic github-app-credentials \
 
 ### Restart the dashboard
 
-The Helm chart maps the Secret's `clientId` and `clientSecret` keys to the dashboard's `GITHUB_APP_CLIENT_ID` and `GITHUB_APP_CLIENT_SECRET`. The dashboard reads them at start, so restart it once the Secret exists:
+When the Helm chart runs the dashboard (`dashboard.enabled=true`; it is off by default), it maps the Secret's `clientId` and `clientSecret` keys to the dashboard's `GITHUB_APP_CLIENT_ID` and `GITHUB_APP_CLIENT_SECRET`. The dashboard reads them at start, so restart it once the Secret exists:
 
 ```bash {filename="Terminal"}
 kubectl -n kuberik-system rollout restart deployment rollout-dashboard
@@ -111,9 +111,7 @@ dashboard:
 
 ### Sign in
 
-```bash {filename="Terminal"}
-curl -s https://<dashboard-host>/api/auth/github/status
-```
+Open `https://<dashboard-host>/api/auth/github/status` in a browser tab where you are signed in to the dashboard. With dashboard sign-in turned on, a request without your session gets the sign-in redirect instead of this answer:
 
 ```json {filename="Output"}
 {"configured":true,"connected":false}

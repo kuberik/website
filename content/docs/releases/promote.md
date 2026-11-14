@@ -61,7 +61,7 @@ spec:
 kubectl apply -f production.yaml
 ```
 
-When staging finishes the bake of `1.4.0`, the production gate adds `1.4.0` to its `allowedVersions` and the production Rollout deploys it as soon as its other gates allow. A failed bake in staging never reaches production. The order comes from the tier names alone: there is nothing to configure between the two objects.
+When staging finishes the bake of `1.4.0`, the production gate adds `1.4.0` to its `allowedVersions` and the production Rollout deploys it as soon as its other gates allow. A failed bake in staging never reaches production, with one exception: a Rollout's first deploy ignores gates and takes the newest release. Pin a new production Rollout (`spec.wantedVersion`) to a release staging baked, or create it after staging has one. The order comes from the tier names alone: there is nothing to configure between the two objects.
 
 ## Roll production out in waves
 
@@ -85,7 +85,7 @@ spec:
     project: acme/hello-world
 ```
 
-Set `site: eu-west-1` (and the default `wave: 1`) on the first production cluster's Environment. Changing the site of an existing Environment deregisters its old site in GitHub and registers the new one. To keep production on one release until every wave has it, set `lockstep: true` on the wave-1 Environment.
+Set `site: eu-west-1` (and the default `wave: 1`) on the first production cluster's Environment. Changing the site of an existing Environment deregisters its old site in GitHub and registers the new one. To keep production on one release until every wave has it, set `lockstep: true` on every production Environment, in every wave. A site that differs from the wave-1 leader puts `LockstepConsistent=False`, reason `LockstepMismatch`, on every production Environment.
 
 ## Check the result
 
@@ -121,6 +121,7 @@ The gate whose name starts with `ghd-` belongs to the Environment. In GitHub, th
 | `WaveReady=False`, reason `InvalidTopology` | Two names of one tier are in use (`staging` and `preprod`), or the waves have a gap. | Use one tier name, and number waves from 1 without gaps. |
 | `WaveReady=False`, reason `DuplicateSite` | Another Environment already owns this site of the tier. | Give each cluster its own `site`, or annotate the new one with `environments.kuberik.com/take-over-site=true`. |
 | Production deploys releases staging never ran | No staging site is registered for this `name`, so production has no upstream. | Check that both Environments use the same `name` and `backend.project`. |
+| A new production Rollout deploys a release staging never baked | A Rollout's first deploy ignores gates. | Pin the new Rollout (`spec.wantedVersion`) to a release staging baked, or create it after staging has one. |
 
 ## Next steps
 

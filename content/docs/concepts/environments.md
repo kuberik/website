@@ -21,7 +21,7 @@ spec:
   rolloutRef:
     name: hello-world
   name: hello-world            # same on every Environment of this app
-  environment: production      # the tier
+  environment: production
   backend:
     type: github
     project: acme/hello-world
@@ -63,17 +63,19 @@ The controller creates a [RolloutGate](/docs/reference/api/) named `ghd-<random>
 - With an upstream, the gate allows the releases that every registered site of the upstream's last wave baked successfully.
 - When nothing qualifies, the gate allows nothing (`allowedVersions: []`) and the Rollout stays on its current release.
 
+A Rollout's first deploy ignores gates: with an empty history it deploys the newest release even when the gate allows nothing. Pin a new Rollout (`spec.wantedVersion`) to a release the upstream baked, or create it after the upstream has one.
+
 GitHub records Git revisions, and the gate lists release tags. The controller maps one to the other through the release catalogue of the Rollout's [ReleaseSource](/docs/releases/publish/), so the Rollout must take its releases from a ReleaseSource, and each release must carry the commit it was built from. A revision with no matching tag is left out.
 
-Pinning the Rollout (`spec.wantedVersion`) overrides the wave's choice and the Environment reports `Pinned`. Deleting the Environment deletes its gate, which leaves the Rollout ungated: pin the Rollout first if it must not move.
+A pin on the Rollout (`spec.wantedVersion`) is a manual deploy that skips the gate. On a wave leader, the pinned release becomes the wave's pick and the followers deploy it. On a follower, a pin that differs from the wave's pick makes the Environment report `Pinned`. Deleting the Environment deletes its gate, which leaves the Rollout ungated: pin the Rollout first if it must not move.
 
 ## Sites and waves
 
 One environment can run in several clusters. Each cluster's Environment is a site, named by `spec.site` (for example `eu-west-1`). Without `spec.site`, the controller uses its default site: the `site` key of the `kuberik-cluster-info` ConfigMap in the controller's namespace, else `default`.
 
-Sites roll out in waves. `spec.wave` defaults to 1, and wave N starts a release only after every site of wave N-1 baked it. In each wave the site whose name sorts first is the leader: it picks the release, and the other sites (followers) deploy exactly that pick. The next tier waits for the last wave.
+Sites roll out in waves. `spec.wave` defaults to 1, and wave N starts a release only after every site of wave N-1 baked it. In each wave the registered site whose name sorts first is the leader: it picks the release, and the other sites (followers) deploy exactly that pick. A leader keeps the role until every site of the wave has baked its pick, so a site that joins mid-rollout does not take over. The next tier waits for the last wave.
 
-With `lockstep: true` on the wave-1 leader, the leader picks no new release until every wave of the environment has baked the current one. A site that disagrees with the leader reports `LockstepConsistent=False`.
+With `lockstep: true`, the wave-1 leader picks no new release until every wave of the environment has baked the current one. Set it the same on every site of the environment: the wave-1 leader's value governs, and a site that differs puts `LockstepConsistent=False`, reason `LockstepMismatch`, on every Environment of the tier, with the differing sites named in the message.
 
 Only one Environment, across all clusters, can own a site of a tier for one `name`. A second one posts nothing, closes its gate and reports `DuplicateSite`.
 
@@ -101,8 +103,9 @@ The controller reports the gate decision as conditions on the Environment, with 
 | `WaveReady=True` | `Ready` | The site may deploy the allowed releases. |
 | `WaveReady=False` | `WaitingFor` | A named site has not picked or baked the release yet, or its bake failed. |
 | `WaveReady=False` | `WaitingForCandidate`, `CandidatesUnresolved` | The revision has no release tag, or the release catalogue cannot be read. |
-| `WaveReady=False` | `Pinned`, `LockstepWaiting` | The Rollout is pinned, or lockstep holds the leader. |
+| `WaveReady=False` | `Pinned`, `LockstepWaiting` | A follower's Rollout is pinned to another release than the wave's pick, or lockstep holds the leader. |
 | `WaveReady=False` | `DuplicateSite`, `InvalidTopology`, `UnknownTier` | The setup is wrong; the gate allows nothing. |
+| `LockstepConsistent=False` | `LockstepMismatch` | A site's `lockstep` differs from the wave-1 leader's. Informational: the gate is unchanged. |
 | `Deprecated=True` | `RelationshipIgnored` | `spec.relationship` is set and ignored. |
 
 ## When a site leaves
