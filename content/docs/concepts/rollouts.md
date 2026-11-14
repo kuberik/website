@@ -52,7 +52,7 @@ kubectl -n hello-world get rollout hello-world -o yaml
 - `history`: deployments, newest first. `history[0].version.tag` is the running version; each entry records its `message`, `triggeredBy` and `bakeStatus` (`Deploying`, `InProgress`, `Succeeded`, `Failed` or `Cancelled`).
 - `candidates`: the newest releases newer than the deployed one (20 by default, set by the controller flag `--release-candidates`), plus any tag a gate, the pin or an action annotation names, up to 64. Gates and selection see every release; this list is what the status shows. `gated: true` means every gate lets the release through; `blockedBy` names the gates that hold it.
 - `gates`: each gate that targets this Rollout, whether it is passing, and the versions it allows.
-- `conditions`: `Ready`, `GatesPassing`, `DeploymentBlocked` (a health check is unhealthy) and `BakeFailureDisabled` (see [When a bake fails](#when-a-bake-fails)).
+- `conditions` include `Ready`, `GatesPassing`, `DeploymentBlocked` (a health check is unhealthy), `BakeFailureDisabled` (see [When a bake fails](#when-a-bake-fails)), and `ReleasesUpdated` and `ReleaseSourceReady` (whether releases can be read from the `ReleaseSource`).
 
 ## What a Rollout propagates
 
