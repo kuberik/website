@@ -23,7 +23,7 @@ Other parts of Kuberik have their own Troubleshoot sections:
 | Environments do not promote (`WaveReady`, `LockstepConsistent`) | [Promote Across Environments](/docs/releases/promote/#troubleshoot) |
 | Datadog monitors | [Datadog](/docs/integrations/datadog/#troubleshoot) |
 | Install and upgrade errors | [Install with Helm](/docs/installation/helm/#troubleshooting) |
-| Dashboard sign-in | [Set Up Dashboard Sign-in](/docs/installation/dashboard-auth/#troubleshooting) |
+| Dashboard sign-in | [Set Up Dashboard Sign-in](/docs/installation/dashboard-auth/#troubleshoot) |
 
 ## A new release does not deploy
 
