@@ -74,4 +74,4 @@ To ship a build the gate holds, deploy it by hand or let it past the gates once:
 - `rollout.kuberik.com/bypass-gates: <version>` lets one build past every gate, once. Health checks and a failed bake still hold it.
 - `rollout.kuberik.com/force-deploy: <version>` deploys the build now. It skips gates, the unhealthy-check hold and the failed-bake hold, and it is what the dashboard's **Deploy** does.
 
-[Operate a Rollout by Hand](/docs/guides/operate-rollout/) covers both, along with pinning a version and recovering from a failed bake.
+[Operate a Rollout by Hand](/docs/operate/manual-actions/) covers both, along with pinning a version and recovering from a failed bake.
