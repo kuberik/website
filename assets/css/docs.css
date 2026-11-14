@@ -326,6 +326,7 @@ html.dark #kd-article .mermaid svg .edgeLabel :is(span,p,rect,.labelBkg){backgro
   .kd-content h2{margin-top:44px;font-size:22px;line-height:30px}
   .kd-code-body pre,.hextra-code-block pre{font-size:12px!important;line-height:20px!important;padding:14px 16px!important}
   .kd-code-head{padding-right:96px}
+  .kd-code-lang{display:none}
   .kd-callout{padding:12px 14px;gap:10px}
 }
 @media(min-width:2400px){
