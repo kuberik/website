@@ -7,6 +7,8 @@ weight: 50
 
 A gate decides which releases a [Rollout](/docs/concepts/rollouts/) may deploy next. Schedules, approvals and service dependencies all work through one resource, the `RolloutGate`, while health checks hold deploys their own way.
 
+{{< fig id="gate-model" caption="Every gate is a RolloutGate; a release deploys only when every gate lets it through, and an Unhealthy HealthCheck holds it on a separate path." >}}
+
 ## How a gate holds a release
 
 A `RolloutGate` points at one Rollout in its namespace and carries two fields. `passing: false` holds every release. `allowedVersions` lists the release tags the gate lets through. If the field is absent, the gate does not filter releases. If the list is empty, nothing gets through.

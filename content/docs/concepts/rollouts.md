@@ -66,6 +66,8 @@ Before an automatic deploy, the build must be allowed by every gate that targets
 
 Automatic deploys also wait while any selected health check reports `Unhealthy`. The Rollout then sets `DeploymentBlocked=True` with the name of the check. A check that is still `Pending` holds nothing, and a Rollout's first deploy and deploys you start by hand go ahead regardless.
 
+{{< fig id="rollout-gating" caption="RolloutGates filter the release candidates; the newest allowed one deploys, otherwise the Rollout is held until a gate changes." >}}
+
 ## How a deploy is verified
 
 After a deploy, the history entry starts in `Deploying`. The bake starts (`InProgress`) once every selected health check is `Healthy` and has changed state since the deploy, so a check that was healthy before the deploy does not count until it reports on the new build. The deploy:
@@ -74,6 +76,8 @@ After a deploy, the history entry starts in `Deploying`. The bake starts (`InPro
 - fails when a health check reports an error at any point after the deploy, before or during the bake;
 - fails when `deployTimeout` passes before the bake starts;
 - is cancelled when a deploy you start by hand replaces it.
+
+{{< fig id="rollout-bake" caption="The bake status of the newest deploy: health starts the bake, bakeTime ends it, any HealthCheck error fails it." >}}
 
 A Rollout with no `bakeTime`, `deployTimeout` or `healthCheckSelector` marks each deploy `Succeeded` straight away.
 

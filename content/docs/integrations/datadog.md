@@ -133,34 +133,7 @@ kubectl -n hello-world get healthchecks -o custom-columns=NAME:.metadata.name,CL
 
 ## How it works
 
-```mermaid
-flowchart LR
-    %% Styles
-    classDef datadog fill:#632CA6,stroke:#fff,stroke-width:2px,color:#fff
-    classDef kuberik fill:#4B4BE8,stroke:#fff,stroke-width:2px,color:#fff
-    classDef crd fill:#2D7E9D,stroke:#fff,stroke-width:2px,color:#fff
-    classDef boundary fill:#F3F4F6,stroke:#D1D5DB,stroke-width:1px,color:#374151,stroke-dasharray: 5 5
-
-    subgraph Datadog
-        MON[Monitor Status]:::datadog
-    end
-
-    subgraph Cluster
-        direction TB
-        DDM[DatadogMonitor CRD]:::crd
-
-        subgraph Kuberik
-            HC[HealthCheck]:::kuberik
-            RO[Rollout]:::kuberik
-        end
-    end
-
-    MON --> DDM
-    DDM --> HC
-    HC --> RO
-
-    class Kuberik boundary
-```
+{{< fig id="datadog-health-paths" caption="datadog-controller turns monitors and incidents into HealthChecks; the Rollout reads only the HealthChecks." >}}
 
 The controller writes Datadog's state into the HealthCheck status:
 

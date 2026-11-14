@@ -99,17 +99,7 @@ Kuberik resolves the `ReleaseSource`, `Kustomization`, and `OCIRepository` in th
 
 The two modes are not exclusive. A common setup gives one service two Rollouts: one over the manifest artifact, one over the application image.
 
-```mermaid
-flowchart LR
-    classDef flux fill:#2D7E9D,stroke:#fff,stroke-width:2px,color:#fff
-    classDef kuberik fill:#4B4BE8,stroke:#fff,stroke-width:2px,color:#fff
-    classDef workload fill:#E5E7EB,stroke:#374151,stroke-width:1px,color:#374151
-
-    MRO[Rollout<br/>manifests]:::kuberik -->|moves tag| OCI[OCIRepository]:::flux
-    OCI --> KS[Kustomization]:::flux
-    ARO[Rollout<br/>app image]:::kuberik -.->|substitutes version| KS
-    KS --> DEP[Workload]:::workload
-```
+{{< fig id="propagation" caption="Two Rollouts on one service: one moves the manifests tag, the other sets the app version." >}}
 
 The manifests Rollout gates changes to the workload's configuration, and the app Rollout gates new builds of the code. Each has its own schedule, approvals and health checks, so you can deploy code automatically all day and hold configuration changes for a maintenance window.
 

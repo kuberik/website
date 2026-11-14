@@ -153,41 +153,7 @@ The check polls every 30 seconds and on every Kustomization change. Set `healthc
 
 ## How it works
 
-```mermaid
-flowchart LR
-    %% Styles
-    classDef flux fill:#2D7E9D,stroke:#fff,stroke-width:2px,color:#fff
-    classDef kuberik fill:#4B4BE8,stroke:#fff,stroke-width:2px,color:#fff
-    classDef external fill:#E5E7EB,stroke:#374151,stroke-width:1px,color:#374151
-    classDef boundary fill:#F3F4F6,stroke:#D1D5DB,stroke-width:1px,color:#374151,stroke-dasharray: 5 5
-
-    subgraph Registry ["Container Registry"]
-        REG[Image Repository]:::external
-    end
-
-    subgraph Cluster ["Kubernetes Cluster"]
-        direction TB
-
-        subgraph FluxCD ["FluxCD System"]
-            OCIR[OCIRepository]:::flux
-            KS[Kustomization]:::flux
-        end
-
-        subgraph Kuberik ["Kuberik"]
-            RS[ReleaseSource]:::kuberik
-            RO[Rollout]:::kuberik
-        end
-    end
-
-    REG --> RS
-    REG --> OCIR
-    RS --> RO
-    OCIR --> KS
-    RO -.->|Substitutes Version| KS
-    RO -.->|Moves Tag| OCIR
-
-    class FluxCD,Kuberik boundary
-```
+{{< fig id="flux-propagation" caption="The Rollout picks a release from the ReleaseSource and writes its tag into Flux; Flux applies it, and the Kustomization's health comes back as a HealthCheck." >}}
 
 The ReleaseSource lists releases from the registry. When the Rollout picks a release, it writes the tag with server-side apply under the field manager `rollout-controller`: into the substitute variable, or into the OCIRepository's `spec.ref.tag`. Flux then reconciles as usual.
 

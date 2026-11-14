@@ -7,6 +7,8 @@ weight: 30
 
 An Environment puts a [Rollout](/docs/concepts/rollouts/) into a tier, such as staging or production, and lets it deploy only the releases the earlier tier has already deployed and baked. Clusters coordinate through GitHub deployments, so they never connect to each other.
 
+{{< fig id="env-tiers-github" caption="Two clusters never connect: the staging Environment reports to GitHub, and the production Environment lets through only what baked upstream." >}}
+
 ## The Environment resource
 
 Each cluster that runs the app has one Environment next to its Rollout. This one places the `hello-world` Rollout in production:

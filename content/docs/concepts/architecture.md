@@ -9,50 +9,7 @@ Kuberik is a set of controllers that decide which build of your app runs in each
 
 ## How the resources connect
 
-```mermaid
-flowchart TB
-    %% Styles
-    classDef flux fill:#2D7E9D,stroke:#fff,stroke-width:2px,color:#fff
-    classDef kuberik fill:#4B4BE8,stroke:#fff,stroke-width:2px,color:#fff
-    classDef workload fill:#E5E7EB,stroke:#374151,stroke-width:1px,color:#374151
-    classDef boundary fill:#F3F4F6,stroke:#D1D5DB,stroke-width:1px,color:#374151,stroke-dasharray: 5 5
-
-    subgraph Cluster ["Cluster Scope"]
-        direction TB
-
-        subgraph FluxCD ["FluxCD Layer"]
-            direction TB
-            OCIR[OCIRepository]:::flux
-            KS[Kustomization]:::flux
-        end
-
-        subgraph Kuberik ["Kuberik Control Plane"]
-            direction TB
-            RS[ReleaseSource]:::kuberik
-            RO[Rollout]:::kuberik
-            ENV[Environment]:::kuberik
-            HC[HealthCheck]:::kuberik
-            RG[RolloutGate]:::kuberik
-        end
-
-        DEP[Workload]:::workload
-    end
-
-    %% Flows
-    RS --> RO
-    RO --> ENV
-
-    %% Connections
-    OCIR --> KS
-    KS --> DEP
-    RO -.->|Substitutes Version| KS
-    RO -.->|Moves Tag| OCIR
-    HC --> RO
-    RG --> RO
-
-    %% Subgraph Styling
-    class FluxCD,Kuberik boundary
-```
+{{< fig id="architecture" caption="Kuberik decides which version runs; Flux fetches and applies it." >}}
 
 ## What each resource does
 

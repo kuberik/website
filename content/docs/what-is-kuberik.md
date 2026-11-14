@@ -7,6 +7,8 @@ weight: -20
 
 Kuberik deploys the versions your CI publishes to Kubernetes: it picks up each new release, holds it until its gates allow it, deploys it through Flux and verifies it during bake time.
 
+{{< fig id="release-stages" caption="One release, from a new tag in your registry to a record in the Rollout history." >}}
+
 ## What Kuberik does with a release
 
 A release is a tagged artifact in a registry: the application image, or the rendered manifests for one environment pushed as an OCI artifact. From the moment the tag exists, Kuberik takes it through five stages without further input. See [Propagation Modes](/docs/concepts/propagation/) for how the two kinds of artifact compare.
