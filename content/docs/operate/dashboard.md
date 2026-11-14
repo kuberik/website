@@ -32,11 +32,11 @@ An app's Progress tab shows how far each build has gone; a rollout's Gates tab s
 2. Pick a build in the list on the left. The drawing shows every environment as a column, its regions grouped by **Wave**, and each place's state: on the build, held (with the rule that holds it), or **Not reached**.
 3. Select **Open rollout** on the banner, or a place in the drawing, to open that rollout.
 
-![The Progress tab of hello-world-app: the build is on development and staging, held by Business Hours Only in production eu-west, and not reached in the other production regions](/images/docs/dashboard/progress-tab.png)
+![The Progress drawing of hello-world-app: development and staging are on the build, production eu-west is held by Business Hours Only in wave 1, and us-east and ap-south are not reached](/images/docs/dashboard/progress-tab.png)
 
 4. On the rollout, select the **Gates** tab. **Gated by** lists every gate and the environment before this one, **Downstream** the rollouts that deploy after it. Below the drawing, **Held builds** lists what is waiting, **Waiting on** the services this one depends on, and **Depends on this** the services that wait on it. **All dependencies ›** opens the whole dependency network.
 
-![The Gates tab of hello-world-app in production eu-west: three gates hold the rollout, a Business Hours Only schedule and two approvals, each with a Skip once button](/images/docs/dashboard/gates-tab.png)
+![The Gated by column of hello-world-app in production eu-west: a closed Business Hours Only schedule and two approvals that need approval hold the rollout, each with a Skip once button](/images/docs/dashboard/gates-tab.png)
 
 ## Follow a change
 
