@@ -1,22 +1,20 @@
 ---
-title: "Publishing Releases"
-weight: 5
+title: "Publish Releases from CI"
+linkTitle: "Publish Releases"
+description: "Tag images or manifest artifacts in CI so a ReleaseSource picks them up."
+type_: guide
+weight: 10
 ---
 
-Kuberik orchestrates the delivery of your releases — but **you** decide when and how to release. A release is triggered when a new container image tag appears in the registry. Your CI pipeline controls that.
+Publish every build as a tagged artifact that a `ReleaseSource` picks up as a new release. Pick one tagging scheme, publish with the matching workflow, and give the `ReleaseSource` the policy that orders those tags.
 
-This guide shows how to publish tagged container images that Kuberik can pick up automatically.
+Each artifact also carries two OCI annotations: `org.opencontainers.image.revision` (the full git commit SHA) and `org.opencontainers.image.source` (the repository URL). Kuberik reads them to link a release to its commit and pull request, so `revision` must be the SHA, not a version string.
 
 ![A published build in the dashboard: the newest tag, the repository it came from, and how far it has been promoted](/screenshots/dashboard/app.png)
 
-## GitHub Workflow
+## Tag every build on main
 
-Build your Dockerfile, tag it, and push it to a registry (e.g., GHCR).
-
-### Strategy 1: Timestamp (Recommended)
-
-Triggers on every commit to `main`, producing a new image tag that Kuberik rolls out immediately.
-Uses an `alphabetical` (ascending) policy in Flux.
+Tag each build `main-<short sha>-<commit timestamp>` so that every commit to `main` becomes a release, ordered by when it was committed. This workflow builds the image, tags it, and annotates the image index.
 
 ```yaml {filename=".github/workflows/build-main.yaml"}
 name: Build
@@ -24,7 +22,7 @@ name: Build
 on:
   push:
     branches:
-      - "main"
+      - main
 
 env:
   REGISTRY: ghcr.io
@@ -36,12 +34,14 @@ jobs:
     permissions:
       contents: read
       packages: write
-
     steps:
       - name: Checkout
         uses: actions/checkout@v4
 
-      - name: Log in to the Container registry
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v3
+
+      - name: Log in to the container registry
         uses: docker/login-action@v3
         with:
           registry: ${{ env.REGISTRY }}
@@ -52,21 +52,17 @@ jobs:
         id: meta
         uses: docker/metadata-action@v5
         env:
-          # Annotate the image index, not just the per-arch manifests
-          DOCKER_METADATA_ANNOTATIONS_LEVELS: index
+          DOCKER_METADATA_ANNOTATIONS_LEVELS: index  # annotate the index Kuberik reads
         with:
           images: ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}
           tags: |
-            # Tag with: main-<sha>-<commit timestamp>
             type=raw,value=main-{{sha}}-{{commit_date 'X'}}
-            type=raw,value=latest
-          # Set OCI annotations on the manifest index
           annotations: |
             org.opencontainers.image.source=${{ github.event.repository.html_url }}
             org.opencontainers.image.revision=${{ github.sha }}
 
       - name: Build and push
-        uses: docker/build-push-action@v5
+        uses: docker/build-push-action@v6
         with:
           context: .
           push: true
@@ -75,9 +71,28 @@ jobs:
           annotations: ${{ steps.meta.outputs.annotations }}
 ```
 
-### Strategy 2: Semantic Versioning
+The `ReleaseSource` keeps only tags of that shape, extracts the timestamp, and orders by it as a number, so the newest commit is the newest release.
 
-Triggers rollouts via **git tags** (e.g., `v1.0.0`). You control the release cadence explicitly.
+```yaml {filename="releasesource.yaml"}
+apiVersion: kuberik.com/v1alpha1
+kind: ReleaseSource
+metadata:
+  name: hello-world
+  namespace: hello-world
+spec:
+  oci:
+    image: ghcr.io/acme/hello-world
+    filterTags:
+      pattern: '^main-[a-f0-9]+-(?P<ts>[0-9]+)$'
+      extract: '$ts'
+    policy:
+      numerical:
+        order: asc  # the highest timestamp is the newest release
+```
+
+## Tag releases by version
+
+Publish only when someone pushes a git tag such as `v1.4.0`, when you want to choose which commits become releases. The image gets the version without the `v`: `1.4.0`.
 
 ```yaml {filename=".github/workflows/release.yaml"}
 name: Release
@@ -86,41 +101,6 @@ on:
   push:
     tags:
       - "v*"
-
-# ... (env and setup steps same as above) ...
-
-      - name: Extract metadata (tags, labels)
-        id: meta
-        uses: docker/metadata-action@v5
-        env:
-          # Annotate the image index, not just the per-arch manifests
-          DOCKER_METADATA_ANNOTATIONS_LEVELS: index
-        with:
-          images: ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}
-          tags: |
-            type=semver,pattern={{version}}
-            type=semver,pattern={{major}}.{{minor}}
-          # Set OCI annotations on the manifest index
-          annotations: |
-            org.opencontainers.image.source=${{ github.event.repository.html_url }}
-            org.opencontainers.image.revision=${{ github.sha }}
-
-# ... (build step same as above) ...
-```
-
-## Publish Rendered Manifests
-
-When your rollout delivers Kubernetes manifests instead of an application image, render each environment overlay and push it as an OCI artifact with the Flux CLI. Kuberik picks up new artifact tags the same way it picks up image tags.
-
-`flux push artifact` sets the `org.opencontainers.image.source` and `org.opencontainers.image.revision` annotations from `--source` and `--revision` — keep `--revision` set to the commit SHA so Kuberik can link the release back to your repository.
-
-```yaml {filename=".github/workflows/manifests-release.yaml"}
-name: Manifests Release
-
-on:
-  push:
-    branches:
-      - "main"
 
 env:
   REGISTRY: ghcr.io
@@ -132,21 +112,93 @@ jobs:
     permissions:
       contents: read
       packages: write
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
 
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v3
+
+      - name: Log in to the container registry
+        uses: docker/login-action@v3
+        with:
+          registry: ${{ env.REGISTRY }}
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Extract metadata
+        id: meta
+        uses: docker/metadata-action@v5
+        env:
+          DOCKER_METADATA_ANNOTATIONS_LEVELS: index  # annotate the index Kuberik reads
+        with:
+          images: ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}
+          tags: |
+            type=semver,pattern={{version}}
+          annotations: |
+            org.opencontainers.image.source=${{ github.event.repository.html_url }}
+            org.opencontainers.image.revision=${{ github.sha }}
+
+      - name: Build and push
+        uses: docker/build-push-action@v6
+        with:
+          context: .
+          push: true
+          tags: ${{ steps.meta.outputs.tags }}
+          labels: ${{ steps.meta.outputs.labels }}
+          annotations: ${{ steps.meta.outputs.annotations }}
+```
+
+Order these tags by semantic version. The range keeps pre-releases such as `1.5.0-rc.1` out.
+
+```yaml {filename="releasesource.yaml"}
+apiVersion: kuberik.com/v1alpha1
+kind: ReleaseSource
+metadata:
+  name: hello-world
+  namespace: hello-world
+spec:
+  oci:
+    image: ghcr.io/acme/hello-world
+    policy:
+      semver:
+        range: ">=1.0.0"
+```
+
+## Publish rendered manifests
+
+When Kuberik moves rendered manifests instead of an image tag, render each environment's overlay in CI and push it as an OCI artifact with the Flux CLI. `flux push artifact` sets the `source` and `revision` annotations from `--source` and `--revision`. This workflow pushes one artifact per environment, all with the same `main-<sha>-<timestamp>` tag.
+
+```yaml {filename=".github/workflows/manifests-release.yaml"}
+name: Manifests Release
+
+on:
+  push:
+    branches:
+      - main
+
+env:
+  REGISTRY: ghcr.io
+  IMAGE_NAME: ${{ github.repository }}
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      packages: write
     steps:
       - name: Checkout
         uses: actions/checkout@v4
 
       - name: Resolve version
         id: v
-        run: |
-          # Tag with: main-<sha>-<commit timestamp>
-          echo "version=main-${GITHUB_SHA::7}-$(git log -1 --format=%ct)" >> "$GITHUB_OUTPUT"
+        run: echo "version=main-${GITHUB_SHA::7}-$(git log -1 --format=%ct)" >> "$GITHUB_OUTPUT"
 
-      - name: Install flux CLI
+      - name: Install the Flux CLI
         uses: fluxcd/flux2/action@main
 
-      - name: Log in to the Container registry
+      - name: Log in to the container registry
         uses: docker/login-action@v3
         with:
           registry: ${{ env.REGISTRY }}
@@ -158,8 +210,8 @@ jobs:
           VERSION: ${{ steps.v.outputs.version }}
         run: |
           set -euo pipefail
-          image="${IMAGE_NAME,,}" # ghcr.io requires a lowercase path
-          for env in dev staging prod; do
+          image="${IMAGE_NAME,,}"  # ghcr.io needs a lowercase path
+          for env in development staging production; do
             out="$(mktemp -d)"
             kustomize build "k8s/envs/${env}" -o "$out"
             flux push artifact \
@@ -170,27 +222,43 @@ jobs:
           done
 ```
 
-Point a Flux `OCIRepository` at each environment's artifact and reuse the timestamp policy below to select versions.
+Each environment's `ReleaseSource` scans its own artifact with the same timestamp policy as an image. This one is for production:
 
-## Matching Policies
-
-Ensure your `ReleaseSource` (its `filterTags` and `policy`) matches the tagging strategy used above.
-
-**For Timestamp (Recommended):**
-```yaml {filename="policy-timestamp.yaml"}
+```yaml {filename="releasesource.yaml"}
+apiVersion: kuberik.com/v1alpha1
+kind: ReleaseSource
+metadata:
+  name: hello-world
+  namespace: hello-world
 spec:
-  policy:
-    alphabetical:
-      order: asc # Kuberik picks the last one (highest timestamp)
-  filterTags:
-    pattern: '^main-[a-f0-9]+-(?P<ts>[0-9]+)'
-    extract: '$ts'
+  oci:
+    image: ghcr.io/acme/hello-world/production/manifests
+    filterTags:
+      pattern: '^main-[a-f0-9]+-(?P<ts>[0-9]+)$'
+      extract: '$ts'
+    policy:
+      numerical:
+        order: asc  # the highest timestamp is the newest release
 ```
 
-**For SemVer:**
-```yaml {filename="policy-semver.yaml"}
-spec:
-  policy:
-    semver:
-      range: ">=1.0.0"
+The Flux `OCIRepository` that Kuberik drives points at the same artifact; see [Deploy Your First App](/docs/getting-started/).
+
+## Check the result
+
+After the workflow runs, the `ReleaseSource` lists the new tag as its newest release, with the commit it read from the annotations.
+
+```bash {filename="Terminal"}
+kubectl get releasesource -n hello-world hello-world -o jsonpath='{.status.newest}'
 ```
+
+```json {filename="Output"}
+{"created":"2026-11-13T15:20:00Z","revision":"3f9c2ab0d1e84b6f9a7c5e2d4b1a8f6c3e9d0b7a","tag":"main-3f9c2ab-1763047200"}
+```
+
+If the tag is missing, compare it with `filterTags.pattern`: tags that do not match are not releases. If `revision` is missing, the annotations were written to the per-platform manifests instead of the image index.
+
+## Next steps
+
+- [Deploy Your First App](/docs/getting-started/): connect the release to a Rollout and Flux
+- [Propagation Modes](/docs/concepts/propagation/): choose between an image tag and rendered manifests
+- [Promote Across Environments](/docs/guides/cross-environment-rollout/): move each release from staging to production
