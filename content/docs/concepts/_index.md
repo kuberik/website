@@ -1,6 +1,8 @@
 ---
 title: "Concepts"
-weight: 4
+description: "How Rollouts, Environments, gates and propagation fit together."
+type_: index
+weight: 20
 sidebar:
   open: false
 ---
@@ -8,8 +10,8 @@ sidebar:
 Understand the core building blocks of Kuberik.
 
 {{< cards >}}
-  {{< card title="Architecture" link="architecture/" icon="cube" subtitle="How Kuberik orchestrates deployments" >}}
-  {{< card title="Rollouts" link="rollouts/" icon="refresh" subtitle="Version lifecycle management" >}}
-  {{< card title="Propagation Modes" link="propagation/" icon="switch-horizontal" subtitle="Image tag or rendered manifests" >}}
-  {{< card title="Environments" link="environments/" icon="server" subtitle="Multi-cluster coordination" >}}
+  {{< card title="How Kuberik Works" link="/docs/concepts/architecture/" icon="cube" subtitle="The controllers, their resources and how a release travels" >}}
+  {{< card title="Rollouts" link="/docs/concepts/rollouts/" icon="refresh" subtitle="Version lifecycle management" >}}
+  {{< card title="Propagation Modes" link="/docs/concepts/propagation/" icon="switch-horizontal" subtitle="Image tag or rendered manifests" >}}
+  {{< card title="Environments" link="/docs/concepts/environments/" icon="server" subtitle="Multi-cluster coordination" >}}
 {{< /cards >}}

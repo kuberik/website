@@ -1,6 +1,10 @@
 ---
-title: "Deployment Schedules"
-weight: 3
+title: "Set Deployment Windows"
+linkTitle: "Deployment Windows"
+description: "Allow or deny deploys by time of day, day of week or date range."
+type_: guide
+weight: 30
+aliases: ["/docs/guides/schedules/"]
 ---
 
 Use `RolloutSchedule` to control when deployments can occur based on time windows, days of week, or date ranges.

@@ -1,6 +1,8 @@
 ---
-title: "GitHub Integration"
-weight: 2
+title: "GitHub"
+description: "Report deployments to GitHub and show commit changes in the dashboard."
+type_: integration
+weight: 20
 ---
 
 The Kuberik [Environment API](/docs/concepts/environments/) uses the GitHub [Environments](https://docs.github.com/en/rest/deployments/environments) and [Deployments](https://docs.github.com/en/rest/deployments/deployments) APIs as a coordination layer for multi-cluster promotions.
@@ -64,7 +66,7 @@ spec:
 ## Next Steps
 
 {{< cards >}}
-  {{< card title="Automated Promotion" link="/docs/guides/cross-environment-rollout/" icon="switch-horizontal" subtitle="Multi-stage pipelines" >}}
+  {{< card title="Automated Promotion" link="/docs/releases/promote/" icon="switch-horizontal" subtitle="Multi-stage pipelines" >}}
   {{< card title="Environments Concept" link="/docs/concepts/environments/" icon="server" subtitle="How environments work" >}}
 {{< /cards >}}
 

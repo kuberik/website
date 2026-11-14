@@ -1,6 +1,10 @@
 ---
-title: "Canary Rollouts"
-weight: 4
+title: "Roll Out with a Canary"
+linkTitle: "Canary Rollouts"
+description: "Shift traffic in steps with OpenKruise, with bake time and tests at each step."
+type_: guide
+weight: 30
+aliases: ["/docs/guides/canary-rollouts/"]
 ---
 
 Shift traffic progressively using [OpenKruise Rollout](https://openkruise.io/docs/rollouts/introduction). Kuberik adds bake time between steps and automated testing at each stage.

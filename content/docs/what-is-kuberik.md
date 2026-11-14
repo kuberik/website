@@ -1,6 +1,8 @@
 ---
-title: "What is Kuberik"
-weight: 3
+title: "What Is Kuberik"
+description: "What Kuberik does after your CI publishes a release, and what it leaves to you."
+type_: concept
+weight: -20
 ---
 
 Kuberik is a Kubernetes-native delivery orchestrator. It takes over **after** your CI publishes a new version — a container image or rendered manifests — and handles everything that happens next: safe rollout, verification, and promotion.
@@ -55,5 +57,5 @@ For a detailed component breakdown, see [Architecture](/docs/concepts/architectu
 {{< cards >}}
   {{< card title="Install Kuberik" link="/docs/installation/" icon="download" subtitle="Set up the controller" >}}
   {{< card title="Getting Started" link="/docs/getting-started/" icon="academic-cap" subtitle="Deploy your first app" >}}
-  {{< card title="Publishing Releases" link="/docs/guides/publishing-releases/" icon="upload" subtitle="Set up your CI pipeline" >}}
+  {{< card title="Publishing Releases" link="/docs/releases/publish/" icon="upload" subtitle="Set up your CI pipeline" >}}
 {{< /cards >}}

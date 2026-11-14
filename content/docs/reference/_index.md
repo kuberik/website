@@ -1,6 +1,8 @@
 ---
 title: "Reference"
-weight: 6
+description: "Every resource field and annotation Kuberik reads."
+type_: index
+weight: 70
 sidebar:
   open: false
 ---

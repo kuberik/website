@@ -1,6 +1,8 @@
 ---
 title: "Propagation Modes"
-weight: 3
+description: "Move an image tag or rendered manifests through your environments."
+type_: concept
+weight: 40
 ---
 
 A Rollout decides **which version** is allowed to run in an environment. What that version points at is your choice: the **image tag** of your application, or the **rendered manifests** for that environment. Kuberik supports both, and the difference is one annotation.
@@ -115,5 +117,5 @@ The manifests Rollout gates changes to the deployment shape. The app Rollout gat
 
 - [Getting Started](/docs/getting-started/) sets up either mode step by step
 - [FluxCD Integration](/docs/integrations/fluxcd/) covers the Flux resources in detail
-- [Publishing Releases](/docs/guides/publishing-releases/) shows the CI side
+- [Publishing Releases](/docs/releases/publish/) shows the CI side
 - [Annotations Reference](/docs/reference/annotations/) lists every annotation

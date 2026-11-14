@@ -1,6 +1,10 @@
 ---
-title: "Service Dependencies"
-weight: 4
+title: "Wait for Service Dependencies"
+linkTitle: "Service Dependencies"
+description: "Hold a service until the service it needs has shipped a compatible version."
+type_: guide
+weight: 40
+aliases: ["/docs/guides/service-dependencies/"]
 ---
 
 Hold a service until the service it depends on has shipped the version it needs, in every environment, without hand-sequencing deploys. Requires rollout-controller v0.9.0 or newer.

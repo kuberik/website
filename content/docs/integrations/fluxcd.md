@@ -1,6 +1,8 @@
 ---
-title: "FluxCD Integration"
-weight: 1
+title: "Flux"
+description: "Let Kuberik drive Flux Kustomizations and OCIRepositories and read their health."
+type_: integration
+weight: 10
 ---
 
 Kuberik uses FluxCD for GitOps deployments. Flux applies your manifests; Kuberik decides which version it applies, and discovers new versions itself with a [`ReleaseSource`](#release-source-setup).
@@ -324,6 +326,6 @@ Ensure the annotation `rollout.kuberik.com/substitute.VAR_NAME.from` exactly mat
 ## Next Steps
 
 {{< cards >}}
-  {{< card title="Verifying Deployments" link="/docs/guides/health-checks/" icon="shield-check" subtitle="Active health verification" >}}
-  {{< card title="Manual Approvals" link="/docs/guides/manual-approvals/" icon="key" subtitle="Human sign-off with gates" >}}
+  {{< card title="Verifying Deployments" link="/docs/gates/health-checks/" icon="shield-check" subtitle="Active health verification" >}}
+  {{< card title="Manual Approvals" link="/docs/gates/approvals/" icon="key" subtitle="Human sign-off with gates" >}}
 {{< /cards >}}
