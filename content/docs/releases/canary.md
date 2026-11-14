@@ -104,7 +104,7 @@ kubectl -n hello-world get rollouttests -o custom-columns=NAME:.metadata.name,ST
 
 In the dashboard, each canary step is a stage of the deploy:
 
-![A stepped rollout in the dashboard: each canary step is a stage of the deployment pipeline, and the final check watches the health checks before the deploy counts as done](/screenshots/dashboard/overview-prod.png)
+![The deployment pipeline of a production rollout: Started, the canary stages Stage 1 at 20%, Stage 2 and Stage 3, then Check, where the health checks are healthy and the check timer is done](/images/docs/releases/canary-pipeline.png)
 
 ## Troubleshoot
 
