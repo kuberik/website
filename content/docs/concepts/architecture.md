@@ -59,7 +59,7 @@ flowchart TB
 | **Rollout** | The core state machine. Reads the releases a `ReleaseSource` discovers and orchestrates releases. Drives either a `Kustomization` substitution or an `OCIRepository` tag. |
 | **ReleaseSource** | Lists the tags of an OCI repository, orders them by a policy and keeps the catalogue of releases (served by the release-controller). A Rollout points at one with `spec.releaseSourceRef`. |
 | **Environment** | Maps a Rollout to a logical target (e.g. "production") and syncs status to external backends (GitHub). |
-| **HealthCheck** | Reports health from a Flux `Kustomization` or from Datadog monitors. The Rollout reads it before and during the bake. |
+| **HealthCheck** | Reports health from a Flux `Kustomization` or from an integration (Datadog monitors, Prometheus alerts). The Rollout reads it before and during the bake. |
 | **RolloutGate** | Holds builds until it allows them: written by hand, or by schedules, approval policies, service dependencies and Environments. |
 
 ![One rollout in the dashboard: the running build, its deployment pipeline, the health checks it watches and the resources it manages](/screenshots/dashboard/overview.png)
