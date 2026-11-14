@@ -7,17 +7,13 @@ weight: 30
 
 Kuberik reads Datadog monitors and incidents as health checks. A monitor that alerts after a deploy fails that deploy, and an open incident holds new deploys until it is resolved.
 
-{{< callout type="important" >}}
-The `datadog` and `datadog-incidents` classes need datadog-controller v0.2.0. Earlier versions support only `DatadogMonitor` resources.
-{{< /callout >}}
-
 ## What you need
 
 | Requirement | Why |
 |---|---|
-| datadog-controller v0.2.0 or later | Turns monitors and incidents into [`HealthCheck`](/docs/gates/health-checks/) status |
-| The `DatadogMonitor` CRD from the [Datadog Operator](https://docs.datadoghq.com/containers/datadog_operator/) | The controller watches it and does not start without it, even if you never create a `DatadogMonitor` |
-| A Datadog API key and application key | The application key needs `monitors_read`, plus `incident_read` for incidents and `timeseries_query` for the values the dashboard draws |
+| datadog-controller v0.2.0 or later | Turns monitors and incidents into [`HealthCheck`](/docs/gates/health-checks/) status. Earlier versions support only `DatadogMonitor` resources |
+| A Datadog API key and application key | For the `datadog` and `datadog-incidents` classes. The application key needs `monitors_read`, plus `incident_read` for incidents and `timeseries_query` for the values the dashboard draws |
+| The [Datadog Operator](https://docs.datadoghq.com/containers/datadog_operator/) (optional) | Only for `DatadogMonitor` resources |
 
 ## Give the controller credentials
 
@@ -32,7 +28,7 @@ kubectl -n kuberik-system create secret generic datadog-credentials \
 kubectl -n kuberik-system rollout restart deployment datadog-controller-controller-manager
 ```
 
-The controller maps the keys to `DD_API_KEY`, `DD_APP_KEY` and `DD_SITE`. Leave out `site` if your account is on `datadoghq.com`. Leave the chart's `integrations.datadog.enabled` off: the chart does not pass these keys to the controller. Without credentials, every `datadog` and `datadog-incidents` HealthCheck stays `Pending` with the message `datadog API credentials are not configured: set DD_API_KEY and DD_APP_KEY`.
+The controller maps the keys to `DD_API_KEY`, `DD_APP_KEY` and `DD_SITE`. Leave out `site` if your account is on `datadoghq.com`. The Helm chart's `integrations.datadog` reads the same Secret (`existingSecret`, default `datadog-credentials`), but it still installs datadog-controller v0.1.0, so use the install manifest above for now. Without credentials, every `datadog` and `datadog-incidents` HealthCheck stays `Pending` with the message `datadog API credentials are not configured: set DD_API_KEY and DD_APP_KEY`.
 
 ## Fail a deploy on alerting monitors
 
@@ -58,7 +54,7 @@ spec:
 | `healthcheck.kuberik.com/datadog-monitor-tags` | Comma-separated tags. A monitor is selected when it carries all of them |
 | `healthcheck.kuberik.com/datadog-monitor-ids` | Comma-separated monitor IDs, such as `"123456,234567"` |
 | `healthcheck.kuberik.com/datadog-group-tags` | Optional. Narrows a multi-group monitor to the groups that match, such as the `env:production` group of a monitor grouped by `env` |
-| `healthcheck.kuberik.com/requeue-interval` | Optional. How often to poll Datadog. Default `60s`, minimum `10s` |
+| `healthcheck.kuberik.com/requeue-interval` | Optional. How often to poll Datadog. Default `60s`; values under `10s` are ignored |
 
 Set at least one of `datadog-monitor-tags` and `datadog-monitor-ids`. Selecting by tag means a new monitor joins the gate when you tag it, and no monitor ever blocks a deploy by being missing: if no monitor carries the tags, the HealthCheck is `Healthy` and its message says nothing was evaluated.
 
@@ -103,11 +99,11 @@ spec:
   message: "hello-world returns errors after a deploy"
 ```
 
-Removing the annotation deletes the generated HealthCheck. This path needs no Datadog credentials, because the Datadog Operator syncs the monitor state into the resource.
+Removing the annotation deletes the generated HealthCheck. This path needs no Datadog credentials, because the Datadog Operator syncs the monitor state into the resource. The controller checks for the `DatadogMonitor` CRD once, at startup: if you install the Operator after the controller, restart the controller.
 
 ## Select the checks from the Rollout
 
-The [`Rollout`](/docs/concepts/rollouts/) picks up every HealthCheck whose labels match `healthCheckSelector`, in its own namespace unless you add a `namespaceSelector`:
+The [`Rollout`](/docs/concepts/rollouts/) picks up every HealthCheck whose labels match `healthCheckSelector`, in its own namespace:
 
 ```yaml {filename="rollout.yaml"}
 apiVersion: kuberik.com/v1alpha1
@@ -152,7 +148,7 @@ The Rollout starts the bake once every selected HealthCheck is `Healthy`, and fa
 
 | Symptom | Cause | Fix |
 |---|---|---|
-| datadog-controller restarts with `timed out waiting for cache to be synced for Kind *v1alpha1.DatadogMonitor` | The `DatadogMonitor` CRD is not installed | Install the Datadog Operator, or only its `DatadogMonitor` CRD |
+| No `datadog-check-*` HealthCheck appears, and the controller log says `DatadogMonitor CRD not installed` | The Datadog Operator was installed after the controller started | Run `kubectl -n kuberik-system rollout restart deployment datadog-controller-controller-manager` |
 | HealthCheck `Pending`: `datadog API credentials are not configured` | No `datadog-credentials` Secret in the controller's namespace | Create the Secret, then restart the controller so it reads the new environment |
 | HealthCheck `Healthy`: `No Datadog monitors carry tags [...]` | No monitor has every listed tag | Tag the monitors in Datadog, or fix the annotation |
 | HealthCheck `Pending`: `get monitor <id>: ...` | The monitor ID does not exist, or the application key lacks `monitors_read` | Check the ID and the key's scopes |

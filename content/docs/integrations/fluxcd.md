@@ -13,7 +13,7 @@ Flux applies your manifests and Kuberik decides which version it applies. A [`Ro
 |---|---|
 | Flux 2.6 or later | Kuberik writes `kustomize.toolkit.fluxcd.io/v1` Kustomizations and `source.toolkit.fluxcd.io/v1` OCIRepositories |
 | Flux 2.7 or later, with the kustomize-controller feature gate `CancelHealthCheckOnNewRevision` | Only for Kustomizations with `wait: true` (see [Report Kustomization health](#report-kustomization-health)) |
-| A `ReleaseSource` in the Rollout's namespace | Lists your releases. Flux image automation is not used |
+| A [`ReleaseSource`](/docs/releases/publish/) in the Rollout's namespace | Lists your releases. Flux image automation is not required |
 | The Kustomization or OCIRepository in the Rollout's namespace | The Rollout looks for annotated Flux objects only in its own namespace |
 
 Kuberik drives one of two Flux objects. Annotate a Kustomization and the Rollout sets a `postBuild.substitute` variable; annotate an OCIRepository and the Rollout sets its tag. [Propagation Modes](/docs/concepts/propagation/) compares the two.
@@ -124,7 +124,7 @@ spec:
 
 ## Report Kustomization health
 
-A `HealthCheck` with class `kustomization` reports the health of one Kustomization. The Rollout selects it with `healthCheckSelector` and fails the deploy if it turns `Unhealthy`:
+A [`HealthCheck`](/docs/gates/health-checks/) with class `kustomization` reports the health of one Kustomization. The Rollout selects it with `healthCheckSelector` and fails the deploy if it turns `Unhealthy`:
 
 ```yaml {filename="healthcheck.yaml"}
 apiVersion: kuberik.com/v1alpha1
@@ -135,10 +135,12 @@ metadata:
   labels:
     app: hello-world  # match this in the Rollout's healthCheckSelector
   annotations:
-    healthcheck.kuberik.com/kustomization: "hello-world"  # or "<namespace>/<name>"
+    healthcheck.kuberik.com/kustomization: "hello-world"
 spec:
   class: kustomization
 ```
+
+The annotation takes the Kustomization's name, or `<namespace>/<name>` for one in another namespace.
 
 How the check reads health depends on the Kustomization's `spec.wait`:
 
