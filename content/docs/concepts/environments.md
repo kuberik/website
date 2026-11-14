@@ -1,145 +1,118 @@
 ---
 title: "Environments"
-weight: 4
+description: "How Environments order tiers, sites and waves and report deployments to GitHub."
+type_: concept
+weight: 30
 ---
 
-An **Environment** connects a Rollout to an external deployment backend and enables multi-cluster coordination.
+An Environment puts a [Rollout](/docs/concepts/rollouts/) into a tier, such as staging or production, and lets it deploy only the releases the earlier tier has already deployed and baked. Clusters coordinate through GitHub deployments, so they never connect to each other.
 
-## What is an Environment?
+## The Environment resource
 
-Environments represent deployment targets like `staging`, `production`, or `eu-west-1`. They:
-
-1. Link to a **Rollout** to track its versions
-2. Sync state to an external **backend** for coordination
-3. Define **relationships** for cross-environment promotion
-
-{{< callout type="info" >}}
-**Environments Act Independently**
-
-Rollout and rollback are local operations managed by the controller on each cluster. There is no central pipeline coordinating environments from above. One cluster can roll back or hotfix without depending on the state of any other.
-{{< /callout >}}
-
-## Environment Resource
+Each cluster that runs the app has one Environment next to its Rollout. This one places the `hello-world` Rollout in production:
 
 ```yaml {filename="environment.yaml"}
 apiVersion: environments.kuberik.com/v1alpha1
 kind: Environment
 metadata:
-  name: production
-  namespace: default
+  name: hello-world-production
+  namespace: hello-world
 spec:
-  # The Rollout this environment tracks
   rolloutRef:
-    name: my-app
-
-  # Human-readable environment name
-  name: "production"
-
-  # External backend for state coordination
+    name: hello-world
+  name: hello-world            # same on every Environment of this app
+  environment: production      # the tier
   backend:
     type: github
-    project: "my-org/my-repo"
-    secret: "github-token"
-
-  # (Optional) Wait for upstream environment
-  relationship:
-    environment: staging
-    type: After
+    project: acme/hello-world
+    secret: github-token       # the default when left out
 ```
 
-## Key Fields
+| Field | What it does |
+|---|---|
+| `rolloutRef` | The Rollout in the same namespace that this Environment gates and reports. |
+| `name` | The app's name in GitHub. Every Environment of one app uses the same `name`; Kuberik adds a `kuberik/` prefix. |
+| `environment` | The tier. It decides which environment this one waits for. |
+| `backend` | The GitHub repository (`owner/repo`) and the Secret that holds the token. `github` is the only backend. |
+| `site`, `wave`, `lockstep` | Optional. Split one environment across clusters, see [Sites and waves](#sites-and-waves). |
 
-| Field | Purpose |
-|-------|---------|
-| `rolloutRef` | Reference to the Rollout resource |
-| `name` | Human-readable environment name for dashboards |
-| `backend` | External state store (GitHub is the first supported backend) |
-| `relationship` | Dependency on another environment's success |
+{{< callout type="important" >}}
+Tiers, sites and waves need environment-controller after v0.1.5. In v0.1.5 the order came from `spec.relationship`, which later versions accept and ignore (the Environment reports `Deprecated`, reason `RelationshipIgnored`).
+{{< /callout >}}
 
-## Multi-Cluster Coordination
+## How tiers set the order
 
-Kuberik uses external backends as a coordination layer. With the **GitHub** backend, this enables:
+Tiers have a fixed order. `spec.environment` must be one of these names, and names in one row are the same tier:
 
-- **Disconnected clusters**: Staging in AWS, Production in GCP—no direct networking required
-- **Audit trail**: Full deployment history visible in GitHub
-- **Status checks**: Branch protections can require successful deployments
+| Order | Accepted names |
+|---|---|
+| 1 | `dev`, `development` |
+| 2 | `test`, `qa` |
+| 3 | `staging`, `stage`, `preprod` |
+| 4 | `prod`, `production` |
 
-During deployment:
-1. Environment controller updates the backend
-2. State is recorded (Pending → Success/Failure)
-3. Downstream environments watch for success events
+An Environment waits for its upstream: the nearest earlier tier that has a registered site in GitHub for the same `name`. Tiers nobody uses are skipped, so production waits for staging when there is no test tier, and the first tier has no upstream. Because the upstream is read from GitHub, it can run in another cluster or another cloud.
 
-```mermaid
-flowchart LR
-    %% Styles
-    classDef env fill:#4B4BE8,stroke:#fff,stroke-width:2px,color:#fff
-    classDef backend fill:#E5E7EB,stroke:#374151,stroke-width:1px,color:#374151
-    classDef boundary fill:#F3F4F6,stroke:#D1D5DB,stroke-width:1px,color:#374151,stroke-dasharray: 5 5
+Use one name per tier. If an app registers both `staging` and `preprod`, every Environment that sees both stops with `InvalidTopology`. To split a tier into stages, use sites and waves.
 
-    subgraph ClusterA ["Cluster A (Staging)"]
-        direction TB
-        S_ENV[Environment: staging]:::env
-        S_RO[Rollout]:::env
-    end
+## How a release is admitted
 
-    subgraph Backend ["Backend System"]
-        BE[External State Store]:::backend
-    end
+The controller creates a [RolloutGate](/docs/reference/api/) named `ghd-<random>` for the Rollout, owned by the Environment, and keeps its `allowedVersions` up to date:
 
-    subgraph ClusterB ["Cluster B (Production)"]
-        direction TB
-        P_ENV[Environment: production]:::env
-        P_RO[Rollout]:::env
-    end
+- With no upstream, the gate does not restrict versions.
+- With an upstream, the gate allows the releases that every registered site of the upstream's last wave baked successfully.
+- When nothing qualifies, the gate allows nothing (`allowedVersions: []`) and the Rollout stays on its current release.
 
-    S_ENV -->|Reports Success| BE
-    BE -->|Staging Passed| P_ENV
-    P_ENV -->|Triggers| P_RO
+GitHub records Git revisions, and the gate lists release tags. The controller maps one to the other through the release catalogue of the Rollout's [ReleaseSource](/docs/guides/publishing-releases/), so the Rollout must take its releases from a ReleaseSource, and each release must carry the commit it was built from. A revision with no matching tag is left out.
 
-    class ClusterA,ClusterB boundary
-```
+Pinning the Rollout (`spec.wantedVersion`) overrides the wave's choice and the Environment reports `Pinned`. Deleting the Environment deletes its gate, which leaves the Rollout ungated: pin the Rollout first if it must not move.
 
-## Environment Relationships
+## Sites and waves
 
-Define promotion chains with the `relationship` field:
+One environment can run in several clusters. Each cluster's Environment is a site, named by `spec.site` (for example `eu-west-1`). Without `spec.site`, the controller uses its default site: the `site` key of the `kuberik-cluster-info` ConfigMap in the controller's namespace, else `default`.
 
-```yaml
-spec:
-  relationship:
-    environment: staging  # Wait for this environment
-    type: After           # Only proceed after it succeeds
-```
+Sites roll out in waves. `spec.wave` defaults to 1, and wave N starts a release only after every site of wave N-1 baked it. In each wave the site whose name sorts first is the leader: it picks the release, and the other sites (followers) deploy exactly that pick. The next tier waits for the last wave.
 
-This creates automatic promotion: when `staging` succeeds with version `v1.2.0`, `production` becomes eligible to deploy `v1.2.0`.
+With `lockstep: true` on the wave-1 leader, the leader picks no new release until every wave of the environment has baked the current one. A site that disagrees with the leader reports `LockstepConsistent=False`.
 
-## Backend Configuration
+Only one Environment, across all clusters, can own a site of a tier for one `name`. A second one posts nothing, closes its gate and reports `DuplicateSite`.
 
-Environments require a backend to store deployment state. The backend type is specified in `spec.backend.type`.
+## How Environments use GitHub
 
-### GitHub
+For every entry in the Rollout's history the controller creates a GitHub deployment on the release's commit, in the GitHub environment `kuberik/<name>/<environment>`, and updates its status as the bake goes on:
 
-```yaml
-spec:
-  backend:
-    type: github
-    project: "owner/repo"
-    secret: "github-credentials"  # Secret containing token
-```
+| Bake | GitHub status |
+|---|---|
+| Deploying, baking | `in_progress` |
+| Succeeded | `success` |
+| Failed | `failure` |
+| Cancelled | `inactive` |
 
-The secret must contain a GitHub token with `deployments` write scope (`repo:deployment`). See [GitHub Integration](/docs/integrations/github/) for setup details.
-
-## Viewing Deployments
-
-Since Kuberik syncs state to external backends, you can view deployment history in your backend provider's UI.
+The deployment payload carries the site, wave and owner, which is how the other clusters see this one. The repository's **Environments** page in GitHub shows the same history, and the dashboard's Environments page shows where each release stands.
 
 ![The Environments page: every environment with what is running, what is held and which environment has to deploy first](/screenshots/dashboard/environments.png)
 
-For GitHub:
-1. Navigate to your repository
-2. Click **Environments** in the sidebar
-3. View deployment history and status
+## Conditions
 
-## Related Guides
+The controller reports the gate decision as conditions on the Environment, with the same facts in structured form under `status.wave`:
 
-- [Cross-Environment Rollout](/docs/guides/cross-environment-rollout/) — Set up staging → production
-- [GitHub Integration](/docs/integrations/github/) — Configure the GitHub backend
+| Condition | Reason | Meaning |
+|---|---|---|
+| `WaveReady=True` | `Ready` | The site may deploy the allowed releases. |
+| `WaveReady=False` | `WaitingFor` | A named site has not picked or baked the release yet, or its bake failed. |
+| `WaveReady=False` | `WaitingForCandidate`, `CandidatesUnresolved` | The revision has no release tag, or the release catalogue cannot be read. |
+| `WaveReady=False` | `Pinned`, `LockstepWaiting` | The Rollout is pinned, or lockstep holds the leader. |
+| `WaveReady=False` | `DuplicateSite`, `InvalidTopology`, `UnknownTier` | The setup is wrong; the gate allows nothing. |
+| `Deprecated=True` | `RelationshipIgnored` | `spec.relationship` is set and ignored. |
+
+## When a site leaves
+
+Every Environment carries the finalizer `environments.kuberik.com/deregister`. Deleting the Environment, or changing its `site`, `environment` or `name`, posts an `inactive` status that deregisters the old site, so it no longer holds back the next wave or tier.
+
+Two annotations cover a cluster that cannot deregister itself. `environments.kuberik.com/skip-deregister: "true"` removes the finalizer without calling GitHub, for example when the token was revoked. `environments.kuberik.com/take-over-site: "true"` on a new Environment deregisters the old owner of its site and takes the site over; remove it once the new Environment owns the site.
+
+## Related
+
+- [Promote Across Environments](/docs/guides/cross-environment-rollout/)
+- [GitHub](/docs/integrations/github/)
+- [Rollouts](/docs/concepts/rollouts/)
