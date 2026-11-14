@@ -21,7 +21,7 @@ Kuberik is a set of controllers that decide which build of your app runs in each
 | **HealthCheck** | Reports health from a Flux `Kustomization` or from an integration (Datadog monitors, Prometheus alerts). The Rollout reads it before and during the bake. |
 | **RolloutGate** | Holds builds until it allows them: written by hand, or by schedules, approval policies, service dependencies and Environments. |
 
-![One rollout in the dashboard: the running build, its deployment pipeline, the health checks it watches and the resources it manages](/screenshots/dashboard/overview.png)
+![One rollout in the dashboard: the health checks it watches, all passing, and the resources it manages, 10 of 10 ready](/images/docs/concepts/architecture-rollout.png)
 
 ## How a build travels
 
