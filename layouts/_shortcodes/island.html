@@ -2,22 +2,36 @@
        height reserves the box so nothing shifts when it mounts. The runtime tag is emitted per island on purpose: the browser
        runs a module script with the same URL once per document, and a Scratch "loaded once" flag goes stale under hugo's fast re-render.
        eager: the host carries its STATIC FIRST FRAME (.ph-poster, captured from the running film at t=0 by islands/scripts/capture-posters.mjs: the window and the chapter bar above it,
-       one webp per window size and theme, only the matching one is requested). The island's shadow root slots it above itself until the first live frame is painted (runtime ready()),
+       in layers that lay out as the film does at any window width, see islands/README.md; only the matching band's files are requested). The island's shadow root slots it above itself until the first live frame is painted (runtime ready()),
        so there is no blank box, no layout shift, and without JS the page still shows the product and its chapters (the list below, for screen readers and no-JS readers). */ -}}
 {{- $name := .Get "name" -}}
 {{- $h := .Get "height" | default "300" -}}
 {{- $p := "island-poster/" | relURL -}}
-{{- $v := site.Data.island_poster.v | default (os.Stat "static/island-poster/p-1440-light.webp").ModTime.Unix -}}{{- /* scene lane 6: the version is the posters' content hash, written by capture-posters.mjs into data/island_poster.yaml (a data change re-renders the page; os.Stat was cached by the Hugo server, so a re-shot poster kept its old ?v) */ -}}{{- /* scene lane 4: the posters are re-shot with the film; the query busts a cached old frame (owner saw scene 1 under the film) */ -}}
+{{- $d := site.Data.island_poster -}}
+{{- $v := $d.v -}}{{- /* the posters' content hash, written by capture-posters.mjs into data/island_poster.yaml with the layers' geometry (a data change re-renders the page; os.Stat was cached by the Hugo server) */ -}}
 {{- if .Get "eager" }}<style>
-.ph-poster{position:absolute;left:0;right:0;top:-56px;bottom:0;z-index:7;background-repeat:no-repeat;background-size:cover;background-position:left top;transition:opacity .2s ease-out;pointer-events:none}
-[data-island="hero"]{position:relative}
-html:not(.dark) .ph-poster{background-image:url({{ $p }}p-1440-light.webp?v={{ $v }})}html.dark .ph-poster{background-image:url({{ $p }}p-1440-dark.webp?v={{ $v }})}
-@media(max-width:1265px){html:not(.dark) .ph-poster{background-image:url({{ $p }}p-1100-light.webp?v={{ $v }})}html.dark .ph-poster{background-image:url({{ $p }}p-1100-dark.webp?v={{ $v }})}}
-@media(max-width:1023px){html:not(.dark) .ph-poster{background-image:url({{ $p }}p-900-light.webp?v={{ $v }})}html.dark .ph-poster{background-image:url({{ $p }}p-900-dark.webp?v={{ $v }})}}
-@media(max-width:640px){.ph-poster{top:-70px}html:not(.dark) .ph-poster{background-image:url({{ $p }}p-390-light.webp?v={{ $v }})}html.dark .ph-poster{background-image:url({{ $p }}p-390-dark.webp?v={{ $v }})}}
-@media(min-width:1920px){html:not(.dark) .ph-poster{background-image:url({{ $p }}p-1920-light.webp?v={{ $v }})}html.dark .ph-poster{background-image:url({{ $p }}p-1920-dark.webp?v={{ $v }})}}
-@media(min-width:2400px){html:not(.dark) .ph-poster{background-image:url({{ $p }}p-2560-light.webp?v={{ $v }})}html.dark .ph-poster{background-image:url({{ $p }}p-2560-dark.webp?v={{ $v }})}}
-.ph-chapters{position:absolute;left:0;top:-56px;margin:0;padding:0;list-style:none;display:flex;gap:12px;font:500 14px/1 var(--sans);opacity:0}
+/* the poster is the film's first frame in LAYERS laid out as the film lays itself out, so it matches at every window width W (.ph-poster is the W container):
+   .ph-win the canvas, shot at the band's widest W and drawn at 100% of W (the film zooms its canvas to W: same scale, same top-left; never upscaled);
+   .ph-panel the chapter bar's panel in CSS (its computed paint); .ph-left / .ph-center / .ph-chrome its contents, anchored left / centred in the bar's grid box / right, as the grid places them */
+.ph-poster{position:absolute;left:0;right:0;top:-{{ $d.top }}px;bottom:0;z-index:7;container:hposter/inline-size;transition:opacity .2s ease-out;pointer-events:none}
+.ph-poster i{position:absolute;display:block;background-repeat:no-repeat}
+.ph-win{left:0;right:0;top:{{ $d.top }}px;bottom:0;border-radius:11px;overflow:hidden;background-size:100% auto}
+.ph-main{right:0;bottom:0;background-size:100% auto;background-position:0 calc(var(--cy,0) * 100cqw / var(--cw,1000))}.ph-foot{left:0;top:0;bottom:0;background-size:100% auto;background-position:0 100%}
+.ph-panel{box-sizing:border-box;border:1px solid}
+{{ range $t, $s := $d.panel }}{{ if eq $t "dark" }}html.dark{{ else }}html:not(.dark){{ end }} .ph-panel{background-color:{{ $s.bg | safeCSS }};border-color:{{ $s.bd | safeCSS }};box-shadow:{{ $s.sh | safeCSS }};border-radius:{{ $s.rad | safeCSS }}}
+{{ end -}}
+{{ range $i, $b := $d.bands -}}
+{{ if $i }}@container hposter (min-width:{{ add (index $d.bands (sub $i 1)).w 0.5 }}px){ {{ end -}}
+.ph-panel,.ph-chrome,.ph-left,.ph-center{left:{{ $b.px }}px;right:{{ $b.pw_in }}px;top:{{ add $d.top $b.py }}px;height:{{ $b.ph }}px}.ph-left{ {{- with $b.lclip }}right:{{ add $b.pw_in . }}px{{ else }}right:auto;width:{{ $b.l }}px{{ end }}}{{ with $b.c }}.ph-center{left:{{ add $b.px $b.cl }}px;right:{{ add $b.pw_in $b.cr }}px;background-position:calc(50% + {{ .dx }}px) 0}{{ end }}
+.ph-main{left:{{ $b.mx }}cqw;top:{{ $b.my }}cqw;--cw:{{ $b.cw }}}.ph-foot{width:{{ $b.fw }}cqw}.ph-chrome{background-position:100% 0}
+{{ range slice "light" "dark" }}{{ $u := printf "%sp-%v-%%s-%s.webp?v=%s" $p $b.w . $v }}{{ $sel := cond (eq . "dark") "html.dark" "html:not(.dark)" | safeCSS }}{{ if eq . "dark" }}html.dark{{ else }}html:not(.dark){{ end }} .ph-win{background-image:url({{ printf $u "w" }})}{{ $sel }} .ph-main{background-image:url({{ printf $u "m" }})}{{ $sel }} .ph-foot{background-image:url({{ printf $u "t" }})}{{ if eq . "dark" }}html.dark{{ else }}html:not(.dark){{ end }} .ph-left{background-image:url({{ printf $u "l" }})}{{ $sel }} .ph-center{background-image:{{ if $b.c }}url({{ printf $u "c" }}){{ else }}none{{ end }}}{{ $sel }} .ph-chrome{background-image:{{ if $b.r }}url({{ printf $u "r" }}){{ else }}none{{ end }}}
+{{ end -}}
+{{ if $i }}}
+{{ end -}}
+{{ end -}}
+{{- /* the main column's lift: the film's own first-frame camera y at each window width (runs swept by capture-posters.mjs), in canvas px */ -}}
+{{ range $d.bands }}{{ range .cy }}@container hposter (min-width:{{ sub (index . 0) 0.5 }}px){.ph-main{--cy:{{ index . 1 }}}}{{ end }}{{ end }}
+.ph-chapters{position:absolute;left:0;top:-56px;width:1px;height:1px;overflow:hidden;clip-path:inset(50%);white-space:nowrap;margin:0;padding:0;list-style:none;font:500 14px/1 var(--sans)}{{/* for screen readers only: as a 14 px flex row it was 349 px wide and widened the page at 320 until the film was up */}}
 </style>{{ end -}}
-<div data-island="{{ $name }}" data-theme-sync{{ if .Get "eager" }} data-eager{{ end }} style="min-height:{{ $h }}px">{{ if .Get "eager" }}<div class="ph-poster" aria-hidden="true"></div><ol class="ph-chapters" aria-label="The demo, chapter by chapter"><li>New release</li><li>Staging</li><li>Gates</li><li>Canary</li><li>Health checks</li><li>All sites</li></ol>{{ end }}</div>
+<div data-island="{{ $name }}" data-theme-sync{{ if .Get "eager" }} data-eager{{ end }} style="min-height:{{ $h }}px">{{ if .Get "eager" }}<div class="ph-poster" aria-hidden="true"><i class="ph-win"><i class="ph-main"></i><i class="ph-foot"></i></i><i class="ph-panel"></i><i class="ph-left"></i><i class="ph-center"></i><i class="ph-chrome"></i></div><ol class="ph-chapters" aria-label="The demo, chapter by chapter"><li>New release</li><li>Staging</li><li>Gates</li><li>Canary</li><li>Health checks</li><li>All sites</li></ol>{{ end }}</div>
 <script type="module" src="{{ "islands/islands.js" | relURL }}"></script>

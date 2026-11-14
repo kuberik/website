@@ -48,10 +48,21 @@ DASHBOARD_SRC=/path/to/rollout-dashboard/frontend bash build.sh
 The poster is the static first frame shown until the film is live (and the frame a visitor sees with JavaScript off). Re-shoot it after any change to the first frame or the chrome:
 
 ```bash {filename="posters"}
-node scripts/capture-posters.mjs http://127.0.0.1:1313/
+node scripts/capture-posters.mjs http://127.0.0.1:1313/     # ONLY=348,1118 re-shoots some bands without writing the data file
+node scripts/film/poster-match.mjs http://127.0.0.1:1313/ light   # and dark; NOJS=1 for JavaScript off
 ```
 
-It writes `../static/island-poster/p-<width>-<theme>.webp` and `../data/island_poster.yaml` (`v:` = the posters' content hash). The shortcode puts that hash on the poster URL as `?v=`, so a browser never keeps an old poster. Commit the posters and the data file together.
+The film zooms a fixed canvas (1000 px from a 600 px window, 390 px below) to the window width W and shows as much of it as the window's height allows; its chapter bar above the window is not zoomed. One bitmap per media band cannot follow that (AD r3: up to 22 % too large, 127 px lost on the right), so the poster is layers that lay out as the film does, inside `.ph-poster`, a size container whose width is W:
+
+- `.ph-win`: the canvas's shell at t=0 (window bar, sidebar), shot at the band's widest W, drawn at `background-size: 100% auto` (the film's scale and top-left at every W, never upscaled); the frame's 11 px corners in CSS. The window is grown to its shot height only AFTER the first frame is aimed: a window that is tall from the start frames differently.
+- `.ph-main`: the main column with the camera at 0, shot from that grown window, lifted by the film's own first-frame camera y at each W. The desktop frame lifts its page up to ~11 canvas px so the frame's foot lands in a gap between rows, and that lift changes with the window's height in canvas px (H / k), so with W: the script sweeps every W of every band (one page resized W by W) and writes the runs (`cy`), which become one container rule per change setting `--cy`.
+- `.ph-foot`: what the canvas anchors to its bottom (the phone's bottom nav, the sidebar's foot), anchored to the window's bottom.
+- `.ph-panel`: the chapter bar's panel in CSS, from its computed paint per theme.
+- `.ph-left`, `.ph-center`, `.ph-chrome`: the bar's contents on alpha, anchored as its grid places them (left; centred in the content box, or tight below 1000 in the grid's middle column; right). On the phone the left piece runs to the tabs' scroller edge and is clipped there, as the scroller clips the tabs on a narrow phone.
+
+Bands (`BANDS` in the script) are window widths, each serving windows wider than the previous band's, ~0.93-1.0 scale; the phone and desktop films and the bar's narrow/tight layouts never share one. The page's window widths: vw - 42 to 640 (phone), vw - 74 to 767, 694 to 1023, vw - 146 to 1263, 1118 to 1919, 1438 to 2399, 1598 above; change `BANDS` when hero.css or tokens.css moves them.
+
+It writes `../static/island-poster/p-<W>-<layer>-<theme>.webp` and `../data/island_poster.yaml` (`v:` the posters' content hash, the panel paint, the bands' geometry); `layouts/_shortcodes/island.html` builds the CSS from it and puts the hash on every URL as `?v=`, so a browser never keeps an old poster. Commit the posters and the data file together. `poster-match.mjs` checks every width from 320 to 3840: scale <= 1, 0 px lost, and under 0.5 % of the window's and the bar's pixels differing from the live first frame.
 
 ## Verify the film
 
