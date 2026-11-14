@@ -110,7 +110,7 @@ spec:
         app: hello-world
 ```
 
-Without a health check, a deploy succeeds as soon as Kuberik writes the tag, before Flux applies anything. See [Verify with Health Checks](/docs/gates/health-checks/) for the other checks.
+Without a health check, the bake starts as soon as Kuberik writes the tag, so the deploy succeeds `bakeTime` later whether or not Flux applied anything. See [Verify with Health Checks](/docs/gates/health-checks/) for the other checks.
 
 ```bash {filename="Terminal"}
 kubectl apply -f rollout.yaml
