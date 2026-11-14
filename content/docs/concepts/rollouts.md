@@ -89,23 +89,7 @@ See [Propagation Modes](/docs/concepts/propagation/) for the trade-offs and for 
 
 Before a rollout begins, it must pass all defined gates. This flow ensures human or automated approvals:
 
-```mermaid
-flowchart TD
-    %% Styles
-    classDef state fill:#E5E7EB,stroke:#374151,stroke-width:1px,color:#374151
-    classDef decision fill:#FCD34D,stroke:#D97706,stroke-width:2px,color:#374151
-    classDef success fill:#34D399,stroke:#059669,stroke-width:2px,color:#fff
-    classDef failure fill:#EF4444,stroke:#B91C1C,stroke-width:2px,color:#fff
-
-    Start(New Release) --> Check{Check Gates}:::decision
-    Check -->|All Pass| Approved(Approved):::success
-    Check -->|Pending| Wait(Wait 10s):::state
-    Wait --> Check
-    Check -->|Deny| Rejected(Rejected):::failure
-
-    Approved --> Deploy(Deploy Version):::state
-    Rejected --> Stop(Stop Rollout):::failure
-```
+{{< fig id="rollout-gating" caption="RolloutGates filter the release candidates; the newest allowed one deploys, otherwise the Rollout is held until a gate changes." >}}
 
 {{< callout type="important" >}}
 **Healthy Environment Required**
@@ -117,26 +101,7 @@ A rollout will not start if existing health checks are failing. The release wait
 
 During the **bake time**, Kuberik continuously verifies health:
 
-```mermaid
-sequenceDiagram
-    participant Rollout
-    participant Bake Timer
-    participant HealthCheck
-    participant Kustomization
-
-    Rollout->>Bake Timer: Start bake period (5m)
-    loop Every 30s
-        Bake Timer->>HealthCheck: Evaluate
-        HealthCheck->>Kustomization: Check Ready condition
-        Kustomization-->>HealthCheck: Ready: True/False
-        HealthCheck-->>Bake Timer: Pass/Fail
-    end
-    alt All checks pass
-        Bake Timer->>Rollout: Mark succeeded
-    else Any check fails
-        Bake Timer->>Rollout: Mark failed
-    end
-```
+{{< fig id="rollout-bake" caption="The bake status of the newest deploy: health starts the bake, bakeTime ends it, any HealthCheck error fails it." >}}
 
 ## Sequential Processing
 
