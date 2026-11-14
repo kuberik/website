@@ -3,10 +3,10 @@ module docs-generator
 go 1.25.0
 
 require (
-	github.com/kuberik/environment-controller v0.2.0-rc.0.0.20261111102710-ee03b0be3590
+	github.com/kuberik/environment-controller v0.2.0-rc.0.0.20261114212428-599e1aa85fd3
 	github.com/kuberik/openkruise-controller v0.4.1-0.20260608120856-06c5d991ac20
 	github.com/kuberik/release-controller v0.0.0-20261111103621-a52ee1ef832f
-	github.com/kuberik/rollout-controller v0.11.1-0.20261113081037-9375945c49cb
+	github.com/kuberik/rollout-controller v0.11.1-0.20261114222654-ea507f9a18d4
 )
 
 require (
