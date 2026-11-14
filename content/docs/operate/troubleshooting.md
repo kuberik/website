@@ -66,7 +66,7 @@ kubectl edit releasesource hello-world -n hello-world
 
 ### `GatesPassing` is False with reason `SomeGatesBlocking`
 
-A gate has `passing: false`, often a closed deployment window from a `RolloutSchedule` or a `ClusterRolloutSchedule`. List the gates and schedules.
+A gate has `passing: false`, often a closed deployment window from a `RolloutSchedule` or a `ClusterRolloutSchedule`. The reason shows even when no release is waiting. List the gates and schedules.
 
 ```bash {filename="Terminal"}
 kubectl get rollout hello-world -n hello-world -o jsonpath='{.status.gates}'
@@ -82,7 +82,7 @@ kubectl annotate rollout hello-world -n hello-world rollout.kuberik.com/bypass-g
 
 ### `GatesPassing` is False with reason `NoAllowedVersions`
 
-No newer release is allowed by every gate. An up-to-date Rollout shows this too. `blockedBy` names the gates that hold each newer release.
+Newer releases are waiting, but none is in every gate's `allowedVersions`. `blockedBy` names the gates that hold each one.
 
 ```bash {filename="Terminal"}
 kubectl get rollout hello-world -n hello-world -o jsonpath='{range .status.candidates[*]}{.tag}{"\t"}{.blockedBy}{"\n"}{end}'

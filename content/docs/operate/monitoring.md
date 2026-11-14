@@ -144,17 +144,17 @@ Bake duration of the latest deploy, in seconds:
 kuberik_rollout_bake_end_timestamp - kuberik_rollout_bake_start_timestamp
 ```
 
-Rollouts held by a closed gate:
+Rollouts whose gates hold a release:
 
 ```promql {filename="PromQL"}
-kuberik_rollout_condition{type="GatesPassing", reason="SomeGatesBlocking"} == 0
+kuberik_rollout_condition{type="GatesPassing"} == 0
 ```
 
-Filter on the reason: `GatesPassing` is also 0 with reason `NoAllowedVersions` when no release is waiting to deploy, which is the normal state of an up-to-date Rollout.
+The `reason` label says which kind of gate: `NoAllowedVersions` when a waiting release is missing from an `allowedVersions` list (approvals, dependencies, environments), `SomeGatesBlocking` when a gate has `passing: false`. `SomeGatesBlocking` also shows while a schedule's window is closed and nothing is waiting, so expect it outside deployment windows.
 
 ## Alert on failed and stuck deploys
 
-These rules fire when a bake fails, when a deploy has waited more than 30 minutes for its health checks, and when a closed gate has held a Rollout for an hour.
+These rules fire when a bake fails, when a deploy has waited more than 30 minutes for its health checks, and when gates have held a Rollout for an hour.
 
 ```yaml {filename="kuberik-rules.yaml"}
 groups:
@@ -180,7 +180,7 @@ groups:
           summary: "Rollout {{ $labels.namespace }}/{{ $labels.name }} has been deploying for over 30 minutes"
           description: "The health checks have not reported healthy since the deploy started, so bake time has not begun."
       - alert: RolloutGatesBlocked
-        expr: kuberik_rollout_condition{type="GatesPassing", reason="SomeGatesBlocking"} == 0
+        expr: kuberik_rollout_condition{type="GatesPassing"} == 0
         for: 1h
         labels:
           severity: info
