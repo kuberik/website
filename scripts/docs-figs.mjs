@@ -163,13 +163,13 @@ figs.architecture = {
 
 // ============ rollout-gating: gates filter the candidates, the newest allowed one deploys ============
 const gatingNotes = [
-  { k: 'First deploy:', v: 'gates are skipped.', state: 'gray' },
+  { k: 'First deploy:', v: 'never held; the newest allowed release, else the newest.', state: 'gray' },
   { k: 'Deploy by hand (wantedVersion, force-deploy):', v: 'gates are skipped.', state: 'gray' },
   { k: 'A HealthCheck is Unhealthy:', v: 'held, DeploymentBlocked=True.', state: 'amber' },
 ];
 figs['rollout-gating'] = {
   title: 'RolloutGates filter the release candidates; the newest allowed version deploys',
-  desc: 'Three release candidates, v1.6.0, v1.5.0 and v1.4.0, reach the RolloutGates. A gate whose allowedVersions lists only v1.5.0 and v1.4.0 holds v1.6.0. The newest allowed candidate, v1.5.0, deploys. When no candidate is allowed, or a gate has passing: false, the Rollout is held and re-evaluated when a gate changes; there is no polling and no reject state. Notes: on the first deploy and on a deploy by hand gates are skipped; an Unhealthy HealthCheck also holds automatic deploys and sets DeploymentBlocked=True.',
+  desc: 'Three release candidates, v1.6.0, v1.5.0 and v1.4.0, reach the RolloutGates. A gate whose allowedVersions lists only v1.5.0 and v1.4.0 holds v1.6.0. The newest allowed candidate, v1.5.0, deploys. When no candidate is allowed, or a gate has passing: false, the Rollout is held and re-evaluated when a gate changes; there is no polling and no reject state. Notes: a first deploy is never held, it takes the newest allowed release or else the newest; on a deploy by hand gates are skipped; an Unhealthy HealthCheck also holds automatic deploys and sets DeploymentBlocked=True.',
   wide: {
     w: 632, h: 330, body: [
       text({ x: 0, y: 14, t: 'RELEASE CANDIDATES', role: 'glabel' }),
@@ -205,7 +205,7 @@ figs['rollout-gating'] = {
       plate({ x: 0, y: 208, w: 152, kind: 'k', key: true, title: 'Rollout', sub: ['deploys v1.5.0,', 'newest allowed'] }),
       plate({ x: 166, y: 208, w: 152, kind: 'n', dashed: true, chip: { text: 'Held', state: 'amber' }, sub: ['nothing allowed;', 'evaluated again', 'on any change'] }),
       notes({ x: 0, y: 316, w: 318, items: [
-        { k: 'First deploy:', v: 'gates skipped.', state: 'gray' },
+        { k: 'First deploy:', v: 'never held.', state: 'gray' },
         { k: 'Deploy by hand:', v: 'gates skipped.', state: 'gray' },
         { k: 'HealthCheck Unhealthy:', v: 'held,', state: 'amber' },
       ] }),
@@ -217,7 +217,7 @@ figs['rollout-gating'] = {
 // ============ rollout-bake: the history[0].bakeStatus state machine ============
 figs['rollout-bake'] = {
   title: 'How a deploy is verified: the bake status of the newest history entry',
-  desc: 'A deploy starts in Deploying. When every selected HealthCheck is Healthy after the deploy it moves to InProgress and the bake time runs. When bakeTime passes without an error it is Succeeded. A HealthCheck error after the deploy fails it from Deploying or InProgress, and so does deployTimeout passing before the bake starts. A Failed bake goes back to Deploying with the rollout.kuberik.com/retry annotation. A new deploy cancels a Deploying or InProgress bake, and BakeFailureDisabled=True suppresses failing.',
+  desc: 'A deploy starts in Deploying. When every selected HealthCheck is Healthy after the deploy it moves to InProgress and the bake time runs. When bakeTime passes without an error it is Succeeded. A HealthCheck error after the deploy fails it from Deploying or InProgress, and so does deployTimeout passing before the bake starts. A Failed bake goes back to Deploying with the rollout.kuberik.com/retry annotation. A deploy started by hand cancels a Deploying or InProgress bake, and BakeFailureDisabled=True suppresses failing.',
   wide: {
     w: 632, h: 336, body: [
       plate({ x: 0, y: 0, w: 156, kind: 'n', chip: { text: 'Deploying', state: 'blue' }, sub: 'waits for health' }),
@@ -235,7 +235,7 @@ figs['rollout-bake'] = {
       edge([[238, 196], [48, 196], [48, 59]], { kind: 'ink', dashed: true }),
       text({ x: 56, y: 216, t: 'rollout.kuberik.com/retry', role: 'mono' }),
       notes({ x: 0, y: 252, w: 632, items: [
-        { k: 'Cancelled:', v: 'a new deploy replaces a Deploying or InProgress bake.', state: 'gray' },
+        { k: 'Cancelled:', v: 'a deploy by hand replaces a Deploying or InProgress bake.', state: 'gray' },
         { k: 'BakeFailureDisabled=True:', v: 'the bake is never marked Failed.', state: 'gray' },
       ] }),
     ].join('')
@@ -258,7 +258,7 @@ figs['rollout-bake'] = {
       text({ x: 20, y: 292, t: 'rollout.kuberik.com/retry', role: 'mono' }),
       notes({ x: 0, y: 324, w: 318, items: [
         { k: 'error:', v: 'a HealthCheck errors after the deploy.', state: 'red' },
-        { k: 'Cancelled:', v: 'a new deploy replaces the bake.', state: 'gray' },
+        { k: 'Cancelled:', v: 'a deploy by hand replaces the bake.', state: 'gray' },
         { k: 'BakeFailureDisabled=True:', v: 'never Failed.', state: 'gray' },
       ] }),
     ].join('')
@@ -326,16 +326,16 @@ figs['env-tiers-github'] = {
   },
   narrow: {
     w: 318, h: 500, body: [
-      group({ x: 0, y: 0, w: 318, h: 112, chip: { text: 'staging', state: 'violet' }, label: 'cluster', kind: 'n' }),
+      group({ x: 0, y: 0, w: 318, h: 124, chip: { text: 'staging', state: 'violet' }, label: 'cluster', kind: 'n' }),
       plate({ x: 12, y: 40, w: 110, kind: 'k', title: 'Rollout', sub: 'deploys, bakes' }),
-      plate({ x: 140, y: 40, w: 166, kind: 'k', key: true, title: 'Environment', sub: 'tier: staging' }),
+      plate({ x: 140, y: 40, w: 166, h: 72, kind: 'k', key: true, title: 'Environment', sub: ['`environment:`', '`staging`'] }),
       edge([[122, 68], [137, 68]]),
-      edge([[223, 96], [223, 149]], { kind: 'act', label: { x: 231, y: 128, t: ['reports', 'deploy + bake'] } }),
+      edge([[223, 112], [223, 149]], { kind: 'act', label: { x: 231, y: 128, t: ['reports', 'deploy + bake'] } }),
       plate({ x: 0, y: 152, w: 318, h: 56, kind: 'f', title: 'GitHub deployment', sub: [ghName], mono: true }),
       chipSvg({ x: 304, cy: 20 + 152 - 0, text: 'success', state: 'green', anchor: 'end' }),
       edge([[159, 208], [159, 297]], { label: { x: 167, y: 236, t: 'reads upstream' } }),
       group({ x: 0, y: 256, w: 318, h: 244, chip: { text: 'production', state: 'prod' }, label: 'cluster', kind: 'n' }),
-      plate({ x: 48, y: 300, w: 222, kind: 'k', key: true, title: 'Environment', sub: 'tier: production' }),
+      plate({ x: 48, y: 300, w: 222, kind: 'k', key: true, title: 'Environment', sub: '`environment: production`' }),
       edge([[110, 356], [110, 413]], { kind: 'act', label: { x: 118, y: 390, t: 'sets allowedVersions' } }),
       plate({ x: 12, y: 416, w: 156, kind: 'k', title: 'RolloutGate', sub: 'allowedVersions', mono: true }),
       plate({ x: 192, y: 416, w: 114, kind: 'k', title: 'Rollout', sub: 'deploys it' }),
@@ -442,18 +442,18 @@ figs['datadog-health-paths'] = {
 const eyebrow = (x, y, t) => `<text class="df-glabel" x="${x}" y="${y}">${esc(t)}</text>`;
 figs['release-stages'] = {
   title: 'One release from tag to record: detect, gate, deploy, verify, record',
-  desc: 'Your CI pushes a tag to a registry. Kuberik detects it with a ReleaseSource, checks it against the RolloutGates (condition GatesPassing), and the Rollout hands it to Flux by setting a Kustomization substitute or an OCIRepository tag. HealthChecks verify the deploy while it bakes, Deploying then InProgress, and the Rollout records the result in its history as Succeeded or Failed. After a Failed bake automatic deploys stop until someone acts.',
+  desc: 'Your CI pushes a tag to a registry. Kuberik detects it with a ReleaseSource, checks it against the RolloutGates (the Rollout reports GatesPassing), and the Rollout hands it to Flux by setting a Kustomization substitute or an OCIRepository tag. HealthChecks report health while the Rollout bakes the deploy, Deploying then InProgress, and the Rollout records the result in its history as Succeeded or Failed. After a Failed bake automatic deploys stop until someone acts.',
   wide: {
     w: 632, h: 236, body: [
       eyebrow(0, 12, 'Your CI'), eyebrow(164, 12, 'Detect'), eyebrow(328, 12, 'Gate'), eyebrow(492, 12, 'Deploy'),
       plate({ x: 0, y: 24, w: 140, kind: 'f', title: 'Registry', sub: 'a new tag' }),
       plate({ x: 164, y: 24, w: 140, kind: 'k', title: 'ReleaseSource', sub: 'lists the tag' }),
-      plate({ x: 328, y: 24, w: 140, kind: 'k', title: 'RolloutGate', sub: 'GatesPassing', mono: true }),
+      plate({ x: 328, y: 24, w: 140, kind: 'k', title: 'RolloutGate', sub: 'allows versions' }),
       plate({ x: 492, y: 24, w: 140, kind: 'f', title: 'Kustomization', sub: 'or OCIRepository' }),
       edge([[140, 52], [161, 52]]), edge([[304, 52], [325, 52]]), edge([[468, 52], [489, 52]], { kind: 'act' }),
       eyebrow(506, 132, 'Verify'), eyebrow(342, 132, 'Record'),
       edge([[600, 80], [600, 141]]),
-      plate({ x: 492, y: 144, w: 140, kind: 'k', title: 'HealthCheck', sub: 'bakes the deploy' }),
+      plate({ x: 492, y: 144, w: 140, kind: 'k', title: 'HealthCheck', sub: 'reports health' }),
       plate({ x: 328, y: 144, w: 140, kind: 'k', key: true, title: 'Rollout', sub: 'status.history', mono: true }),
       edge([[492, 172], [471, 172]]),
       edge([[328, 172], [278, 172]]),
@@ -468,9 +468,9 @@ figs['release-stages'] = {
       ...[['Your CI', 0], ['Detect', 80], ['Gate', 160], ['Deploy', 240], ['Verify', 320], ['Record', 400]].map(([t, y]) => eyebrow(0, y + 32, t)),
       plate({ x: 84, y: 0, w: 234, kind: 'f', title: 'Registry', sub: 'a new tag' }),
       plate({ x: 84, y: 80, w: 234, kind: 'k', title: 'ReleaseSource', sub: 'lists the tag' }),
-      plate({ x: 84, y: 160, w: 234, kind: 'k', title: 'RolloutGate', sub: 'GatesPassing', mono: true }),
+      plate({ x: 84, y: 160, w: 234, kind: 'k', title: 'RolloutGate', sub: 'allows versions' }),
       plate({ x: 84, y: 240, w: 234, kind: 'f', title: 'Kustomization', sub: 'or OCIRepository' }),
-      plate({ x: 84, y: 320, w: 234, kind: 'k', title: 'HealthCheck', sub: 'bakes the deploy' }),
+      plate({ x: 84, y: 320, w: 234, kind: 'k', title: 'HealthCheck', sub: 'reports health' }),
       plate({ x: 84, y: 400, w: 234, kind: 'k', key: true, title: 'Rollout', sub: 'status.history', mono: true }),
       ...[56, 136, 216, 296, 376].map((y) => edge([[201, y], [201, y + 21]], { kind: y === 216 ? 'act' : 'ink' })),
       edge([[201, 456], [201, 477]]),
@@ -525,8 +525,7 @@ figs['gate-model'] = {
       reasonRows(0, 452),
       plate({ x: 186, y: 368, w: 132, kind: 'k', title: 'HealthCheck', sub: 'Unhealthy', mono: true }),
       edge([[186, 396], [163, 396]], { kind: 'held' }),
-      text({ x: 186, y: 446, t: 'DeploymentBlocked', role: 'mono' }),
-      text({ x: 186, y: 464, t: '=True', role: 'mono' }),
+      text({ x: 318, y: 446, t: 'DeploymentBlocked=True', role: 'mono', anchor: 'end' }),
     ].join('')
   }
 };
