@@ -17,7 +17,7 @@
 html.dark .df{
   --df-bg:#121b1f;
   --df-k-fill:oklch(.33 .045 186);--df-k-line:oklch(.58 .05 186);
-  --df-f-fill:oklch(.3 .035 214);--df-f-line:oklch(.56 .05 214);--df-f-ink:oklch(.8 .07 210);
+  --df-f-fill:oklch(.32 .045 214);--df-f-line:oklch(.58 .06 214);--df-f-ink:oklch(.8 .07 210);
   --df-n-fill:var(--card-fill);--df-n-line:oklch(1 0 0/.16);
   --df-key:#3ad9c6;
   --df-held:oklch(.72 .16 50);--df-pass:#05df72;
