@@ -1,0 +1,1 @@
+import{B as i,i as o,R as n,b as d,c as p,d as c,h as m,u}from"./svelte-BM29j39N.js";import{v as f}from"./detail-store.svelte-D7sHPBGh.js";function l(r,e){c(e,!0);const s=u(()=>!!f());var a=i(),t=o(a);n(t,()=>e.children,()=>m(s)),d(r,a),p()}export{l as F};

@@ -181,6 +181,15 @@ holds it in us-east-1 because payments-svc, which it needs at ^3.1.0, is still b
 - Posters: `node scripts/section/capture-section-posters.mjs <url> [name-card ...]` lays each host out on its own bay at every width in its list
   (reduced motion: the rest still), shoots light and dark at 1x, and writes the widths, heights and hash. `look.mjs` takes `W=<px>` (same bay),
   `NATURAL=1` and `ALL=1` (every still of a loop).
+- Other checks in `scripts/section/` (playwright from the dashboard's node_modules; `URL` defaults to the preview):
+  - `probe.mjs <name> <vw>`: rects, relative to the still, of a few elements in one island's frozen still.
+  - `history-check.mjs <outdir> <vw> <theme> <runs>`: fresh loads; the Dashboard card cropped live and ~10 s later, with its event count and whether
+    Released and Held are there (5 events: Merged, Released, dev, staging, Held).
+  - `features-nojs.mjs <outdir> [vw ...]`: the features section with JavaScript off, light and dark, and each host's width beside the poster it shows.
+  - `product-shot.mjs <url> <vw> <theme> <selector> <out.png>`: one element of the running dashboard (hub or mock) at 1x, evidence beside an island.
+- No API: the landing has none. A product module that calls one is stubbed (`STUBBED_MODULES` in `vite.config.ts`: `api/pulls.ts` answers the Change
+  page's PR from the scope's answers or the fleet's changes feed); as a backstop `shared/no-api.ts` answers any same-origin `/api/` request 503 in the
+  page, without a network request, and warns once per path (a missing stub shows as a console warning).
 
 ## The Gates card
 

@@ -6,6 +6,7 @@
  */
 import { setQueryAnswers } from '../../stubs/svelte-query.svelte';
 import { APP, VIEWER, type Detail } from './scenario';
+import { noApi } from '../shared/no-api';
 
 export const CLUSTER = 'prod';
 let current = $state.raw<Detail | null>(null);
@@ -56,11 +57,12 @@ export function answersFrom(detail: () => Detail | null, fleetRollouts: () => un
 /**
  * NETWORK SEAM (named stub): the real ChangeVersionModal fetches the fleet list straight through `fetch` (`/api/rollouts`, `/api/clusters/<c>/rollouts?namespace=`),
  * not through a query, so the query stub cannot answer it. This wraps `window.fetch` for exactly those two routes and answers from the film's snapshot (the
- * payload the API would serve); every other request passes through untouched. Installed once, when the film starts.
+ * payload the API would serve); any other same-origin /api/ request is refused (shared/no-api.ts), everything else passes through untouched. Installed once, when the film starts.
  */
 export function installFetch(list: () => { rollouts: unknown[]; environments: unknown[]; kustomizations: unknown[]; kruiseRollouts: unknown[]; rolloutDependencies: unknown } | null) {
-	const real = window.fetch.bind(window);
 	if ((window.fetch as any).__film) return;
+	/* what this does not answer goes on through the backstop (shared/no-api.ts): a same-origin /api/ request never leaves the page */
+	const real = noApi(window.fetch.bind(window));
 	const wrapped = (input: RequestInfo | URL, init?: RequestInit) => {
 		let u: URL;
 		try { u = new URL(typeof input === 'string' ? input : input instanceof URL ? input.href : input.url, location.href); } catch { return real(input, init); }

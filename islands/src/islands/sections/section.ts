@@ -22,6 +22,7 @@ import { setPart, dropPart, baseFleetOf } from '../shared/world';
 import { driveNow, isDriven, storyDate } from '../../stubs/time-store';
 import type { IslandPage } from '../shared/scope';
 import Scoped from '../shared/Scoped.svelte';
+import { refuseApi } from '../shared/no-api';
 
 export type SectionWorld = { fleet: FleetSource; github: Record<string, unknown> };
 export type SectionSpec<W extends SectionWorld = SectionWorld> = {
@@ -125,6 +126,7 @@ async function still<W extends SectionWorld>(spec: SectionSpec<W>, C: Component<
 
 export function mountSection<W extends SectionWorld>(ctx: CustomCtx, spec: SectionSpec<W>) {
 	const { wrap, host } = ctx;
+	refuseApi();
 	host.setAttribute('aria-hidden', 'true');
 	wrap.setAttribute('inert', '');
 	const frame = document.createElement('div');
@@ -160,8 +162,18 @@ export function mountSection<W extends SectionWorld>(ctx: CustomCtx, spec: Secti
 		timer = setInterval(() => show((shown + 1) % stills.length), spec.holdMs ?? 3200);
 	};
 	let C: Component<any> | undefined;
+	/* one render at a time: two would share spec.id's world part, and the first one's dropPart would pull it from under the second; a width change
+	   mid-render queues ONE more, run when this one ends if the layout width still differs from what was drawn */
+	let rendering = false, rerun = false;
 	async function render() {
-		const my = ++gen;
+		if (rendering) { rerun = true; return; }
+		rendering = true;
+		try { await renderOnce(); } finally { rendering = false; }
+		if (rerun && my0 === gen) { rerun = false; if (spec.canvas(host.clientWidth) !== cw) void render(); }
+	}
+	const my0 = gen;
+	async function renderOnce() {
+		const my = gen;
 		done = false;
 		const want = spec.canvas(host.clientWidth);
 		C ??= await spec.load();
@@ -206,5 +218,5 @@ export function mountSection<W extends SectionWorld>(ctx: CustomCtx, spec: Secti
 		else for (const s of stills) if (s) place(s);
 	}).observe(host);
 	(host as any).__section = { get stills() { return stills.length; }, get shown() { return shown; }, show, get canvas() { return cw; }, get boxes() { return stills.map((s) => s?.box); }, /** every still of the current width rendered */ get done() { return done; }, rest: restI, count: spec.times.length };
-	return () => { gen++; clearInterval(timer); };
+	return () => { gen++; clearInterval(timer); clearTimeout(rt); };
 }
