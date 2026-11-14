@@ -1,0 +1,75 @@
+/* DOCS HOME (/docs/; layouts/_partials/docs/home.html; IA.md "Docs home"). Loaded on that page only, after
+   tokens/base/footer/docs.css and thesis.css (the kit figure's rules). Prefix kdh-. Values are tokens.css roles; the
+   region map and the references each region borrows from are in the layout's doc comment. */
+
+/* the sidebar exists for the phone drawer only */
+@media(min-width:768px){.kdh > .hextra-sidebar-container{display:none}}
+
+/* ---------- hero: the landing's mint stage, laid out like the install band ---------- */
+.kdh-hero{margin-top:16px}
+.kdh-hero-in{display:grid;grid-template-columns:minmax(0,1fr);gap:32px;align-items:center;padding-block:56px 48px}
+.kdh-copy{display:flex;flex-direction:column;align-items:flex-start;min-width:0}
+.kdh-eyebrow{display:inline-flex;align-items:center;gap:8px;height:28px;padding:0 12px;border-radius:999px;background:color-mix(in oklab,var(--page) 70%,transparent);border:1px solid var(--line);font:500 13px/20px var(--sans);color:var(--mint-ink)}
+.kdh-eyebrow b{width:6px;height:6px;border-radius:50%;background:var(--mint)}
+.kdh-copy h1{margin:20px 0 0;font:600 var(--t-statement-s)/var(--t-statement-l) var(--sans);letter-spacing:-.03em;color:var(--ink);text-wrap:balance}
+.kdh-lead{margin:16px 0 0;max-width:46ch;font:400 var(--t-lead-s)/var(--t-lead-l) var(--sans);color:var(--ink-muted);text-wrap:pretty}
+.kdh-ctas{display:flex;flex-wrap:wrap;gap:12px;margin-top:28px}
+.kdh-ctas .btn svg{width:14px;height:14px}
+.kdh-art{min-width:0}
+.kdh-art-compact{display:none}
+.stair-docs .fig-chip-gate{border-color:var(--kd-chip-gray-line);background:var(--kd-chip-gray-bg);color:var(--kd-chip-gray-ink)}
+@media(min-width:1024px){
+  .kdh-hero-in{grid-template-columns:repeat(12,minmax(0,1fr));column-gap:24px;padding-block:72px 64px}
+  .kdh-copy{grid-column:1/6}
+  .kdh-art{grid-column:6/-1;justify-self:end;width:100%;max-width:680px}
+}
+@media(min-width:1920px){.kdh-art{max-width:780px}}
+@media(max-width:1023px){
+  .kdh-art-wide{display:none}
+  .kdh-art-compact{display:block;width:100%;max-width:520px;margin-inline:auto}
+}
+@media(max-width:640px){
+  .kdh-hero-in{padding-block:36px 28px;gap:24px}
+  .kdh-copy h1{margin-top:16px}
+  .kdh-ctas{width:100%;gap:8px;margin-top:24px}
+  .kdh-ctas .btn{flex:1 1 0;min-width:0;padding-inline:10px}
+}
+
+/* ---------- journeys: one card per reader job (NEW BY DESIGN; feature-card shell) ---------- */
+.kdh-body{padding:56px 0 96px}
+.kdh-grid{display:grid;grid-template-columns:minmax(0,1fr);gap:var(--card-gap);margin:0;padding:0;list-style:none}
+@media(min-width:641px){.kdh-grid{grid-template-columns:repeat(2,minmax(0,1fr))}}
+@media(min-width:1024px){.kdh-body{padding-top:72px}.kdh-grid{grid-template-columns:repeat(3,minmax(0,1fr))}}
+@media(min-width:1920px){.kdh-grid{gap:24px}}
+.kdh-card{--tile:var(--canvas-lagoon);--tile-ink:var(--kd-eyebrow);display:flex;flex-direction:column;min-width:0;padding:var(--card-pad) var(--card-pad) 8px;border:1px solid var(--card-border);border-radius:var(--card-r);background:var(--card-fill);box-shadow:var(--card-shadow)}
+.kdh-mint{--tile:var(--canvas-mint);--tile-ink:var(--mint-ink)}
+.kdh-card-head{display:flex;align-items:center;gap:12px;color:var(--ink);text-decoration:none}
+.kdh-tile{flex:none;display:inline-flex;align-items:center;justify-content:center;width:36px;height:36px;border-radius:8px;background:var(--tile,var(--canvas-mint));color:var(--tile-ink,var(--mint-ink))}
+.kdh-tile .kd-icon{width:18px;height:18px}
+.kdh-card-title{font:600 var(--t-card-title-s)/var(--t-card-title-l) var(--sans);letter-spacing:-.012em;color:var(--ink)}
+.kdh-card-go{margin-left:auto;display:inline-flex;color:var(--ink-subtle);transition:color .15s,transform .15s}
+a.kdh-card-head:hover .kdh-card-go{color:var(--mint-ink);transform:translateX(2px)}
+a.kdh-card-head:hover .kdh-card-title{color:var(--mint-ink)}
+.kdh-card-body{margin:12px 0 0;font:400 var(--t-card-body-s)/var(--t-card-body-l) var(--sans);color:var(--ink-muted);text-wrap:pretty}
+.kdh-links{margin:16px 0 0;padding:0;list-style:none;margin-top:auto;padding-top:16px}
+.kdh-links li{border-top:1px solid var(--line)}
+.kdh-links a{display:flex;align-items:center;justify-content:space-between;gap:12px;min-height:44px;padding:10px 0;font:500 14px/20px var(--sans);color:var(--ink);text-decoration:none}
+.kdh-links a::after{content:'';flex:none;width:14px;height:14px;background:var(--ink-subtle);opacity:0;transition:opacity .15s,transform .15s;-webkit-mask:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 16 16'%3E%3Cpath d='M3 8h10M9 4l4 4-4 4' fill='none' stroke='black' stroke-width='1.5' stroke-linecap='round' stroke-linejoin='round'/%3E%3C/svg%3E") center/14px no-repeat;mask:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 16 16'%3E%3Cpath d='M3 8h10M9 4l4 4-4 4' fill='none' stroke='black' stroke-width='1.5' stroke-linecap='round' stroke-linejoin='round'/%3E%3C/svg%3E") center/14px no-repeat}
+.kdh-links a:hover{color:var(--mint-ink)}
+.kdh-links a:hover::after{opacity:1;background:var(--mint-ink);transform:translateX(2px)}
+@media(hover:none){.kdh-links a::after{opacity:1}}
+
+/* ---------- reference row: sidebar group label over two pager-style cards ---------- */
+.kdh-ref{margin-top:48px}
+.kdh-ref-label{margin:0 0 12px;font:600 12px/16px var(--sans);letter-spacing:.06em;text-transform:uppercase;color:var(--ink-subtle)}
+.kdh-ref-row{display:grid;grid-template-columns:minmax(0,1fr);gap:12px;margin:0;padding:0;list-style:none}
+@media(min-width:641px){.kdh-ref-row{grid-template-columns:repeat(2,minmax(0,1fr))}}
+.kdh-ref-card{display:flex;align-items:center;gap:14px;height:100%;padding:14px 16px;border:1px solid var(--card-border);border-radius:var(--card-r);background:var(--card-fill);color:var(--ink);text-decoration:none;transition:border-color .15s}
+.kdh-ref-card .kdh-tile{--tile:var(--page-alt);--tile-ink:var(--ink-muted)}
+html.dark .kdh-ref-card .kdh-tile{--tile:oklch(1 0 0/.05)}
+.kdh-ref-card:hover{border-color:color-mix(in oklab,var(--mint) 55%,var(--line))}
+.kdh-ref-card:hover .kdh-card-go{color:var(--mint-ink);transform:translateX(2px)}
+.kdh-ref-text{display:flex;flex-direction:column;gap:2px;min-width:0}
+.kdh-ref-title{font:600 15px/22px var(--sans);letter-spacing:-.01em}
+.kdh-ref-desc{font:400 14px/20px var(--sans);color:var(--ink-muted)}
+@media(min-width:2400px){.kdh-ref-title{font-size:16px;line-height:24px}.kdh-ref-desc,.kdh-links a{font-size:15px;line-height:22px}}
