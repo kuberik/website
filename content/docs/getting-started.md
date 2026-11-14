@@ -229,7 +229,7 @@ NAME          NEWEST                    COUNT   READY   AGE
 hello-world   main-3f9c2ab-1794583200   1       True    2m
 ```
 
-The Rollout records each deploy in `status.history`, newest first. `Deploying` means Kuberik wrote the tag and waits for the health check to report healthy; `InProgress` means bake time is running; `Succeeded` means the check stayed healthy for the whole bake time. This first deploy skipped gates: a new Rollout always deploys its first release, and gates apply from the second deploy on.
+The Rollout records each deploy in `status.history`, newest first. `Deploying` means Kuberik wrote the tag and waits for the health check to report healthy; `InProgress` means bake time is running; `Succeeded` means the check stayed healthy for the whole bake time. Gates never hold a Rollout's first deploy: it deploys the newest release the gates allow, or the newest release if they allow none. From the second deploy on, gates hold releases they do not allow.
 
 ```bash {filename="Terminal"}
 kubectl get rollout -n hello-world hello-world \

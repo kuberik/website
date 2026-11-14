@@ -7,4 +7,4 @@ sidebar:
   open: false
 ---
 
-Understand the core building blocks of Kuberik.
+How Rollouts, Environments, gates and propagation decide which release runs where.
