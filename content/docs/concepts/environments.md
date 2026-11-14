@@ -75,7 +75,7 @@ A pin on the Rollout (`spec.wantedVersion`) is a manual deploy that skips the ga
 
 One environment can run in several clusters. Each cluster's Environment is a site, named by `spec.site` (for example `eu-west-1`). Without `spec.site`, the controller uses its default site: the `site` key of the `kuberik-cluster-info` ConfigMap in the controller's namespace, else `default`.
 
-Sites roll out in waves. `spec.wave` defaults to 1, and wave N starts a release only after every site of wave N-1 baked it. In each wave the registered site whose name sorts first is the leader: it picks the release, and the other sites (followers) deploy exactly that pick. A leader keeps the role until every site of the wave has baked its pick, so a site that joins mid-rollout does not take over. The next tier waits for the last wave.
+Sites roll out in waves. `spec.wave` defaults to 1, and wave N starts a release only after every site of wave N-1 baked it. Number waves from 1 without gaps: a missing wave closes every gate of the tier and sets `WaveReady=False`, reason `InvalidTopology`. In each wave the registered site whose name sorts first is the leader: it picks the release, and the other sites (followers) deploy exactly that pick. A leader keeps the role until every site of the wave has baked its pick, so a site that joins mid-rollout does not take over. The next tier waits for the last wave.
 
 With `lockstep: true`, the wave-1 leader picks no new release until every wave of the environment has baked the current one. Set it the same on every site of the environment: the wave-1 leader's value governs, and a site that differs puts `LockstepConsistent=False`, reason `LockstepMismatch`, on every Environment of the tier, with the differing sites named in the message.
 
