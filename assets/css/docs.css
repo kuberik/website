@@ -182,7 +182,7 @@ html.dark .kd-wash::before{opacity:.5}
 .kd-content a:not(.hextra-card):not(.kd-eyebrow):not(.subheading-anchor):not(.kd-pager-card):not(.kd-next-card):hover{text-decoration-color:currentColor}
 
 /* inline code: the landing's title-body code chip */
-.kd-content :where(code):not(:where(.hextra-code-block code,pre code)){padding:1px 6px;border:1px solid var(--line);border-radius:6px;background:var(--page-alt);color:var(--ink);font:500 .84em/1 var(--mono);white-space:nowrap}
+.kd-content :where(code):not(:where(.hextra-code-block code,pre code)){padding:1px 6px;border:1px solid var(--line);border-radius:6px;background:var(--page-alt);color:var(--ink);font:500 .84em/1 var(--mono);white-space:normal;overflow-wrap:anywhere;-webkit-box-decoration-break:clone;box-decoration-break:clone}
 html.dark .kd-content :where(code):not(:where(.hextra-code-block code,pre code)){background:oklch(1 0 0/.05);border-color:oklch(1 0 0/.1)}
 .kd-content a code{color:inherit}
 
