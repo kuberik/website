@@ -75,7 +75,7 @@ Gates do not hold every deploy.
 
 - On the first deploy. Gates never hold a Rollout's first deploy, by design: it deploys the newest release the gates allow, or the newest release if they allow none. The `Unhealthy` hold is skipped too, because nothing runs yet.
 - On a deploy by hand. Setting `spec.wantedVersion` or the `rollout.kuberik.com/force-deploy` annotation skips the gates and the `Unhealthy` hold.
-- For one bypassed build. The `rollout.kuberik.com/bypass-gates` annotation lets one named build past the gates once. The build must be a release newer than the deployed one. The controller removes the annotation after the deploy. Add `rollout.kuberik.com/bypass-gates-only` with a comma-separated list of gate names to skip only those gates. A bypass does not skip health checks or a failed bake.
+- For one bypassed build. The `rollout.kuberik.com/bypass-gates` annotation lets one named build past the gates once. The build must be a release newer than the deployed one. The controller removes the annotation after the next deploy, whichever build it ships. Add `rollout.kuberik.com/bypass-gates-only` with a comma-separated list of gate names to skip only those gates; the annotations then stay until the named build deploys. A bypass does not skip health checks or a failed bake.
 
 None of these skips the bake. It still waits for the health checks to turn `Healthy`, and fails on a HealthCheck error or on `deployTimeout`. The exceptions are a deploy that follows a bake that failed or did not finish, and a deploy by hand made while a HealthCheck is `Unhealthy`: their bakes ignore health check errors (`BakeFailureDisabled`).
 
