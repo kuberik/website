@@ -23,41 +23,7 @@ Kuberik drives one of two of these. Annotate a `Kustomization` and Kuberik subst
 Kuberik resolves the `ReleaseSource` and lists `Kustomization` and `OCIRepository` resources in the Rollout's own namespace. Resources in `flux-system` are not seen by a Rollout in `my-app`.
 {{< /callout >}}
 
-```mermaid
-flowchart LR
-    %% Styles
-    classDef flux fill:#2D7E9D,stroke:#fff,stroke-width:2px,color:#fff
-    classDef kuberik fill:#4B4BE8,stroke:#fff,stroke-width:2px,color:#fff
-    classDef external fill:#E5E7EB,stroke:#374151,stroke-width:1px,color:#374151
-    classDef boundary fill:#F3F4F6,stroke:#D1D5DB,stroke-width:1px,color:#374151,stroke-dasharray: 5 5
-
-    subgraph Registry ["Container Registry"]
-        REG[Image Repository]:::external
-    end
-
-    subgraph Cluster ["Kubernetes Cluster"]
-        direction TB
-
-        subgraph FluxCD ["FluxCD System"]
-            OCIR[OCIRepository]:::flux
-            KS[Kustomization]:::flux
-        end
-
-        subgraph Kuberik ["Kuberik"]
-            RS[ReleaseSource]:::kuberik
-            RO[Rollout]:::kuberik
-        end
-    end
-
-    REG --> RS
-    REG --> OCIR
-    RS --> RO
-    OCIR --> KS
-    RO -.->|Substitutes Version| KS
-    RO -.->|Moves Tag| OCIR
-
-    class FluxCD,Kuberik boundary
-```
+{{< fig id="fluxcd" caption="Kuberik lists the tags and picks one, Flux fetches and applies it, and a kustomization HealthCheck reports back." >}}
 
 ---
 
