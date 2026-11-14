@@ -8,7 +8,9 @@
    4. Debug hooks under the site's names: ?vg-t=<s> freezes every scene, ?vg-reduced=1 (or prefers-reduced-motion) keeps the
       posters (rest), ?vg-fps=<n>. window.__vgSet / __vgSnap / __vgRest / __vgLoops / __vgStills stay (they build every host
       first); __vgBuilt() lists the built hosts; VG.spec(name) gives a scene's spec (the poster generator reads its boxes).
-   5. Kept: the phone composition (viewport <= 640 px) and the remount that keeps each clock; play at >= 35 % in view, pause
+   5. Remount on a breakpoint flip re-observes the host (unobserve, then observe) so the observer delivers a fresh entry for the
+      new scene; without it a card that was playing froze after the viewport crossed 640 px.
+   6. Kept: the phone composition (viewport <= 640 px) and the remount that keeps each clock; play at >= 35 % in view, pause
       off screen and in a hidden tab. */
 (() => {
   const NS = 'http://www.w3.org/2000/svg';
@@ -141,7 +143,7 @@
   PHONE.addEventListener('change', () => {
     const keep = live.map((v) => [v.host, v.anim ? v.anim.time() : v.t]);
     live.length = 0;
-    for (const [host, t] of keep) { delete host.dataset.vgLive; const v = build(host, t); if (v && io) io.observe(host); }
+    for (const [host, t] of keep) { delete host.dataset.vgLive; const v = build(host, t); if (v && io) { io.unobserve(host); io.observe(host); } }
     kick();
   });
   function start() {
