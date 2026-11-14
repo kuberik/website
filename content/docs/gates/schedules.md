@@ -36,6 +36,8 @@ spec:
   action: Allow
 ```
 
+`Allow` passes deploys while a rule matches and holds them otherwise; `Deny` is the reverse. A held deploy starts automatically when the gate passes again.
+
 `action` defaults to `Deny` and `timezone` defaults to `UTC`. Always set `action: Allow` on an allow window: without it, the schedule blocks deploys during exactly the hours you meant to allow.
 
 Label the Rollout so the schedule selects it.
@@ -54,15 +56,6 @@ spec:
 ```
 
 The two annotations name the gate in the dashboard. Kuberik copies them onto the `RolloutGate` it creates for each selected Rollout.
-
-## Choose the action
-
-| Action | While a rule matches | While no rule matches |
-|--------|----------------------|-----------------------|
-| `Allow` | Deploys proceed | Deploys are held |
-| `Deny` (default) | Deploys are held | Deploys proceed |
-
-A held deploy waits; it starts automatically when the gate passes again.
 
 ## Freeze deploys across namespaces
 
