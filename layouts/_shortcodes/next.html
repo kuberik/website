@@ -1,0 +1,10 @@
+{{- /* {{< next "/docs/gates/approvals/" "/docs/concepts/rollouts/" >}}: compact link cards for "Next steps" and
+     "Related" (STYLE s9), title and outcome taken from each page's linkTitle and `description`. Up to three links.
+     A link to a page that does not exist fails the build, so a moved page cannot leave a dead card. */ -}}
+<ul class="kd-next">
+  {{- range .Params }}
+    {{- with site.GetPage . }}
+  <li><a class="kd-next-card" href="{{ .RelPermalink }}"><span class="kd-next-title">{{ .LinkTitle }}</span><span class="kd-next-desc">{{ .Description }}</span></a></li>
+    {{- else }}{{ errorf "next: no page at %q (%s)" . $.Position }}{{ end }}
+  {{- end }}
+</ul>

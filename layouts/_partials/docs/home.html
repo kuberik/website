@@ -1,0 +1,70 @@
+{{- /* DOCS HOME (/docs/, docs shell lane; IA.md "Docs home"). Styles: assets/css/docs-home.css (+ thesis.css for the
+     kit figure), loaded on this page only by custom/head-end.html. Content and links: front matter of content/docs/_index.md.
+     Regions and the reference each one borrows from:
+       hero      = the landing's mint stage (base.css .stage .stage-mint, blooms) laid out like the install band
+                   (copy 5/12 beside the drawing 7/12, home/install.html); eyebrow = the hero pill (hero.css .eyebrow);
+                   buttons = base.css .btn-ink / .btn-line. The drawing is the kit (docs-figs/docs-home.html, generated
+                   by scripts/landing-figs.mjs from the same primitives as the landing staircase and Fig 3 gates).
+       journeys  = NEW BY DESIGN: one card per reader job. Role: route a reader to a section and straight to its first
+                   pages. No landing object does that: the feature card (features.css .fx-card) sells one capability
+                   over a product canvas. It borrows the feature card's shell (radius 12, --card-border/-fill/-shadow),
+                   its name/title/body type roles and its link-arrow, and the docs card's 32px icon tile (docs.css
+                   .hextra-card), alternating the mint and lagoon canvases as the feature canvases do.
+       reference = the docs prev/next card (docs.css .kd-pager-card) in a row under a sidebar group label.
+     The sidebar is rendered for the phone drawer only (the header's menu pill opens it); from 768 the page is the
+     landing's full .cont width, so 2560 shows a three-column grid, never a lone column. */ -}}
+{{- $h := .Params.hero -}}
+{{- $arrow := `<svg viewBox="0 0 16 16" width="14" height="14" fill="none" stroke="currentColor" stroke-width="1.5" aria-hidden="true"><path d="M3 8h10M9 4l4 4-4 4" stroke-linecap="round" stroke-linejoin="round"/></svg>` | safeHTML -}}
+{{- define "kdh-title" -}}{{- with site.GetPage .url }}{{ .LinkTitle }}{{ else }}{{ .title }}{{ end -}}{{- end -}}
+<div class="kdh">
+  {{ partial "sidebar.html" (dict "context" .) }}
+  <section class="stage stage-mint kdh-hero" aria-labelledby="kdh-h1">
+    <div class="bloom b1"></div><div class="bloom b2"></div>
+    <div class="cont kdh-hero-in">
+      <div class="kdh-copy">
+        <span class="kdh-eyebrow"><b></b>{{ $h.eyebrow }}</span>
+        <h1 id="kdh-h1">{{ .Title }}</h1>
+        <p class="kdh-lead">{{ $h.lead }}</p>
+        <div class="kdh-ctas">
+          <a class="btn btn-ink" href="{{ $h.primary.url }}">{{ $h.primary.title }}{{ $arrow }}</a>
+          <a class="btn btn-line" href="{{ $h.secondary.url }}">{{ $h.secondary.title }}</a>
+        </div>
+      </div>
+      <div class="kdh-art" aria-hidden="true">
+        <div class="kdh-art-wide">{{ partial "docs-figs/docs-home.html" . }}</div>
+        <div class="kdh-art-compact">{{ partial "docs-figs/docs-home-compact.html" . }}</div>
+      </div>
+    </div>
+  </section>
+
+  <section class="cont kdh-body" aria-labelledby="kdh-sections">
+    <h2 class="sr" id="kdh-sections">Sections</h2>
+    <ul class="kdh-grid">
+      {{- range $i, $j := .Params.journeys }}
+      <li class="kdh-card {{ if modBool $i 2 }}kdh-mint{{ else }}kdh-lagoon{{ end }}">
+        {{- $head := printf `<span class="kdh-tile">%s</span><span class="kdh-card-title">%s</span>` (partial "docs/icon.html" $j.icon) $j.title -}}
+        {{- with $j.url }}<a class="kdh-card-head" href="{{ . }}">{{ $head | safeHTML }}<span class="kdh-card-go">{{ $arrow }}</span></a>{{ else }}<div class="kdh-card-head">{{ $head | safeHTML }}</div>{{ end }}
+        <p class="kdh-card-body">{{ $j.outcome }}</p>
+        <ul class="kdh-links">
+          {{- range $j.links }}
+          <li><a href="{{ .url }}">{{ template "kdh-title" . }}</a></li>
+          {{- end }}
+        </ul>
+      </li>
+      {{- end }}
+    </ul>
+
+    <div class="kdh-ref">
+      <p class="kdh-ref-label">Reference</p>
+      <ul class="kdh-ref-row">
+        {{- range .Params.reference }}
+        <li><a class="kdh-ref-card" href="{{ .url }}">
+          <span class="kdh-tile">{{ partial "docs/icon.html" .icon }}</span>
+          <span class="kdh-ref-text"><span class="kdh-ref-title">{{ template "kdh-title" . }}</span>{{ $d := .description }}{{ with site.GetPage .url }}{{ with .Description }}{{ $d = . }}{{ end }}{{ end }}<span class="kdh-ref-desc">{{ $d }}</span></span>
+          <span class="kdh-card-go">{{ $arrow }}</span>
+        </a></li>
+        {{- end }}
+      </ul>
+    </div>
+  </section>
+</div>

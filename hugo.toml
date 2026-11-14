@@ -27,6 +27,12 @@ theme = 'hextra'
     displayCopyright = true
     displayPoweredBy = false
 
+  # Docs sidebar pseudo-groups (layouts/_partials/sidebar.html): pages that are not one folder but one reader job.
+  # Front matter `sidebar: {group: "..."}` on a page does the same; this list covers pages that must not be edited.
+  [[params.docsSidebar.groups]]
+    name = "Get started"
+    pages = ["/docs/what-is-kuberik/", "/docs/getting-started/", "/docs/installation/"]
+
   [params.sidebar]
     autoCollapseState = false
     collapsible = false

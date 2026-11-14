@@ -3,6 +3,17 @@
 {{- $reversePagination := .Store.Get "reversePagination" | default false -}}
 {{- $prev := cond $reversePagination .PrevInSection .NextInSection -}}
 {{- $next := cond $reversePagination .NextInSection .PrevInSection -}}
+{{- /* docs pages walk the sidebar order (docs/nav-order.html), so Previous/Next cross sections and skip hidden pages */ -}}
+{{- if and (eq .Section "docs") (not .Params.sidebar.exclude) -}}
+  {{- $order := partialCached "docs/nav-order.html" "docs" -}}
+  {{- $prev = false }}{{ $next = false -}}
+  {{- range $i, $p := $order -}}
+    {{- if eq $p.RelPermalink $.RelPermalink -}}
+      {{- if gt $i 0 }}{{ $prev = index $order (sub $i 1) }}{{ end -}}
+      {{- if lt (add $i 1) (len $order) }}{{ $next = index $order (add $i 1) }}{{ end -}}
+    {{- end -}}
+  {{- end -}}
+{{- end -}}
 {{- if eq .Params.prev false }}{{ if $reversePagination }}{{ $next = false }}{{ else }}{{ $prev = false }}{{ end }}
 {{- else }}{{ with .Params.prev }}{{ with $.Site.GetPage . }}{{ if $reversePagination }}{{ $next = . }}{{ else }}{{ $prev = . }}{{ end }}{{ end }}{{ end }}{{ end -}}
 {{- if eq .Params.next false }}{{ if $reversePagination }}{{ $prev = false }}{{ else }}{{ $next = false }}{{ end }}
