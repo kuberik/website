@@ -93,18 +93,21 @@ kubectl -n kuberik-system create secret generic github-app-credentials \
   --from-literal=clientSecret=<client-secret>
 ```
 
-### Pass the Secret to the dashboard
+### Restart the dashboard
 
-The dashboard reads `GITHUB_APP_CLIENT_ID` and `GITHUB_APP_CLIENT_SECRET` from its environment, and the Helm chart does not set them yet. Add them to the dashboard Deployment; the pods restart with the new variables:
+The Helm chart maps the Secret's `clientId` and `clientSecret` keys to the dashboard's `GITHUB_APP_CLIENT_ID` and `GITHUB_APP_CLIENT_SECRET`. The dashboard reads them at start, so restart it once the Secret exists:
 
 ```bash {filename="Terminal"}
-kubectl -n kuberik-system patch deployment rollout-dashboard --type=json -p '[
-  {"op": "add", "path": "/spec/template/spec/containers/0/env/-", "value": {"name": "GITHUB_APP_CLIENT_ID", "valueFrom": {"secretKeyRef": {"name": "github-app-credentials", "key": "clientId"}}}},
-  {"op": "add", "path": "/spec/template/spec/containers/0/env/-", "value": {"name": "GITHUB_APP_CLIENT_SECRET", "valueFrom": {"secretKeyRef": {"name": "github-app-credentials", "key": "clientSecret"}}}}
-]'
+kubectl -n kuberik-system rollout restart deployment rollout-dashboard
 ```
 
-Run the patch again if a `helm upgrade` drops the variables. Installs from the rollout-dashboard manifests read the Secret already and need only a `kubectl -n kuberik-system rollout restart deployment rollout-dashboard`.
+The chart looks for a Secret named `github-app-credentials`. If yours has another name, set it in the chart values and upgrade:
+
+```yaml {filename="values.yaml"}
+dashboard:
+  githubApp:
+    existingSecret: acme-github-app   # default github-app-credentials
+```
 
 ### Sign in
 
@@ -141,7 +144,7 @@ kubectl logs -n kuberik-system deployment/environment-controller-manager
 | `failed to get GitHub token secret github-token` | The Secret is not in the Environment's namespace, or has another name. | Create it in that namespace, or set `backend.secret`. |
 | `token key not found in secret` | The Secret has no `token` key. | Recreate it with `--from-literal=token=<your-token>`. |
 | `failed to create GitHub deployment` | The token cannot write deployments to the repository, or the release's commit is not in it. | Check the token's scope and repository access, and the image's revision annotation. |
-| The dashboard shows **Not configured** | The dashboard has no `GITHUB_APP_CLIENT_ID` or `GITHUB_APP_CLIENT_SECRET`. | Create the Secret and pass it to the dashboard as above. |
+| The dashboard shows **Not configured** | The dashboard has no `GITHUB_APP_CLIENT_ID` or `GITHUB_APP_CLIENT_SECRET`. | Create the Secret in `kuberik-system`, check `dashboard.githubApp.existingSecret`, and restart the dashboard. |
 | GitHub says `redirect_uri is not associated with this application` | The app's Callback URL does not match `https://<dashboard-host>/api/auth/github/callback`, scheme and host included. | Correct the Callback URL. |
 
 ## Next steps
