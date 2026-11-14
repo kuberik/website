@@ -66,7 +66,7 @@ kubectl edit releasesource hello-world -n hello-world
 
 ### `GatesPassing` is False with reason `SomeGatesBlocking`
 
-A gate has `passing: false`, often a closed deployment window from a `RolloutSchedule` or a `ClusterRolloutSchedule`. The reason shows even when no release is waiting. List the gates and schedules.
+A release is waiting and a gate has `passing: false`, often a closed deployment window from a `RolloutSchedule` or a `ClusterRolloutSchedule`. With nothing waiting, the condition stays `True` and the closed gate is still listed in `status.gates`. List the gates and schedules.
 
 ```bash {filename="Terminal"}
 kubectl get rollout hello-world -n hello-world -o jsonpath='{.status.gates}'
