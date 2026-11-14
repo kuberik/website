@@ -8,10 +8,10 @@ weight: 2
 
 Put the Kuberik dashboard behind your OIDC provider, so people sign in with their own identity. One [oauth2-proxy](https://oauth2-proxy.github.io/oauth2-proxy/) in `auth-system` checks every request through [Envoy Gateway](https://gateway.envoyproxy.io) external authorization.
 
-This page is the manual path. It needs Envoy Gateway and the dashboard's `rollout-dashboard` HTTPRoute in `kuberik-system`.
+This page is the manual path. It needs Envoy Gateway and the dashboard's `rollout-dashboard` HTTPRoute in `kuberik-system`. With the [Helm chart](/docs/installation/helm/), the chart renders these manifests instead: set `auth.enabled` with `auth.oidc.issuerUrl`, `auth.canonicalHost` and `auth.gateway.name`, and `dashboard.gateway.enabled` and `dashboard.gateway.auth` with `dashboard.gateway.parentRef.name` and `dashboard.gateway.hostname`.
 
 {{< callout type="important" >}}
-With the [Helm chart](/docs/installation/helm/), set `auth.enabled` and `dashboard.gateway.auth` instead and the chart renders these manifests. On chart 0.7.0, add the two `--skip-auth-route` flags below through `auth.extraArgs`; charts after 0.7.0 set them by default with `auth.staticRoutes`.
+On chart 0.7.0, add the two `--skip-auth-route` flags below through `auth.extraArgs`; charts after 0.7.0 set them by default with `auth.staticRoutes`.
 {{< /callout >}}
 
 ## Register one OIDC client
@@ -108,7 +108,7 @@ spec:
 ---
 apiVersion: gateway.networking.k8s.io/v1beta1
 kind: ReferenceGrant
-metadata: { name: oauth2-proxy-from-all, namespace: auth-system }
+metadata: { name: oauth2-proxy-from-kuberik-system, namespace: auth-system }
 spec:
   from:
     - { group: gateway.envoyproxy.io, kind: SecurityPolicy, namespace: kuberik-system }
@@ -142,7 +142,7 @@ spec:
         - X-Auth-Request-Access-Token
 ```
 
-To put another service behind the same sign-in, apply the same SecurityPolicy in its namespace and add that namespace to the ReferenceGrant's `from` list. For several clusters, deploy this in every cluster with the same OIDC issuer.
+To put another service on the dashboard host behind the same sign-in, apply the same SecurityPolicy in its namespace and add a ReferenceGrant like `oauth2-proxy-from-kuberik-system` for that namespace. For a service on another hostname, also add `--cookie-domain=<parent domain>` and `--whitelist-domain=<parent domain>` to oauth2-proxy, so the session cookie covers both hosts and the redirect back is allowed. For several clusters, deploy this in every cluster with the same OIDC issuer.
 
 ## Check the result
 
