@@ -258,6 +258,27 @@ kubectl get releasesource -n hello-world hello-world -o jsonpath='{.status.newes
 
 If the tag is missing, compare it with `filterTags.pattern`: tags that do not match are not releases. If `revision` is missing, the annotations were written to the per-platform manifests instead of the image index.
 
+## Troubleshoot
+
+The ReleaseSource reports its state in `Ready`, `SourceReachable` and `Syncing`.
+
+```bash {filename="Terminal"}
+kubectl get releasesource hello-world -n hello-world \
+  -o jsonpath='{range .status.conditions[*]}{.type}{"\t"}{.status}{"\t"}{.reason}{"\t"}{.message}{"\n"}{end}'
+```
+
+| Symptom | Cause | Fix |
+|---|---|---|
+| `Ready=False`, reason `ConfigInvalid` | The spec cannot be used. The message names the field. | Fix the spec and apply it again. |
+| `SourceReachable=False`, reason `Unreachable`, with `Ready=True`, reason `Stale` | The registry did not answer. The last catalogue is still served. | Check the image path and registry credentials. |
+| `Ready=False`, reason `SourceUnreachable` | The registry failed for three sync intervals, or no catalogue exists yet. | Check the image path and registry credentials. |
+| `Syncing=True`, reason `ResolveBudget` | Tags are still being resolved. The message counts them. | Wait. |
+| A tag is missing | The tag was skipped, or its metadata was rejected or could not be resolved. Events `TagsSkipped`, `MetadataRejected` and `TagUnresolvable` name it. | Read the Events below. |
+
+```bash {filename="Terminal"}
+kubectl events -n hello-world --for releasesource/hello-world
+```
+
 ## Next steps
 
 - [Deploy Your First App](/docs/getting-started/): connect the release to a Rollout and Flux
