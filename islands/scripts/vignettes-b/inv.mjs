@@ -1,0 +1,25 @@
+import { chromium } from '@playwright/test';
+const URL='http://127.0.0.1:1376/'; const id=process.argv[2]||'canary';
+const b=await chromium.launch();
+const ctx=await b.newContext({viewport:{width:1440,height:900}});
+await ctx.route(/\/islands\/.*\.js(\?.*)?$/, r=>r.abort());
+const p=await ctx.newPage(), s=await ctx.newCDPSession(p);
+await p.goto(URL+'?x=1',{waitUntil:'load'});
+if(process.env.CSS)await p.addStyleTag({content:process.env.CSS});
+await p.evaluate(id=>{const e=document.querySelector(`[data-vg="${id}"]`),r=e.getBoundingClientRect();document.documentElement.style.scrollBehavior='auto';scrollTo(0,r.top+scrollY-Math.max(0,(innerHeight-r.height)/2));},id);
+await p.waitForTimeout(2500);if(process.env.PAUSE)await p.evaluate(()=>dispatchEvent(new CustomEvent('vg-play',{detail:true})));await p.waitForTimeout(300);
+console.log('running',await p.evaluate(()=>{const h=document.querySelector('[data-vg]');const all=document.getAnimations();return JSON.stringify({total:all.length,running:all.filter(a=>a.playState==='running').length,t:all[0]&&all[0].currentTime,sy:scrollY,nav:getComputedStyle(document.querySelector('.nav')).position})}));
+const ev=[];s.on('Tracing.dataCollected',d=>ev.push(...d.value));
+await s.send('Tracing.start',{categories:'toplevel,devtools.timeline,disabled-by-default-devtools.timeline.invalidationTracking,disabled-by-default-devtools.timeline.stack',transferMode:'ReportEvents'});
+await p.waitForTimeout(4000);
+const done=new Promise(r=>s.once('Tracing.tracingComplete',r));await s.send('Tracing.end');await done;
+const an=ev.filter(e=>e.name==='Animation'&&e.args?.data);const cf={};for(const e of an){const d=e.args.data;const k=e.ph+'|'+(d.compositeFailed||'')+'|'+(d.unsupportedProperties||'');cf[k]=(cf[k]||0)+1;}console.log('anim',JSON.stringify(cf));
+const names={};for(const e of ev)names[e.name]=(names[e.name]||0)+1;
+console.log(JSON.stringify(names));
+const inv=ev.filter(e=>/Invalidat/.test(e.name));
+const by={};for(const e of inv){const a=e.args?.data||{};const k=[e.name,a.reason,a.nodeName,a.selectorPart,a.changedClass,a.changedAttribute,a.extraData].join('|');by[k]=(by[k]||0)+1;}
+console.log(Object.entries(by).sort((a,b)=>b[1]-a[1]).slice(0,15).map(x=>x[1]+' '+x[0]).join('\n'));
+const ul=ev.filter(e=>e.name==='UpdateLayoutTree'&&e.ph==='X');
+console.log('ULT count',ul.length,'avg dur ms',(ul.reduce((x,e)=>x+e.dur,0)/ul.length/1000).toFixed(2));
+console.log(JSON.stringify(ul.slice(5,7).map(e=>e.args)).slice(0,800));
+await b.close();

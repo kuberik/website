@@ -10,8 +10,15 @@
       first); __vgBuilt() lists the built hosts; VG.spec(name) gives a scene's spec (the poster generator reads its boxes).
    5. Remount on a breakpoint flip re-observes the host (unobserve, then observe) so the observer delivers a fresh entry for the
       new scene; without it a card that was playing froze after the viewport crossed 640 px.
-   6. Kept: the phone composition (viewport <= 640 px) and the remount that keeps each clock; play at >= 35 % in view, pause
-      off screen and in a hidden tab. */
+   6. One card plays at a time (start(): elect/go/settle). Among the built hosts at >= 35 % in view the one with the largest visible
+      area plays; the turn changes only when a challenger shows 15 % more area. Every other card shows its REST frame: a card that
+      leaves the screen or loses the turn is paused and dissolved to rest (160 ms out, 220 ms in; a plain seek when it is off
+      screen), so no card is left on the blank reset beat of the loop (that beat exists only inside a playing loop); an elected card
+      plays from rest. A hidden tab pauses in place and resumes in place. The observer uses 21 thresholds so the area is current.
+      Why: main-thread cost scales with the number of scenes playing (each compositor scene still costs style work per frame).
+      The page tells the nav when anything plays: a `vg-play` event on window, detail true/false (home.html holds the logo's SMIL
+      spin while true; an animated SVG <img>/inline mark otherwise requests a main-thread frame per vsync under the sticky nav).
+   7. Kept: the phone composition (viewport <= 640 px) and the remount that keeps the playing card's clock (the others stand at rest); reduced motion; lazy build; hooks. */
 (() => {
   const NS = 'http://www.w3.org/2000/svg';
   function bez(x1, y1, x2, y2) {
@@ -132,7 +139,7 @@
     // composited sprites), so the rAF clock never touches it; a v3/v4 scene returns render(t)
     const anim = typeof built === 'object' ? built : null;
     const render = anim ? anim.set : built;
-    const v = { host, s, render, anim, t: freeze != null ? freeze % s.loop : keep != null ? keep : s.rest, on: false };
+    const v = { host, s, render, anim, t: freeze != null ? freeze % s.loop : keep != null ? keep : s.rest, on: false, atRest: keep == null };
     v.render(v.t);
     live.push(v);
     host.dataset.vgLive = '1';
@@ -141,7 +148,7 @@
   const buildAll = () => { for (const h of hosts()) build(h); };
   // the phone has its own composition (one object kept big): re-mount the built hosts when the breakpoint flips, keeping each clock
   PHONE.addEventListener('change', () => {
-    const keep = live.map((v) => [v.host, v.anim ? v.anim.time() : v.t]);
+    const keep = live.map((v) => [v.host, v.on ? (v.anim ? v.anim.time() : v.t) : null]);   // only the playing card keeps its clock; the rest stand at rest
     live.length = 0;
     for (const [host, t] of keep) { delete host.dataset.vgLive; const v = build(host, t); if (v && io) { io.unobserve(host); io.observe(host); } }
     kick();
@@ -149,9 +156,43 @@
   function start() {
     if (freeze != null) { buildAll(); document.documentElement.dataset.vgReady = '1'; return; }
     if (reduced) { document.documentElement.dataset.vgReady = '1'; return; }   // the posters are the rest frames
-    io = new IntersectionObserver((es) => { for (const e of es) { const v = live.find((x) => x.host === e.target); if (!v) continue; const on = e.intersectionRatio >= 0.35; if (v.anim && on !== v.on) on ? v.anim.play() : v.anim.pause(); v.on = on; } kick(); }, { threshold: [0, 0.35, 0.6, 1] });
+    // ONE CARD PLAYS AT A TIME. The observer reports each built host's visible ratio and area; among those >= MIN the one with the
+    // largest visible area plays (a playing card keeps the turn until a challenger shows 15 % more area: no flapping). Every other
+    // card shows its rest frame: when a card loses the turn (or leaves the screen) it is paused, dissolved to its rest frame (a short
+    // fade out and in, no hard jump on screen; off screen it just seeks), and a card that is elected again plays from rest.
+    const MIN = 0.35;
+    let cur = null, announced = null;
+    const announce = () => { const on = !!cur && !document.hidden; if (on !== announced) { announced = on; dispatchEvent(new CustomEvent('vg-play', { detail: on })); } };
+    const toRest = (v) => { if (v.anim) { v.anim.pause(); v.anim.set(v.s.rest); } else { v.t = v.s.rest; v.render(v.t); } v.settling = false; v.atRest = true; };
+    const settle = (v) => {
+      const tok = v.tok = (v.tok || 0) + 1, svg = v.host.firstElementChild;
+      if (v.anim) v.anim.pause();                                   // stop moving at once
+      if (!v.anim && v.t === v.s.rest) return;
+      if (!svg || !svg.animate || !(v.ratio > 0.02)) { toRest(v); return; }   // not on screen: nobody sees the seek
+      v.settling = true;
+      const out = v.fade = svg.animate([{ opacity: 1 }, { opacity: 0 }], { duration: 160, easing: 'ease-in', fill: 'forwards' });
+      out.onfinish = () => { if (v.tok !== tok) return; toRest(v); svg.animate([{ opacity: 0 }, { opacity: 1 }], { duration: 220, easing: 'ease-out' }); out.cancel(); };
+    };
+    const go = (v) => {
+      v.tok = (v.tok || 0) + 1; v.atRest = false;
+      if (v.fade) { v.fade.cancel(); v.fade = null; }
+      if (v.settling) toRest(v);                                    // re-elected mid-dissolve: start from rest
+      if (v.anim && !document.hidden) v.anim.play();
+    };
+    const elect = () => {
+      let best = null;
+      for (const v of live) if (v.ratio >= MIN && (!best || v.area > best.area)) best = v;
+      const keep = cur && live.includes(cur) && cur.ratio >= MIN && cur.area * 1.15 >= (best ? best.area : 0);
+      const win = keep ? cur : best;
+      for (const v of live) { const want = v === win; if (want === v.on && (want || v.atRest)) continue; v.on = want; want ? go(v) : settle(v); }
+      cur = win; announce();
+    };
+    io = new IntersectionObserver((es) => {
+      for (const e of es) { const v = live.find((x) => x.host === e.target); if (!v) continue; v.ratio = e.intersectionRatio; v.area = e.intersectionRect.width * e.intersectionRect.height; }
+      elect(); kick();
+    }, { threshold: Array.from({ length: 21 }, (_, i) => i / 20) });
     lazy = new IntersectionObserver((es) => { for (const e of es) { if (!e.isIntersecting) continue; lazy.unobserve(e.target); const v = build(e.target); if (v) io.observe(e.target); } }, { rootMargin: '100% 0px 100% 0px' });
-    document.addEventListener('visibilitychange', () => { for (const v of live) if (v.anim && v.on) document.hidden ? v.anim.pause() : v.anim.play(); kick(); });
+    document.addEventListener('visibilitychange', () => { for (const v of live) if (v.anim && v.on) document.hidden ? v.anim.pause() : v.anim.play(); announce(); kick(); });
     for (const h of hosts()) lazy.observe(h);
     let last = null, running = false;
     const FPS = +(q.get('vg-fps') || 0), minDt = FPS ? 1000 / FPS - 2 : 0;
