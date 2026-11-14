@@ -41,8 +41,10 @@ for p,x in pages.items():
     for t,l in x.links:
         if l.startswith(('mailto:','javascript:','data:','tel:')): continue
         if re.match(r'https?://',l):
-            if 'kuberik.com' not in l: exts.add(l); continue
-            l=re.sub(r'https?://(www\.)?kuberik\.com','',l) or '/'
+            if not re.search(r'(kuberik\.com|example\.org)', l):
+                if t != 'link': exts.add(l)
+                continue
+            l=re.sub(r'https?://(www\.)?(kuberik\.com|example\.org)','',l) or '/'
         if l.startswith('//'): continue
         tgt,frag=resolve(p,urllib.parse.unquote(l))
         if not os.path.exists(tgt): bad.append((rel,l,'missing')); continue
