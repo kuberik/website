@@ -14,7 +14,7 @@ const b = await chromium.launch();
 let fail = 0;
 const ok = (c, m) => { console.log(`${c ? 'PASS' : 'FAIL'} ${m}`); if (!c) fail++; };
 const mk = async (vw, o = {}) => { const ctx = await b.newContext({ viewport: { width: vw, height: vw < 500 ? 844 : 900 }, deviceScaleFactor: 1, ...(vw < 500 ? { isMobile: true, hasTouch: true } : {}), ...o }); await ctx.addInitScript((t) => { try { localStorage.setItem('color-theme', t); } catch {} document.addEventListener('DOMContentLoaded', () => { document.documentElement.style.scrollBehavior = 'auto'; }); }, o.colorScheme ?? 'light'); return ctx; };
-const ids = ['gates', 'canary', 'health', 'gitops', 'dashboard', 'releases'];
+const ids = ['gates', 'canary', 'health', 'gitops', 'dashboard', 'releases', 'stepin'];
 // 1
 {
 	const ctx = await mk(1440), p = await ctx.newPage(); await p.route(/\/islands\/.*\.js/, (r) => r.abort());
@@ -60,7 +60,7 @@ const ids = ['gates', 'canary', 'health', 'gitops', 'dashboard', 'releases'];
 	const ctx = await mk(1440, { reducedMotion: 'reduce' }), p = await ctx.newPage(); await p.route(/\/islands\/.*\.js/, (r) => r.abort());
 	await p.goto(URL); await p.evaluate(() => document.querySelector('#features').scrollIntoView()); await p.waitForTimeout(1000);
 	const r = await p.evaluate(() => ({ live: document.querySelectorAll('[data-vg-live]').length, anim: document.querySelector('#features').getAnimations({ subtree: true }).filter((a) => a.effect?.target?.closest?.('.vg')).length, posters: document.querySelectorAll('.vg .vg-p').length }));
-	ok(r.live === 0 && r.anim === 0 && r.posters === 12, `reduced motion: nothing built, no animation, 12 posters stand (${JSON.stringify(r)})`);
+	ok(r.live === 0 && r.anim === 0 && r.posters === ids.length * 2, `reduced motion: nothing built, no animation, ${ids.length * 2} posters stand (${JSON.stringify(r)})`);
 	await ctx.close();
 }
 // 4

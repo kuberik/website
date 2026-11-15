@@ -38,7 +38,7 @@
 .vg .gloss{opacity:var(--s-gloss-a)}
 .vg .back{filter:blur(var(--s-back-blur))}
 
-@media(max-width:640px){.vg{aspect-ratio:var(--vg-ar-m,var(--vg-ar))}}
+@media(max-width:1023px){.vg{aspect-ratio:var(--vg-ar-m,var(--vg-ar))}}   /* the phone composition: <= 1023 (r9 B1) */
 
 /* take B kit v4: every colour from the page (tokens.css, features.css, thesis.css) or the dashboard (language.css --k-*).
    Card = the page's card (--page / --card-fill, --line, the card shadow). Fig = the thesis tile (--fig-top, --fig-top-line).
@@ -151,12 +151,13 @@ html.dark .fx-mint .vg .kb{--b-card:oklch(.355 .035 192);--b-quiet:oklch(.37 .03
 /* v6c: the baking wash in dark. Any yellow blended at low alpha over the teal card lands on olive (v6b .25 did); so the wash
    is a solved, opaque warm-gold tint (the dark analogue of light's pale yellow: same family as the baking chip, hue nudged
    warm so the teal surround does not pull it green). Reads gold beside the card, never olive or held orange (hue 50). */
-html.dark .vg .kb .band-prog{fill:oklch(.39 .058 87);opacity:1}
+html.dark .vg .kb .band-prog{fill:oklch(.37 .035 192);opacity:1}
 
 /* v6f (review b-r5 fix 6): dark only. Canary's wave 2 'deploying' mark sits on the page card, where the act tint disc measured
    1.07:1. There the disc takes the act hue itself (3.88:1 on --b-card) and the turning arc goes white (3.30:1 on the disc). */
-html.dark .vg .kb-sp.w2 .m-act .md{fill:var(--b-act);stroke:var(--b-act)}
-html.dark .vg .kb-sp.w2 .m-act .mg{stroke:#fff}
+html.dark .vg .kb-sp.w2 .m-act .md,html.dark .vg .kb-sp.w1 .m-act .md{fill:var(--b-act);stroke:var(--b-act)}
+html.dark .vg .kb-sp.w2 .m-act .mg,html.dark .vg .kb-sp.w1 .m-act .mg{stroke:#fff}
+/* v6i: Canary's wave-1 deploying mark gets wave 2's dark treatment (act-tint disc was 1.46:1 on the mint card in dark). */
 /* v6f (review b-r5 fix 7): dark only. The 11 px mono labels (KB 'tag': mono subtle) measured 3.03:1 on the fig card; they take
    the next ink step, --b-muted (5.04:1 on --b-fig, 6.89:1 on --b-card). Light keeps --b-subtle. */
 html.dark .vg .kb .mono.subtle{fill:var(--b-muted)}
@@ -173,12 +174,22 @@ html.dark .vg .kb .band-teal.band-bake{fill:oklch(.43 .07 184);opacity:1}
 html.dark .vg .kb .band-teal.wash-land{fill:oklch(.47 .07 184);opacity:1}
 
 /* ---- production additions (not in v6h) ---- */
-/* the host never draws wider than 1.15x its design box (--vg-w, the scene's viewBox width, set on the host by the poster
-   partial): the canvas centres it. On the phone the composition is 326 wide and the canvas gives it exactly that. */
-.vg{max-width:calc(var(--vg-w,780) * 1.15px);margin-inline:auto}
-@media(max-width:640px){.vg{max-width:none}}
+/* ONE RENDER SCALE (review r8 S1; r9 B1, N3). A host is --vg-w (its scene's viewBox width, set by the poster partial) scene
+   units wide, and one unit (--vg-u) is the same length in every vignette at a given width, so all seven draw at one scale.
+   r9: ONE unit everywhere below 1920 (1.0), 1.15 at >= 1920 (where --cont steps 1200 -> 1440). The fluid bands are gone:
+   641-1023 drew the desktop scenes at 0.65-1.1 (chips 6.5-8.4 px) and 1343 -> 1344 stepped 1.15 -> 1.0 on resize. The
+   canvases are sized for the unit (features.css, stepin.css); min(100%) is only a guard.
+   <= 1023 the host holds the PHONE composition (every one 326 wide, posters.mjs; the engine's PHONE query is the same
+   1023): 326 x the unit, in a 350 canvas column (features.css, stepin.css). 390 draws exactly as before (326 in 350). */
+.vg{width:min(100%,calc(var(--vg-w,780) * var(--vg-u,1px)));margin-inline:auto;--vg-u:1px}
+@media(min-width:1920px){.vg{--vg-u:1.15px}}
+/* r11 (R11-DES-3, owner rule: no lone small object at very wide sizes): >= 2400 --cont steps 1440 -> 1920 (tokens.css), and at
+   1.15 Health, GitOps and Step in filled under half their canvas (0.47 / 0.49 / 0.48 of its width at 2560). 1.4 brings them to
+   ~0.6 and is the largest unit at which Gates (780) still fits its canvas (1103 inside), so every scene keeps one unit. */
+@media(min-width:2400px){.vg{--vg-u:1.4px}}
+@media(max-width:1023px){.vg{width:min(100%,calc(326 * var(--vg-u,1px)))}}
 /* the rest posters (layouts/_partials/landing-vignettes, generated): both compositions inside the host, switched by the
    engine's own query; the live build empties the host and draws the scene in their place */
 .vg .vg-p{position:absolute;inset:0}
 .vg .vg-p-m{display:none}
-@media(max-width:640px){.vg .vg-p-d{display:none}.vg .vg-p-m{display:block}}
+@media(max-width:1023px){.vg .vg-p-d{display:none}.vg .vg-p-m{display:block}}
