@@ -32,7 +32,7 @@ Kuberik runs on Kubernetes 1.30 or later and deploys through Flux. Promotion bet
 | System | Status | What Kuberik does with it |
 |---|---|---|
 | [Flux](/docs/integrations/fluxcd/) 2.6 or later | Required | Applies each version through a Kustomization or an OCIRepository |
-| Argo CD | Not supported | Nothing yet: Kuberik reads and writes Flux objects only |
+| Argo CD | Not supported | Kuberik reads and writes Flux objects only |
 | [GitHub](/docs/integrations/github/) | Required to promote | Carries each bake result from one environment to the next; the dashboard reads commits and pull requests through each person's GitHub connection |
 | [Datadog](/docs/integrations/datadog/), [Prometheus](/docs/integrations/prometheus/) | Optional | Monitors and alerts become HealthChecks |
 | OpenKruise | Optional | Canary steps inside one deploy ([Roll Out with a Canary](/docs/releases/canary/)) |
