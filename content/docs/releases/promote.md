@@ -2,6 +2,7 @@
 title: "Promote Across Environments"
 description: "Deploy to production only after staging has shipped the same release."
 type_: guide
+keywords: ["single cluster#run-both-tiers-on-one-cluster", "one cluster#run-both-tiers-on-one-cluster"]
 weight: 20
 aliases: ["/docs/guides/cross-environment-rollout/"]
 ---

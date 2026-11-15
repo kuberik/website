@@ -309,6 +309,12 @@ document.addEventListener("DOMContentLoaded", function () {
         if (i < urlParts.length - 1) crumb += ' > ';
       }
       const pageTitle = strip(data[route].title);
+      // R13-IA-4: `keywords:` front matter. The words a reader types that the
+      // page does not say; they count as part of the page's own title entry.
+      // "phrase#heading-id" attaches the phrase to that section, so the result
+      // lands on the heading; a bare phrase belongs to the page entry.
+      const kws = data[route].keywords || [];
+      const kwFor = (h) => kws.filter(k => (k.includes('#') ? k.split('#')[1] : '') === (h || '')).map(k => k.split('#')[0]).join(' ');
       const generated = route.startsWith('/docs/reference/');
       for (const f of data[route].fields || []) fields.push({ route, crumb, ...f });
       let order = 0;
@@ -318,6 +324,7 @@ document.addEventListener("DOMContentLoaded", function () {
         if (hash === 'related' || hash === 'next-steps') continue;
         const url = route.trimEnd('/') + (hash ? '#' + hash : '');
         const title = strip(text || pageTitle);
+        const kwText = kwFor(hash);
         let content = data[route].data[heading] || '';
         let labels = [];
         const li = content.lastIndexOf('\n§labels§');
@@ -329,7 +336,8 @@ document.addEventListener("DOMContentLoaded", function () {
           order: order++,
           generated,
           display: paragraphs[0] || '',
-          tw: words(title),
+          tw: words(title + ' ' + kwText),
+          kwPhrase: norm(kwText),
           pw: words(pageTitle),
           cw: words(crumb),
           bw: new Set(words(content)),
@@ -384,7 +392,7 @@ document.addEventListener("DOMContentLoaded", function () {
         score += gen ? 0.1 : 1 + Math.min(n, 10) * 0.12 + (ident && s.generated ? 3 : 0);
       }
     }
-    if (terms.length > 1 && norm(s.title).includes(phrase)) score += 12;
+    if (terms.length > 1 && (norm(s.title).includes(phrase) || s.kwPhrase.includes(phrase))) score += 12;
     else if (terms.length > 1 && s.body.includes(phrase)) score += gen ? 0 : 4;
     if (titleHits === terms.length) score += 6;
     // A page's own entry (its title and summary) outranks its sections.
@@ -434,11 +442,13 @@ document.addEventListener("DOMContentLoaded", function () {
       const sc = scoreSection(s, terms, phrase, ident, stateQuery) * w;
       if (sc <= 0) continue;
       let p = pages.get(s.route);
-      if (!p) pages.set(s.route, p = { best: 0, items: [], crumb: s.crumb, order: pages.size });
+      // R13-IA-4: API type rows (reference/api) rank after every hand-written
+      // page for the same query; an exact camelCase field name keeps them first.
+      if (!p) pages.set(s.route, p = { best: 0, items: [], crumb: s.crumb, order: pages.size, tier: !ident && s.route.startsWith('/docs/reference/api/') ? 1 : 0 });
       p.items.push({ s, sc });
       p.best = Math.max(p.best, sc);
     }
-    return [...pages.values()].sort((a, b) => b.best - a.best || a.order - b.order).slice(0, 12);
+    return [...pages.values()].sort((a, b) => a.tier - b.tier || b.best - a.best || a.order - b.order).slice(0, 12);
   }
 
   function search(e) {

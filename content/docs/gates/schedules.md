@@ -2,6 +2,7 @@
 title: "Set Deployment Windows"
 description: "Allow or deny deploys by time of day, day of week or date range."
 type_: guide
+keywords: ["schedule", "schedules", "maintenance window", "freeze"]
 weight: 30
 aliases: ["/docs/guides/schedules/"]
 ---

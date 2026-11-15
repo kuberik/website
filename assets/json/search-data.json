@@ -16,6 +16,8 @@
   {{- $pageLink := $page.RelPermalink -}}
   {{- $data := partial "utils/fragments" (dict "context" $page "type" $indexType) -}}
   {{- $entry := dict "title" $pageTitle "data" $data -}}
+  {{- /* kuberik (R13-IA-4): `keywords:` front matter, extra search terms for the page's own entry. */ -}}
+  {{- with $page.Params.keywords }}{{ $entry = merge $entry (dict "keywords" (cond (reflect.IsSlice .) . (slice .))) }}{{ end -}}
   {{- /* kuberik (R6-IA-3): API-reference field rows (<tr id="rolloutspec-baketime">) so a field-name query links to its row. */ -}}
   {{- $fields := slice -}}
   {{- range findRESubmatch `(?s)<tr id="([^"]+)"><td><code>([^<]+)</code>(.*?)</tr>` $page.Content -}}
