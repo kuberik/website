@@ -97,7 +97,7 @@ To let the rollout follow new releases again, select **Clear pin** on the Overvi
 Roll back works for a failed deploy and for a bad build that passed its bake.
 
 1. After a failed deploy, select **Roll back** on the **Deployment failed** banner of the rollout's **Overview**. It deploys the build before the failed one.
-2. Otherwise, select **Roll back** in the rollout header. It shows whenever an older build exists, and goes to the last older build this environment ran. To pick the build yourself, select **Change version** and choose an older one; the dialog turns into **Roll back *environment* to *build***.
+2. Otherwise, select **Roll back** in the rollout header. It shows whenever an older build exists, and goes to the last older build this environment ran, else to the release just below the running one. To pick the build yourself, select **Change version** and choose an older one; the dialog turns into **Roll back *environment* to *build***.
 3. The pin is always on for a rollback, so the dialog shows no **Pin build** switch. Confirm with **Roll back**; in production, type the build first.
 
 The rollout stays on that build, under a **Rolled back** banner, until you select **Clear pin**. A force-deploy back does not hold: see [Operate with kubectl](/docs/operate/manual-actions/#roll-back-to-the-previous-version).
