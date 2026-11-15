@@ -161,7 +161,9 @@ VG.def('releases', {
     // v6j: last cycle's traces, lit at the opening; they let go (150 ms ease-in) as the new commit lands
     const oldLit = S.sprite({ x: 0, y: 0, w: W, h: H, track: (t) => ({ o: 1 - w(t, LET, LET + 0.15, 'in') }) });
     for (const [d, c] of [A, D1, D2]) KB.path(oldLit.g, d, 'w-lit', c);
-    KB.text(st, capA[0], capA[1], capA[2], 'tag', capA[3]);
+    // v6k r10 nit 5: at 390 the travelling tag passes right beside the caption; the caption steps back (0.3) while it passes
+    const capP = ph ? S.sprite({ x: capA[0] - 2, y: capA[1] - 12, w: 112, h: 16, track: (t) => ({ o: 1 - 0.7 * (w(t, 0.70, 0.76, 'io') - w(t, 0.86, 0.98, 'io')) }) }).g : st;
+    KB.text(capP, capA[0], capA[1], capA[2], 'tag', capA[3]);
     KB.path(KB.reveal(S, boxA, tt((t) => Math.min(1, mv(t))), { axis: axA }).g, A[0], 'w-lit', A[1]);
     KB.path(KB.reveal(S, box1, tt(t1), { axis: ax1, from: from1 }).g, D1[0], 'w-lit', D1[1]);
     KB.path(KB.reveal(S, box2, tt(t2), { axis: ax2, from: from2 }).g, D2[0], 'w-lit', D2[1]);

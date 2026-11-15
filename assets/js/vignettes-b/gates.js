@@ -73,7 +73,7 @@ VG.def('gates', {
       const JB = 228; // the bus the three wires merge into, over the gates
       const up = (x, y, d = 4, h = 3.5) => `M${x - h} ${y + d}L${x} ${y}L${x + h} ${y + d}`;
       wd = cy.map((y, i) => {
-        const lx = 282 + i * 14;
+        const lx = 296; // v6k r10 nit 2: one trunk, as at 1440 (was three rails at 282/296/310)
         const d = `M${x1} ${y}H${lx - 8}A8 8 0 0 0 ${lx} ${y - 8}V${JB + 8}A8 8 0 0 0 ${lx - 8} ${JB}H${jx + 8}A8 8 0 0 1 ${jx} ${JB - 8}V${jy}`;
         return [d, i === 1 ? up(jx, jy) : null];
       });
