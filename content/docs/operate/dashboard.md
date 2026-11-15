@@ -90,7 +90,7 @@ To let the rollout follow new releases again, select **Clear pin** on the Overvi
 1. On the rollout's **Overview**, select **Retry** on the **Deployment failed** banner.
 2. Confirm **Redeploy to *environment*?**. When tests failed, the dialog offers to retry the tests or skip them instead.
 
-<span id="roll-back-a-failed-deploy"></span>
+<div id="roll-back-a-failed-deploy"></div>
 
 ### Roll back
 
