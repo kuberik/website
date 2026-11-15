@@ -9,12 +9,17 @@
   --df-f-fill:oklch(.975 .014 214);--df-f-line:oklch(.74 .05 214);--df-f-ink:oklch(.5 .08 214);
   --df-n-fill:var(--page);--df-n-line:oklch(.8 .014 222);
   --df-key:#009689;
-  --df-wire:var(--ink-subtle);--df-held:oklch(.69 .16 48);--df-pass:#00a63e;
+  --df-wire:var(--ink-subtle);--df-held:oklch(.69 .16 48);/* = --k-held-solid */--df-pass:#00a63e;
   --df-group:oklch(.8 .014 222);
   /* InProgress = the dashboard's `checking` chip (rollout-dashboard frontend/src/styles/language.css:217-220,
      Chip.svelte:661 CHECKING): a yellow-green that never meets amber, which is held/stuck only */
   --kd-chip-yellow-bg:oklch(.975 .08 112);--kd-chip-yellow-line:oklch(.88 .09 100);--kd-chip-yellow-ink:oklch(.51 .1 95);
   --kd-chip-prod-bg:#fdf4ff;--kd-chip-prod-line:#f4a8ff;--kd-chip-prod-ink:#a800b7;
+  /* R6-DES-4: ONE amber for held/waiting in every figure = the dashboard's held hue (rollout-dashboard
+     frontend/src/styles/language.css:213-216 light, :306-309 dark). Held chips, held wires, held dots and amber note
+     dots all draw from it; the docs' Tailwind amber chip (docs.css) is overridden inside figures only. InProgress is
+     a different state (actively baking, nothing waits on a person) and keeps the dashboard's checking yellow above. */
+  --kd-chip-amber-bg:oklch(.96 .058 55);--kd-chip-amber-line:oklch(.84 .095 45);--kd-chip-amber-ink:oklch(.52 .15 42);
   margin:32px 0 0;container:df/inline-size;scroll-margin-top:96px}
 html.dark .df{
   --df-bg:#121b1f;
@@ -25,15 +30,20 @@ html.dark .df{
   --df-held:oklch(.72 .16 50);--df-pass:#05df72;
   --df-group:oklch(1 0 0/.16);
   --kd-chip-yellow-bg:oklch(.352 .07 102);--kd-chip-yellow-line:oklch(.52 .11 102);--kd-chip-yellow-ink:oklch(.87 .12 98);
-  --kd-chip-prod-bg:#4b004f;--kd-chip-prod-line:#8a0194;--kd-chip-prod-ink:#f6cfff}
+  --kd-chip-prod-bg:#4b004f;--kd-chip-prod-line:#8a0194;--kd-chip-prod-ink:#f6cfff;
+  --kd-chip-amber-bg:oklch(.318 .068 50);--kd-chip-amber-line:oklch(.48 .12 50);--kd-chip-amber-ink:oklch(.8 .13 50)}
 .df-card{padding:24px 23px;border:1px solid var(--line);border-radius:12px;background:var(--df-bg);overflow:hidden}
 .df-cap,.kd-content .df-cap{margin-top:12px;text-align:left;font:400 14px/20px var(--sans);color:var(--ink-muted)}
 
-/* two drawings: wide from a 680 px figure (the 1440 column), narrow below it */
+/* two drawings (R6-DES-2). The wide one (viewBox 632) shows from a 656 px figure: the card takes 48 (23 padding + 1 line
+   each side), so it renders at 608 or more = scale .962, labels 12.5 px or larger. Below that the narrow one (viewBox 318)
+   shows at 1:1 at most, centred: a drawing is never scaled up, so labels are never larger than the 16 px body (the old
+   400 cap rendered it at 1.26 = 16.4 px on 1024-1365 laptops). The wide drawing cannot go lower than 656: at a 616
+   figure (1280 viewport) it would be .90 = 11.7 px. */
 .df-svg{display:block;height:auto;overflow:visible;font-family:var(--sans)}
 .df-wide{display:none;width:100%}
-.df-narrow{width:100%;max-width:400px;margin:0 auto}
-@container df (min-width:680px){.df-wide{display:block}.df-narrow{display:none}}
+.df-narrow{width:100%;max-width:318px;margin:0 auto}
+@container df (min-width:656px){.df-wide{display:block}.df-narrow{display:none}}
 @container df (max-width:479px){.df-card{padding:16px}}
 
 /* plates */
@@ -46,10 +56,13 @@ html.dark .df{
 .df-sub{font-size:13px;fill:var(--ink-muted)}
 .df-sub.is-mono,.df-mono{font-family:var(--mono);font-size:13px}
 .df-mono{fill:var(--ink-muted)}
+.df-tm{font-family:var(--mono)} /* a `field` span inside an Inter label or note: field names are mono in every figure */
 
 /* regions */
 .df-group rect{fill:none;stroke:var(--df-group);stroke-width:1;stroke-dasharray:4 3}
-.df-glabel{font-size:13px;font-weight:600;letter-spacing:.04em;text-transform:uppercase;fill:var(--ink-subtle)}
+/* eyebrows and region labels sit in the chip tier (11/600 uppercase .06em, landing .fig-chip): a 13 px uppercase
+   label beside an 11 px chip read as the louder of the two (R6-DES-3) */
+.df-glabel{font-size:11px;font-weight:600;letter-spacing:.06em;text-transform:uppercase;fill:var(--ink-subtle)}
 .df-g-k .df-glabel{fill:var(--mint-ink)}
 .df-g-f .df-glabel{fill:var(--df-f-ink)}
 
@@ -65,7 +78,7 @@ html.dark .df{
 
 /* chips (the product chip) and version pills */
 .df-chip rect{fill:var(--kd-chip-gray-bg);stroke:var(--kd-chip-gray-line);stroke-width:1}
-.df-chip text{font-size:13px;font-weight:600;letter-spacing:.04em;fill:var(--kd-chip-gray-ink)}
+.df-chip text{font-size:11px;font-weight:600;letter-spacing:.06em;fill:var(--kd-chip-gray-ink)}
 .df-chip-green rect{fill:var(--kd-chip-green-bg);stroke:var(--kd-chip-green-line)}.df-chip-green text{fill:var(--kd-chip-green-ink)}
 .df-chip-red rect{fill:var(--kd-chip-red-bg);stroke:var(--kd-chip-red-line)}.df-chip-red text{fill:var(--kd-chip-red-ink)}
 .df-chip-amber rect{fill:var(--kd-chip-amber-bg);stroke:var(--kd-chip-amber-line)}.df-chip-amber text{fill:var(--kd-chip-amber-ink)}
