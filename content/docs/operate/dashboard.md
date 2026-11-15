@@ -1,43 +1,39 @@
 ---
 title: "Use the Dashboard"
-description: "Find a rollout, read where a build is and what holds it, follow a pull request, and approve, skip, pin, retry or roll back from the Kuberik dashboard."
+description: "Find and read rollouts, follow a pull request, and approve, skip, pin, retry or roll back from the Kuberik dashboard."
 type_: guide
 weight: 10
 ---
 
-Find any app or rollout, see where each build stands and what holds it, and act on it from the dashboard. For the kubectl way, see [Operate with kubectl](/docs/operate/manual-actions/) and, for approvals, [Require a Manual Approval](/docs/gates/approvals/).
+Find any rollout, read what holds it and act on it. For kubectl, see [Operate with kubectl](/docs/operate/manual-actions/).
 
 
 ## Find an app or a rollout
 
-The sidebar pages list what needs you across every cluster; the command palette jumps to one object.
-
-1. Open **Home** for **Attention**, **Your changes** and the **Fleet** card, or **Rollouts**, **Apps** and **Environments** for the whole fleet.
+1. Open **Home** for what needs you, or **Rollouts**, **Apps** and **Environments** for the whole fleet.
 2. Press <kbd>Ctrl</kbd> <kbd>K</kbd> (<kbd>⌘</kbd> <kbd>K</kbd> on a Mac), or select **Search** at the top of the sidebar.
-3. Type part of a name. Results are grouped as **Rollouts**, **Builds**, **Apps**, **Environments**, **Changes**, **Namespaces** and **Commands**.
-4. To find a pull request, paste its GitHub URL, `owner/repo#123` or a commit sha into the box, then select **Open change #123 · repo**.
+3. Type part of a name.
+4. To find a pull request, paste its GitHub URL, `owner/repo#123` or a commit sha, then select **Open change #123 · repo**.
 
-![The command palette with the URL of pull request 80 in exampleco/checkout-api pasted in and a single result, Open change #80 · checkout-api, 4 of 7 live, queued for 2](/images/docs/dashboard/command-palette-pr.png)
+![The command palette resolving a pasted pull request URL to Open change #80 · checkout-api](/images/docs/dashboard/command-palette-pr.png)
 
 ## Read a rollout
 
-An app's Progress tab shows how far each build has gone; a rollout's Gates tab shows why it has not gone further.
-
 1. Open an app from **Apps**, then select the **Progress** tab.
-2. When two or more releases are in flight, pick one in the release list, beside the drawing or above it on a narrow screen. The drawing shows every environment as a column, or as a stacked list when the card is narrow, its regions grouped by **Wave**, and each place's state: deployed, deploying, checking, held (with the rule that holds it), waiting for approval, failed, or **Not reached**.
-3. Select a place in the drawing to open that rollout. When the app waits or failed, the banner above also has **Open rollout**. To find what a banner's words mean and how to clear them, look them up in [What the dashboard shows](/docs/operate/troubleshooting/#what-the-dashboard-shows).
+2. With several releases in flight, pick one in the release list. The drawing shows every environment, its regions grouped by **Wave**, and each place's state: deployed, deploying, checking, held (with the rule that holds it), waiting for approval, failed, or **Not reached**.
+3. Select a place in the drawing to open that rollout. When the app waits or failed, the banner above also has **Open rollout**; [What the dashboard shows](/docs/operate/troubleshooting/#what-the-dashboard-shows) explains each banner.
 
-![The Progress card of hello-waves-app on build c6f19d2, 5 of 5 places deployed: dev-local in development, eu-west-1 in staging, and production in two waves, eu-west-1 and us-east-1 in wave 1 and ap-south-1 in wave 2](/images/docs/operate/dashboard-progress.png)
+![The Progress card of hello-waves-app on build c6f19d2, deployed to development, staging and two production waves](/images/docs/operate/dashboard-progress.png)
 
-4. On the rollout, select the **Gates** tab. **Gated by** lists every gate, the environment before this one and the services this one depends on (its count is gates only), **Downstream** the rollouts that deploy after it. Below it, **Held builds**, **Waiting on** and **Depends on this** list held builds, dependencies and dependents. **All dependencies ›** opens the whole dependency network.
+4. On the rollout, select the **Gates** tab. **Gated by** lists every gate, the environment before this one and the services it depends on, **Downstream** the rollouts that deploy after it. Below the graph are **Held builds**, **Waiting on** and **Depends on this**. **All dependencies ›** opens the dependency network.
 
-![The Gates graph of billing-edge in production: two gates hold build 5.8.0-62, the closed Business hours window and Release approval, which needs approval, each with a Skip once button, and billing-edge in production runs 5.7.1-61](/images/docs/operate/dashboard-gated-by.png)
+![The Gates graph of billing-edge in production: Business hours and Release approval hold build 5.8.0-62, each with Skip once](/images/docs/operate/dashboard-gated-by.png)
 
-5. On a rendered-manifests rollout, select **View source** in the rollout header to read the files that are deployed ([Rendered manifests](/docs/concepts/propagation/#rendered-manifests)).
+5. On a rendered-manifests rollout, select **View source** in the rollout header to read the deployed files ([Rendered manifests](/docs/concepts/propagation/#rendered-manifests)).
 
 ## Follow a change
 
-The Changes page tracks your pull requests after merge, so you can see which service and environment each one has reached.
+The Changes page tracks each merged pull request through every service and environment.
 
 1. Open **Changes**. Your failing change, if any, leads in a banner at the top.
 2. Select a change, then read its page.
@@ -47,64 +43,60 @@ The Changes page tracks your pull requests after merge, so you can see which ser
 | **Attention** | Your other failing changes, then approvals you can give |
 | **Your changes** | Your repositories with a change in flight; **By repo** groups them |
 | **Team** | Other people's repositories with a change in flight |
-| Strip under the change's title | One row per service, one box per environment, a mark per region; a mark opens that rollout |
-| **History** and **Summary** | What happened to the change, and the time from merge to the first deploy and to production |
+| Strip under the title | A row per service, a box per environment, a mark per region that opens its rollout |
+| **History** and **Summary** | What happened, and the time from merge to the first deploy and to production |
 
-Until the dashboard is connected to [GitHub](/docs/integrations/github/), these pages show **Changes need GitHub**.
+Without a [GitHub](/docs/integrations/github/) connection, these pages show **Changes need GitHub**.
 
 ## Act on a rollout
-
-Use these when a gate, a bad build or a failed deploy needs a person.
 
 ### Approve a build
 
 1. On the **Gates** tab, find the approval gate that reads **Needs you**. It reads **Needs approval** when you cannot approve it.
-2. Select **Approve**. When the gate holds the build in several regions the button reads **Approve all** and approves every region at once.
-3. Confirm **Approve *build* in *place*?** (or **for *places*** when it covers several) with **Approve**.
+2. Select **Approve**. When the build waits in several regions, it reads **Approve all** and approves them all.
+3. Confirm the **Approve *build*** dialog with **Approve**.
 
-**Approve** also appears on Home, Changes and the app page wherever a build waits for you.
+Home, Changes and the app page show **Approve** too.
 
 ### Skip a gate once
 
 1. On the **Gates** tab, select **Skip once** on a schedule, approval or hand-written gate. Health checks and pins have no Skip once, and the button shows only when you may change the rollout.
 2. Read the dialog, **Skip *gate* once**: every other rule still applies, and the gate keeps holding every other build.
-3. Optionally select the other rollouts the gate holds, then confirm. When production is selected, type the build, or the gate's name when the selected production rollouts hold different builds.
+3. Optionally select the other rollouts the gate holds, then confirm. When production is selected, type the build, or the gate's name when they hold different builds.
 
 ### Change version and pin
 
 1. On the rollout's **Overview**, select **Change version**.
 2. Pick a build, or search by sha, version or commit.
-3. Turn on **Pin build** to keep the rollout on this build until the pin is cleared. Without the pin, a build that is not the newest stays only until its bake succeeds, and then the rollout deploys the newest build its rules allow. A rollback always pins.
-4. When rules still hold the build, write why they should not apply and type the build to confirm. Select **Deploy to *environment***.
+3. Turn on **Pin build** to keep the rollout on this build until you clear it. Without the pin, a build that is not the newest stays only until its bake succeeds, and then the rollout deploys the newest build its rules allow.
+4. When rules still hold the build, give a reason and type the build. Select **Deploy to *environment***.
 
-![Part of the Change version dialog deploying the held build 4.45.0-45 of checkout-api to production: the rule it would override, After staging, the four commits to deploy, the Pin build switch, a required reason, the typed confirmation and the Deploy button](/images/docs/dashboard/change-version.png)
+![The Change version dialog for held build 4.45.0-45 of checkout-api in production: the rule it overrides, the Pin build switch, a reason and the typed confirmation](/images/docs/dashboard/change-version.png)
 
 {{< callout type="warning" >}}
 Change version skips every rule, including the wait for the earlier environment's bake: a build development never baked, or failed, deploys to staging at once. Once staging bakes it, production may take it.
 {{< /callout >}}
 
-To let the rollout follow new releases again, select **Clear pin** on the Overview banner or on the pin's tile in the **Gates** tab.
+To follow new releases again, select **Clear pin** on the Overview banner or on the pin's tile in the **Gates** tab.
 
 ### Retry a failed deploy
 
 1. On the rollout's **Overview**, select **Retry** on the **Deployment failed** banner.
-2. Confirm **Redeploy to *environment*?**. When tests failed, the dialog offers to retry the tests or skip them instead.
+2. Confirm **Redeploy to *environment*?**. When tests failed, it offers to retry or skip them.
 
 <div id="roll-back-a-failed-deploy"></div>
 
 ### Roll back
 
-Roll back works for a failed deploy and for a bad build that passed its bake.
-
 1. After a failed deploy, select **Roll back** on the **Deployment failed** banner of the rollout's **Overview**. It deploys the build before the failed one.
 2. Otherwise, select **Roll back** in the rollout header. It shows whenever an older build exists, and goes to the last older build this environment ran, else to the release just below the running one. To pick the build yourself, select **Change version** and choose an older one; the dialog turns into **Roll back *environment* to *build***.
-3. The pin is always on for a rollback, so the dialog shows no **Pin build** switch. Confirm with **Roll back**; in production, type the build first.
+3. A rollback always pins, so the dialog has no **Pin build** switch. Confirm with **Roll back**; in production, type the build first.
 
 The rollout stays on that build, under a **Rolled back** banner, until you select **Clear pin**. A force-deploy back does not hold: see [Operate with kubectl](/docs/operate/manual-actions/#roll-back-to-the-previous-version).
 
 ## Check the result
 
-After **Approve** a toast reads **Approved *build***, and the gate's tile reads **Approved**. A skipped gate reads **Skipped once for *build*** until that build deploys. A pinned rollout shows **Clear pin** on its Overview until you clear it.
+After **Approve** a toast reads **Approved *build***, and the gate's tile reads **Approved**. A skipped gate reads **Skipped once for *build*** until that build deploys.
 
 ## Next steps
 
