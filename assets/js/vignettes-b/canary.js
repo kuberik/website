@@ -98,7 +98,9 @@ VG.def('canary', {
     // v6d: a plain whole-value change in kit timing (owner ruling 2026-11-14: no rolling counters). The step's first half
     // fades the old value out (lifting 3 px), the second half fades the new one in (settling from 3 px below); no clip, no roll.
     const swap = (x, y, vals, idx, { parent = null, w: bw = 100 } = {}) => vals.forEach((v, j) => {
-      const sp = S.sprite({ x: x - 4, y: y - 26, w: bw + 8, h: 34, parent, track: (t) => { const d = j - idx(t); if (Math.abs(d) >= 0.5) return { o: 0 }; return { o: 1 - 2 * Math.abs(d), y: 6 * d }; } });
+      // v6k r11 (R11-DES-6): a cross-fade in the fixed slot: the outgoing value fades as the incoming one rises (their opacities
+      // sum to 1 at every instant, 3 px lift / settle), so the slot is never empty (was out-then-in: blank at the midpoint)
+      const sp = S.sprite({ x: x - 4, y: y - 26, w: bw + 8, h: 34, parent, track: (t) => { const d = j - idx(t); if (Math.abs(d) >= 1) return { o: 0 }; return { o: 1 - Math.abs(d), y: 3 * d }; } });
       KB.text(sp.g, x, y, v, 'num');
     });
     // v6j: the next release starts at 0 % (a fifth value, so 100 % -> 0 % is one change, never a count down)

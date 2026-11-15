@@ -17,7 +17,10 @@ VG.def('health', {
     const { el, w } = VG;
     const LOOP = 5.8;
     // v6j: the next region (see the header)
-    const REG = 5.15, CLR = 5.33, MON = [5.55, 5.61, 5.67];
+    // v6k r11 (R11-DES-1): the seam clears first, then swaps. At 5.0 the baked chart steps down to the region's trace (200 ms);
+    // at 5.2, on an already quiet chart, the header's region and the chip (baked -> baking) change in one beat (was REG 5.15
+    // before CLR 5.33: the header named the next region while the last region's baked chart was still drawn)
+    const REG = 5.2, CLR = 5.0, MON = [5.55, 5.61, 5.67];
     const REGIONS = ['us-east-1', 'eu-west-1', 'ap-south-1'], RG = (n) => `${REGIONS[((n % 3) + 3) % 3]}`;
     const nextBake = (t) => w(t, REG, REG + 0.15);
     const [W, H] = ph ? [326, 350] : [430, 300];

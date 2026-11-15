@@ -183,6 +183,10 @@ html.dark .vg .kb .band-teal.wash-land{fill:oklch(.47 .07 184);opacity:1}
    1023): 326 x the unit, in a 350 canvas column (features.css, stepin.css). 390 draws exactly as before (326 in 350). */
 .vg{width:min(100%,calc(var(--vg-w,780) * var(--vg-u,1px)));margin-inline:auto;--vg-u:1px}
 @media(min-width:1920px){.vg{--vg-u:1.15px}}
+/* r11 (R11-DES-3, owner rule: no lone small object at very wide sizes): >= 2400 --cont steps 1440 -> 1920 (tokens.css), and at
+   1.15 Health, GitOps and Step in filled under half their canvas (0.47 / 0.49 / 0.48 of its width at 2560). 1.4 brings them to
+   ~0.6 and is the largest unit at which Gates (780) still fits its canvas (1103 inside), so every scene keeps one unit. */
+@media(min-width:2400px){.vg{--vg-u:1.4px}}
 @media(max-width:1023px){.vg{width:min(100%,calc(326 * var(--vg-u,1px)))}}
 /* the rest posters (layouts/_partials/landing-vignettes, generated): both compositions inside the host, switched by the
    engine's own query; the live build empties the host and draws the scene in their place */
