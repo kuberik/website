@@ -53,6 +53,8 @@ html.dark{
   --kd-chip-blue-bg:#162456;--kd-chip-blue-line:#193cb8;--kd-chip-blue-ink:#bedbff;
   --kd-chip-violet-bg:#2f0d68;--kd-chip-violet-line:#4d179a;--kd-chip-violet-ink:#ddd6ff;
 }
+/* R8-B-2: 1024-1199, sidebar + 680 column would leave the reading column ~608 (screenshots drawn at .82); a 44px page gutter (header and shell share it) gives it 664 so a 680 capture draws at >= .9 */
+@media(min-width:1024px) and (max-width:1199px){:root{--gut:44px}}
 @media(min-width:1920px){:root{--kd-side:264px;--kd-toc:240px;--kd-gap:56px;--kd-read:760px}}
 @media(min-width:2400px){:root{--kd-side:280px;--kd-toc:256px;--kd-gap:64px;--kd-read:800px}}
 
@@ -75,11 +77,14 @@ main{padding-bottom:0}
 .kd-burger svg{width:20px;height:20px}
 @media(max-width:1199px){.kd-search .hextra-search-wrapper{width:180px}}
 @media(max-width:1023px){.kd-nav .gh-text{display:none}.kd-nav .pill:has(.gh-text){width:36px;padding:0}}
-@media(max-width:767px){
-  .kd-search,.kd-nav .nav-cta{display:none}
+/* R8-B-2: the docs sidebar is a drawer below 1024 (the reading column at 768-1023 was 374-558 px and drew desktop screenshots at
+   ~.55); the header then carries the phone chrome: menu pill, no search (it is in the drawer), the CTA only from 768 */
+@media(max-width:1023px){
+  .kd-search{display:none}
   .kd-burger{display:inline-flex}
   .kd-nav .cont{gap:12px}
 }
+@media(max-width:767px){.kd-nav .nav-cta{display:none}}
 @media(max-width:640px){.kd-nav .links{display:none}}
 
 /* ---------- shell ---------- */
@@ -94,21 +99,25 @@ html.dark .kd-wash::before{opacity:.5}
 .kd-main{width:100%;max-width:var(--kd-read);min-width:0;padding:40px 0 72px}
 .kd-shell .hextra-toc{order:3;width:var(--kd-toc);flex:none;padding:0}
 @media(max-width:1279px){.kd-shell .hextra-toc{display:none}}
-@media(max-width:767px){.kd-shell{display:block}.kd-main{padding-top:24px}}
+@media(max-width:1023px){.kd-shell{display:block}.kd-main{padding-top:24px}}
 
 /* sidebar */
 .kd-shell .hextra-sidebar-container{order:1;background:var(--page)}
-/* one breakpoint (R6-DES-1): hextra's own `@media (max-width:48rem)` rule (position:fixed, bottom:0, padding-top, z-index) is
-   inclusive, so at exactly 768px it fights its `md:sticky` (>= 768); the drawer is < 768 and the desktop sidebar >= 768, so the
-   desktop block resets every property that hextra rule sets */
-@media(min-width:768px){
-  .kd-shell .hextra-sidebar-container{position:sticky;bottom:auto;z-index:auto;padding-top:0;overscroll-behavior:auto}
-}
-@media(min-width:768px){
-  .kd-shell .hextra-sidebar-container{width:var(--kd-side);flex:none;top:64px;background:transparent}
+/* one breakpoint (R6-DES-1, R8-B-2): the drawer is < 1024 and the desktop sidebar >= 1024. Hextra's own utilities switch at 768
+   (md:sticky, max-md transform, md:hidden search, md:h-[...] scroller) and its `@media (max-width:48rem)` rule is inclusive, so
+   the desktop block resets every property those set and the 768-1023 block re-creates the drawer (open state = the class
+   hextra's menu.js toggles on). */
+@media(min-width:1024px){
+  .kd-shell .hextra-sidebar-container{position:sticky;bottom:auto;z-index:auto;padding-top:0;overscroll-behavior:auto;width:var(--kd-side);flex:none;top:64px;background:transparent}
   .kd-shell .hextra-sidebar-container > .hextra-scrollbar{padding:32px 8px 32px 0;margin-left:-10px;height:calc(100vh - 64px)}
 }
-@media(max-width:767px){
+@media(min-width:768px) and (max-width:1023px){
+  .kd-sidebar.hextra-sidebar-container{position:fixed;top:0;bottom:0;left:0;right:0;z-index:15;align-self:auto;overscroll-behavior:contain;transform:translate3d(0,-100%,0);transition:transform .2s}
+  .kd-sidebar.hextra-sidebar-container[class*="translate3d(0,0,0)"]{transform:translate3d(0,0,0)}
+  .kd-sidebar.hextra-sidebar-container > div:first-child{display:block!important}
+  .kd-sidebar.hextra-sidebar-container > .hextra-scrollbar{height:auto}
+}
+@media(max-width:1023px){
   .hextra-sidebar-container{padding-top:64px;left:0;right:0;width:100%!important}
   .hextra-sidebar-container > .hextra-scrollbar{padding:16px var(--gut) 32px}
   .hextra-sidebar-container > div:first-child{padding:16px var(--gut) 0}
@@ -126,7 +135,7 @@ html.dark .kd-wash::before{opacity:.5}
 .hextra-sidebar-container ul ul a.hextra-sidebar-active-item{position:relative}
 .hextra-sidebar-container ul ul a.hextra-sidebar-active-item::before{content:'';position:absolute;left:-11px;top:6px;bottom:6px;width:2px;background:var(--mint)}
 .hextra-sidebar-collapsible-button svg{color:var(--ink-subtle)}
-@media(max-width:767px){.hextra-sidebar-container a{min-height:44px;padding:12px 12px;font-size:16px;line-height:20px}}
+@media(max-width:1023px){.hextra-sidebar-container a{min-height:44px;padding:12px 12px;font-size:16px;line-height:20px}}
 /* sidebar groups (layouts/_partials/sidebar.html): uppercase group labels, always open; Stripe/Linear by-job grouping */
 .kd-tree{display:flex;flex-direction:column;gap:24px}
 .kd-group-label{margin:0 0 6px;padding:0 10px}
@@ -140,7 +149,7 @@ html.dark .kd-wash::before{opacity:.5}
 .kd-sub .kd-row.kd-active{position:relative}
 .kd-sub .kd-row.kd-active::before{content:'';position:absolute;left:-11px;top:6px;bottom:6px;width:2px;background:var(--mint)}
 .kd-group-site,.kd-group-top{display:none}
-@media(max-width:767px){
+@media(max-width:1023px){
   .kd-tree{gap:28px}
   .kd-group-label > :is(a,span){padding:6px 0!important;font-size:13px!important;line-height:20px!important}
   .kd-group-top{display:block}
@@ -436,7 +445,7 @@ html.dark .kd-tone-neutral{background:oklch(1 0 0/.05)!important}
   .kd-code-body pre,.hextra-code-block pre{font-size:14px!important;line-height:24px!important}
 }
 /* R5-S-7: in the phone drawer the results panel runs to the bottom of the viewport (hextra caps it at 50vh - 11rem, ~2 results). */
-@media(max-width:767px){
+@media(max-width:1023px){
   .hextra-search-wrapper .hextra-search-results{max-height:calc(100vh - 160px)!important;max-height:calc(100dvh - 160px)!important}
 }
 .hextra-search-no-result-next{display:block;margin-top:8px;font-size:13px}

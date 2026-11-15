@@ -3,7 +3,7 @@
    region map and the references each region borrows from are in the layout's doc comment. */
 
 /* the sidebar exists for the phone drawer only */
-@media(min-width:768px){.kdh > .hextra-sidebar-container{display:none}}
+@media(min-width:1024px){.kdh > .hextra-sidebar-container{display:none}}
 
 /* ---------- hero: the landing's mint stage, laid out like the install band ---------- */
 .kdh-hero{margin-top:16px}
