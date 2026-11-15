@@ -22,43 +22,68 @@ thesis:
 # Every sentence is checked against content/docs (fact sheet in BRIEF.md "Truth rules").
 features:
   title: "Every step of a release, declared."
-  body: "Gates, health checks, canaries and waves are resources the controller reconciles in each cluster. Write them once and every build goes through them."
+  body: "Gates, health checks, canaries and waves are declared on resources the controller reconciles in each cluster. Write them once and every build goes through them."
   # Order = the bento (assets/css/features.css): Gates on its own row; Canary beside Health over GitOps; Dashboard beside Releases.
   # hue = the card's canvas tint (lagoon / mint). The footer's Product links follow this order.
   items:
     - id: gates
       hue: lagoon
       name: "Gates"
-      title: "A build moves when every gate passes."
-      body: "Schedules, the services it needs and the environment before it, plus an approval where you want one. Then it goes on its own."
+      title: "A build waits until every gate passes."
+      body: "A deploy window, the environment before it and the version of a service it depends on each hold the build. When the last gate passes, it deploys on its own. An approval can be one of the gates."
       link: { text: "How gates work", href: "/docs/concepts/gates/" }
     - id: canary
       hue: mint
       name: "Canary and waves"
-      title: "Each region waits for the one before it to bake."
-      body: "OpenKruise moves traffic in steps, with a test where you ask for one. Wave 2 waits until wave 1 has baked."
+      title: "Wave 2 starts when the canary in wave 1 has baked."
+      body: "OpenKruise shifts traffic in steps and runs a test at the step you pick. Once every region in wave 1 has baked the release, the regions in wave 2 start together."
       link: { text: "Run a canary", href: "/docs/releases/canary/" }
     - id: health
       hue: mint
       name: "Health checks"
       title: "A release has to stay healthy for the whole bake."
-      body: "Your Flux Kustomization and Datadog monitors stay healthy for the whole bake, or the release fails."
+      body: "Kuberik watches your Flux Kustomization and Datadog monitors from the deploy to the end of the bake time. If one of them fails, so does the release, and it goes no further."
       link: { text: "Add health checks", href: "/docs/gates/health-checks/" }
     - id: gitops
       hue: lagoon
       name: "GitOps"
       title: "Flux stays in charge of your cluster."
-      body: "Kuberik never applies manifests. It sets one version in your Flux objects, and Flux does the rest."
+      body: "Kuberik never applies manifests. It writes the new version into your Kustomization's substitutions, and Flux rolls out the Deployment and everything else that uses it."
       link: { text: "Connect Flux", href: "/docs/integrations/fluxcd/" }
     - id: dashboard
       hue: lagoon
       name: "Dashboard"
-      title: "Every cluster in one place."
-      body: "Apps and environments from every cluster, on one hub. Paste a pull request link to see how far it got."
-      link: { text: "Expose the dashboard", href: "/docs/installation/helm/#expose-the-dashboard" }
+      title: "Find where a pull request is running."
+      body: "Paste its link into the dashboard search. The change opens with the environments that run it, the one it is deploying to now and the ones still to come, across all your clusters."
+      link: { text: "Follow a change", href: "/docs/operate/dashboard/#follow-a-change" }
     - id: releases
       hue: mint
       name: "Releases"
-      title: "Every version, and where it came from."
-      body: "A ReleaseSource reads your OCI tags, orders them by version and keeps each digest and git revision."
+      title: "Every new tag becomes a release you can trace."
+      body: "A ReleaseSource watches your OCI registry, orders the tags by version and records each release's digest and the git commit it was built from."
       link: { text: "Publish releases", href: "/docs/releases/publish/" }
+
+# STEP IN (landing v6j, LANDING-REVIEW.md): day-2 operation. "Hands-off" invites the question "and when it goes wrong?";
+# this answers it. Every action is a dashboard button on main AND a field or annotation (rollout-controller main):
+# rollback pins (rollouts/[..]/+page.svelte "A rollback started in this product ALWAYS pins"; spec.wantedVersion),
+# Retry (FailurePanel.svelte; rollout.kuberik.com/retry), Skip once (RolloutNeighbourhood.svelte; gate_bypass.go
+# rollout.kuberik.com/bypass-gates, cleared after the next deploy), Approve (ApproveButton.svelte; RolloutApproval).
+# Approve is last on purpose: approvals never lead (owner).
+stepin:
+  name: "Day two"
+  title: "Step in when a release needs you."
+  body: "Kuberik runs promotion on its own, and every rollout page still has the buttons for the moment it shouldn't. Each one sets a field or an annotation on the Rollout, so the same step works from kubectl."
+  link: { text: "Operate a Rollout with kubectl", href: "/docs/operate/manual-actions/" }
+  actions:
+    - name: "Roll back"
+      body: "Pick an earlier build from the history. The rollback pins it, so nothing newer deploys until you clear the pin."
+      handle: "spec.wantedVersion"
+    - name: "Retry"
+      body: "Deploy and bake a failed build again once the cause is fixed, without waiting for a new one."
+      handle: "rollout.kuberik.com/retry"
+    - name: "Skip once"
+      body: "Let one build past a gate, say a deploy window during an incident. The skip clears itself after that deploy."
+      handle: "rollout.kuberik.com/bypass-gates"
+    - name: "Approve"
+      body: "Where a gate asks for a person, approve the build from the page that shows what it is waiting on."
+      handle: "RolloutApproval"
