@@ -46,7 +46,7 @@ metadata:
   name: hello-world-alerts
   namespace: hello-world
   labels:
-    app: hello-world  # the Rollout selects on this
+    app: hello-world  # the Rollout selects this
   annotations:
     healthcheck.kuberik.com/prometheus-url: "http://prometheus.monitoring:9090"
     healthcheck.kuberik.com/prometheus-alert-labels: "alertname=HighErrorRate,service=hello-world"
@@ -81,7 +81,7 @@ metadata:
   namespace: hello-world
 type: Opaque
 stringData:
-  token: <your-token>  # or username and password for basic auth
+  token: <your-token>  # or username and password
 ```
 
 With a `token` key, the controller sends `Authorization: Bearer <token>`. Without one, it uses `username` and `password` as basic auth. The controller watches the Secret, so a rotated token takes effect on the next poll.
@@ -123,7 +123,7 @@ metadata:
 spec:
   releaseSourceRef:
     name: hello-world
-  bakeTime: 10m  # the alerts must stay quiet this long
+  bakeTime: 10m  # quiet this long
   healthCheckSelector:
     selector:
       matchLabels:

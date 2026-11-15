@@ -51,7 +51,7 @@ A `ReleaseSource` lists the tags of an OCI repository, orders them by a policy, 
         extract: '$ts'
       policy:
         numerical:
-          order: asc  # the highest timestamp is the newest release
+          order: asc  # highest timestamp wins
   ```
   {{< /tab >}}
 
@@ -72,7 +72,7 @@ A `ReleaseSource` lists the tags of an OCI repository, orders them by a policy, 
         extract: '$ts'
       policy:
         numerical:
-          order: asc  # the highest timestamp is the newest release
+          order: asc  # highest timestamp wins
   ```
   {{< /tab >}}
 {{< /tabs >}}
@@ -108,7 +108,7 @@ metadata:
 spec:
   releaseSourceRef:
     name: hello-world
-  bakeTime: 5m  # healthy this long before the deploy succeeds
+  bakeTime: 5m  # healthy this long
   healthCheckSelector:
     selector:
       matchLabels:

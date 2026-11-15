@@ -23,7 +23,7 @@ metadata:
 spec:
   rolloutRef:
     name: hello-world
-  name: hello-world        # the same name in every cluster
+  name: hello-world        # same in every cluster
   environment: staging
   backend:
     type: github
@@ -78,7 +78,7 @@ spec:
   name: hello-world
   environment: production
   site: us-east-1
-  wave: 2                  # starts after every wave-1 site baked the release
+  wave: 2                  # after wave 1 bakes
   backend:
     type: github
     project: acme/hello-world

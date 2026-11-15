@@ -25,7 +25,7 @@ spec:
   releaseSourceRef:
     name: hello-world
   versionHistoryLimit: 5
-  deployTimeout: 10m  # healthy within 10m, then no errors for 15m
+  deployTimeout: 10m  # healthy within 10m
   bakeTime: 15m
   healthCheckSelector:
     selector:

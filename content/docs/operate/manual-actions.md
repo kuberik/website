@@ -133,7 +133,7 @@ metadata:
 spec:
   releaseSourceRef:
     name: hello-world
-  deployTimeout: 10m  # healthy within 10m or the deploy fails
+  deployTimeout: 10m  # healthy within 10m
   bakeTime: 15m
 ```
 

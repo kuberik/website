@@ -41,7 +41,7 @@ metadata:
   name: hello-world-monitors
   namespace: hello-world
   labels:
-    app: hello-world  # the Rollout selects on this
+    app: hello-world  # the Rollout selects this
   annotations:
     healthcheck.kuberik.com/datadog-monitor-tags: "service:hello-world,deploy-gate:true"
     healthcheck.kuberik.com/datadog-group-tags: "env:production"
@@ -89,7 +89,7 @@ metadata:
   name: hello-world-error-rate
   namespace: hello-world
   labels:
-    app: hello-world  # copied to the generated HealthCheck
+    app: hello-world  # copied to the HealthCheck
   annotations:
     kuberik.com/health-check: "true"
 spec:
@@ -114,7 +114,7 @@ metadata:
 spec:
   releaseSourceRef:
     name: hello-world
-  bakeTime: 10m  # the checks must stay clear this long
+  bakeTime: 10m  # clear this long
   healthCheckSelector:
     selector:
       matchLabels:
