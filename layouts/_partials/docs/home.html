@@ -36,8 +36,6 @@
       </div>
     </div>
   </section>
-  {{- /* slot for the docs-home version line (site lane R3-IA-3): docs/home-version.html returns nothing until then */ -}}
-  {{- with partial "docs/home-version.html" . }}{{ with trim . " \n\t" }}<div class="cont kdh-version">{{ . | safeHTML }}</div>{{ end }}{{ end }}
 
   <section class="cont kdh-body" aria-labelledby="kdh-sections">
     {{ partial "docs-version-line.html" . }}

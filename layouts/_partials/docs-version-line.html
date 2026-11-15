@@ -3,5 +3,4 @@
      so it borrows the lead's type role: --ink-muted at the docs small size. Included under the docs-home hero. */ -}}
 {{- with site.Data.releases }}
 <p class="kdh-version" id="kdh-version">These docs describe the main branch. Latest releases: {{ range $i, $r := .released }}{{ if $i }}, {{ end }}<span class="kdh-rel">{{ $r.name }} <code>{{ $r.tag }}</code></span>{{ end }}.{{ with .unreleased }} Not yet released: {{ delimit . ", " " and " }}.{{ end }}</p>
-<style>.kdh-version{margin:0 0 28px;color:var(--ink-muted);font-size:14px;line-height:1.6}.kdh-version code{font-size:.92em}.kdh-rel{white-space:nowrap}</style>
 {{- end }}
