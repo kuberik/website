@@ -2,27 +2,25 @@
      The hextra sidebar and toc partials are kept (their JS drives the phone drawer and search); the shell around
      them is the landing's .cont container, styled in assets/css/docs.css (.kd-*). The breadcrumb is replaced by an
      eyebrow naming the section, the role the landing feature card's fx-name plays. */ -}}
-{{- $section := .CurrentSection -}}
-{{- if and .IsSection .Parent }}{{ $section = .Parent }}{{ end -}}
-{{- $eyebrow := "" -}}{{- $eyebrowURL := "" -}}
-{{- if and $section (ne $section.RelPermalink .RelPermalink) (not $section.IsHome) -}}
-  {{- $eyebrow = cond (eq $section.RelPermalink "/docs/") "Docs" $section.LinkTitle -}}
-  {{- $eyebrowURL = $section.RelPermalink -}}
-{{- end -}}
-<div class="kd-wash"><div class="kd-shell{{ if eq .Params.type_ "index" }} kd-is-index{{ end }}">
+{{- /* Eyebrow = the sidebar group the page sits in, named and cased once (docs/group.html, R2-DES-8). A section
+     index page is its group, so it shows the group's icon tile instead (R2-DES-9). */ -}}
+{{- $g := partial "docs/group.html" . -}}
+{{- $isIndex := eq .Params.type_ "index" -}}
+<div class="kd-wash"><div class="kd-shell{{ if $isIndex }} kd-is-index{{ end }}">
   {{ partial "sidebar.html" (dict "context" .) }}
   {{ partial "toc.html" . }}
   <article class="kd-article" id="kd-article">
     <main class="kd-main">
       <div class="content kd-content">
-        {{- with $eyebrow }}<a class="kd-eyebrow" href="{{ $eyebrowURL }}">{{ . }}</a>{{ end }}
+        {{- if $isIndex }}<span class="kd-index-tile kd-tone-{{ $g.tone }}" aria-hidden="true">{{ partial "docs/icon.html" $g.icon }}</span>
+        {{- else if $g.name }}{{ if $g.url }}<a class="kd-eyebrow" href="{{ $g.url }}">{{ $g.name }}</a>{{ else }}<span class="kd-eyebrow">{{ $g.name }}</span>{{ end }}{{ end }}
         {{ if .Title }}<h1>{{ .Title }}</h1>{{ end }}
         {{- $c := string .Content -}}
         {{- /* STYLE 9: "Next steps" and "Related" are drawn only by {{< next >}}, whose cards are read from the target pages */}}
         {{- if and (findRE `<h2>(Next steps|Related)<` $c 1) (not (findRE `class="kd-next"` $c 1)) }}{{ warnf "%s: ## Next steps / ## Related without {{< next >}} (STYLE 9)" .File.Path }}{{ end }}
         {{ $c | safeHTML }}
         {{- /* index pages list their children as cards unless the page already has a card block */}}
-        {{- if and (eq .Params.type_ "index") .IsSection (not (findRE `hextra-cards|kd-section-cards` .Content 1)) }}{{ partial "docs/section-cards.html" . }}{{ end }}
+        {{- if and $isIndex .IsSection (not (findRE `hextra-cards|kd-section-cards` .Content 1)) }}{{ partial "docs/section-list.html" . }}{{ end }}
       </div>
       {{ partial "components/pager.html" . }}
       {{- if findRE `class="kd-table` $c 1 }}{{ partial "docs/table-edges.html" . }}{{ end }}

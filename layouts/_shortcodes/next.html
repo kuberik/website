@@ -15,7 +15,7 @@
     {{- with site.GetPage $path }}
       {{- $g := partial "docs/group.html" . }}
   <li><a class="kd-next-card" href="{{ .RelPermalink }}{{ $frag }}">
-    <span class="kd-next-tile" aria-hidden="true">{{ partial "docs/icon.html" $g.icon }}</span>
+    <span class="kd-next-tile kd-tone-{{ $g.tone }}" aria-hidden="true">{{ partial "docs/icon.html" $g.icon }}</span>
     <span class="kd-next-text">
       {{- with $g.name }}<span class="kd-next-group">{{ . }}</span>{{ end }}
       <span class="kd-next-title">{{ .Title }}</span>

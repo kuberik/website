@@ -6,7 +6,9 @@
           ancestor below /docs/ ("Get started" holds What Is Kuberik, Deploy Your First App and the Install section);
           its icon comes from the hugo.toml entry, and it has no index page (url "");
        2. else the top-level section under /docs/: its linkTitle, its index URL and its `icon` front matter.
-     The docs root and pages outside /docs/ return an empty name. */ -}}
+     The docs root and pages outside /docs/ return an empty name.
+     A pseudo-group links to its first page in sidebar order. "tone" (mint | lagoon | neutral) is the canvas of the group's
+     docs home card (the home alternates them in its journeys order; neutral off the grid, as the home Reference row), so the index head and the home card match. */ -}}
 {{- $p := . -}}
 {{- $cfg := dict -}}{{- $icons := dict -}}
 {{- range site.Params.docsSidebar.groups }}{{ $name := .name }}{{ $icons = merge $icons (dict .name (.icon | default "page")) }}{{ range .pages }}{{ $cfg = merge $cfg (dict . $name) }}{{ end }}{{ end -}}
@@ -17,7 +19,11 @@
 {{- range $chain -}}
   {{- if and (not $found) (strings.HasPrefix .RelPermalink "/docs/") (ne .RelPermalink "/docs/") -}}
     {{- with .Params.sidebar.group | default (index $cfg .RelPermalink) -}}
-      {{- $res = dict "name" . "url" "" "icon" (index $icons . | default "page") "page" nil -}}{{- $found = true -}}
+      {{- $name := . -}}
+      {{- $members := slice -}}
+      {{- with site.GetPage "/docs" }}{{ range union .RegularPages .Sections }}{{ if eq (.Params.sidebar.group | default (index $cfg .RelPermalink) | default "") $name }}{{ $members = $members | append . }}{{ end }}{{ end }}{{ end -}}
+      {{- $first := index (sort $members "Weight") 0 -}}
+      {{- $res = dict "name" $name "url" (cond (ne $first nil) $first.RelPermalink "") "icon" (index $icons $name | default "page") "page" nil -}}{{- $found = true -}}
     {{- end -}}
   {{- end -}}
 {{- end -}}
@@ -30,4 +36,6 @@
     {{- end -}}
   {{- end -}}
 {{- end -}}
-{{- return $res -}}
+{{- $tone := "neutral" -}}
+{{- with site.GetPage "/docs" }}{{ range $i, $j := .Params.journeys }}{{ if or (and $j.url (eq $j.url $res.url)) (eq (lower $j.title) (lower $res.name)) }}{{ $tone = cond (modBool $i 2) "mint" "lagoon" }}{{ end }}{{ end }}{{ end -}}
+{{- return merge $res (dict "tone" $tone) -}}

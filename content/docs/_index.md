@@ -14,6 +14,7 @@ hero:
   secondary: { title: "Install", url: "/docs/installation/" }
 journeys:
   - title: "Get started"
+    url: "/docs/what-is-kuberik/"   # a pseudo-group has no index page: the card opens its first page (docs/group.html)
     icon: rocket
     outcome: "Install the controller and deploy an app with Flux."
     links:
@@ -44,11 +45,13 @@ journeys:
       - { url: "/docs/gates/health-checks/", title: "Verify with Health Checks" }
       - { url: "/docs/gates/approvals/", title: "Require a Manual Approval" }
       - { url: "/docs/gates/schedules/", title: "Set Deployment Windows" }
+      - { url: "/docs/gates/dependencies/", title: "Wait for Service Dependencies" }
   - title: "Operate"
     url: "/docs/operate/"
     icon: operate
     outcome: "Pin, unblock and watch rollouts day to day."
     links:
+      - { url: "/docs/operate/dashboard/", title: "Use the Dashboard" }
       - { url: "/docs/operate/manual-actions/", title: "Operate a Rollout by Hand" }
       - { url: "/docs/operate/monitoring/", title: "Monitor Rollouts" }
       - { url: "/docs/operate/troubleshooting/", title: "Troubleshoot" }
@@ -60,6 +63,7 @@ journeys:
       - { url: "/docs/integrations/fluxcd/", title: "Flux" }
       - { url: "/docs/integrations/github/", title: "GitHub" }
       - { url: "/docs/integrations/datadog/", title: "Datadog" }
+      - { url: "/docs/integrations/prometheus/", title: "Prometheus" }
 reference:
   - { url: "/docs/reference/api/", title: "API Reference", icon: braces, description: "Fields of every Kuberik custom resource." }
   - { url: "/docs/reference/annotations/", title: "Annotations", icon: tag, description: "Every annotation Kuberik reads or writes." }
