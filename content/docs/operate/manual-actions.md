@@ -5,7 +5,7 @@ type_: guide
 weight: 20
 ---
 
-Each action below is one field or annotation on the [Rollout](/docs/concepts/rollouts/); the dashboard writes the same ones.
+Pin, roll back, deploy or retry builds by hand. Each action below sets one field or annotation on the [Rollout](/docs/concepts/rollouts/), the same one the dashboard writes.
 
 | Goal | Set on the Rollout |
 |------|-----|
@@ -46,7 +46,7 @@ In the dashboard, **Change version** with **Pin build** turned on sets the pin, 
 
 ## Roll back to the previous version
 
-To go back, pin the build deployed before the current one: `status.history[0]` is the current deploy, `status.history[1]` the one before it. Print its tag.
+To go back, pin the build deployed before the current one, `status.history[1]`. Print its tag.
 
 ```bash {filename="Terminal"}
 kubectl -n hello-world get rollout hello-world -o jsonpath='{.status.history[1].version.tag}{"\n"}'
