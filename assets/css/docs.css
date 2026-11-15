@@ -320,6 +320,8 @@ html.dark .kd-content table:not(.kd-table table) th{background:color-mix(in okla
 @media(min-width:768px){.kd-content table:not(.kd-table table){display:table;overflow:hidden}}
 /* R7-DES-3: a raw table (the generated API field tables) never sets the page's width: fixed layout, and a cell's long identifier may break anywhere instead of pushing the column out (the 30%/70% split of its header row holds) */
 @media(min-width:768px) and (max-width:899px){.kd-content table:not(.kd-table table){table-layout:fixed}.kd-content table:not(.kd-table table) :is(th,td){overflow-wrap:anywhere}.kd-content table:not(.kd-table table) td:first-child{min-width:0}.kd-content table:not(.kd-table table) td:first-child code{white-space:normal}}
+/* R11P-DES-2: from 900 every generated API field table shares one key track, so the Description column starts at the same x down the page (annotations-style); a key wider than the track breaks at its dots instead of moving the column */
+@media(min-width:900px){.kd-content table:not(.kd-table table){table-layout:fixed}.kd-content table:not(.kd-table table) th:first-child{width:var(--kd-api-key-w,272px)}.kd-content table:not(.kd-table table) td:first-child{min-width:0;overflow-wrap:anywhere}.kd-content table:not(.kd-table table) td:first-child a code{white-space:normal;overflow-wrap:anywhere} /* a type name longer than the key track (HealthCheckObservationDirection) breaks only when it must (QA11-2) */}
 @media(max-width:640px){
   .kd-content table:not(.kd-table table) thead{position:absolute;width:1px;height:1px;overflow:hidden;clip-path:inset(50%)}
   .kd-content table:not(.kd-table table) :is(tbody,tr,td){display:block}

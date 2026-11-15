@@ -545,7 +545,7 @@ ClusterApprovalPolicyStatus defines the observed state of ClusterApprovalPolicy.
 <br/>
 <code>[]string</code>
 </td>
-<td>Rollouts lists the matched Rollouts, sorted, as &lt;namespace&gt;/&lt;name&gt;.</td>
+<td>Rollouts lists the matched Rollouts, sorted, as <code>&lt;namespace&gt;/&lt;name&gt;</code>.</td>
 </tr>
 <tr id="clusterapprovalpolicystatus-conditions"><td><code>conditions</code>
       
@@ -1357,7 +1357,7 @@ against releaseCandidates[].tag. It may name a version that does not exist yet.<
 
 RolloutDependencySpec defines the desired state of RolloutDependency.<br/><br/>A RolloutDependency gates a consumer Rollout on the deployed contract version
 of a provider Rollout. Each release candidate of the consumer declares what it
-requires of the contract via a "com.kuberik.rollout.requires.&lt;contract&gt;" OCI
+requires of the contract via a <code>com.kuberik.rollout.requires.&lt;contract&gt;</code> OCI
 annotation. A candidate is admitted only once the provider has successfully
 deployed a release whose own contract version
 (org.opencontainers.image.version) satisfies that constraint. The result is a
@@ -1392,7 +1392,7 @@ lookup.</td>
 <code>string</code>
 </td>
 <td>Contract is the contract name matched against the consumer's
-"com.kuberik.rollout.requires.&lt;contract&gt;" annotations.
+<code>com.kuberik.rollout.requires.&lt;contract&gt;</code> annotations.
 Defaults to the name of the provider Rollout.</td>
 </tr>
 </tbody>
@@ -2123,7 +2123,7 @@ VersionInfo represents detailed information about a version.
 <code>map[string]string</code>
 </td>
 <td>Requires maps a contract name to what this release requires of that
-contract, extracted from "com.kuberik.rollout.requires.&lt;contract&gt;" OCI
+contract, extracted from <code>com.kuberik.rollout.requires.&lt;contract&gt;</code> OCI
 annotations. Values are version constraints as defined by
 github.com/Masterminds/semver, applied verbatim — note that a bare version
 is an exact match there, not a floor.
@@ -2997,7 +2997,7 @@ When the canaryRevision changes, it indicates a new rollout and the old job shou
 
 ReleaseSlice holds a bounded chunk of a ReleaseSource catalogue. Like
 EndpointSlice it has no spec/status. Labelled kuberik.com/release-source,
-owned (controller=true) by its ReleaseSource, named &lt;source&gt;-&lt;5-digit index&gt;.
+owned (controller=true) by its ReleaseSource, named <code>&lt;source&gt;-&lt;5-digit index&gt;</code>.
 
 <table>
 <thead><tr><th width="30%">Field</th><th>Description</th></tr></thead>

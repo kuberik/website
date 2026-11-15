@@ -80,6 +80,13 @@ for f in ${BUILD_TEMP_OUT}/*.md; do
     perl -pi -e 's/&lt;br\/&gt;/<br\/>/g; s/&#34;/"/g; s/&#39;/\x27/g' "$f"
 done
 
+# A templated identifier (<namespace>/<name>, com.kuberik.rollout.requires.<contract>,
+# <source>-<5-digit index>) is set as code, as the annotations reference sets them;
+# surrounding quotes go. "value &lt; limit" is prose and stays as it is.
+for f in ${BUILD_TEMP_OUT}/*.md; do
+    perl -pi -e 'my $T = qr{(?:[\w.\-/]*&lt;[A-Za-z0-9][\w\- ]*?&gt;)+(?:[\w\-/]|\.(?=\w))*}; s{"($T)"}{<code>$1</code>}g; s{(?<![\w.\-/>])($T)}{<code>$1</code>}g' "$f"
+done
+
 # The docs are written as if everything on main is released (STYLE §1), so the
 # groups carry no release-state label, and deprecation notes that promise
 # removal "in the next release" read "in a later version".
