@@ -20,7 +20,7 @@ These manifests are the released controllers. `ReleaseSource` and `spec.releaseS
 
 ## Install the rollout-controller
 
-The rollout-controller runs every `Rollout`. Apply its release manifest:
+The rollout-controller runs every `Rollout`. Apply its {{< param "rollout_controller_version" >}} release manifest:
 
 ```bash {filename="Terminal"}
 kubectl apply --server-side -f https://github.com/kuberik/rollout-controller/releases/download/{{< param "rollout_controller_version" >}}/install.yaml
@@ -44,7 +44,7 @@ Each integration is a separate controller. Install only the ones you use; the li
 
 ## Install everything from one bundle
 
-The kuberik repository keeps a kustomize bundle with the rollout-controller and the three integration controllers, at the versions chart 0.7.0 ships. Comment out the integrations you do not use in a local copy, or apply it whole. Apply it server-side: openkruise-controller's `RolloutTest` CRD is larger than the 256 KiB annotation that client-side `kubectl apply` writes.
+The kuberik repository keeps a kustomize bundle with the rollout-controller and the three integration controllers, at the versions chart 0.7.0 ships: rollout-controller v0.9.2, older than the {{< param "rollout_controller_version" >}} step above. Comment out the integrations you do not use in a local copy, or apply it whole. Apply it server-side: openkruise-controller's `RolloutTest` CRD is larger than the 256 KiB annotation that client-side `kubectl apply` writes.
 
 ```bash {filename="Terminal"}
 kubectl apply --server-side -k https://github.com/kuberik/kuberik/config/install
