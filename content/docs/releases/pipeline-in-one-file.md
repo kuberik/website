@@ -136,7 +136,7 @@ spec:
   targetNamespace: hello-world
 ```
 
-Every environment shares the Rollout's bake time, deploy timeout and health check, and the Environment's `name` and `backend`. Production finds staging's deploys in GitHub through that shared `name`.
+Every environment shares the Rollout's deploy timeout and health check, and the Environment's `name` and `backend`. Production finds staging's deploys in GitHub through that shared `name`. Each environment starts from the Rollout's bake time unless its overlay changes it.
 
 ## Set what each environment changes
 
@@ -184,17 +184,17 @@ patches:
       - {op: add, path: /metadata/labels, value: {approval.kuberik.com/required: "true"}}
 ```
 
-To run every tier on one cluster instead, add `namespace: hello-world-staging` (and so on) to each overlay, and patch the Kustomization's `targetNamespace` to the same namespace.
+To run every tier on one cluster instead, create each tier's namespace with its own `github-token` Secret ([Run both tiers on one cluster](/docs/releases/promote/#run-both-tiers-on-one-cluster)), add `namespace: hello-world-staging` (and so on) to each overlay, and patch the Kustomization's `targetNamespace` to the same namespace.
 
 ## Apply an overlay
 
-In each cluster, apply the overlay of its environment. Start with development and staging, so production has a tier to follow:
+In each cluster, apply the overlay of its environment; on one cluster, apply all three there. Start with development and staging, so production has a [tier to follow](/docs/concepts/environments/#how-tiers-set-the-order):
 
 ```bash {filename="Terminal"}
 kubectl apply -k kuberik/staging
 ```
 
-Gates never hold a new Rollout's first deploy. To start production on a release staging baked, add `spec.wantedVersion` to the production overlay's Rollout patch before its first apply:
+Gates never hold a new Rollout's first deploy. To start production on a release staging baked, add `spec.wantedVersion` to the production overlay's Rollout patch before its first apply (pin staging the same way if it must start on a release development baked):
 
 ```yaml {filename="kuberik/production/kustomization.yaml"}
 apiVersion: kustomize.config.k8s.io/v1beta1
