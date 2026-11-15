@@ -75,7 +75,7 @@ Use these when a gate, a bad build or a failed deploy needs a person.
 3. Turn on **Pin build** to keep the rollout on this build until the pin is cleared. A rollback always pins.
 4. When rules still hold the build, write why they should not apply and type the build to confirm. Select **Deploy to *environment***.
 
-![The Change version dialog deploying the held build 4.45.0-45 of checkout-api to production: one rule, After staging, still holds it, then the commits to deploy, the Pin build switch, a required reason and the typed confirmation](/images/docs/dashboard/change-version.png)
+![Part of the Change version dialog deploying the held build 4.45.0-45 of checkout-api to production: the rule it would override, After staging, the four commits to deploy, the Pin build switch, a required reason, the typed confirmation and Deploy to prod](/images/docs/dashboard/change-version.png)
 
 To let the rollout follow new releases again, select **Clear pin** on the Overview banner or on the pin's tile in the **Gates** tab.
 
