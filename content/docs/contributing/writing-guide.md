@@ -64,10 +64,11 @@ spec:
   bakeTime: 10m  # health must hold this long
 ```
 
-YAML examples are complete objects a reader can apply: `apiVersion`, `kind`, `metadata.name`, `metadata.namespace` and every required field, with no `...`. They must validate against the CRDs on main:
+YAML examples are complete objects a reader can apply: `apiVersion`, `kind`, `metadata.name`, `metadata.namespace` and every required field, with no `...`. They must validate against the CRDs on main. The script reads the CRDs from `origin/main` of local clones of rollout-controller, environment-controller, release-controller, openkruise-controller and datadog-controller, so clone them side by side, install pyyaml and jsonschema, and pass their parent directory with `--repos`:
 
 ```bash {filename="Terminal"}
-python3 scripts/validate-yaml.py
+pip install pyyaml jsonschema
+python3 scripts/validate-yaml.py --repos <directory-with-the-clones>
 ```
 
 Keep comments short and lower case, at most one per four lines; longer explanations go in the prose. Write secrets as placeholders such as `<your-token>`.
