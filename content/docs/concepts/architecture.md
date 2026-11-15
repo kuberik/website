@@ -11,6 +11,8 @@ Kuberik is a set of controllers that decide which build of your app runs in each
 
 {{< fig id="architecture" caption="Kuberik decides which version runs; Flux fetches and applies it." >}}
 
+Every cluster runs its own controllers, which deploy only that cluster's Rollouts and share bake results with other clusters through GitHub deployments ([Sites and waves](/docs/concepts/environments/#sites-and-waves)). One cluster's dashboard is the hub that shows them all; deploys do not depend on it ([Connect several clusters](/docs/installation/helm/#connect-several-clusters)).
+
 ## What each resource does
 
 | Resource | Purpose |
