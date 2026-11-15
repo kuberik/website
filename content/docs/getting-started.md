@@ -250,7 +250,7 @@ main-3f9c2ab-1794583200   Succeeded   Automatic deployment
 
 The dashboard shows each rollout with its running build, the pipeline it moved through, and its health checks. It is off by default; [Expose the Dashboard](/docs/installation/helm/#expose-the-dashboard) turns it on, and [Use the Dashboard](/docs/operate/dashboard/) shows how to read it.
 
-![A production rollout with the shape this tutorial builds: a two-step pipeline, Started then Check, no newer build waiting, and one Flux Deployment health check passing](/images/docs/getting-started/rollout-pipeline.png)
+![The deployment pipeline of a production rollout with the shape this tutorial builds: two steps, Started then Check, both done, and the check timer done](/images/docs/getting-started/rollout-pipeline.png)
 
 ## Next steps
 
