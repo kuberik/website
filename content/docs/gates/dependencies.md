@@ -54,7 +54,7 @@ spec:
 
 The controller compares each consumer release's requirement with the contract version of the most recent provider deploy whose bake succeeded. It publishes the verdict as a [`RolloutGate`](/docs/concepts/gates/) named `dependency-<name>`, whose `allowedVersions` lists the admitted releases. A dependency therefore holds back only the releases whose requirement is unmet. Older releases stay deployable, so you can roll back while a newer release waits.
 
-A provider with no `bakeTime`, `deployTimeout` or `healthCheckSelector` records its bake as succeeded the moment the deploy is written, before the workload has rolled out, so its consumers can start before the contract is live. Give every provider [health checks](/docs/gates/health-checks/) or a `bakeTime`, so its consumers wait until the contract is served.
+A provider with no `bakeTime`, `deployTimeout` or `healthCheckSelector` records its bake as succeeded the moment the deploy is written, before the workload has rolled out, so its consumers can start before the contract is live. Give every provider [health checks](/docs/gates/health-checks/), so its consumers wait until the provider is healthy. A `bakeTime` alone only delays them by a fixed time, because without health checks the bake starts as soon as the deploy is written.
 
 Gates never hold a Rollout's first deploy: a brand-new consumer deploys the newest release the dependency admits, or the newest release if it admits none.
 
