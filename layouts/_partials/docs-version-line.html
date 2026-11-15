@@ -13,8 +13,8 @@
     <div><dt>{{ .name }}</dt><dd><code>{{ .tag }}</code></dd></div>
     {{- end }}
   </dl>
-  {{- with .unreleased }}
-  <p class="kdh-version-note">Not released yet, documented from main: {{ delimit . ", " " and " }}.</p>
+  {{- with .unreleased }}{{ $u := . }}
+  <p class="kdh-version-note">Not released yet, documented from main: {{ range $i, $n := . }}{{ if $i }}{{ if eq $i (sub (len $u) 1) }} and {{ else }}, {{ end }}{{ end }}<b>{{ $n }}</b>{{ end }}.</p>
   {{- end }}
 </div>
 {{- end }}

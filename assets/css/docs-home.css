@@ -67,5 +67,6 @@ a.kdh-card-head:hover .kdh-card-title{color:var(--mint-ink)}
 .kdh-rels dd{margin:0}
 .kdh-rels code{padding:1px 6px;border:1px solid var(--line);border-radius:6px;background:var(--page-alt);color:var(--ink);font:500 13px/1 var(--mono)}
 html.dark .kdh-rels code{background:oklch(1 0 0/.05);border-color:oklch(1 0 0/.1)}
+.kdh-version-note b{font-weight:inherit;white-space:nowrap}
 .kdh-version-note{margin:12px 0 0;font:400 14px/20px var(--sans);color:var(--ink-subtle)}
 @media(min-width:641px){.kdh-version{max-width:720px}.kdh-rels{grid-template-columns:repeat(2,minmax(0,1fr));column-gap:32px}}
