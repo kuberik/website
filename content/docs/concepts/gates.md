@@ -1,5 +1,5 @@
 ---
-title: "Gates"
+title: "How Gates Work"
 description: "What holds a deploy back: RolloutGates, schedules, approvals, service dependencies and health checks."
 type_: concept
 weight: 50
