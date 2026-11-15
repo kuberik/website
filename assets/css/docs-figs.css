@@ -60,7 +60,9 @@ html.dark .df{
 
 /* regions */
 .df-group rect{fill:none;stroke:var(--df-group);stroke-width:1;stroke-dasharray:4 3}
-.df-glabel{font-size:13px;font-weight:600;letter-spacing:.04em;text-transform:uppercase;fill:var(--ink-subtle)}
+/* eyebrows and region labels sit in the chip tier (11/600 uppercase .06em, landing .fig-chip): a 13 px uppercase
+   label beside an 11 px chip read as the louder of the two (R6-DES-3) */
+.df-glabel{font-size:11px;font-weight:600;letter-spacing:.06em;text-transform:uppercase;fill:var(--ink-subtle)}
 .df-g-k .df-glabel{fill:var(--mint-ink)}
 .df-g-f .df-glabel{fill:var(--df-f-ink)}
 
