@@ -52,6 +52,7 @@ html.dark .df{
 .df-sub{font-size:13px;fill:var(--ink-muted)}
 .df-sub.is-mono,.df-mono{font-family:var(--mono);font-size:13px}
 .df-mono{fill:var(--ink-muted)}
+.df-tm{font-family:var(--mono)} /* a `field` span inside an Inter label or note: field names are mono in every figure */
 
 /* regions */
 .df-group rect{fill:none;stroke:var(--df-group);stroke-width:1;stroke-dasharray:4 3}

@@ -12,6 +12,8 @@ mkdirSync(outDir, { recursive: true });
 
 const esc = (s) => String(s).replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
 const n = (v) => Math.round(v * 100) / 100;
+// rich: `field` spans in a label, note or plate line render mono (a field name is code in every figure, as in prose).
+const rich = (t) => esc(t).replace(/`([^`]+)`/g, '<tspan class="df-tm">$1</tspan>');
 
 // ---------- primitives ----------
 // plate: an object (resource, controller, external system). kind: k = Kuberik (mint), f = Flux / external (lagoon),
@@ -30,8 +32,8 @@ function plate({ x, y, w, h, kind = 'n', title, sub = [], mono = false, key = fa
     s += `<text class="df-title" x="${x + 14}" y="${ty}">${esc(title)}</text>`;
   }
   subs.forEach((t, i) => {
-    const m = mono || t.startsWith('`');
-    s += `<text class="df-sub${m ? ' is-mono' : ''}" x="${x + 14}" y="${y + (subTop ?? (chip ? 46 : 42)) + i * 16}">${esc(t.replace(/`/g, ''))}</text>`;
+    const whole = /^`[^`]*`$/.test(t), m = mono || whole;
+    s += `<text class="df-sub${m ? ' is-mono' : ''}" x="${x + 14}" y="${y + (subTop ?? (chip ? 46 : 42)) + i * 16}">${m ? esc(t.replace(/`/g, '')) : rich(t)}</text>`;
   });
   return s + '</g>';
 }
@@ -93,7 +95,7 @@ function edge(pts, { kind = 'ink', dashed = false, head = true, label, r = 8 } =
 // text: free label. role: label (Inter 13 ink-muted, haloed so it can sit on a line), mono, note.
 function text({ x, y, t, anchor = 'start', role = 'label', lines }) {
   const ls = lines ?? (Array.isArray(t) ? t : [t]);
-  return ls.map((l, i) => `<text class="df-${role}" x="${x}" y="${y + i * 16}"${anchor !== 'start' ? ` text-anchor="${anchor}"` : ''}>${esc(l)}</text>`).join('');
+  return ls.map((l, i) => `<text class="df-${role}" x="${x}" y="${y + i * 16}"${anchor !== 'start' ? ` text-anchor="${anchor}"` : ''}>${role === 'mono' ? esc(l.replace(/`/g, '')) : rich(l)}</text>`).join('');
 }
 
 // group: a region (a cluster, or who owns the objects). Dashed 1px line, radius 12, label 13/600 uppercase .04em
@@ -111,7 +113,7 @@ function notes({ x, y, w, items }) {
   items.forEach((it, i) => {
     const yy = y + 24 + i * 22;
     s += `<circle class="df-dot df-dot-${it.state || 'gray'}" cx="${x + 4}" cy="${yy - 4}" r="3.5"/>`;
-    s += `<text class="df-note" x="${x + 16}" y="${yy}"><tspan class="df-note-k">${esc(it.k)}</tspan>${it.v ? ' ' + esc(it.v) : ''}</text>`;
+    s += `<text class="df-note" x="${x + 16}" y="${yy}"><tspan class="df-note-k">${rich(it.k)}</tspan>${it.v ? ' ' + rich(it.v) : ''}</text>`;
   });
   return s;
 }
@@ -173,8 +175,8 @@ figs.architecture = {
 // ============ rollout-gating: gates filter the candidates, the newest allowed one deploys ============
 const gatingNotes = [
   { k: 'First deploy:', v: 'never held; the newest allowed release, else the newest.', state: 'gray' },
-  { k: 'Deploy by hand (wantedVersion, force-deploy):', v: 'gates are skipped.', state: 'gray' },
-  { k: 'A HealthCheck is Unhealthy:', v: 'held, DeploymentBlocked=True.', state: 'amber' },
+  { k: 'Deploy by hand (`wantedVersion`, force-deploy):', v: 'gates are skipped.', state: 'gray' },
+  { k: 'A HealthCheck is Unhealthy:', v: 'held, `DeploymentBlocked=True`.', state: 'amber' },
 ];
 figs['rollout-gating'] = {
   title: 'RolloutGates filter the release candidates; the newest allowed version deploys',
@@ -194,7 +196,7 @@ figs['rollout-gating'] = {
       plate({ x: 428, y: 52, w: 204, kind: 'k', key: true, title: 'Rollout', sub: ['deploys 1.5.0,', 'the newest allowed'] }),
       plate({ x: 428, y: 152, w: 204, kind: 'n', dashed: true, chip: { text: 'Held', state: 'amber' }, sub: ['evaluated again when', 'a gate changes'] }),
       edge([[278, 160], [278, 180], [425, 180]], { kind: 'held', dashed: true }),
-      text({ x: 268, y: 186, t: ['otherwise: no candidate', 'allowed, or passing: false'], role: 'label', anchor: 'end' }),
+      text({ x: 268, y: 186, t: ['otherwise: no candidate', 'allowed, or `passing: false`'], role: 'label', anchor: 'end' }),
       notes({ x: 0, y: 250, w: 632, items: gatingNotes }),
     ].join('')
   },
@@ -218,7 +220,7 @@ figs['rollout-gating'] = {
         { k: 'Deploy by hand:', v: 'gates skipped.', state: 'gray' },
         { k: 'HealthCheck Unhealthy:', v: 'held,', state: 'amber' },
       ] }),
-      text({ x: 16, y: 404, t: 'DeploymentBlocked=True.', role: 'note' }),
+      text({ x: 16, y: 404, t: '`DeploymentBlocked=True`.', role: 'note' }),
     ].join('')
   }
 };
@@ -230,22 +232,22 @@ figs['rollout-bake'] = {
   wide: {
     w: 632, h: 318, body: [
       plate({ x: 0, y: 0, w: 150, kind: 'n', chip: { text: 'Deploying', state: 'blue' }, sub: 'waits for health' }),
-      plate({ x: 241, y: 0, w: 150, kind: 'n', chip: { text: 'InProgress', state: 'yellow' }, sub: 'bakeTime runs' }),
+      plate({ x: 241, y: 0, w: 150, kind: 'n', chip: { text: 'InProgress', state: 'yellow' }, sub: '`bakeTime` runs' }),
       plate({ x: 482, y: 0, w: 150, kind: 'n', chip: { text: 'Succeeded', state: 'green' }, sub: 'next version may go' }),
       edge([[150, 36], [238, 36]], { kind: 'ink' }),
       text({ x: 195, y: 14, t: ['every check', 'Healthy'], anchor: 'middle' }),
       edge([[391, 36], [479, 36]], { kind: 'ink' }),
-      text({ x: 436, y: 14, t: ['bakeTime', 'passed'], anchor: 'middle' }),
+      text({ x: 436, y: 14, t: ['`bakeTime`', 'passed'], anchor: 'middle' }),
       plate({ x: 241, y: 148, w: 150, kind: 'n', chip: { text: 'Failed', state: 'red' }, sub: ['automatic deploys', 'stop here'] }),
       edge([[316, 56], [316, 145]], { kind: 'ink' }),
       text({ x: 324, y: 96, t: ['a HealthCheck', 'errors'] }),
       edge([[120, 56], [120, 168], [238, 168]], { kind: 'ink' }),
-      text({ x: 128, y: 160, t: 'deployTimeout' }),
+      text({ x: 128, y: 160, t: '`deployTimeout`' }),
       edge([[241, 204], [48, 204], [48, 59]], { kind: 'ink', dashed: true }),
       text({ x: 56, y: 238, t: 'rollout.kuberik.com/retry', role: 'mono' }),
       notes({ x: 0, y: 260, w: 632, items: [
         { k: 'Cancelled:', v: 'a deploy by hand replaces a Deploying or InProgress bake.', state: 'gray' },
-        { k: 'BakeFailureDisabled=True:', v: 'the bake is never marked Failed.', state: 'gray' },
+        { k: '`BakeFailureDisabled=True`:', v: 'the bake is never marked Failed.', state: 'gray' },
       ] }),
     ].join('')
   },
@@ -254,21 +256,21 @@ figs['rollout-bake'] = {
       plate({ x: 24, y: 0, w: 150, kind: 'n', chip: { text: 'Deploying', state: 'blue' }, sub: 'waits for health' }),
       edge([[99, 56], [99, 101]]),
       text({ x: 107, y: 76, t: ['HealthChecks', 'Healthy'] }),
-      plate({ x: 24, y: 104, w: 150, kind: 'n', chip: { text: 'InProgress', state: 'yellow' }, sub: 'bakeTime runs' }),
+      plate({ x: 24, y: 104, w: 150, kind: 'n', chip: { text: 'InProgress', state: 'yellow' }, sub: '`bakeTime` runs' }),
       edge([[99, 160], [99, 205]]),
-      text({ x: 107, y: 188, t: 'bakeTime passed' }),
+      text({ x: 107, y: 180, t: ['`bakeTime`', 'passed'] }),
       plate({ x: 24, y: 208, w: 150, kind: 'n', chip: { text: 'Succeeded', state: 'green' }, sub: 'next version may go' }),
       plate({ x: 210, y: 104, w: 108, kind: 'n', chip: { text: 'Failed', state: 'red' }, sub: ['automatic', 'deploys stop'] }),
       edge([[174, 132], [207, 132]]),
       text({ x: 191, y: 124, t: 'error', anchor: 'middle' }),
       edge([[174, 28], [264, 28], [264, 101]]),
-      text({ x: 182, y: 20, t: 'deployTimeout' }),
+      text({ x: 182, y: 20, t: '`deployTimeout`' }),
       edge([[264, 176], [264, 300], [8, 300], [8, 28], [21, 28]], { dashed: true }),
       text({ x: 20, y: 292, t: 'rollout.kuberik.com/retry', role: 'mono' }),
       notes({ x: 0, y: 324, w: 318, items: [
         { k: 'error:', v: 'a HealthCheck errors after the deploy.', state: 'red' },
         { k: 'Cancelled:', v: 'a deploy by hand replaces the bake.', state: 'gray' },
-        { k: 'BakeFailureDisabled=True:', v: 'never Failed.', state: 'gray' },
+        { k: '`BakeFailureDisabled=True`:', v: 'never Failed.', state: 'gray' },
       ] }),
     ].join('')
   }
@@ -329,7 +331,7 @@ figs['env-tiers-github'] = {
       group({ x: 382, y: 120, w: 250, h: 284, chip: { text: 'production', state: 'prod' }, label: 'cluster', kind: 'n' }),
       edge([[486, 38], [600, 38], [600, 157]], { label: { x: 592, y: 98, t: 'reads upstream', anchor: 'end' } }),
       plate({ x: 394, y: 160, w: 226, kind: 'k', key: true, title: 'Environment', sub: 'environment: production', mono: true }),
-      edge([[440, 216], [440, 245]], { kind: 'act', label: { x: 448, y: 236, t: 'sets allowedVersions' } }),
+      edge([[440, 216], [440, 245]], { kind: 'act', label: { x: 448, y: 236, t: 'sets `allowedVersions`' } }),
       plate({ x: 394, y: 248, w: 226, kind: 'k', title: 'RolloutGate', sub: 'ghd-…  allowedVersions', mono: true }),
       edge([[440, 304], [440, 333]]),
       plate({ x: 394, y: 336, w: 226, kind: 'k', title: 'Rollout', sub: 'deploys only what it allows' }),
@@ -347,7 +349,7 @@ figs['env-tiers-github'] = {
       edge([[290, 224], [290, 297]], { label: { x: 282, y: 246, t: 'reads upstream', anchor: 'end' } }),
       group({ x: 0, y: 260, w: 318, h: 220, chip: { text: 'production', state: 'prod' }, label: 'cluster', kind: 'n' }),
       plate({ x: 12, y: 300, w: 294, kind: 'k', key: true, title: 'Environment', sub: '`environment: production`' }),
-      edge([[90, 356], [90, 409]], { kind: 'act', label: { x: 98, y: 388, t: 'sets allowedVersions' } }),
+      edge([[90, 356], [90, 409]], { kind: 'act', label: { x: 98, y: 388, t: 'sets `allowedVersions`' } }),
       plate({ x: 12, y: 412, w: 156, kind: 'k', title: 'RolloutGate', sub: 'allowedVersions', mono: true }),
       plate({ x: 192, y: 412, w: 114, kind: 'k', title: 'Rollout', sub: 'deploys it' }),
       edge([[168, 440], [189, 440]]),
@@ -570,7 +572,7 @@ figs['health-bake'] = {
     w: 632, h: 290, body: [
       text({ x: hbx(0), y: 14, t: 'deploy starts' }),
       text({ x: hbx(4), y: 14, t: 'every check Healthy' }),
-      text({ x: hbx(14), y: 14, t: 'bakeTime passed', anchor: 'end' }),
+      text({ x: hbx(14), y: 14, t: '`bakeTime` passed', anchor: 'end' }),
       guide(hbx(0), 22, 132), guide(hbx(4), 22, 132), guide(hbx(14), 22, 132),
       text({ x: 0, y: 48, t: 'bakeStatus', role: 'mono' }),
       chipSvg({ x: hbx(0) + 6, cy: 44, text: 'Deploying', state: 'blue', anchor: 'start' }),
@@ -585,13 +587,13 @@ figs['health-bake'] = {
       band({ x: hbx(4), y: 127, w: hbx(14) - hbx(4), h: 2, state: 'green' }),
       // deployTimeout is the clock until the bake starts (rollout_controller.go:1344-1357: only while BakeStartTime is
       // nil), so its line ends where InProgress begins; bakeTime picks up from that tick to Succeeded.
-      text({ x: hbx(0) + 6, y: 156, t: 'deployTimeout: 15m, the limit for the bake to start', role: 'label' }),
+      text({ x: hbx(0) + 6, y: 156, t: '`deployTimeout: 15m`, the limit for the bake to start', role: 'label' }),
       dim({ x1: hbx(0), x2: hbx(4), y: 170 }),
-      text({ x: hbx(4) + 6, y: 202, t: 'bakeTime: 10m, no error, then Succeeded', role: 'label' }),
+      text({ x: hbx(4) + 6, y: 202, t: '`bakeTime: 10m`, no error, then Succeeded', role: 'label' }),
       dim({ x1: hbx(4), x2: hbx(14), y: 216 }),
       notes({ x: 0, y: 238, w: 632, items: [
         { k: 'A check error after the deploy starts:', v: 'Failed, before or during the bake.', state: 'red' },
-        { k: 'No healthCheckSelector:', v: 'the bake starts at once.', state: 'gray' },
+        { k: 'No `healthCheckSelector`:', v: 'the bake starts at once.', state: 'gray' },
       ] }),
     ].join('')
   },
@@ -605,12 +607,12 @@ figs['health-bake'] = {
       chipSvg({ x: 20, cy: 100, text: 'InProgress', state: 'yellow', anchor: 'start' }),
       text({ x: 140, y: 104, t: 'every check Healthy' }),
       chipSvg({ x: 20, cy: 260, text: 'Succeeded', state: 'green', anchor: 'start' }),
-      text({ x: 130, y: 264, t: 'bakeTime passed' }),
+      text({ x: 130, y: 264, t: '`bakeTime` passed' }),
       // one measure column, two consecutive clocks: deployTimeout until the bake starts, then bakeTime.
       dim({ x1: 12, x2: 100, y: 304, v: true }),
-      text({ x: 290, y: 70, t: 'deployTimeout: 15m', anchor: 'end' }),
+      text({ x: 290, y: 70, t: 'deployTimeout: 15m', role: 'mono', anchor: 'end' }),
       dim({ x1: 100, x2: 260, y: 304, v: true }),
-      text({ x: 290, y: 184, t: 'bakeTime: 10m', anchor: 'end' }),
+      text({ x: 290, y: 184, t: 'bakeTime: 10m', role: 'mono', anchor: 'end' }),
       dot(24, 171, 'red', 3.5),
       text({ x: 36, y: 175, t: ['a check error', 'here or before:', 'Failed'] }),
     ].join('')
@@ -641,7 +643,7 @@ figs['promote-waves'] = {
       edge([[402, 80], [445, 80]]),
       notes({ x: 0, y: 156, w: 632, items: [
         { k: 'Wave 1 gets', v: 'what staging baked; wave 2 gets what every wave-1 site baked.', state: 'gray' },
-        { k: 'lockstep: true', v: 'keeps production on one release until every wave baked it.', state: 'gray' },
+        { k: '`lockstep: true`', v: 'keeps production on one release until every wave baked it.', state: 'gray' },
       ] }),
     ].join('')
   },
@@ -655,7 +657,7 @@ figs['promote-waves'] = {
       edge([[260, 116], [260, 197]]),
       edge([[260, 272], [260, 353]]),
       notes({ x: 0, y: 464, w: 318, items: [
-        { k: 'lockstep: true', v: 'one release in every wave.', state: 'gray' },
+        { k: '`lockstep: true`', v: 'one release in every wave.', state: 'gray' },
       ] }),
     ].join('')
   }
@@ -676,11 +678,11 @@ figs['canary-steps'] = {
       cvStep(226, 0, 180, 'Step 2', ['replicas: 5', 'traffic: 50%'], 50),
       cvStep(452, 0, 180, 'After the last step', ['phase: Healthy', 'all traffic'], 100),
       edge([[406, 40], [449, 40]]),
-      plate({ x: 40, y: 132, w: 330, h: 72, kind: 'k', key: true, title: 'openkruise-controller', sub: ['RolloutTest smoke-test Succeeded,', 'then ready for step-1-bake-time'] }),
+      plate({ x: 40, y: 132, w: 330, h: 72, kind: 'k', key: true, title: 'openkruise-controller', sub: ['RolloutTest smoke-test Succeeded,', 'then ready for `step-1-bake-time`'] }),
       edge([[90, 100], [90, 129]], { label: { x: 98, y: 120, t: 'paused' } }),
       edge([[316, 132], [316, 103]], { kind: 'act', label: { x: 324, y: 120, t: 'unpauses' } }),
       notes({ x: 0, y: 228, w: 632, items: [
-        { k: 'The test fails, or step-1-ready-timeout passes:', v: 'the step stays paused, Stalled=True.', state: 'red' },
+        { k: 'The test fails, or `step-1-ready-timeout` passes:', v: 'the step stays paused, `Stalled=True`.', state: 'red' },
         { k: 'The last step:', v: 'OpenKruise completes it without pausing, so its tests never run.', state: 'gray' },
       ] }),
     ].join('')
@@ -689,7 +691,7 @@ figs['canary-steps'] = {
     w: 318, h: 416, body: [
       cvStep(0, 0, 150, 'Step 1', ['replicas: 1', 'traffic: 10%'], 10),
       cvStep(168, 0, 150, 'Step 2', ['replicas: 5', 'traffic: 50%'], 50),
-      plate({ x: 0, y: 132, w: 290, h: 72, kind: 'k', key: true, title: 'openkruise-controller', sub: ['RolloutTest smoke-test Succeeded,', 'then ready for step-1-bake-time'] }),
+      plate({ x: 0, y: 132, w: 290, h: 72, kind: 'k', key: true, title: 'openkruise-controller', sub: ['RolloutTest smoke-test Succeeded,', 'then ready for `step-1-bake-time`'] }),
       edge([[75, 100], [75, 129]], { label: { x: 83, y: 120, t: 'paused' } }),
       edge([[243, 132], [243, 103]], { kind: 'act', label: { x: 235, y: 120, t: 'unpauses', anchor: 'end' } }),
       edge([[306, 100], [306, 233]]),
@@ -734,7 +736,7 @@ figs['schedule-week'] = {
       text({ x: 632, y: 14, t: 'timezone: America/New_York', role: 'mono', anchor: 'end' }),
       week({ x0: 48, x1: 632, y0: 52, rowH: 18, pitch: 26, axisY: 40, release: true }),
       notes({ x: 0, y: 248, w: 632, items: [
-        { k: 'Tuesday 19:00, a release arrives:', v: 'held, the schedule gate has passing: false.', state: 'amber' },
+        { k: 'Tuesday 19:00, a release arrives:', v: 'held, the schedule gate has `passing: false`.', state: 'amber' },
         { k: 'Wednesday 09:00:', v: 'the window opens, the gate passes, and the release deploys.', state: 'green' },
       ] }),
     ].join('')
@@ -745,7 +747,7 @@ figs['schedule-week'] = {
       text({ x: 0, y: 32, t: 'timezone: America/New_York', role: 'mono' }),
       week({ x0: 40, x1: 318, y0: 66, rowH: 16, pitch: 24, axisY: 56, release: true }),
       notes({ x: 0, y: 248, w: 318, items: [
-        { k: 'Tue 19:00:', v: 'held, passing: false.', state: 'amber' },
+        { k: 'Tue 19:00:', v: 'held, `passing: false`.', state: 'amber' },
         { k: 'Wed 09:00:', v: 'the gate passes, it deploys.', state: 'green' },
       ] }),
     ].join('')
