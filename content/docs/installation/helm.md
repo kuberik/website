@@ -120,6 +120,8 @@ kubectl patch rollout hello-world -n hello-world --type merge \
   -p '{"spec":{"releaseSourceRef":{"name":"hello-world"}}}'
 ```
 
+After a [production install](#use-the-production-values), run `helm upgrade` with `--namespace default -f kuberik/values-production.yaml` instead.
+
 The CRDs are chart resources, so `helm upgrade` installs new CRDs and updates existing ones. If the CRDs were installed outside this release, hand them to it once, or Helm stops with `invalid ownership metadata`:
 
 ```bash {filename="adopt-crds.sh"}
@@ -134,6 +136,8 @@ Use your own release name and namespace; Helm 3.17 and later can do the same wit
 ```bash {filename="Terminal"}
 helm uninstall kuberik --namespace kuberik-system
 ```
+
+After a production install, use `--namespace default`. The chart owns `kuberik-system` there, so the uninstall deletes the namespace and every Secret in it, such as `github-app-credentials` and `datadog-credentials`.
 
 The CRDs stay, with every Rollout and gate in them (`crds.keep`). To remove them too:
 
