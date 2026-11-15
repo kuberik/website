@@ -17,7 +17,7 @@ Before you start, you need:
 - [Kuberik installed with Helm](/docs/installation/helm/).
 - A GitHub repository, here `acme/hello-world`, whose CI can push to `ghcr.io/acme/hello-world`.
 
-Pick Image tag or Rendered manifests in the tabs below; [Propagation Modes](/docs/concepts/propagation/) explains the difference.
+Pick Rendered manifests or Image tag in the tabs below; [Propagation Modes](/docs/concepts/propagation/) explains the difference.
 
 {{% steps %}}
 
@@ -34,29 +34,8 @@ kubectl create namespace hello-world
 A `ReleaseSource` lists the tags of an OCI repository, orders them by a policy, and keeps the result as the catalogue of releases your Rollout reads. CI tags each build `main-<sha>-<timestamp>`, and the policy orders by the timestamp.
 
 {{< tabs >}}
-  {{< tab name="Image tag" >}}
-  Scan the container image your application is built into.
-
-  ```yaml {filename="releasesource.yaml"}
-  apiVersion: kuberik.com/v1alpha1
-  kind: ReleaseSource
-  metadata:
-    name: hello-world
-    namespace: hello-world
-  spec:
-    oci:
-      image: ghcr.io/acme/hello-world
-      filterTags:
-        pattern: '^main-[a-f0-9]+-(?P<ts>[0-9]+)$'
-        extract: '$ts'
-      policy:
-        numerical:
-          order: asc  # highest timestamp wins
-  ```
-  {{< /tab >}}
-
   {{< tab name="Rendered manifests" >}}
-  Scan the manifest artifact CI pushes for the production environment. The setup is the same as for an image apart from the repository path.
+  Scan the manifest artifact CI pushes for the production environment.
 
   ```yaml {filename="releasesource.yaml"}
   apiVersion: kuberik.com/v1alpha1
@@ -67,6 +46,27 @@ A `ReleaseSource` lists the tags of an OCI repository, orders them by a policy, 
   spec:
     oci:
       image: ghcr.io/acme/hello-world/production/manifests
+      filterTags:
+        pattern: '^main-[a-f0-9]+-(?P<ts>[0-9]+)$'
+        extract: '$ts'
+      policy:
+        numerical:
+          order: asc  # highest timestamp wins
+  ```
+  {{< /tab >}}
+
+  {{< tab name="Image tag" >}}
+  Scan the container image your application is built into. The setup is the same as for rendered manifests apart from the repository path.
+
+  ```yaml {filename="releasesource.yaml"}
+  apiVersion: kuberik.com/v1alpha1
+  kind: ReleaseSource
+  metadata:
+    name: hello-world
+    namespace: hello-world
+  spec:
+    oci:
+      image: ghcr.io/acme/hello-world
       filterTags:
         pattern: '^main-[a-f0-9]+-(?P<ts>[0-9]+)$'
         extract: '$ts'
@@ -127,62 +127,6 @@ kubectl apply -f rollout.yaml
 Create the Flux objects the Rollout drives. The annotation names the Rollout that owns them.
 
 {{< tabs >}}
-  {{< tab name="Image tag" >}}
-  Here [Flux](/docs/integrations/fluxcd/) reads the manifests from a `GitRepository`; an `OCIRepository` or `Bucket` works the same. Kuberik writes the selected tag into `postBuild.substitute` on the annotated Kustomization.
-
-  ```yaml {filename="flux.yaml"}
-  apiVersion: source.toolkit.fluxcd.io/v1
-  kind: GitRepository
-  metadata:
-    name: hello-world
-    namespace: hello-world
-  spec:
-    interval: 1m
-    url: https://github.com/acme/hello-world
-    ref:
-      branch: main
-  ---
-  apiVersion: kustomize.toolkit.fluxcd.io/v1
-  kind: Kustomization
-  metadata:
-    name: hello-world
-    namespace: hello-world
-    annotations:
-      rollout.kuberik.com/substitute.APP_VERSION.from: "hello-world"
-  spec:
-    interval: 10m
-    path: ./deploy/production
-    prune: true
-    sourceRef:
-      kind: GitRepository
-      name: hello-world
-    targetNamespace: hello-world
-  ```
-
-  The Deployment in `deploy/production` of `acme/hello-world` reads the substitution variable:
-
-  ```yaml {filename="deploy/production/deployment.yaml"}
-  apiVersion: apps/v1
-  kind: Deployment
-  metadata:
-    name: hello-world
-  spec:
-    selector:
-      matchLabels:
-        app: hello-world
-    template:
-      metadata:
-        labels:
-          app: hello-world
-      spec:
-        containers:
-          - name: app
-            image: ghcr.io/acme/hello-world:${APP_VERSION}
-  ```
-
-  Until the first release, Kuberik has no tag to write, so Flux applies the image with a literal `${APP_VERSION}`: the Kustomization reads `Ready` while the pod sits in `InvalidImageName`. This clears when the first release is deployed.
-  {{< /tab >}}
-
   {{< tab name="Rendered manifests" >}}
   Kuberik moves `spec.ref.tag` on the annotated OCIRepository. The Kustomization applies the artifact at that tag, so the cluster needs no substitution variable and no build tooling.
 
@@ -250,6 +194,62 @@ Create the Flux objects the Rollout drives. The annotation names the Rollout tha
 
   Until the first release, the OCIRepository pulls `latest`, which CI never pushes, so it reads `Ready` `False`. This clears when Kuberik writes the first tag.
   {{< /tab >}}
+
+  {{< tab name="Image tag" >}}
+  Here [Flux](/docs/integrations/fluxcd/) reads the manifests from a `GitRepository`; an `OCIRepository` or `Bucket` works the same. Kuberik writes the selected tag into `postBuild.substitute` on the annotated Kustomization.
+
+  ```yaml {filename="flux.yaml"}
+  apiVersion: source.toolkit.fluxcd.io/v1
+  kind: GitRepository
+  metadata:
+    name: hello-world
+    namespace: hello-world
+  spec:
+    interval: 1m
+    url: https://github.com/acme/hello-world
+    ref:
+      branch: main
+  ---
+  apiVersion: kustomize.toolkit.fluxcd.io/v1
+  kind: Kustomization
+  metadata:
+    name: hello-world
+    namespace: hello-world
+    annotations:
+      rollout.kuberik.com/substitute.APP_VERSION.from: "hello-world"
+  spec:
+    interval: 10m
+    path: ./deploy/production
+    prune: true
+    sourceRef:
+      kind: GitRepository
+      name: hello-world
+    targetNamespace: hello-world
+  ```
+
+  The Deployment in `deploy/production` of `acme/hello-world` reads the substitution variable:
+
+  ```yaml {filename="deploy/production/deployment.yaml"}
+  apiVersion: apps/v1
+  kind: Deployment
+  metadata:
+    name: hello-world
+  spec:
+    selector:
+      matchLabels:
+        app: hello-world
+    template:
+      metadata:
+        labels:
+          app: hello-world
+      spec:
+        containers:
+          - name: app
+            image: ghcr.io/acme/hello-world:${APP_VERSION}
+  ```
+
+  Until the first release, Kuberik has no tag to write, so Flux applies the image with a literal `${APP_VERSION}`: the Kustomization reads `Ready` while the pod sits in `InvalidImageName`. This clears when the first release is deployed.
+  {{< /tab >}}
 {{< /tabs >}}
 
 ```bash {filename="Terminal"}
@@ -261,12 +261,12 @@ kubectl apply -f flux.yaml
 Add the workflow for your mode to `acme/hello-world` and push a commit to `main`. Both workflows build the image from the `Dockerfile` at the repository root.
 
 {{< tabs >}}
-  {{< tab name="Image tag" >}}
-  Use the workflow in [Tag every build on main](/docs/releases/publish/#tag-every-build-on-main). It pushes the image with a `main-<sha>-<timestamp>` tag.
-  {{< /tab >}}
-
   {{< tab name="Rendered manifests" >}}
   Use the workflow in [Publish rendered manifests](/docs/releases/publish/#publish-rendered-manifests). It pushes the image, then renders every overlay under `deploy/` with that image's tag and pushes each as an artifact with the same tag. Here that is `deploy/production` alone, so it pushes `ghcr.io/acme/hello-world/production/manifests`.
+  {{< /tab >}}
+
+  {{< tab name="Image tag" >}}
+  Use the workflow in [Tag every build on main](/docs/releases/publish/#tag-every-build-on-main). It pushes the image with a `main-<sha>-<timestamp>` tag.
   {{< /tab >}}
 {{< /tabs >}}
 
