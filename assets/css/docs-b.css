@@ -49,3 +49,12 @@ html.dark .kd-content .kd-shot img,html.dark .kd-shot img{border-color:oklch(1 0
   .kd-group-label{padding:0 12px}
 }
 
+/* ---------- steps at 390 (R2-DES-16, DIRECTION 4) ----------
+   The rail moves to x=11 and the node to 22 px (11 px mono number), text 7 px off the node: prose indents 30, not 37.
+   A code window in a step hangs off the rail: its left border sits on the rail line, so it is 339 of 350 wide and
+   the rail reads as running into the window's edge (the dashboard progress rail's node-to-card join). */
+@media(max-width:640px){
+  .hextra-steps{margin-left:11px!important;padding-left:18px!important}
+  .kd-content .hextra-steps h3::before{left:-29px;top:2px;width:22px;height:22px;font-size:11px!important}
+  .kd-content .hextra-steps .hextra-code-block{margin-left:-19px;width:calc(100% + 19px)}
+}
