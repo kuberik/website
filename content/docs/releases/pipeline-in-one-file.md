@@ -42,7 +42,7 @@ resources:
   - pipeline.yaml
 ```
 
-These are the objects from [Deploy Your First App](/docs/getting-started/), plus the tier's [Environment](/docs/concepts/environments/) and an [`ApprovalPolicy`](/docs/gates/approvals/) that matches only Rollouts labelled for approval. The values marked for overlays hold development's settings until an overlay replaces them.
+These are the [ReleaseSource](/docs/releases/publish/), [HealthCheck](/docs/gates/health-checks/), [Rollout](/docs/concepts/rollouts/) and Flux objects from [Deploy Your First App](/docs/getting-started/), plus the tier's [Environment](/docs/concepts/environments/) and an [`ApprovalPolicy`](/docs/gates/approvals/) that matches only Rollouts labelled for approval. The values marked for overlays hold development's settings until an overlay replaces them.
 
 ```yaml {filename="kuberik/pipeline/pipeline.yaml"}
 apiVersion: kuberik.com/v1alpha1
@@ -160,7 +160,7 @@ patches:
       - {op: replace, path: /spec/url, value: oci://ghcr.io/acme/hello-world/staging/manifests}
 ```
 
-The development overlay is the same with `development` in place of `staging`. Production adds its gates: a longer bake time, and the label that turns on the approval policy, so each new build waits for a person.
+The development overlay is the same with `development` in place of `staging`. Production also sets a longer bake time, and adds the label that turns on the approval policy, so each new build waits for a person.
 
 ```yaml {filename="kuberik/production/kustomization.yaml"}
 apiVersion: kustomize.config.k8s.io/v1beta1
@@ -194,13 +194,104 @@ In each cluster, apply the overlay of its environment. Start with development an
 kubectl apply -k kuberik/staging
 ```
 
-Gates never hold a new Rollout's first deploy. To start production on a release staging baked, [pin the first release](/docs/releases/promote/#create-the-production-environment) before you apply its overlay.
+Gates never hold a new Rollout's first deploy. To start production on a release staging baked, add `spec.wantedVersion` to the production overlay's Rollout patch before its first apply:
+
+```yaml {filename="kuberik/production/kustomization.yaml"}
+apiVersion: kustomize.config.k8s.io/v1beta1
+kind: Kustomization
+components:
+  - ../pipeline
+patches:
+  - target: {kind: Environment}
+    patch: |-
+      - {op: replace, path: /metadata/name, value: hello-world-production}
+      - {op: replace, path: /spec/environment, value: production}
+  - target: {kind: ReleaseSource}
+    patch: |-
+      - {op: replace, path: /spec/oci/image, value: ghcr.io/acme/hello-world/production/manifests}
+  - target: {kind: OCIRepository}
+    patch: |-
+      - {op: replace, path: /spec/url, value: oci://ghcr.io/acme/hello-world/production/manifests}
+  - target: {kind: Rollout}
+    patch: |-
+      - {op: replace, path: /spec/bakeTime, value: 30m}
+      - {op: add, path: /metadata/labels, value: {approval.kuberik.com/required: "true"}}
+      - {op: add, path: /spec/wantedVersion, value: main-3f9c2ab-1794583200}  # remove after the first deploy
+```
+
+Once production has deployed that release, remove the `wantedVersion` line and apply the overlay again, so the Rollout goes back to choosing releases itself ([Promote Across Environments](/docs/releases/promote/#create-the-production-environment)).
 
 ## Use image tag mode
 
-In [image tag mode](/docs/concepts/propagation/), every environment's ReleaseSource scans the same image, `ghcr.io/acme/hello-world`, so no overlay patches it. The component swaps the OCIRepository for a GitRepository, or any other Flux source, and annotates the Kustomization:
+In [image tag mode](/docs/concepts/propagation/), every environment's ReleaseSource scans the same image, `ghcr.io/acme/hello-world`, so no overlay patches it. The component swaps the OCIRepository for a GitRepository, or any other Flux source, and annotates the Kustomization. This is the whole component file for image tag mode:
 
 ```yaml {filename="kuberik/pipeline/pipeline.yaml"}
+apiVersion: kuberik.com/v1alpha1
+kind: ReleaseSource
+metadata:
+  name: hello-world
+  namespace: hello-world
+spec:
+  oci:
+    image: ghcr.io/acme/hello-world  # the same in every environment
+    filterTags:
+      pattern: '^main-[a-f0-9]+-(?P<ts>[0-9]+)$'
+      extract: '$ts'
+    policy:
+      numerical:
+        order: asc
+---
+apiVersion: kuberik.com/v1alpha1
+kind: HealthCheck
+metadata:
+  name: hello-world
+  namespace: hello-world
+  labels:
+    app: hello-world
+  annotations:
+    healthcheck.kuberik.com/kustomization: "hello-world"
+spec:
+  class: kustomization
+---
+apiVersion: kuberik.com/v1alpha1
+kind: Rollout
+metadata:
+  name: hello-world
+  namespace: hello-world
+spec:
+  releaseSourceRef:
+    name: hello-world
+  bakeTime: 5m
+  deployTimeout: 10m
+  healthCheckSelector:
+    selector:
+      matchLabels:
+        app: hello-world
+---
+apiVersion: kuberik.com/v1alpha1
+kind: ApprovalPolicy
+metadata:
+  name: hello-world
+  namespace: hello-world
+spec:
+  rolloutSelector:
+    matchLabels:
+      approval.kuberik.com/required: "true"  # no Rollout carries it yet
+---
+apiVersion: environments.kuberik.com/v1alpha1
+kind: Environment
+metadata:
+  name: hello-world-development
+  namespace: hello-world
+spec:
+  rolloutRef:
+    name: hello-world
+  name: hello-world
+  environment: development  # each overlay sets this
+  backend:
+    type: github
+    project: acme/hello-world
+---
 apiVersion: source.toolkit.fluxcd.io/v1
 kind: GitRepository
 metadata:
@@ -227,9 +318,6 @@ spec:
     kind: GitRepository
     name: hello-world
   targetNamespace: hello-world
-  postBuild:
-    substitute:
-      ENVIRONMENT: development  # keeps substitution on
 ```
 
 Each overlay then patches the Environment and the Kustomization's path, and the manifests in each `deploy/` overlay read `${APP_VERSION}` as in [Deploy Your First App](/docs/getting-started/):
@@ -247,7 +335,6 @@ patches:
   - target: {kind: Kustomization}
     patch: |-
       - {op: replace, path: /spec/path, value: ./deploy/staging}
-      - {op: replace, path: /spec/postBuild/substitute/ENVIRONMENT, value: staging}
 ```
 
 ## Check the result
