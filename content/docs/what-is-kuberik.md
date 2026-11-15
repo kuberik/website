@@ -31,6 +31,4 @@ Your CI builds the artifact and decides when a release exists by pushing its tag
 
 ## Related
 
-- [How Kuberik Works](/docs/concepts/architecture/): the controllers and the resources each one owns
-- [Deploy Your First App](/docs/getting-started/): a ReleaseSource, a Rollout and Flux, end to end
-- [Publish Releases from CI](/docs/releases/publish/): tag builds so Kuberik picks them up
+{{< next "/docs/concepts/architecture/" "/docs/getting-started/" "/docs/releases/publish/" >}}

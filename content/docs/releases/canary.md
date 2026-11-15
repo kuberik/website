@@ -1,6 +1,5 @@
 ---
 title: "Roll Out with a Canary"
-linkTitle: "Canary Rollouts"
 description: "Shift traffic to a new version in steps, with a bake time and a test Job holding each step."
 type_: guide
 weight: 30
@@ -119,7 +118,4 @@ In the dashboard, each canary step is a stage of the deploy:
 
 ## Next steps
 
-{{< cards >}}
-  {{< card title="Verify with Health Checks" link="/docs/gates/health-checks/" icon="shield-check" subtitle="Bake the whole deploy on health checks" >}}
-  {{< card title="Flux" link="/docs/integrations/fluxcd/" icon="switch-horizontal" subtitle="Let Kuberik choose the version Flux applies" >}}
-{{< /cards >}}
+{{< next "/docs/gates/health-checks/" "/docs/integrations/fluxcd/" >}}

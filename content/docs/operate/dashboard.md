@@ -93,6 +93,4 @@ After **Approve** a toast reads **Approved *build***, and the gate's tile reads 
 
 ## Next steps
 
-- [Operate a Rollout by Hand](/docs/operate/manual-actions/) for pin, deploy, skip and retry with kubectl
-- [Require a Manual Approval](/docs/gates/approvals/)
-- [Set Deployment Windows](/docs/gates/schedules/)
+{{< next "/docs/operate/manual-actions/" "/docs/gates/approvals/" "/docs/gates/schedules/" >}}

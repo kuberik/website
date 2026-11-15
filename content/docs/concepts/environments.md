@@ -120,6 +120,4 @@ Two annotations cover a cluster that cannot deregister itself. `environments.kub
 
 ## Related
 
-- [Promote Across Environments](/docs/releases/promote/)
-- [GitHub](/docs/integrations/github/)
-- [Rollouts](/docs/concepts/rollouts/)
+{{< next "/docs/releases/promote/" "/docs/integrations/github/" "/docs/concepts/rollouts/" >}}

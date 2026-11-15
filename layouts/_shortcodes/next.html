@@ -1,10 +1,27 @@
-{{- /* {{< next "/docs/gates/approvals/" "/docs/concepts/rollouts/" >}}: compact link cards for "Next steps" and
-     "Related" (STYLE s9), title and outcome taken from each page's linkTitle and `description`. Up to three links.
-     A link to a page that does not exist fails the build, so a moved page cannot leave a dead card. */ -}}
+{{- /* {{< next "/docs/gates/approvals/" "/docs/concepts/rollouts/" "/docs/reference/annotations/#rollout-action-annotations" >}}
+     The one component for "## Next steps" (guides, tutorials, integrations) and "## Related" (concepts), STYLE 9,
+     R2-DES-2/3. Every card is read from its target page, never typed: title = the target's `title` (the H1 the reader
+     lands on), outcome = its `description`, icon tile = the icon of the target's sidebar group (docs/group.html, the
+     same icon as that group's docs home card and index page) with the group name above the title. A path may carry
+     a #fragment; the card links there. Up to three cards (STYLE 2). A path with no page fails the build, so a moved
+     page cannot leave a dead card.
+     Shell: the docs pager card (.kd-pager-card: radius 12, card border/fill, mint border and arrow on hover), with the
+     docs home card's icon tile (.kdh-tile) at 28px. */ -}}
+{{- if gt (len .Params) 3 }}{{ errorf "next: at most three cards, got %d (%s)" (len .Params) .Position }}{{ end -}}
 <ul class="kd-next">
   {{- range .Params }}
-    {{- with site.GetPage . }}
-  <li><a class="kd-next-card" href="{{ .RelPermalink }}"><span class="kd-next-title">{{ .LinkTitle }}</span><span class="kd-next-desc">{{ .Description }}</span></a></li>
-    {{- else }}{{ errorf "next: no page at %q (%s)" . $.Position }}{{ end }}
+    {{- $path := . -}}{{- $frag := "" -}}
+    {{- with findRESubmatch `^([^#]*)(#.*)?$` . 1 }}{{ $path = index (index . 0) 1 }}{{ $frag = index (index . 0) 2 }}{{ end -}}
+    {{- with site.GetPage $path }}
+      {{- $g := partial "docs/group.html" . }}
+  <li><a class="kd-next-card" href="{{ .RelPermalink }}{{ $frag }}">
+    <span class="kd-next-tile" aria-hidden="true">{{ partial "docs/icon.html" $g.icon }}</span>
+    <span class="kd-next-text">
+      {{- with $g.name }}<span class="kd-next-group">{{ . }}</span>{{ end }}
+      <span class="kd-next-title">{{ .Title }}</span>
+      {{- with .Description }}<span class="kd-next-desc">{{ . }}</span>{{ end }}
+    </span>
+  </a></li>
+    {{- else }}{{ errorf "next: no page at %q (%s)" $path $.Position }}{{ end }}
   {{- end }}
 </ul>

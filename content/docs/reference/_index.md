@@ -2,6 +2,7 @@
 title: "Reference"
 description: "Every resource field and annotation Kuberik reads or writes."
 type_: index
+icon: braces   # docs/icon.html; the docs home card, this page head and Next cards use it
 weight: 70
 sidebar:
   open: false

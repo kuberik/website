@@ -1,6 +1,5 @@
 ---
 title: "Require a Manual Approval"
-linkTitle: "Manual Approvals"
 description: "Hold each new build of a Rollout until a person approves it in the dashboard or with kubectl."
 type_: guide
 weight: 20
@@ -191,6 +190,4 @@ If it answers `no`, ask an admin to bind `kuberik-rollout-approver` to you, as i
 
 ## Next steps
 
-- [Use the Dashboard](/docs/operate/dashboard/): approve, skip once or pin from the Gates tab
-- [Operate a Rollout by Hand](/docs/operate/manual-actions/): pin, deploy or bypass gates for one build
-- [Gates](/docs/concepts/gates/): how gates, health checks and the bake decide a deploy
+{{< next "/docs/operate/dashboard/" "/docs/operate/manual-actions/" "/docs/concepts/gates/" >}}

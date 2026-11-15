@@ -1,6 +1,5 @@
 ---
 title: "Publish Releases from CI"
-linkTitle: "Publish Releases"
 description: "Tag images or manifest artifacts in CI so a ReleaseSource picks them up."
 type_: guide
 weight: 10
@@ -281,6 +280,4 @@ kubectl events -n hello-world --for releasesource/hello-world
 
 ## Next steps
 
-- [Deploy Your First App](/docs/getting-started/): connect the release to a Rollout and Flux
-- [Propagation Modes](/docs/concepts/propagation/): choose between an image tag and rendered manifests
-- [Promote Across Environments](/docs/releases/promote/): move each release from staging to production
+{{< next "/docs/getting-started/" "/docs/concepts/propagation/" "/docs/releases/promote/" >}}

@@ -17,14 +17,9 @@
       <div class="content kd-content">
         {{- with $eyebrow }}<a class="kd-eyebrow" href="{{ $eyebrowURL }}">{{ . }}</a>{{ end }}
         {{ if .Title }}<h1>{{ .Title }}</h1>{{ end }}
-        {{- /* "Next steps" / "Related" H2 followed by a list of links: each item becomes a compact link card (the
-             pager card's shell). Items that do not start with a link are left as they are. Same markup as {{< next >}}. */}}
         {{- $c := string .Content -}}
-        {{- range findRESubmatch `(?s)<h2>(?:Next [Ss]teps|Related[^<]*)<span[^>]*></span>.*?</h2>\s*<ul>(.*?)</ul>` $c -}}
-          {{- $ul := index . 1 -}}
-          {{- $items := replaceRE `(?s)<li>\s*<a href="([^"]+)"[^>]*>(.*?)</a>\s*(?:[:\x{2014}\x{2013}-]\s*)?(.*?)\s*</li>` `<li><a class="kd-next-card" href="$1"><span class="kd-next-title">$2</span><span class="kd-next-desc">$3</span></a></li>` $ul -}}
-          {{- $c = replace $c (index . 0) (replace (index . 0) (printf "<ul>%s</ul>" $ul) (printf `<ul class="kd-next">%s</ul>` $items)) -}}
-        {{- end }}
+        {{- /* STYLE 9: "Next steps" and "Related" are drawn only by {{< next >}}, whose cards are read from the target pages */}}
+        {{- if and (findRE `<h2>(Next steps|Related)<` $c 1) (not (findRE `class="kd-next"` $c 1)) }}{{ warnf "%s: ## Next steps / ## Related without {{< next >}} (STYLE 9)" .File.Path }}{{ end }}
         {{ $c | safeHTML }}
         {{- /* index pages list their children as cards unless the page already has a card block */}}
         {{- if and (eq .Params.type_ "index") .IsSection (not (findRE `hextra-cards|kd-section-cards` .Content 1)) }}{{ partial "docs/section-cards.html" . }}{{ end }}

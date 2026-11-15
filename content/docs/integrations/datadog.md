@@ -156,7 +156,4 @@ The Rollout starts the bake once every selected HealthCheck is `Healthy`, and fa
 
 ## Next steps
 
-{{< cards >}}
-  {{< card title="Verify with Health Checks" link="/docs/gates/health-checks/" icon="shield-check" subtitle="How bake and health checks decide a deploy" >}}
-  {{< card title="Annotations" link="/docs/reference/annotations/" icon="code" subtitle="Every annotation Kuberik reads" >}}
-{{< /cards >}}
+{{< next "/docs/gates/health-checks/" "/docs/reference/annotations/" >}}

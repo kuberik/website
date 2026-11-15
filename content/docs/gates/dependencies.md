@@ -94,6 +94,4 @@ Once the provider bakes, the consumer follows a few seconds later, unprompted.
 
 ## Next steps
 
-- [Gates](/docs/concepts/gates/): how dependency gates combine with schedules and approvals
-- [Require a Manual Approval](/docs/gates/approvals/): hold a release until a person approves it
-- [Troubleshoot](/docs/operate/troubleshooting/): find what holds a Rollout
+{{< next "/docs/concepts/gates/" "/docs/gates/approvals/" "/docs/operate/troubleshooting/" >}}

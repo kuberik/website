@@ -1,6 +1,5 @@
 ---
 title: "Promote Across Environments"
-linkTitle: "Promote Across Environments"
 description: "Deploy to production only after staging has shipped the same release."
 type_: guide
 weight: 20
@@ -143,6 +142,4 @@ kubectl annotate environment hello-world-production -n hello-world environments.
 
 ## Next steps
 
-- [Set Deployment Windows](/docs/gates/schedules/) so promotions happen when your team is around.
-- [Environments](/docs/concepts/environments/) explains tiers, sites and waves in full.
-- [GitHub](/docs/integrations/github/) sets up the token the Environments use.
+{{< next "/docs/gates/schedules/" "/docs/concepts/environments/" "/docs/integrations/github/" >}}

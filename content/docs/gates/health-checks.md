@@ -1,6 +1,5 @@
 ---
 title: "Verify with Health Checks"
-linkTitle: "Health Checks"
 description: "Fail a deploy when the app is unhealthy during bake time."
 type_: guide
 weight: 10
@@ -152,8 +151,4 @@ A failed deploy lists the checks that failed it in `status.history[0].failedHeal
 
 ## Next steps
 
-{{< cards >}}
-  {{< card title="Flux" link="/docs/integrations/fluxcd/" icon="switch-horizontal" subtitle="Kustomization health in both modes" >}}
-  {{< card title="Datadog" link="/docs/integrations/datadog/" icon="chart-bar" subtitle="Gate on monitors and incidents" >}}
-  {{< card title="Roll Out with a Canary" link="/docs/releases/canary/" icon="adjustments" subtitle="Bake each traffic step" >}}
-{{< /cards >}}
+{{< next "/docs/integrations/fluxcd/" "/docs/integrations/datadog/" "/docs/releases/canary/" >}}

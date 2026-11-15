@@ -38,6 +38,4 @@ Once every selected health check is healthy, the bake starts: Kuberik waits for 
 
 ## Related
 
-- [Rollouts](/docs/concepts/rollouts/): how a Rollout chooses, deploys and verifies a build
-- [Propagation Modes](/docs/concepts/propagation/): image tag or rendered manifests
-- [Environments](/docs/concepts/environments/): ordering deploys across environments
+{{< next "/docs/concepts/rollouts/" "/docs/concepts/propagation/" "/docs/concepts/environments/" >}}

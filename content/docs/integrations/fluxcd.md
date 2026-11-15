@@ -173,8 +173,4 @@ The ReleaseSource lists releases from the registry. When the Rollout picks a rel
 
 ## Next steps
 
-{{< cards >}}
-  {{< card title="Verify with Health Checks" link="/docs/gates/health-checks/" icon="shield-check" subtitle="How bake and health checks decide a deploy" >}}
-  {{< card title="Propagation Modes" link="/docs/concepts/propagation/" icon="switch-horizontal" subtitle="Kustomization substitute or OCIRepository tag" >}}
-  {{< card title="Require a Manual Approval" link="/docs/gates/approvals/" icon="key" subtitle="Hold a deploy until a person approves it" >}}
-{{< /cards >}}
+{{< next "/docs/gates/health-checks/" "/docs/concepts/propagation/" "/docs/gates/approvals/" >}}

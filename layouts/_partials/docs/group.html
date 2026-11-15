@@ -1,0 +1,33 @@
+{{- /* The sidebar group a docs page belongs to: dict "name" "url" "icon" "page". One source for the eyebrow
+     (docs/page.html), the Next steps / Related card icon ({{< next >}}), the section index head and the docs home
+     cards, so a group has one name (sentence case, as the docs home cards write it), one icon and one link everywhere.
+     Rules, the sidebar's own (layouts/_partials/sidebar.html):
+       1. a pseudo-group from front matter sidebar.group or hugo.toml params.docsSidebar.groups, on the page or any
+          ancestor below /docs/ ("Get started" holds What Is Kuberik, Deploy Your First App and the Install section);
+          its icon comes from the hugo.toml entry, and it has no index page (url "");
+       2. else the top-level section under /docs/: its linkTitle, its index URL and its `icon` front matter.
+     The docs root and pages outside /docs/ return an empty name. */ -}}
+{{- $p := . -}}
+{{- $cfg := dict -}}{{- $icons := dict -}}
+{{- range site.Params.docsSidebar.groups }}{{ $name := .name }}{{ $icons = merge $icons (dict .name (.icon | default "page")) }}{{ range .pages }}{{ $cfg = merge $cfg (dict . $name) }}{{ end }}{{ end -}}
+{{- $chain := slice $p -}}
+{{- range $p.Ancestors }}{{ $chain = $chain | append . }}{{ end -}}
+{{- $res := dict "name" "" "url" "" "icon" "page" "page" nil -}}
+{{- $found := false -}}
+{{- range $chain -}}
+  {{- if and (not $found) (strings.HasPrefix .RelPermalink "/docs/") (ne .RelPermalink "/docs/") -}}
+    {{- with .Params.sidebar.group | default (index $cfg .RelPermalink) -}}
+      {{- $res = dict "name" . "url" "" "icon" (index $icons . | default "page") "page" nil -}}{{- $found = true -}}
+    {{- end -}}
+  {{- end -}}
+{{- end -}}
+{{- if not $found -}}
+  {{- range $chain -}}
+    {{- if and (not $found) .IsSection .Parent (eq .Parent.RelPermalink "/docs/") -}}
+      {{- $t := .LinkTitle -}}
+      {{- $name := printf "%s%s" (substr $t 0 1) (lower (substr $t 1)) -}}
+      {{- $res = dict "name" $name "url" .RelPermalink "icon" (.Params.icon | default "page") "page" . -}}{{- $found = true -}}
+    {{- end -}}
+  {{- end -}}
+{{- end -}}
+{{- return $res -}}
