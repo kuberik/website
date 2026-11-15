@@ -1,5 +1,6 @@
 ---
-title: "Operate a Rollout by Hand"
+title: "Operate a Rollout with kubectl"
+linkTitle: "Operate with kubectl"
 description: "Pin a version, deploy a specific build, let a build past its gates, or get a Rollout moving again after a failed bake."
 type_: guide
 weight: 20
@@ -10,6 +11,7 @@ Pin a [Rollout](/docs/concepts/rollouts/) to one version, deploy a build now, le
 | Goal | Set on the Rollout | Removed by |
 |------|-----|------------|
 | Stay on one version | `spec.wantedVersion` | You |
+| Roll back to the previous build | `spec.wantedVersion` | You |
 | Deploy a build now | `rollout.kuberik.com/force-deploy` | The controller, after the deploy |
 | Let one build past the gates | `rollout.kuberik.com/bypass-gates` (+ `bypass-gates-only`) | The controller, after the deploy |
 | Resume after a failed bake | `rollout.kuberik.com/unblock-failed` | The controller, after the next deploy |
@@ -39,6 +41,17 @@ After you unpin, the Rollout deploys the newest release the gates allow that is 
 
 In the dashboard, **Change version** with **Pin build** turned on sets the pin, and **Clear pin** removes it. Both are disabled while another field manager, such as Flux applying the Rollout from Git, owns `spec.wantedVersion`.
 
+## Roll back to the previous version
+
+Kuberik never rolls back on its own. To go back, pin the build deployed before the current one: `status.history[0]` is the current deploy, `status.history[1]` the one before it.
+
+```bash {filename="Terminal"}
+kubectl -n hello-world get rollout hello-world -o jsonpath='{.status.history[1].version.tag}{"\n"}'
+kubectl -n hello-world patch rollout hello-world --type=merge -p '{"spec":{"wantedVersion":"v1.2.2"}}'
+```
+
+**Roll back** on the dashboard's **Deployment failed** banner writes the same pin. Clear it as in [Pin a version](#pin-a-version) once a fixed release is out.
+
 ## Deploy a specific version
 
 Set `rollout.kuberik.com/force-deploy` to deploy one build now, newer or older than the running one. It skips the gates, the unhealthy health-check hold and the failed-bake hold.
@@ -52,7 +65,7 @@ kubectl -n hello-world annotate rollout hello-world --overwrite \
 
 The tag must be in the `ReleaseSource` catalogue, or the Rollout reports `Ready=False` ("force deploy version … is not in available releases"). A pin wins over `force-deploy`. `deploy-message` becomes the history entry's message and `deploy-user` its `triggeredBy` user; without them the entry reads "Manual deployment, with force deploy". The controller removes all three once the build is deployed.
 
-In the dashboard, **Change version** with **Pin build** off writes these annotations with your login and clears any pin. **Deploy** on a held build and **Roll back** on the **Deployment failed** banner open the same dialog.
+In the dashboard, **Change version** with **Pin build** off writes these annotations with your login and clears any pin. **Deploy** on a held build opens the same dialog.
 
 ## Let one build past the gates
 

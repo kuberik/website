@@ -8,9 +8,7 @@ aliases: ["/docs/guides/monitoring/"]
 
 Export every [Rollout](/docs/concepts/rollouts/)'s latest deploy, bake state and gate state as Prometheus metrics, then chart and alert on them. Kuberik writes this state to the Rollout's `status`; [kube-state-metrics](https://github.com/kubernetes/kube-state-metrics) turns it into metrics.
 
-The dashboard reads the same fields: its Activity page is the deploy feed across every cluster, and each rollout page shows the bake and health-check state these metrics export.
-
-![The Activity page: no failed deploys, 99 deploys in seven days, a median of 2 minutes to prod and a chart of deploys per day](/images/docs/operate/monitoring-activity.png)
+To fail a deploy when a Prometheus alert fires, use the [Prometheus](/docs/integrations/prometheus/) integration instead.
 
 ## Export Rollout status with kube-state-metrics
 
@@ -209,6 +207,10 @@ kuberik_rollout_bake_status{bake_status="Failed",customresource_group="kuberik.c
 kuberik_rollout_bake_status{bake_status="InProgress",customresource_group="kuberik.com",customresource_kind="Rollout",customresource_version="v1alpha1",name="hello-world",namespace="hello-world"} 0
 kuberik_rollout_bake_status{bake_status="Succeeded",customresource_group="kuberik.com",customresource_kind="Rollout",customresource_version="v1alpha1",name="hello-world",namespace="hello-world"} 1
 ```
+
+The dashboard reads the same fields: its Activity page is the deploy feed across every cluster, and each rollout page shows the bake and health-check state these metrics export.
+
+![The Activity page: no failed deploys, 99 deploys in seven days, a median of 2 minutes to production and a chart of deploys per day](/images/docs/operate/monitoring-activity.png)
 
 ## Next steps
 

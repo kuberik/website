@@ -11,7 +11,13 @@ tabs:
 
 Deploy `hello-world` with Kuberik. At the end, every build your CI publishes is picked up by a [`ReleaseSource`](/docs/releases/publish/) and deployed by a [`Rollout`](/docs/concepts/rollouts/) through Flux.
 
-Before you start, you need a cluster with [Flux](https://fluxcd.io) 2.6 or later and [Kuberik](/docs/installation/helm/) installed, and a GitHub repository, here `acme/hello-world`, whose CI can push to `ghcr.io/acme/hello-world`. This tutorial needs the chart release after 0.7.0 {{< needs "Next release" >}}: it uses `ReleaseSource` and `spec.releaseSourceRef`, which chart 0.7.0 and its rollout-controller v0.9.2 do not have. Pick Image tag or Rendered manifests in the tabs below; [Propagation Modes](/docs/concepts/propagation/) explains the difference.
+Before you start, you need:
+
+- A cluster with [Flux](https://fluxcd.io) 2.6 or later.
+- [Kuberik](/docs/installation/helm/) from the chart release after 0.7.0 {{< needs "Next release" >}}. This tutorial uses `ReleaseSource` and `spec.releaseSourceRef`, which chart 0.7.0 and its rollout-controller v0.9.2 do not have.
+- A GitHub repository, here `acme/hello-world`, whose CI can push to `ghcr.io/acme/hello-world`.
+
+Pick Image tag or Rendered manifests in the tabs below; [Propagation Modes](/docs/concepts/propagation/) explains the difference.
 
 {{% steps %}}
 
@@ -244,7 +250,7 @@ main-3f9c2ab-1794583200   Succeeded   Automatic deployment
 
 The dashboard shows each rollout with its running build, the pipeline it moved through, and its health checks. It is off by default; [Expose the Dashboard](/docs/installation/helm/#expose-the-dashboard) turns it on, and [Use the Dashboard](/docs/operate/dashboard/) shows how to read it.
 
-![A prod rollout with the shape this tutorial builds: a two-step pipeline, Started then Check, no newer build waiting, and one Flux Deployment health check passing](/images/docs/getting-started/rollout-pipeline.png)
+![A production rollout with the shape this tutorial builds: a two-step pipeline, Started then Check, no newer build waiting, and one Flux Deployment health check passing](/images/docs/getting-started/rollout-pipeline.png)
 
 ## Next steps
 

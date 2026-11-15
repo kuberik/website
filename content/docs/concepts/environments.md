@@ -53,7 +53,7 @@ Tiers have a fixed order. `spec.environment` must be one of these names, and nam
 | 3 | `staging`, `stage`, `preprod` |
 | 4 | `prod`, `production` |
 
-An Environment waits for its upstream: the nearest earlier tier that has a registered site in GitHub for the same `name`. Tiers nobody uses are skipped, so production waits for staging when there is no test tier, and the first tier has no upstream. Because the upstream is read from GitHub, it can run in another cluster or another cloud.
+An Environment waits for its upstream: the nearest earlier tier that has a registered site in GitHub for the same `name`. Tiers nobody uses are skipped, and the first tier has no upstream. The upstream is read from GitHub, so it can run in another cluster or cloud.
 
 Use one name per tier. If an app registers both `staging` and `preprod`, every Environment that sees both stops with `InvalidTopology`. To split a tier into stages, use sites and waves.
 
@@ -65,9 +65,9 @@ The controller creates a [RolloutGate](/docs/concepts/gates/) named `ghd-<random
 - With an upstream, the gate allows the releases that every registered site of the upstream's last wave baked successfully.
 - When nothing qualifies, the gate allows nothing (`allowedVersions: []`) and the Rollout stays on its current release.
 
-Gates never hold a Rollout's first deploy: it deploys the newest release the gates allow, or the newest release if they allow none. The Environment creates its gate only after the Rollout exists, and the gate allows every release until the Environment has read the upstream tier, so a new Rollout's first deploy can take a release the upstream never baked. Create a new Rollout with `spec.wantedVersion` set to a release the upstream baked, and remove the pin after that deploy.
+Gates never hold a Rollout's first deploy, and a new gate allows every release until the Environment has read the upstream tier. A new Rollout can therefore first deploy a release the upstream never baked: create it with `spec.wantedVersion` set to a baked release, and remove the pin after that deploy.
 
-GitHub records Git revisions, and the gate lists release tags. The controller maps one to the other through the release catalogue of the Rollout's [ReleaseSource](/docs/releases/publish/), so the Rollout must take its releases from a ReleaseSource, and each release must carry the commit it was built from. A revision with no matching tag is left out.
+GitHub records Git revisions, and the gate lists release tags. The controller maps them through the release catalogue of the Rollout's [ReleaseSource](/docs/releases/publish/), so each release must carry the commit it was built from. A revision with no matching tag is left out.
 
 A pin on the Rollout (`spec.wantedVersion`) is a manual deploy that skips the gate. On a wave leader, the pinned release becomes the wave's pick and the followers deploy it. On a follower, a pin that differs from the wave's pick makes the Environment report `Pinned`. Deleting the Environment deletes its gate, which leaves the Rollout ungated: pin the Rollout first if it must not move.
 
@@ -77,7 +77,7 @@ One environment can run in several clusters. Each cluster's Environment is a sit
 
 Sites roll out in waves. `spec.wave` defaults to 1, and wave N starts a release only after every site of wave N-1 baked it. Number waves from 1 without gaps: a missing wave closes the gates of every site in that environment and sets `WaveReady=False`, reason `InvalidTopology`.
 
-In each wave the registered site whose name sorts first is the leader: it picks the release, and the other sites (followers) deploy exactly that pick. A leader keeps the role until every site of the wave has baked its pick, so a site that joins mid-rollout does not take over. The next tier waits for the last wave.
+In each wave the registered site whose name sorts first is the leader: it picks the release, and the other sites (followers) deploy exactly that pick. A leader keeps the role until every site of the wave has baked its pick, so a late site does not take over. The next tier waits for the last wave.
 
 With `lockstep: true`, the wave-1 leader picks no new release until every wave of the environment has baked the current one. Set it the same on every site of the environment: the wave-1 leader's value governs, and a site that differs puts `LockstepConsistent=False`, reason `LockstepMismatch`, on every Environment of the tier, with the differing sites named in the message.
 
@@ -94,7 +94,7 @@ For every entry in the Rollout's history the controller creates a GitHub deploym
 | Failed | `failure` |
 | Cancelled | `inactive` |
 
-The deployment payload carries the site, wave and owner, which is how the other clusters see this one. The repository's **Environments** page in GitHub shows the same history, and the dashboard's Environments page shows where each release stands.
+The deployment payload carries the site, wave and owner, which is how the other clusters see this one. The dashboard's Environments page shows where each release stands.
 
 ![The Production environment on the Environments page: 13 places across 7 apps, one checking; eu-west has a build waiting, and two regions wait for eu-west and us-east](/images/docs/concepts/environments.png)
 
@@ -116,7 +116,7 @@ The controller reports the gate decision as conditions on the Environment, with 
 
 Every Environment carries the finalizer `environments.kuberik.com/deregister`. Deleting the Environment, or changing its `site`, `environment` or `name`, posts an `inactive` status that deregisters the old site, so it no longer holds back the next wave or tier.
 
-Two annotations cover a cluster that cannot deregister itself. `environments.kuberik.com/skip-deregister: "true"` removes the finalizer without calling GitHub, for example when the token was revoked. `environments.kuberik.com/take-over-site: "true"` on a new Environment deregisters the old owner of its site and takes the site over; remove it once the new Environment owns the site.
+Two annotations cover a cluster that cannot deregister itself. `environments.kuberik.com/skip-deregister: "true"` removes the finalizer without calling GitHub, for example when the token was revoked. `environments.kuberik.com/take-over-site: "true"` on a new Environment deregisters its site's old owner and takes the site over; remove it afterwards.
 
 ## Related
 

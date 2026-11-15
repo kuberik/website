@@ -33,7 +33,7 @@ Kuberik then updates the Flux source it owns, a substitution variable on a `Kust
 
 Once every selected health check is healthy, the bake starts: Kuberik waits for `bakeTime` and watches the `HealthChecks` for errors. The deploy ends with one bake status:
 
-- {{< badge content="Succeeded" color="green" >}} No health check reported an error since the deploy, and the bake ran its full `bakeTime`. Downstream environments can now admit the build through their gates.
+- {{< badge content="Succeeded" color="green" >}} The bake ran its full `bakeTime` with no health-check error. On a recovery deploy (`BakeFailureDisabled=True`) errors do not count, so the full `bakeTime` is enough. Downstream environments can now admit the build through their gates.
 - {{< badge content="Failed" color="red" >}} A health check reported an error, or the checks were not healthy within `deployTimeout`. The build keeps running and further automatic deploys are held until someone acts; see [When a bake fails](/docs/concepts/rollouts/#when-a-bake-fails).
 - {{< badge content="Cancelled" color="gray" >}} A deploy you started by hand replaced this one before its bake finished.
 

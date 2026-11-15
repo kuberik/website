@@ -67,7 +67,7 @@ Each deploy, and each retry, then goes through these rules:
 
 You do not configure this: while any selected HealthCheck is `Unhealthy`, the Rollout starts no new automatic deploy and reports `DeploymentBlocked=True` with reason `UnhealthyHealthChecks`. `Pending` does not block. The very first deploy and manual deploys (a pin in `spec.wantedVersion` or `rollout.kuberik.com/force-deploy`) are not held.
 
-After a deploy fails, the Rollout starts no new automatic deploy until you retry it, set `rollout.kuberik.com/unblock-failed: "true"`, or deploy a version by hand ([Operate a Rollout by Hand](/docs/operate/manual-actions/)).
+After a deploy fails, the Rollout starts no new automatic deploy until you retry it, set `rollout.kuberik.com/unblock-failed: "true"`, or deploy a version by hand ([Operate a Rollout with kubectl](/docs/operate/manual-actions/)).
 
 A manual deploy made while a check is `Unhealthy`, and any deploy that follows one that did not succeed, sets `BakeFailureDisabled=True` (reasons `DeployedWithUnhealthyHealthChecks` and `PreviousBakeFailed`). For that deploy, health-check errors and `deployTimeout` do not fail it, so a fix can land during an incident.
 

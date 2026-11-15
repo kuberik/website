@@ -109,7 +109,7 @@ Two admission policies come with the controller and need Kubernetes 1.30 or late
 
 Gates never hold a Rollout's first deploy, so a brand-new Rollout does not wait for an approval. The approval gate still chooses the version: the first deploy takes the newest approved release, or the newest release when none is approved. This is intended, so the Rollout always reaches a running version.
 
-A deploy by hand also skips the gate. Pinning a version with `spec.wantedVersion`, or **Change version** in the dashboard, deploys the build without an approval. `rollout.kuberik.com/bypass-gates` lets one build past every gate, and that deploy records no approval. [Operate a Rollout by Hand](/docs/operate/manual-actions/) covers all three.
+A deploy by hand also skips the gate. Pinning a version with `spec.wantedVersion`, or **Change version** in the dashboard, deploys the build without an approval. `rollout.kuberik.com/bypass-gates` lets one build past every gate, and that deploy records no approval. [Operate a Rollout with kubectl](/docs/operate/manual-actions/) covers all three.
 
 ## Use a hand-written gate on v0.11.0
 

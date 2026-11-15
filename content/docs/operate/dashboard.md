@@ -1,11 +1,11 @@
 ---
 title: "Use the Dashboard"
-description: "Find a rollout, read where a build is and what holds it, follow a pull request, and approve, skip, pin or retry from the Kuberik dashboard."
+description: "Find a rollout, read where a build is and what holds it, follow a pull request, and approve, skip, pin, retry or roll back from the Kuberik dashboard."
 type_: guide
 weight: 10
 ---
 
-Find any app or rollout, see where each build stands and what holds it, and act on it from the dashboard. For the kubectl way, see [Operate a Rollout by Hand](/docs/operate/manual-actions/) and, for approvals, [Require a Manual Approval](/docs/gates/approvals/).
+Find any app or rollout, see where each build stands and what holds it, and act on it from the dashboard. For the kubectl way, see [Operate a Rollout with kubectl](/docs/operate/manual-actions/) and, for approvals, [Require a Manual Approval](/docs/gates/approvals/).
 
 {{< callout type="important" >}}
 Needs a rollout-dashboard release newer than v0.9.3-rc.0 and a rollout-controller release newer than v0.11.0. On rollout-controller v0.11.0, Approve has no [RolloutApproval](/docs/gates/approvals/) resource to write, and Skip once lifts every gate instead of one.
@@ -28,13 +28,13 @@ An app's Progress tab shows how far each build has gone; a rollout's Gates tab s
 
 1. Open an app from **Apps**, then select the **Progress** tab.
 2. When two or more releases are in flight, pick one in the release list, beside the drawing or above it on a narrow screen. The drawing shows every environment as a column, its regions grouped by **Wave**, and each place's state: deployed, deploying, checking, held (with the rule that holds it), waiting for approval, failed, or **Not reached**.
-3. Select a place in the drawing to open that rollout. When the app waits or failed, the banner above also has **Open rollout**.
+3. Select a place in the drawing to open that rollout. When the app waits or failed, the banner above also has **Open rollout**. To find what a banner's words mean and how to clear them, look them up in [What the dashboard shows](/docs/operate/troubleshooting/#what-the-dashboard-shows).
 
-![The Progress drawing of hello-world-app for build 3ea2311: dev and staging are deployed, prod eu-west in wave 1 is held by Business Hours Only, and us-east in wave 1 and ap-south in wave 2 are not reached](/images/docs/operate/dashboard-progress.png)
+![The Progress drawing of hello-world-app for build 3ea2311: development and staging are deployed, production eu-west in wave 1 is held by Business Hours Only, and us-east in wave 1 and ap-south in wave 2 are not reached](/images/docs/operate/dashboard-progress.png)
 
 4. On the rollout, select the **Gates** tab. **Gated by** lists every gate, the environment before this one and the services this one depends on (its count is gates only), **Downstream** the rollouts that deploy after it. Below it, **Held builds**, **Waiting on** and **Depends on this** list held builds, dependencies and dependents. **All dependencies ›** opens the whole dependency network.
 
-![The Gates card of hello-world-app in prod eu-west: a closed Business Hours Only schedule and two approvals that need approval hold the rollout, each with a Skip once button, and ap-south and us-east wait downstream](/images/docs/operate/dashboard-gated-by.png)
+![The Gates card of hello-world-app in production eu-west: a closed Business Hours Only schedule and two approvals that need approval hold the rollout, each with a Skip once button, and ap-south and us-east wait downstream](/images/docs/operate/dashboard-gated-by.png)
 
 ## Follow a change
 
@@ -84,8 +84,15 @@ To let the rollout follow new releases again, select **Clear pin** on the Overvi
 
 ### Retry a failed deploy
 
-1. On the rollout's **Overview**, select **Retry** on the failure panel.
+1. On the rollout's **Overview**, select **Retry** on the **Deployment failed** banner.
 2. Confirm **Redeploy to *environment*?**. When tests failed, the dialog offers to retry the tests or skip them instead.
+
+### Roll back a failed deploy
+
+1. On the rollout's **Overview**, select **Roll back** on the **Deployment failed** banner. It shows when the rollout has deployed an earlier build.
+2. The deploy dialog opens on the earlier build, with the pin always on. Confirm the deploy.
+
+The rollout stays on that build, under a **Rolled back** banner, until you select **Clear pin**.
 
 ## Check the result
 

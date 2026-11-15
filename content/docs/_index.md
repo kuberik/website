@@ -10,10 +10,10 @@ toc: false
 hero:
   eyebrow: "Documentation"
   lead: "Kuberik is a set of Kubernetes controllers that deploy each release your CI publishes one environment at a time, when its gates allow, and promote it once its health checks pass."
-  primary: { title: "Deploy your first app", url: "/docs/getting-started/" }
+  primary: { title: "Deploy Your First App", url: "/docs/getting-started/" }
   secondary: { title: "Install", url: "/docs/installation/" }
 journeys:
-  - title: "Get started"
+  - title: "Get Started"
     url: "/docs/what-is-kuberik/"   # a pseudo-group has no index page: the card opens its first page (docs/group.html)
     icon: rocket
     outcome: "Install the controller and deploy an app with Flux."
@@ -29,7 +29,7 @@ journeys:
       - { url: "/docs/concepts/architecture/", title: "How Kuberik Works" }
       - { url: "/docs/concepts/rollouts/", title: "Rollouts" }
       - { url: "/docs/concepts/environments/", title: "Environments" }
-  - title: "Ship releases"
+  - title: "Ship Releases"
     url: "/docs/releases/"
     icon: releases
     outcome: "Publish releases from CI and move them through your environments."
@@ -37,7 +37,7 @@ journeys:
       - { url: "/docs/releases/publish/", title: "Publish Releases from CI" }
       - { url: "/docs/releases/promote/", title: "Promote Across Environments" }
       - { url: "/docs/releases/canary/", title: "Roll Out with a Canary" }
-  - title: "Gate deploys"
+  - title: "Gate Deploys"
     url: "/docs/gates/"
     icon: gates
     outcome: "Hold a deploy until health checks, people or time windows allow it."
@@ -52,7 +52,7 @@ journeys:
     outcome: "Pin, unblock and watch rollouts day to day."
     links:
       - { url: "/docs/operate/dashboard/", title: "Use the Dashboard" }
-      - { url: "/docs/operate/manual-actions/", title: "Operate a Rollout by Hand" }
+      - { url: "/docs/operate/manual-actions/", title: "Operate a Rollout with kubectl" }
       - { url: "/docs/operate/monitoring/", title: "Monitor Rollouts" }
       - { url: "/docs/operate/troubleshooting/", title: "Troubleshoot" }
   - title: "Integrations"
