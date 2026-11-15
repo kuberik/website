@@ -21,7 +21,7 @@ Gates, health checks, bake time and cross-environment promotion work the same wa
 
 Your manifests live in git. Kuberik selects a version and writes it into the Kustomization's substitution variables; Flux renders the overlay and applies it.
 
-![The Resources card of an image-tag rollout in production: every object Flux applied from the overlay, from the Deployment and Service to the HTTPRoute, each ready](/images/docs/concepts/propagation-resources.png)
+![The Resources card of a production rollout: the objects Flux applied for it, here the hello-world Deployment and its canary Rollout, both ready](/images/docs/concepts/propagation-resources.png)
 
 ```yaml {filename="kustomization.yaml"}
 apiVersion: kustomize.toolkit.fluxcd.io/v1
