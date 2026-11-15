@@ -9,7 +9,7 @@ tags:
   - Announcement
 ---
 
-After almost ten years of watching CD tooling change without the underlying model changing, I built Kuberik. It is a Kubernetes-native controller that runs inside your cluster and owns the full delivery journey as declarative, pluggable resources, from release detection through canary rollouts, health checks, environment promotions, and automatic rollback.
+After almost ten years of watching CD tooling change without the underlying model changing, I built Kuberik. It is a Kubernetes-native controller that runs inside your cluster and owns the full delivery journey as declarative, pluggable resources, from release detection through canary rollouts, health checks, environment promotions, and one-step rollback.
 
 <!--more-->
 
@@ -23,9 +23,9 @@ GitOps with Flux or ArgoCD addresses part of this. They reconcile a desired stat
 
 ## How Kuberik works
 
-Kuberik is a delivery controller, not a stack of scripts. It watches your container registry for new image releases. When a new version appears, it takes over. It runs the canary, checks health, promotes across environments, and rolls back if something goes wrong. Every step is a declarative, pluggable Kubernetes resource. Canary rollouts, health checks, environment promotions, and rollback are not logic you write into a pipeline. They are resources you declare, the same way you would declare a Deployment or a Service. The controller takes it from there.
+Kuberik is a delivery controller, not a stack of scripts. It watches your container registry for new image releases. When a new version appears, it takes over. It runs the canary, checks health, promotes across environments, and stops deploying if something goes wrong, so you can roll back in one step. Every step is a declarative, pluggable Kubernetes resource. Canary rollouts, health checks, environment promotions, and rollback are not logic you write into a pipeline. They are resources you declare, the same way you would declare a Deployment or a Service. The controller takes it from there.
 
-The design encodes a set of behaviours that are easy to get wrong when you reimplement them in a script. Each environment is autonomous, so rollback is always a local operation. Kuberik will not roll out into an unhealthy environment. It will not undo a manual deployment made during an incident. It processes versions sequentially so every version gets properly verified. You can attach test hooks at any stage of the rollout. You can force deploy a specific version when you need to bypass the gates entirely. You can define deployment windows and Kuberik enforces them. Getting all of this right in a CI pipeline means writing and maintaining the logic yourself, in every pipeline, across every team. With Kuberik, the model scales across every service: written once, reused everywhere.
+The design encodes a set of behaviours that are easy to get wrong when you reimplement them in a script. Each environment is autonomous, so rollback is always a local operation. Kuberik will not roll out into an unhealthy environment. It will not undo a manual deployment made during an incident. It deploys one version at a time and verifies each one before the next. You can attach test hooks at any stage of the rollout. You can force deploy a specific version when you need to bypass the gates entirely. You can define deployment windows and Kuberik enforces them. Getting all of this right in a CI pipeline means writing and maintaining the logic yourself, in every pipeline, across every team. With Kuberik, the model scales across every service: written once, reused everywhere.
 
 Deploying to production should just work. Check out [how Kuberik works](/docs/what-is-kuberik/#what-kuberik-does-with-a-release) and the [getting started guide](/docs/getting-started/).
 

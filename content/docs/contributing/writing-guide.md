@@ -19,10 +19,17 @@ Use the controller's own terms: if the code says `BakeFailed`, write "the bake f
 - Write in the second person, imperative and present tense: "Apply this Rollout."
 - Leave out "please", "simply", "just", "easily", "we recommend", "powerful" and "seamless".
 - Write no slogans, no mirrored "X. Y." pairs and no questions as headings.
+- Use an em dash at most once per paragraph; prefer a full stop or a colon.
 - Write as if everything on main is released. Pages carry no version notes: no availability chips, no minimum controller version for a feature, no released-versus-main split. Install pages give one install command and one minimum. Facts for release day go to the release notes, not onto a page; blog release posts keep their own version numbers.
-- Spell out environment names in full: development, staging, production.
+- Say "released" when a tag exists, never "merged", for versions of Kuberik.
 - Capitalise a resource kind when you mean the resource (`Rollout`, `HealthCheck`) and write it in lower case when you mean the idea ("a rollout of 1.4.0").
-- Use the shared example names: app and namespace `hello-world`, org `acme`, registry `ghcr.io/acme/...`.
+
+Names follow the same rules on every page:
+
+- Spell out environment names in full: development, staging, production. Never dev, stg or prod, in prose, YAML names, namespaces, paths or alt text. A literal path in an external repository you cannot change is shown as it is.
+- Write "Kuberik" in prose and `kuberik` in code. Write "Flux", not FluxCD.
+- Example people have western names: Emma Clarke, James Porter, Olivia Hart, Daniel Brooks.
+- Use the shared example names: app and namespace `hello-world`, apps `checkout` and `payments`, org `acme`, registry `ghcr.io/acme/...`.
 
 ## Pick a page type
 
@@ -98,7 +105,7 @@ Figures are generated. Add a wide drawing (632 units) and a narrow one (318 unit
 
 Colours come from the theme, so dark mode needs no second drawing. Do not add mermaid. A figure says one thing in at most seven nodes, and every label is a real resource, field or state name.
 
-Take every dashboard screenshot in light and dark from the same state, in the dashboard's mock mode, at 1x and cropped flush to the card or dialog. Save `<name>.png` (desktop light) and `<name>.dark.png`, plus `<name>.phone.png` and `<name>.phone.dark.png` when the phone layout differs; the image render hook shows the one that matches the reader's theme and screen. Never edit text in a capture, and write alt text that says what is shown.
+Take every dashboard screenshot in light and dark from the same state, in the dashboard's mock mode, at 1x and cropped flush to the card or dialog. `<name>.png` and `<name>.dark.png` show the dashboard's desktop layout; `<name>.phone.png` and `<name>.phone.dark.png` show its phone layout, for screens under 768 pixels. The image render hook shows the one that matches the reader's theme and screen, and light when JavaScript is off. A phone-layout capture never stands in for the desktop file; one desktop capture may serve phones when it still reads at 390 pixels. Never edit text in a capture, even the dashboard's own short labels, and write alt text that says what is shown.
 
 The image's title, the quoted text after the path, becomes the caption under it, and the alt text stays the screen-reader description. Leave the title out for no caption:
 
