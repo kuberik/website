@@ -10,8 +10,6 @@ Publish every build as a tagged artifact that a [`ReleaseSource`](/docs/referenc
 
 Each artifact also carries two OCI annotations: `org.opencontainers.image.revision` (the full git commit SHA) and `org.opencontainers.image.source` (the repository URL). Kuberik reads them to link a release to its commit and pull request, so `revision` must be the SHA, not a version string.
 
-![The hello-world-app card on the Apps page: the newest build, 3ea2311, held by Business Hours Only, with development, staging and production, where production is checking](/images/docs/releases/publish-newest.png)
-
 ## Tag every build on main
 
 Tag each build `main-<short sha>-<commit timestamp>` so that every commit to `main` becomes a release, ordered by when it was committed. This workflow builds the image, tags it, and annotates the image index.
@@ -254,6 +252,10 @@ kubectl get releasesource -n hello-world hello-world -o jsonpath='{.status.newes
 ```json {filename="Output"}
 {"created":"2026-11-13T15:20:00Z","revision":"3f9c2ab0d1e84b6f9a7c5e2d4b1a8f6c3e9d0b7a","tag":"main-3f9c2ab-1794583200"}
 ```
+
+On the dashboard's **Apps** page, the app's card names the newest build. Publishing only makes it a release: here a deployment window still holds it, and production is still checking its last deploy.
+
+![The hello-world-app card on the Apps page: the newest build, 3ea2311, held by Business Hours Only, with development, staging and production, where production is checking](/images/docs/releases/publish-newest.png)
 
 If the tag is missing, compare it with `filterTags.pattern`: tags that do not match are not releases. If `revision` is missing, the annotations were written to the per-platform manifests instead of the image index.
 
