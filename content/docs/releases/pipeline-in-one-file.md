@@ -52,7 +52,8 @@ metadata:
   namespace: hello-world
 spec:
   oci:
-    image: ghcr.io/acme/hello-world/development/manifests  # each overlay sets this
+    # each overlay sets this
+    image: ghcr.io/acme/hello-world/development/manifests
     filterTags:
       pattern: '^main-[a-f0-9]+-(?P<ts>[0-9]+)$'
       extract: '$ts'
@@ -120,7 +121,8 @@ metadata:
     rollout.kuberik.com/rollout: "hello-world"
 spec:
   interval: 1m
-  url: oci://ghcr.io/acme/hello-world/development/manifests  # each overlay sets this
+  # each overlay sets this
+  url: oci://ghcr.io/acme/hello-world/development/manifests
 ---
 apiVersion: kustomize.toolkit.fluxcd.io/v1
 kind: Kustomization
@@ -148,16 +150,27 @@ kind: Kustomization
 components:
   - ../pipeline
 patches:
-  - target: {kind: Environment}
+  - target:
+      kind: Environment
     patch: |-
-      - {op: replace, path: /metadata/name, value: hello-world-staging}
-      - {op: replace, path: /spec/environment, value: staging}
-  - target: {kind: ReleaseSource}
+      - op: replace
+        path: /metadata/name
+        value: hello-world-staging
+      - op: replace
+        path: /spec/environment
+        value: staging
+  - target:
+      kind: ReleaseSource
     patch: |-
-      - {op: replace, path: /spec/oci/image, value: ghcr.io/acme/hello-world/staging/manifests}
-  - target: {kind: OCIRepository}
+      - op: replace
+        path: /spec/oci/image
+        value: ghcr.io/acme/hello-world/staging/manifests
+  - target:
+      kind: OCIRepository
     patch: |-
-      - {op: replace, path: /spec/url, value: oci://ghcr.io/acme/hello-world/staging/manifests}
+      - op: replace
+        path: /spec/url
+        value: oci://ghcr.io/acme/hello-world/staging/manifests
 ```
 
 The development overlay is the same with `development` in place of `staging`. Production also sets a longer bake time, and adds the label that turns on the approval policy, so each new build waits for a person.
@@ -168,20 +181,37 @@ kind: Kustomization
 components:
   - ../pipeline
 patches:
-  - target: {kind: Environment}
+  - target:
+      kind: Environment
     patch: |-
-      - {op: replace, path: /metadata/name, value: hello-world-production}
-      - {op: replace, path: /spec/environment, value: production}
-  - target: {kind: ReleaseSource}
+      - op: replace
+        path: /metadata/name
+        value: hello-world-production
+      - op: replace
+        path: /spec/environment
+        value: production
+  - target:
+      kind: ReleaseSource
     patch: |-
-      - {op: replace, path: /spec/oci/image, value: ghcr.io/acme/hello-world/production/manifests}
-  - target: {kind: OCIRepository}
+      - op: replace
+        path: /spec/oci/image
+        value: ghcr.io/acme/hello-world/production/manifests
+  - target:
+      kind: OCIRepository
     patch: |-
-      - {op: replace, path: /spec/url, value: oci://ghcr.io/acme/hello-world/production/manifests}
-  - target: {kind: Rollout}
+      - op: replace
+        path: /spec/url
+        value: oci://ghcr.io/acme/hello-world/production/manifests
+  - target:
+      kind: Rollout
     patch: |-
-      - {op: replace, path: /spec/bakeTime, value: 30m}
-      - {op: add, path: /metadata/labels, value: {approval.kuberik.com/required: "true"}}
+      - op: replace
+        path: /spec/bakeTime
+        value: 30m
+      - op: add
+        path: /metadata/labels
+        value:
+          approval.kuberik.com/required: "true"
 ```
 
 To run every tier on one cluster instead, create each tier's namespace with its own `github-token` Secret ([Run both tiers on one cluster](/docs/releases/promote/#run-both-tiers-on-one-cluster)), add `namespace: hello-world-staging` (and so on) to each overlay, and patch the Kustomization's `targetNamespace` to the same namespace.
@@ -202,24 +232,44 @@ kind: Kustomization
 components:
   - ../pipeline
 patches:
-  - target: {kind: Environment}
+  - target:
+      kind: Environment
     patch: |-
-      - {op: replace, path: /metadata/name, value: hello-world-production}
-      - {op: replace, path: /spec/environment, value: production}
-  - target: {kind: ReleaseSource}
+      - op: replace
+        path: /metadata/name
+        value: hello-world-production
+      - op: replace
+        path: /spec/environment
+        value: production
+  - target:
+      kind: ReleaseSource
     patch: |-
-      - {op: replace, path: /spec/oci/image, value: ghcr.io/acme/hello-world/production/manifests}
-  - target: {kind: OCIRepository}
+      - op: replace
+        path: /spec/oci/image
+        value: ghcr.io/acme/hello-world/production/manifests
+  - target:
+      kind: OCIRepository
     patch: |-
-      - {op: replace, path: /spec/url, value: oci://ghcr.io/acme/hello-world/production/manifests}
-  - target: {kind: Rollout}
+      - op: replace
+        path: /spec/url
+        value: oci://ghcr.io/acme/hello-world/production/manifests
+  - target:
+      kind: Rollout
     patch: |-
-      - {op: replace, path: /spec/bakeTime, value: 30m}
-      - {op: add, path: /metadata/labels, value: {approval.kuberik.com/required: "true"}}
-      - {op: add, path: /spec/wantedVersion, value: main-3f9c2ab-1794583200}  # remove after the first deploy
+      - op: replace
+        path: /spec/bakeTime
+        value: 30m
+      - op: add
+        path: /metadata/labels
+        value:
+          approval.kuberik.com/required: "true"
+      # remove after the first deploy
+      - op: add
+        path: /spec/wantedVersion
+        value: main-3f9c2ab-1794583200
 ```
 
-Once production has deployed that release, remove the `wantedVersion` line and apply the overlay again, so the Rollout goes back to choosing releases itself ([Promote Across Environments](/docs/releases/promote/#create-the-production-environment)).
+Once production has deployed that release, remove the `wantedVersion` operation and apply the overlay again, so the Rollout goes back to choosing releases itself ([Promote Across Environments](/docs/releases/promote/#create-the-production-environment)).
 
 ## Use image tag mode
 
@@ -328,13 +378,21 @@ kind: Kustomization
 components:
   - ../pipeline
 patches:
-  - target: {kind: Environment}
+  - target:
+      kind: Environment
     patch: |-
-      - {op: replace, path: /metadata/name, value: hello-world-staging}
-      - {op: replace, path: /spec/environment, value: staging}
-  - target: {kind: Kustomization}
+      - op: replace
+        path: /metadata/name
+        value: hello-world-staging
+      - op: replace
+        path: /spec/environment
+        value: staging
+  - target:
+      kind: Kustomization
     patch: |-
-      - {op: replace, path: /spec/path, value: ./deploy/staging}
+      - op: replace
+        path: /spec/path
+        value: ./deploy/staging
 ```
 
 ## Check the result
@@ -375,4 +433,4 @@ Once the overlays are applied, read the production Environment's conditions as i
 
 ## Next steps
 
-{{< next "/docs/releases/promote/" "/docs/gates/approvals/" "/docs/releases/publish/" >}}
+{{< next "/docs/concepts/propagation/" "/docs/gates/approvals/" "/docs/releases/publish/" >}}
