@@ -20,9 +20,9 @@
     {{- if $filename -}}
       {{- if $base_url -}}
         {{- $file_url := urls.JoinPath (strings.TrimSuffix "/" $base_url) (strings.TrimPrefix "/" $filename) -}}
-        <a href="{{ $file_url }}" target="_blank" rel="noopener noreferrer">{{ $filename }}</a>
+        <a href="{{ $file_url }}" target="_blank" rel="noopener noreferrer">{{ replace (htmlEscape $filename) "/" "/<wbr>" | safeHTML }}</a>
       {{- else -}}
-        <span>{{ $filename }}</span>
+        <span>{{ replace (htmlEscape $filename) "/" "/<wbr>" | safeHTML }}</span>
       {{- end -}}
     {{- else -}}
       <span>{{ $langLabel }}</span>

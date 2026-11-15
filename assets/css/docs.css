@@ -212,7 +212,7 @@ html .kd-content kbd{display:inline-block;margin:0 1px;padding:0 6px;border:1px 
 .kd-copy:focus-visible{outline:2px solid oklch(.85 .11 182);outline-offset:0}
 .kd-copy-icon{display:inline-flex;width:15px;height:15px}
 /* R6-C-6: on phones the copy button is its icon alone (still 44px wide to tap), so a long filename keeps its room */
-@media(max-width:640px){.kd-copy .kd-copy-l,.kd-copy .kd-copy-done{display:none!important}.kd-copy{width:44px;padding:0;justify-content:center}.kd-copy-wrap{right:4px}}
+@media(max-width:640px){.kd-copy .kd-copy-l,.kd-copy .kd-copy-done{display:none!important}.kd-copy{width:44px;padding:0;justify-content:center}.kd-copy-wrap{right:4px}.kd-code-name{white-space:normal;overflow:visible;align-items:center}.kd-code-name > span,.kd-code-name > a{overflow:visible;text-overflow:clip;font-size:12px;line-height:16px;overflow-wrap:anywhere}}
 .kd-copy-icon svg{width:15px;height:15px}
 .kd-copy .hextra-success-icon,.kd-copy .kd-copy-done{display:none}
 .kd-copy.copied .hextra-success-icon,.kd-copy.copied .kd-copy-done{display:inline-flex}
