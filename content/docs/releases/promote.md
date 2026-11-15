@@ -10,11 +10,11 @@ Production deploys only the releases staging has already deployed and baked, wit
 
 {{< fig id="promote-waves" caption="A release reaches production wave 1 only after staging baked it, and wave 2 only after every wave-1 site baked it." >}}
 
-Works with the environment-controller, a GitHub token Secret in each app namespace (see [GitHub](/docs/integrations/github/)), and Rollouts that take their releases from a [ReleaseSource](/docs/releases/publish/). The GitHub token is needed even when every tier runs in one cluster.
+Works with the environment-controller, a GitHub token Secret in each app namespace (see [GitHub](/docs/integrations/github/)), and Rollouts that take their releases from a [ReleaseSource](/docs/releases/publish/). On one cluster, give each tier its own namespace (such as `hello-world-staging` and `hello-world-production`), each with its own Rollout, Environment and `github-token` Secret.
 
 ## Create the staging Environment
 
-Staging is the first tier this app uses, so its gate does not restrict releases. Apply this in the staging cluster, next to the `hello-world` Rollout:
+Staging is the first tier this app uses, so its gate does not restrict releases. Apply this in the staging cluster or namespace, next to the `hello-world` Rollout:
 
 ```yaml {filename="staging.yaml"}
 apiVersion: environments.kuberik.com/v1alpha1
@@ -42,7 +42,7 @@ The controller creates a [RolloutGate](/docs/concepts/gates/) for the Rollout an
 
 ## Create the production Environment
 
-Production comes after staging in the tier order, so its gate allows only the releases staging baked successfully. Apply this in the production cluster:
+Production comes after staging in the tier order, so its gate allows only the releases staging baked successfully. Apply this in the production cluster or namespace:
 
 ```yaml {filename="production.yaml"}
 apiVersion: environments.kuberik.com/v1alpha1
