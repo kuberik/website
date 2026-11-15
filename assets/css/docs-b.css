@@ -23,3 +23,19 @@ html.dark .kd-content .kd-shot img,html.dark .kd-shot img{border-color:oklch(1 0
 .kd-shot.is-framed img,html.dark .kd-shot.is-framed img{border:0;border-radius:0;background:none;box-shadow:none}
 @media(max-width:640px){.kd-shot-plate{padding:12px}.kd-content .kd-shot,.kd-shot{margin-top:24px}}
 
+/* ---------- right TOC hierarchy (R2-DES-10; markup: layouts/_partials/toc.html) ----------
+   H2 rows keep the TOC row (docs.css .hextra-toc a: 13/20, 14 from the rail) in ink-muted; H3 rows nest 12 further in,
+   12/18 ink-subtle, tighter rows, so a section reads as a heading with its parts under it (Stripe/Vercel TOC).
+   The active row and its 2px mint tick on the rail stay as in docs.css. A long TOC (.kd-toc-fold, over 20 rows)
+   shows H3s only under the H2 being read. */
+.hextra-toc .kd-toc-l2 > a{color:var(--ink-muted)!important}
+.hextra-toc .kd-toc-l3 > a{padding:3px 0 3px 26px!important;font-size:12px;line-height:18px;color:var(--ink-subtle)!important}
+.hextra-toc li > ul{margin:0 0 4px}
+.hextra-toc .kd-toc-l2 > a:hover,.hextra-toc .kd-toc-l3 > a:hover,.hextra-toc a.hextra-toc-active{color:var(--ink)!important}
+.hextra-toc .kd-toc-l3 > a.hextra-toc-active::before{top:3px;bottom:3px}
+.kd-toc-fold > li > ul{display:none}
+.kd-toc-fold > li:has(a.hextra-toc-active) > ul{display:block}
+
+/* The TOC column stretches to the article's height so its sticky inner block (docs.css top:64px) stays in view while
+   reading; the shell's flex row aligns items to the start, which left the TOC 381 px tall and scrolling away. */
+.kd-shell .hextra-toc{align-self:stretch}

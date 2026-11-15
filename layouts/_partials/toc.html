@@ -5,7 +5,13 @@
 {{- $tags := (T "tags") | default "Tags"}}
 {{- $editThisPage := (T "editThisPage") | default "Edit this page"}}
 {{- $backToTop := (T "backToTop") | default "Scroll to top" -}}
-{{- $tocDepth := .Params.tocDepth | default 6 -}}
+{{- /* Docs TOC (R2-DES-10): H2 and H3 only (tocDepth 2 = two levels; a page may still set tocDepth: 1), H3 nested in
+     its H2's list so docs-b.css can indent and quiet it. A long TOC (more than 20 rows: the api reference has 21 plus an
+     H4 tree) folds: H3s show only under the H2 the reader is in (the scrollspy's .hextra-toc-active, via :has), so
+     the rail stays one screen. Reference: Stripe and Vercel docs TOCs (DIRECTION section 1, right TOC). */ -}}
+{{- $tocDepth := .Params.tocDepth | default 2 -}}
+{{- $tocRows := 0 -}}
+{{- range .Fragments.Headings -}}{{- range .Headings -}}{{- $tocRows = add $tocRows 1 -}}{{- if gt (int $tocDepth) 1 -}}{{- $tocRows = add $tocRows (len .Headings) -}}{{- end -}}{{- end -}}{{- end -}}
 
 <nav class="hextra-toc hx:order-last hx:hidden hx:w-64 hx:shrink-0 hx:xl:block hx:print:hidden hx:px-4"
     aria-label="table of contents">
@@ -15,7 +21,7 @@
         {{- with .Fragments.Headings -}}
         <p class="hx:mb-4 hx:font-semibold hx:tracking-tight">{{ $onThisPage }}</p>
         {{- range . -}}
-        <ul>
+        <ul class="kd-toc-list{{ if gt $tocRows 20 }} kd-toc-fold{{ end }}">
             {{- with .Headings -}}{{ template "toc-subheading" (dict "headings" . "level" 0 "maxLevel" $tocDepth) }}{{-
             end -}}
         </ul>
@@ -86,21 +92,17 @@
 {{ return }}
 {{- end -}}
 
-{{- $padding := (mul $level 4) -}}
-{{- $class := cond (eq $level 0) "hx:font-medium" (printf "hx:ltr:pl-%d hx:rtl:pr-%d" $padding $padding) -}}
 
 {{- range $headings }}
 {{- if .Title }}
-<li class="hx:my-2 hx:scroll-my-6 hx:scroll-py-6">
-    <a class="{{ $class }} hx:inline-block hx:text-gray-500 hx:hover:text-gray-900 hx:dark:text-gray-400 hx:dark:hover:text-gray-300 hx:contrast-more:text-gray-900 hx:contrast-more:underline hx:contrast-more:dark:text-gray-50 hx:w-full hx:break-words"
-        href="#{{ .ID }}">
-        {{- .Title | safeHTML | plainify | htmlUnescape }}
-    </a>
+<li class="kd-toc-l{{ add $level 2 }}">
+    <a href="#{{ .ID }}">{{- .Title | safeHTML | plainify | htmlUnescape }}</a>
+    {{- with .Headings -}}{{- if lt (add $level 1) (int $maxLevel) }}
+    <ul>{{ template "toc-subheading" (dict "headings" . "level" (add $level 1) "maxLevel" $maxLevel) }}</ul>
+    {{- end -}}{{- end }}
 </li>
+{{- else -}}
+{{- with .Headings -}}{{ template "toc-subheading" (dict "headings" . "level" $level "maxLevel" $maxLevel) }}{{- end -}}
 {{- end -}}
-{{- with .Headings -}}
-{{ template "toc-subheading" (dict "headings" . "level" (add $level 1) "maxLevel" $maxLevel) }}
-{{- end -}}
-
 {{- end -}}
 {{- end -}}
