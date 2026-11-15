@@ -1,5 +1,6 @@
 // turns.mjs: with several cards in view, every one gets a turn (one loop each), at most one runs at a time, and the
-// outgoing card stops on its rest frame. Sits on each bento row for 22 s, sampling every 250 ms.
+// outgoing card stops on its rest frame. Sits on each bento row for 22 s, sampling every 250 ms (off-rest is not counted in
+// the first 500 ms after a scroll: a card that lost its turn is mid-dissolve, 380 ms, by design).
 import { chromium } from '@playwright/test';
 const URL = process.env.URL ?? 'http://127.0.0.1:1376/';
 const b = await chromium.launch(); let fail = 0;
@@ -16,7 +17,7 @@ for (const [vw, vh] of [[1440, 900], [1920, 1080], [2560, 1440]]) {
       const s = await p.evaluate(() => [...document.querySelectorAll('[data-vg]')].filter((h) => h.dataset.vgLive).map((h) => {
         const an = h.getAnimations({ subtree: true }).filter((a) => a.effect && a.effect.target !== h.firstElementChild); return { id: h.dataset.vg, run: an.some((a) => a.playState === 'running'), ct: an.length ? an[0].currentTime / 1000 : 0, rest: window.__vgRest(h.dataset.vg) }; }));
       const r = s.filter((x) => x.run); maxRun = Math.max(maxRun, r.length); r.forEach((x) => ran.add(x.id));
-      for (const x of s) if (!x.run && Math.abs(x.ct - x.rest) > 0.01) bad.push(`${x.id}@${i} ct ${x.ct.toFixed(2)}`);
+      if (i >= 2) for (const x of s) if (!x.run && Math.abs(x.ct - x.rest) > 0.01) bad.push(`${x.id}@${i} ct ${x.ct.toFixed(2)}`);
     }
     const missed = inView.filter((x) => !ran.has(x));
     const ok = maxRun <= 1 && !missed.length && !bad.length; if (!ok) fail++;
