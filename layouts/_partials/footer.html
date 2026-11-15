@@ -2,4 +2,12 @@
      The scratch values mirror home.html's. */ -}}
 {{- .Scratch.Set "getStarted" "/docs/getting-started/" -}}
 {{- .Scratch.Set "github" "https://github.com/kuberik/kuberik" -}}
+{{- /* Docs column follows the docs IA (R2-DES-11): sidebar order, sidebar titles, no /docs/guides/ alias. */ -}}
+{{- .Scratch.Set "docsLinks" (slice
+      (slice "/docs/getting-started/" "Deploy your first app")
+      (slice "/docs/installation/helm/" "Install with Helm")
+      (slice "/docs/concepts/" "Concepts")
+      (slice "/docs/releases/" "Ship releases")
+      (slice "/docs/gates/" "Gate deploys")
+      (slice "/docs/reference/api/" "API reference")) -}}
 {{ partial "home/footer.html" . }}

@@ -147,7 +147,6 @@ html.dark .kd-wash::before{opacity:.5}
 .hextra-toc > div > ul{border-left:1px solid var(--line)}
 .hextra-toc li{margin:0}
 .hextra-toc a{display:block;position:relative;padding:4px 0 4px 14px!important;font:400 13px/20px var(--sans);color:var(--ink-subtle)!important}
-.hextra-toc ul ul a{padding-left:26px!important}
 .hextra-toc a:hover{color:var(--ink)!important}
 .hextra-toc a.hextra-toc-active{color:var(--ink)!important;font-weight:500}
 .hextra-toc a.hextra-toc-active::before{content:'';position:absolute;left:-1px;top:4px;bottom:4px;width:2px;background:var(--mint)}
@@ -261,7 +260,6 @@ html.dark .kd-content table th{background:oklch(1 0 0/.03)}
 .kd-content .hextra-steps h3{counter-increment:step;position:relative;margin-top:40px}
 .kd-content .hextra-steps h3:first-child{margin-top:0}
 .kd-content .hextra-steps h3::before{content:counter(step)!important;position:absolute;left:-41px;top:1px;width:24px;height:24px;margin:0!important;display:flex;align-items:center;justify-content:center;border:1px solid var(--mint);border-radius:50%;background:var(--page)!important;color:var(--mint-ink)!important;font:600 12px/1 var(--mono)!important;text-indent:0!important;box-shadow:0 0 0 4px var(--page)}
-@media(max-width:640px){.hextra-steps{margin-left:12px!important;padding-left:24px!important}.kd-content .hextra-steps h3::before{left:-37px}}
 
 /* ---------- tabs: the landing cwin-tab ---------- */
 .kd-content [data-tab-group]{margin-top:20px!important;border-bottom:1px solid var(--line)!important;gap:4px;padding:0!important}

@@ -1,0 +1,60 @@
+/* docs-b.css: shell lane B (round 2 design, tl-docs-4). Concatenated after docs-figs.css in
+   layouts/_partials/custom/head-end.html. Every rule names the landing or docs region it borrows from. */
+
+/* ---------- screenshot figures (R2-DES-5, R2-DES-17; markup: layouts/_markup/render-image.html) ----------
+   ROLE. A dashboard screenshot is a figure, so it sits on the kit figure's plate (docs-figs.css .df-card: page-alt
+   fill, 1px line, radius 12, 24 padding, column-wide) with the kit caption (.df-cap) under it.
+   PLACEMENT. Most captures are 381 px crops of one dashboard card at 1x. They sit centred on the column-wide plate,
+   the way the landing's showcase windows sit centred on their canvas (home showcase) and the way a kit figure's
+   narrow drawing centres in its plate (.df-narrow). Left-aligned would leave a 300 px hole on the right of a 680
+   column; stretching a 1x crop to 632 would blur it. Wider captures (dialogs, 2x full pages) fill the plate.
+   The shot itself is the dashboard card it was cut from: radius 8 (the dashboard card radius), 1px line, the
+   docs code window's light shadow, so it reads as an object placed on the plate.
+   DARK. Captures are light theme (STYLE 6). In dark the plate is the raised card fill with a hairline, and the shot
+   gets a soft dark halo and a 1px dim ring: the light card is matted inside a mid-tone frame instead of sitting
+   as a raw white slab on the near-black page. No filter on the image. */
+.kd-content .kd-shot,.kd-shot{margin:32px 0 0;padding:0}
+.kd-shot-plate{display:flex;justify-content:center;padding:24px;border:1px solid var(--line);border-radius:12px;background:var(--page-alt)}
+.kd-content .kd-shot img,.kd-shot img{display:block;width:auto;max-width:100%;height:auto;margin:0;border:1px solid var(--line);border-radius:8px;background:var(--page);box-shadow:0 1px 2px oklch(.195 .014 222/.06),0 10px 24px -14px oklch(.195 .014 222/.28)}
+.kd-shot .df-cap{margin-top:12px}
+html.dark .kd-shot-plate{border-color:var(--card-border);background:var(--card-fill)}
+html.dark .kd-content .kd-shot img,html.dark .kd-shot img{border-color:oklch(1 0 0/.14);box-shadow:0 0 0 6px oklch(1 0 0/.04),0 16px 36px -16px oklch(0 0 0/.7)}
+/* the release-post captures carry their own bezel: no second frame */
+.kd-shot.is-framed img,html.dark .kd-shot.is-framed img{border:0;border-radius:0;background:none;box-shadow:none}
+@media(max-width:640px){.kd-shot-plate{padding:12px}.kd-content .kd-shot,.kd-shot{margin-top:24px}}
+
+/* ---------- right TOC hierarchy (R2-DES-10; markup: layouts/_partials/toc.html) ----------
+   H2 rows keep the TOC row (docs.css .hextra-toc a: 13/20, 14 from the rail) in ink-muted; H3 rows nest 12 further in,
+   12/18 ink-subtle, tighter rows, so a section reads as a heading with its parts under it (Stripe/Vercel TOC).
+   The active row and its 2px mint tick on the rail stay as in docs.css. A long TOC (.kd-toc-fold, over 20 rows)
+   shows H3s only under the H2 being read. */
+.hextra-toc .kd-toc-l2 > a{color:var(--ink-muted)!important}
+.hextra-toc .kd-toc-l3 > a{padding:3px 0 3px 26px!important;font-size:12px;line-height:18px;color:var(--ink-subtle)!important}
+.hextra-toc li > ul{margin:0 0 4px}
+.hextra-toc .kd-toc-l2 > a:hover,.hextra-toc .kd-toc-l3 > a:hover,.hextra-toc a.hextra-toc-active{color:var(--ink)!important}
+.hextra-toc .kd-toc-l3 > a.hextra-toc-active::before{top:3px;bottom:3px}
+.kd-toc-fold > li > ul{display:none}
+.kd-toc-fold > li:has(a.hextra-toc-active) > ul{display:block}
+
+/* The TOC column stretches to the article's height so its sticky inner block (docs.css top:64px) stays in view while
+   reading; the shell's flex row aligns items to the start, which left the TOC 381 px tall and scrolling away. */
+.kd-shell .hextra-toc{align-self:stretch}
+/* ---------- phone drawer (R2-DES-15) ----------
+   The search sits in a fill band (page fill, hairline under it, like the docs header's band) so the list scrolls
+   out under a clean edge instead of under the input. Group labels take the row's 12 px inset, so "SHIP RELEASES"
+   and "Publish Releases" share one left edge. */
+@media(max-width:767px){
+  .hextra-sidebar-container > div:first-child{position:relative;z-index:1;padding:16px var(--gut) 12px;background:var(--page);border-bottom:1px solid var(--line)}
+  .hextra-sidebar-container > .hextra-scrollbar{padding-top:20px}
+  .kd-group-label{padding:0 12px}
+}
+
+/* ---------- steps at 390 (R2-DES-16, DIRECTION 4) ----------
+   The rail moves to x=11 and the node to 22 px (11 px mono number), text 7 px off the node: prose indents 30, not 37.
+   A code window in a step hangs off the rail: its left border sits on the rail line, so it is 339 of 350 wide and
+   the rail reads as running into the window's edge (the dashboard progress rail's node-to-card join). */
+@media(max-width:640px){
+  .hextra-steps{margin-left:11px!important;padding-left:18px!important}
+  .kd-content .hextra-steps h3::before{left:-29px;top:2px;width:22px;height:22px;font-size:11px!important}
+  .kd-content .hextra-steps .hextra-code-block{margin-left:-19px;width:calc(100% + 19px)}
+}
