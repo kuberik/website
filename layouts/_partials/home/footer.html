@@ -1,6 +1,8 @@
 {{- $getStarted := .Scratch.Get "getStarted" -}}
 {{- $github := .Scratch.Get "github" -}}
-{{- /* FOOTER (landing v6, DIRECTION 1.7): brand in columns 1-4, Product 7-8, Docs 9-10, Community 11-12 of the 12-column grid; 2x2 on phones. */ -}}
+{{- /* FOOTER (landing v6, DIRECTION 1.7): brand in columns 1-4, Product 7-8, Docs 9-10, Community 11-12 of the 12-column grid; 2x2 on phones.
+     The Docs column is overridable: docs and blog pages (_partials/footer.html) pass Scratch "docsLinks" with the current docs IA;
+     the landing renders its own list unchanged. */ -}}
 <footer class="foot">
   <div class="cont foot-grid">
     <div class="foot-brand">
@@ -11,7 +13,9 @@
       {{- range site.Data.landing.features.items }}<a href="{{ if not $.IsHome }}/{{ end }}#{{ .id }}">{{ .name }}</a>{{ end -}}
     </nav>
     <nav class="foot-col" aria-labelledby="fc-docs"><h2 id="fc-docs">Docs</h2>
+      {{- with $.Scratch.Get "docsLinks" }}{{ range . }}<a href="{{ index . 0 }}">{{ index . 1 }}</a>{{ end }}{{ else }}
       <a href="/docs/getting-started/">Getting started</a><a href="/docs/installation/helm/">Install with Helm</a><a href="/docs/concepts/">Concepts</a><a href="/docs/guides/">Guides</a><a href="/docs/reference/api/">API reference</a>
+      {{- end }}
     </nav>
     <nav class="foot-col" aria-labelledby="fc-community"><h2 id="fc-community">Community</h2>
       <a href="{{ $github }}">GitHub</a><a href="{{ $github }}/issues">Issues</a><a href="/blog/">Blog</a>
