@@ -411,7 +411,9 @@ figs['datadog-health-paths'] = {
   title: 'datadog-controller turns monitors and incidents into HealthChecks; the Rollout reads only the HealthChecks',
   desc: 'Two paths. Through the API: datadog-controller reads Datadog monitors and incidents with DD_API_KEY and DD_APP_KEY and writes HealthChecks of class datadog or datadog-incidents. Through the Datadog Operator: a DatadogMonitor resource synced by the operator and annotated kuberik.com/health-check: "true" makes datadog-controller write a HealthCheck datadog-check-<name> of class datadog-monitor-crd. The Rollout selects both with healthCheckSelector. A HealthCheck is Healthy, Unhealthy or Pending.',
   wide: {
-    w: 632, h: 290, body: [
+    // R7-B-4: the Rollout sits under the HealthChecks (as in the narrow drawing) so `healthCheckSelector` fits on one line
+    // (152 px mono); the first HealthCheck wires down the right edge into it, the second straight down.
+    w: 632, h: 322, body: [
       plate({ x: 0, y: 96, w: 120, h: 72, kind: 'f', title: 'Datadog', sub: ['monitors,', 'incidents'] }),
       plate({ x: 152, y: 24, w: 150, kind: 'k', title: 'datadog-controller', sub: 'polls every 60s' }),
       plate({ x: 152, y: 168, w: 150, h: 72, kind: 'f', title: 'DatadogMonitor', sub: ['synced by the', 'Datadog Operator'] }),
@@ -419,20 +421,19 @@ figs['datadog-health-paths'] = {
       text({ x: 136, y: 40, t: 'API', anchor: 'middle' }),
       edge([[120, 148], [136, 148], [136, 196], [149, 196]]),
       edge([[227, 168], [227, 83]]),
-      plate({ x: 326, y: 24, w: 186, h: 72, kind: 'k', title: 'HealthCheck', sub: ['`datadog`', '`datadog-incidents`'] }),
-      plate({ x: 326, y: 168, w: 186, h: 72, kind: 'k', title: 'HealthCheck', sub: ['`datadog-check-<name>`', '`datadog-monitor-crd`'] }),
-      edge([[302, 52], [323, 52]], { kind: 'act' }),
-      edge([[302, 72], [314, 72], [314, 196], [323, 196]], { kind: 'act' }),
-      plate({ x: 536, y: 112, w: 96, kind: 'k', key: true, title: 'Rollout', sub: 'reads both' }),
-      edge([[512, 60], [522, 60], [522, 128], [533, 128]]),
-      edge([[512, 204], [522, 204], [522, 152], [533, 152]]),
-      text({ x: 540, y: 192, t: ['healthCheck', 'Selector'], role: 'mono' }),
-      text({ x: 0, y: 280, t: 'HealthCheck status' }),
-      hcChips(124, 276),
+      plate({ x: 392, y: 24, w: 212, h: 72, kind: 'k', title: 'HealthCheck', sub: ['`datadog`', '`datadog-incidents`'] }),
+      plate({ x: 392, y: 168, w: 212, h: 72, kind: 'k', title: 'HealthCheck', sub: ['`datadog-check-<name>`', '`datadog-monitor-crd`'] }),
+      edge([[302, 52], [389, 52]], { kind: 'act' }),
+      edge([[302, 72], [346, 72], [346, 196], [389, 196]], { kind: 'act' }),
+      plate({ x: 392, y: 264, w: 212, kind: 'k', key: true, title: 'Rollout', sub: '`healthCheckSelector`' }),
+      edge([[604, 60], [620, 60], [620, 292], [607, 292]]),
+      edge([[498, 240], [498, 261]]),
+      text({ x: 0, y: 296, t: 'HealthCheck status' }),
+      hcChips(124, 292),
     ].join('')
   },
   narrow: {
-    w: 318, h: 486, body: [
+    w: 318, h: 500, body: [
       plate({ x: 0, y: 0, w: 318, kind: 'f', title: 'Datadog', sub: 'monitors, incidents' }),
       edge([[68, 56], [68, 85]], { label: { x: 76, y: 76, t: 'API' } }),
       edge([[250, 56], [250, 85]]),
@@ -446,7 +447,8 @@ figs['datadog-health-paths'] = {
       edge([[160, 336], [160, 377]]),
       edge([[302, 212], [312, 212], [312, 408], [299, 408]]),
       plate({ x: 16, y: 380, w: 280, kind: 'k', key: true, title: 'Rollout', sub: '`healthCheckSelector`' }),
-      hcChips(16, 466),
+      text({ x: 16, y: 464, t: 'HealthCheck status' }),
+      hcChips(16, 486),
     ].join('')
   }
 };
