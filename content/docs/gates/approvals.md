@@ -54,6 +54,8 @@ spec:
 
 In the [dashboard](/docs/operate/dashboard/), open the rollout's **Gates** tab and select **Approve** on the approval gate that reads **Needs you**. The dashboard creates the `RolloutApproval` as you, so your own Kubernetes permissions apply. It approves only current release candidates.
 
+![A Needs your approval card on the dashboard Home: payments-core in production, 5 of 6 production regions, Releases when someone approves, pull request #90 by Mark Collins, and the Approve button](/images/docs/gates/approvals-approve.png "Home shows the same Approve on the card of a build that waits for you.")
+
 With kubectl, create the `RolloutApproval` yourself. It can name a version that does not exist yet, and its `spec` cannot change once created.
 
 ```yaml {filename="approval.yaml"}
