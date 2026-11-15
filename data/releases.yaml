@@ -1,0 +1,12 @@
+# Latest stable release tag per component, shown on the docs home (layouts/_partials/docs-version-line.html).
+# Verified 2026-11-15 on fetched tags: git -C <repo> tag --sort=-v:refname | head
+# Pre-release tags (-rc.N) are skipped. Update on release day; see .work/docs/RELEASE-DEPS.md.
+released:
+  - { name: "rollout-controller", tag: "v0.11.0" }
+  - { name: "environment-controller", tag: "v0.1.5" }
+  - { name: "rollout-dashboard", tag: "v0.9.2" }
+  - { name: "datadog-controller", tag: "v0.1.0" }
+  - { name: "openkruise-controller", tag: "v0.4.1" }
+  - { name: "Helm chart", tag: "0.7.0" }
+# Components with no release tag yet: documented from main only.
+unreleased: ["release-controller", "prometheus-controller"]

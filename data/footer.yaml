@@ -1,0 +1,9 @@
+# Docs column of the one site footer (layouts/_partials/home/footer.html), sidebar order and sidebar titles.
+docs:
+  - { href: "/docs/getting-started/", name: "Deploy your first app" }
+  - { href: "/docs/installation/", name: "Install" }
+  - { href: "/docs/concepts/", name: "Concepts" }
+  - { href: "/docs/releases/", name: "Ship releases" }
+  - { href: "/docs/gates/", name: "Gate deploys" }
+  - { href: "/docs/operate/", name: "Operate" }
+  - { href: "/docs/reference/api/", name: "API reference" }

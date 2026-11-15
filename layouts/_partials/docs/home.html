@@ -40,6 +40,7 @@
   {{- with partial "docs/home-version.html" . }}{{ with trim . " \n\t" }}<div class="cont kdh-version">{{ . | safeHTML }}</div>{{ end }}{{ end }}
 
   <section class="cont kdh-body" aria-labelledby="kdh-sections">
+    {{ partial "docs-version-line.html" . }}
     <h2 class="sr" id="kdh-sections">Sections</h2>
     <ul class="kdh-grid">
       {{- range $i, $j := .Params.journeys }}
