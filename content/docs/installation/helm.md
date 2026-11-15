@@ -120,7 +120,7 @@ kubectl patch rollout hello-world -n hello-world --type merge \
   -p '{"spec":{"releaseSourceRef":{"name":"hello-world"}}}'
 ```
 
-After a [production install](#use-the-production-values), run `helm upgrade` with `--namespace default -f kuberik/values-production.yaml` instead.
+After a [production install](#use-the-production-values), delete the old `kuberik/` directory and pull the chart again (`helm pull` refuses to untar over it), so `kuberik/values-production.yaml` matches the new version. Then upgrade from the OCI chart: `helm upgrade kuberik oci://ghcr.io/kuberik/charts/kuberik --namespace default -f kuberik/values-production.yaml`.
 
 The CRDs are chart resources, so `helm upgrade` installs new CRDs and updates existing ones. If the CRDs were installed outside this release, hand them to it once, or Helm stops with `invalid ownership metadata`:
 
