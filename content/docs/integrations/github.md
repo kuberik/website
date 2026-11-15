@@ -131,6 +131,8 @@ For each entry in a Rollout's history, the environment-controller creates a GitH
 
 The repository's **Environments** page in GitHub shows the same history. The dashboard reads commits, pull requests and check runs with each person's own GitHub sign-in, never with the controller's token.
 
+[What Is Kuberik](/docs/what-is-kuberik/#what-kuberik-needs-from-github-and-what-happens-when-github-is-down) covers what keeps running while GitHub is down.
+
 ## Troubleshoot
 
 Errors from the GitHub side are in the environment-controller's log:

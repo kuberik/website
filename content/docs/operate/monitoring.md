@@ -148,7 +148,7 @@ Rollouts whose gates hold a release:
 kuberik_rollout_condition{type="GatesPassing"} == 0
 ```
 
-The `reason` label says which kind of gate: `NoAllowedVersions` when a waiting release is missing from an `allowedVersions` list (approvals, dependencies, environments), `SomeGatesBlocking` when a gate has `passing: false`. Both appear only while a release is waiting, so an up-to-date Rollout behind a closed deployment window does not fire the alert.
+The `reason` label says which kind of gate: `NoAllowedVersions` when no waiting release is in every gate's `allowedVersions` list (approvals, dependencies, environments), `SomeGatesBlocking` when a gate has `passing: false`. Both appear only while a release is waiting, so an up-to-date Rollout behind a closed deployment window does not fire the alert.
 
 ## Alert on failed and stuck deploys
 

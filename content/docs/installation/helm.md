@@ -1,7 +1,7 @@
 ---
 title: "Install with Helm"
 description: "Install the controllers, the dashboard and dashboard sign-in from one Helm release."
-keywords: ["multiple clusters#connect-several-clusters", "hub#connect-several-clusters", "spoke#connect-several-clusters"]
+keywords: ["multiple clusters#connect-several-clusters", "hub#connect-several-clusters", "spoke#connect-several-clusters", "control plane#connect-several-clusters", "multicluster#connect-several-clusters", "multi-cluster#connect-several-clusters"]
 type_: guide
 icon: cube
 weight: 10
