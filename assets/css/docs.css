@@ -122,6 +122,8 @@ html.dark .kd-wash::before{opacity:.5}
   .hextra-sidebar-container > .hextra-scrollbar{padding:16px var(--gut) 32px}
   .hextra-sidebar-container > div:first-child{padding:16px var(--gut) 0}
   .hextra-sidebar-container .hextra-search-wrapper{width:100%}
+  /* R13-DES-4: hextra sizes the panel to the viewport (100vw - 2rem); in the drawer it takes the input's width. */
+  .hextra-sidebar-container .hextra-search-wrapper .hextra-search-results{left:0!important;right:0!important;width:auto!important;max-width:none!important}
   .hextra-sidebar-container .hextra-search-input{width:100%;height:44px;border:1px solid var(--line);border-radius:8px;background:var(--page-alt);font:400 16px/20px var(--sans);color:var(--ink)}
 }
 .hextra-sidebar-container > div[data-toggle-animation]{display:none}
