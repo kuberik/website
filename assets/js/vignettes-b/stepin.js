@@ -144,9 +144,10 @@ VG.def('stepin', {
           track: (t) => ({ o: t > 4 ? w(t, HOV, HOV + 0.12, 'out') * (1 - w(t, A2, A2 + 0.13, 'in')) : 0, s: 1 - 0.04 * press2(t) }) });
         KB.button(act.g, ACT_X, ROW0, ACT_LABEL, { h: bh, fs: 12 });
       }
-      // the exit twin: the row's last state at slot 2; takes over at HAND, slides out under the footer and fades (150 ms in)
+      // the exit twin: the row's last state at slot 2; opaque from HAND - 30 ms (it overlaps the row by 3 samples, identical
+      // pixels, so no compositor frame ever interpolates both at half opacity), takes over at HAND, slides out under the footer and fades (150 ms in)
       const last = sc[sc.length - 1];
-      const ex = S.sprite({ ...rowBox, parent: LW, track: (t) => { const q = tau(t); return q >= HAND ? { o: 1, y: 2 * RH } : q <= 0.3 ? { o: 1 - w(q, 0, 0.15, 'in'), y: RH * (2 + w(q, 0, 0.25, 'io')) } : { o: 0, y: 3 * RH }; } });
+      const ex = S.sprite({ ...rowBox, parent: LW, track: (t) => { const q = tau(t); return q >= HAND - 0.03 ? { o: 1, y: 2 * RH } : q <= 0.3 ? { o: 1 - w(q, 0, 0.15, 'in'), y: RH * (2 + w(q, 0, 0.25, 'io')) } : { o: 0, y: q < 1.5 ? 3 * RH : 2 * RH }; } });
       KB.markOneX(ex.g, dotX, ROW0, last[1]);
       S.label(ex, T(ex.g, verX, ROW0 + 4.5, ver(41 + r), 13, 500, 'mono ink'), vOf(r), md(SH[r] + 1.0));
       T(ex.g, whatX, ROW0 + 4.5, WORD[last[2]], 13, 400, wordCls(last[2]));
