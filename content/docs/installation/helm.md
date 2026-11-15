@@ -32,13 +32,15 @@ Each integration controller is off by default. Turn on the ones you use in your 
 integrations:
   datadog:
     enabled: true       # Datadog monitors as health checks
+  prometheus:
+    enabled: true       # Prometheus alerts as health checks
   openkruise:
     enabled: true       # canary steps with OpenKruise Rollout
   environment:
     enabled: true       # promotion across clusters via GitHub
 ```
 
-[Datadog](/docs/integrations/datadog/), [Roll Out with a Canary](/docs/releases/canary/) and [GitHub](/docs/integrations/github/) cover the resources each controller reads.
+[Datadog](/docs/integrations/datadog/), [Prometheus](/docs/integrations/prometheus/), [Roll Out with a Canary](/docs/releases/canary/) and [GitHub](/docs/integrations/github/) cover the resources each controller reads.
 
 ## Expose the dashboard
 
