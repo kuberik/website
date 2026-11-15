@@ -35,6 +35,8 @@ kubectl get rollout hello-world -n hello-world \
 kubectl events -n hello-world --for rollout/hello-world
 ```
 
+### Read the controller logs
+
 The controllers' logs hold the rest, such as "Retry annotation ignored". The Helm chart runs them in `kuberik-system`.
 
 ```bash {filename="Terminal"}
