@@ -5,6 +5,9 @@ type_: guide
 weight: 90
 sidebar:
   exclude: true
+excludeSearch: true
+prev: false
+next: false
 ---
 
 Write a docs page that reads like the rest of the Kuberik docs. Every page is checked against the product's main branch, so each fact must come from the code.
