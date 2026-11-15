@@ -242,7 +242,7 @@ VERSION                   BAKE        MESSAGE
 main-3f9c2ab-1794583200   Succeeded   Automatic deployment
 ```
 
-The dashboard shows each rollout with its running build, the pipeline it moved through, and its health checks. It is off by default; [Expose the Dashboard](/docs/installation/helm/#expose-the-dashboard) turns it on, and [Use the Dashboard](/docs/operate/dashboard/) shows how to read it. The example below comes from a larger setup with three health checks.
+The dashboard shows each rollout with its running build, the pipeline it moved through, and its health checks. It is off by default; [Expose the Dashboard](/docs/installation/helm/#expose-the-dashboard) turns it on, and [Use the Dashboard](/docs/operate/dashboard/) shows how to read it. The screenshot below comes from a larger setup, not from this tutorial.
 
 ![The staging rollout of hello-world-app: the deployment pipeline it moved through, no newer build waiting, and its three health checks passing](/images/docs/getting-started/rollout-pipeline.png)
 
