@@ -34,7 +34,7 @@ An app's Progress tab shows how far each build has gone; a rollout's Gates tab s
 
 4. On the rollout, select the **Gates** tab. **Gated by** lists every gate, the environment before this one and the services this one depends on (its count is gates only), **Downstream** the rollouts that deploy after it. Below it, **Held builds**, **Waiting on** and **Depends on this** list held builds, dependencies and dependents. **All dependencies ›** opens the whole dependency network.
 
-![The Gated by column of hello-world-app in production eu-west: a closed Business Hours Only schedule and two approvals that need approval hold the rollout, each with a Skip once button](/images/docs/operate/dashboard-gated-by.png)
+![The Gates card of hello-world-app in production eu-west: a closed Business Hours Only schedule and two approvals that need approval hold the rollout, each with a Skip once button, and ap-south and us-east wait downstream](/images/docs/operate/dashboard-gated-by.png)
 
 ## Follow a change
 

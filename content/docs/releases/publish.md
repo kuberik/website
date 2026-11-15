@@ -10,7 +10,7 @@ Publish every build as a tagged artifact that a [`ReleaseSource`](/docs/referenc
 
 Each artifact also carries two OCI annotations: `org.opencontainers.image.revision` (the full git commit SHA) and `org.opencontainers.image.source` (the repository URL). Kuberik reads them to link a release to its commit and pull request, so `revision` must be the SHA, not a version string.
 
-![The newest build on the app page: 3ea2311, built a day ago and healthy in development and staging](/images/docs/releases/publish-newest.png)
+![The hello-world-app card on the Apps page: the newest build, 3ea2311, held by Business Hours Only, with development, staging and production, where production is checking](/images/docs/releases/publish-newest.png)
 
 ## Tag every build on main
 
