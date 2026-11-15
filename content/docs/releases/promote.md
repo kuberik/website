@@ -38,7 +38,7 @@ kubectl apply -f staging.yaml
 
 Give the Environment of every tier the same `spec.name`: production finds staging's deploys in GitHub by that name. With a different name, production finds no upstream and lets every release through.
 
-The controller creates a [RolloutGate](/docs/concepts/gates/) for the Rollout and records each deploy as a GitHub deployment in the environment `kuberik/hello-world/staging`. The token comes from the Secret `github-token`.
+The controller creates a [RolloutGate](/docs/concepts/gates/) for the Rollout and records each deploy as a GitHub deployment in the environment `kuberik/hello-world/staging`.
 
 ## Create the production Environment
 
@@ -113,7 +113,7 @@ kubectl get rolloutgate -n hello-world \
   -o jsonpath='{range .items[*]}{.metadata.name}: {.spec.allowedVersions}{"\n"}{end}'
 ```
 
-The gate whose name starts with `ghd-` belongs to the Environment. GitHub's **Environments** page lists every deploy and its bake result. The dashboard shows the same order on the app page.
+The gate whose name starts with `ghd-` belongs to the Environment. The dashboard shows the same order on the app page.
 
 ![The Builds card of invoice-worker: staging and production both run 2.2.0-30 and hold the newer 2.3.0-31](/images/docs/releases/promote-builds.png)
 
@@ -131,7 +131,7 @@ The conditions printed in [Check the result](#check-the-result) name what holds 
 | `LockstepConsistent=False`, reason `LockstepMismatch` | A site's `lockstep` differs from the wave-1 leader's; it holds nothing. | Set the same `lockstep` on every site. |
 | `WaveReady=False`, reason `CandidatesUnresolved` | The [ReleaseSlice](/docs/reference/api/#releaseslice) CRD is not served, so revisions cannot be mapped to tags. | Install the release-controller. |
 | `WaveReady=False`, reason `DuplicateSite` | Another Environment owns this site of the tier. | Give each cluster its own `site`, or take the site over (below). |
-| Staging baked, but production still waits (`WaitingFor`) | The GitHub token's rate limit is spent; the environment-controller logs `API rate limit exceeded`. | Wait for the reset, or [reconcile less often](/docs/operate/troubleshooting/#promotion-stalls-and-the-log-reads-api-rate-limit-exceeded). |
+| Staging baked, but production's gate does not list the release and its conditions do not change | The GitHub token's rate limit is spent: the environment-controller logs `API rate limit exceeded` and keeps its last conditions and `allowedVersions`. | Wait for the reset, or [reconcile less often](/docs/operate/troubleshooting/#promotion-stalls-and-the-log-reads-api-rate-limit-exceeded). |
 | Production deploys releases staging never ran | No staging site is registered for this `name`, so production has no upstream; or the Rollout is new, and gates never hold a first deploy. | Use the same `name` and `backend.project` in both; pin a new Rollout's first release (above). |
 
 {{< callout type="warning" >}}
