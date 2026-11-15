@@ -30,6 +30,7 @@
         {{- if and (eq .Params.type_ "index") .IsSection (not (findRE `hextra-cards|kd-section-cards` .Content 1)) }}{{ partial "docs/section-cards.html" . }}{{ end }}
       </div>
       {{ partial "components/pager.html" . }}
+      {{- if findRE `class="kd-table` $c 1 }}{{ partial "docs/table-edges.html" . }}{{ end }}
     </main>
   </article>
 </div>

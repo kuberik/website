@@ -244,17 +244,84 @@ html.dark .kd-content :where(code):not(:where(.hextra-code-block code,pre code))
 .kd-chip-blue{border-color:var(--kd-chip-blue-line);background:var(--kd-chip-blue-bg);color:var(--kd-chip-blue-ink)}
 .kd-chip-violet{border-color:var(--kd-chip-violet-line);background:var(--kd-chip-violet-bg);color:var(--kd-chip-violet-ink)}
 
-/* ---------- table: card shell ---------- */
-.kd-content table{display:block;width:100%;max-width:100%;margin:24px 0 0;overflow-x:auto;border:1px solid var(--line);border-radius:12px;border-collapse:separate;border-spacing:0;font:400 14px/22px var(--sans);scrollbar-width:thin}
-.kd-content table thead,.kd-content table tbody{width:100%}
-.kd-content table tr{background:transparent!important;border:0!important}
-.kd-content table :is(th,td){padding:10px 16px;border:0!important;border-bottom:1px solid var(--line)!important;text-align:left;vertical-align:top;min-width:120px;background:transparent}
-.kd-content table th{background:var(--page-alt);font:600 13px/20px var(--sans);color:var(--ink-subtle);white-space:nowrap}
-html.dark .kd-content table th{background:oklch(1 0 0/.03)}
-.kd-content table tbody tr:last-child td{border-bottom:0!important}
-.kd-content table td:first-child{color:var(--ink);font-weight:500}
-.kd-content table td{color:var(--ink-muted)}
-@media(min-width:768px){.kd-content table{display:table;overflow:hidden}.kd-content table :is(th,td){min-width:0}}
+/* ---------- table: card shell (layouts/_markup/render-table.html, R2-DES-1) ----------
+   .kd-table is the frame (radius 12, 1px line, clip) and never moves; .kd-table-scroll scrolls sideways inside it
+   when the columns cannot fit, so the page never scrolls. The key column never wraps (whole code tokens, >= 140)
+   and is pinned while the rest scrolls; prose cells wrap. Edge fades (.kd-more-l/-r, set by the hook's script)
+   and a thin always-visible scrollbar say there is more. */
+.kd-table{position:relative;margin:24px 0 0;border:1px solid var(--line);border-radius:12px;overflow:hidden;background:var(--page)}
+.kd-table-scroll{overflow-x:auto;overscroll-behavior-x:contain;scrollbar-width:thin;scrollbar-color:color-mix(in oklab,var(--ink-subtle) 45%,transparent) transparent}
+.kd-table-scroll:focus-visible{outline:2px solid var(--mint);outline-offset:-2px;border-radius:12px}
+.kd-table-scroll::-webkit-scrollbar{height:6px}
+.kd-table-scroll::-webkit-scrollbar-thumb{background:color-mix(in oklab,var(--ink-subtle) 45%,transparent);border-radius:3px}
+.kd-table::before,.kd-table::after{content:'';position:absolute;top:0;bottom:0;width:32px;pointer-events:none;opacity:0;transition:opacity .15s;z-index:2}
+.kd-table::after{right:0;background:linear-gradient(to left,var(--page),transparent)}
+.kd-table::before{left:var(--kd-key-w,0px);background:linear-gradient(to right,color-mix(in oklab,var(--ink) 10%,transparent),transparent);width:12px}
+.kd-table.kd-more-r::after,.kd-table.kd-more-l::before{opacity:1}
+.kd-content .kd-table table{display:table;width:100%;min-width:100%;margin:0;border:0;border-radius:0;border-collapse:separate;border-spacing:0;font:400 14px/22px var(--sans);overflow:visible}
+.kd-content .kd-table tr{background:transparent!important;border:0!important}
+.kd-content .kd-table :is(th,td){padding:10px 16px;border:0!important;border-bottom:1px solid var(--line)!important;text-align:left;vertical-align:top;min-width:96px;background:var(--page)}
+.kd-content .kd-table th{background:var(--page-alt);font:600 13px/20px var(--sans);color:var(--ink-subtle);white-space:nowrap}
+html.dark .kd-content .kd-table th{background:color-mix(in oklab,var(--page) 97%,white)}
+.kd-content .kd-table tbody tr:last-child td{border-bottom:0!important}
+.kd-content .kd-table td{color:var(--ink-muted)}
+/* raw HTML tables (the generated API reference): the same card, scrolling as a whole on phones */
+.kd-content table:not(.kd-table table){display:block;width:100%;margin:24px 0 0;overflow-x:auto;border:1px solid var(--line);border-radius:12px;border-collapse:separate;border-spacing:0;font:400 14px/22px var(--sans);scrollbar-width:thin}
+.kd-content table:not(.kd-table table) :is(th,td){padding:10px 16px;border:0!important;border-bottom:1px solid var(--line)!important;text-align:left;vertical-align:top;background:transparent}
+.kd-content table:not(.kd-table table) th{background:var(--page-alt);font:600 13px/20px var(--sans);color:var(--ink-subtle);white-space:nowrap}
+html.dark .kd-content table:not(.kd-table table) th{background:color-mix(in oklab,var(--page) 97%,white)}
+.kd-content table:not(.kd-table table) tr{background:transparent!important;border:0!important}
+.kd-content table:not(.kd-table table) tbody tr:last-child td{border-bottom:0!important}
+.kd-content table:not(.kd-table table) td{color:var(--ink-muted)}
+.kd-content table:not(.kd-table table) td:first-child{min-width:140px;color:var(--ink);font-weight:500}
+.kd-content table:not(.kd-table table) td:first-child code{white-space:nowrap}
+@media(min-width:768px){.kd-content table:not(.kd-table table){display:table;overflow:hidden}}
+@media(max-width:640px){
+  .kd-content table:not(.kd-table table) thead{position:absolute;width:1px;height:1px;overflow:hidden;clip-path:inset(50%)}
+  .kd-content table:not(.kd-table table) :is(tbody,tr,td){display:block}
+  .kd-content table:not(.kd-table table) tr{padding:12px 12px 14px;border-bottom:1px solid var(--line)!important}
+  .kd-content table:not(.kd-table table) tbody tr:last-child{border-bottom:0!important}
+  .kd-content table:not(.kd-table table) td{padding:0!important;border:0!important;min-width:0}
+  .kd-content table:not(.kd-table table) td + td{margin-top:6px}
+}
+/* key column: never wraps, pinned */
+.kd-content .kd-table :is(th,td):first-child{min-width:140px;white-space:nowrap}
+.kd-content .kd-table[data-key=prose] :is(th,td):first-child{white-space:normal;width:30%;max-width:240px}
+.kd-content .kd-table.kd-pin :is(th,td):first-child{position:sticky;left:0;z-index:1}
+.kd-content .kd-table td:first-child{color:var(--ink);font-weight:500}
+.kd-content .kd-table td:first-child code{white-space:nowrap}
+/* code in other cells (and in sentence keys): wraps at spaces only, never inside a token; a long token widens its column and the card scrolls */
+.kd-content .kd-table td:not(:first-child) code,.kd-content .kd-table[data-key=prose] td:first-child code{white-space:normal;overflow-wrap:normal;word-break:normal}
+/* prose column: the last column of a 3+ column table is the explanation; give it a reading width */
+.kd-content .kd-table:is([data-cols="3"],[data-cols="4"],[data-cols="5"],[data-cols="6"]) :is(th,td):last-child{min-width:220px}
+.kd-content .kd-table td:first-child p{margin:0}
+/* spec rows: 5+ columns at every width, 3+ columns on phones (render-table.html). Key line, labelled meta line, prose. */
+.kd-content .kd-spec thead{position:absolute;width:1px;height:1px;overflow:hidden;clip-path:inset(50%)}
+.kd-content .kd-spec :is(table,tbody){display:block}
+.kd-content .kd-spec tr{display:flex;flex-wrap:wrap;align-items:baseline;column-gap:20px;row-gap:4px;padding:14px 18px 16px;border-bottom:1px solid var(--line)!important}
+.kd-content .kd-spec tbody tr:last-child{border-bottom:0!important}
+.kd-content .kd-spec td{display:block;padding:0!important;min-width:0!important;border:0!important;background:transparent;font:400 13px/20px var(--sans)}
+.kd-content .kd-spec td:first-child{flex:1 0 100%;position:static;white-space:normal;margin-bottom:4px;font:500 14px/22px var(--sans)}
+.kd-content .kd-spec td:first-child code{white-space:nowrap;font-size:13px}
+.kd-content .kd-spec td:not(:first-child):not(:last-child)::before{content:attr(data-label);margin-right:6px;font:500 12px/20px var(--sans);color:var(--ink-subtle)}
+.kd-content .kd-spec td:not(:first-child):not(:last-child) code{font-size:.92em}
+.kd-content .kd-spec td:last-child{flex:1 0 100%;min-width:0!important;margin-top:4px;font:400 14px/22px var(--sans);color:var(--ink-muted)}
+@media(max-width:640px){
+  .kd-content .kd-spec tr{padding:12px 12px 14px;column-gap:14px}
+  .kd-content .kd-spec td:first-child code{font-size:12px;padding-inline:5px}
+  .kd-content .kd-table:not(.kd-spec)[data-stack] thead{position:absolute;width:1px;height:1px;overflow:hidden;clip-path:inset(50%)}
+  .kd-content .kd-table:not(.kd-spec)[data-stack] :is(table,tbody,tr,td){display:block}
+  .kd-content .kd-table:not(.kd-spec)[data-stack] tr{padding:12px 12px 14px;border-bottom:1px solid var(--line)!important}
+  .kd-content .kd-table:not(.kd-spec)[data-stack] tbody tr:last-child{border-bottom:0!important}
+  .kd-content .kd-table:not(.kd-spec)[data-stack] td{position:static;padding:0!important;min-width:0!important;max-width:none;width:auto;border:0!important;background:transparent;white-space:normal;font:400 14px/22px var(--sans)}
+  .kd-content .kd-table:not(.kd-spec)[data-stack] td:first-child{margin-bottom:6px;font-weight:500}
+  .kd-content .kd-table:not(.kd-spec)[data-stack] td + td{margin-top:6px}
+  .kd-content .kd-table:not(.kd-spec)[data-stack] td + td::before{content:attr(data-label);display:block;font:500 12px/18px var(--sans);color:var(--ink-subtle)}
+  .kd-content .kd-table[data-stack] td:first-child code{white-space:normal;overflow-wrap:normal}
+  .kd-content .kd-table[data-stack][data-cols="2"] td + td::before{display:none}
+}
+@media(min-width:768px){.kd-content .kd-table :is(th,td){min-width:80px;padding:10px 14px}.kd-content .kd-table:is([data-cols="3"],[data-cols="4"]) :is(th,td):last-child{min-width:200px}}
+@media(max-width:640px){.kd-content .kd-table :is(th,td){padding:10px 12px}.kd-content .kd-table:is([data-cols="3"],[data-cols="4"],[data-cols="5"],[data-cols="6"]) :is(th,td):last-child{min-width:200px}}
 
 /* ---------- steps: the progress rail ---------- */
 .hextra-steps{margin:32px 0 48px 12px!important;padding-left:28px!important;border-left:1px solid var(--line)!important;counter-reset:step}
@@ -341,6 +408,6 @@ html.dark .kd-content table th{background:oklch(1 0 0/.03)}
 }
 @media(min-width:2400px){
   .kd-content{font-size:17px;line-height:30px}
-  .kd-content table{font-size:15px}
+  .kd-content .kd-table table{font-size:15px}
   .kd-code-body pre,.hextra-code-block pre{font-size:14px!important;line-height:24px!important}
 }

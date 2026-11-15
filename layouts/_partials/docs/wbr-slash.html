@@ -1,0 +1,5 @@
+{{- /* Table cell HTML with a break opportunity after every "/" inside inline code, so a long path, URL or annotation
+     key (rollout.kuberik.com/substitute.<variable>.from) may wrap between its parts but never inside a word. */ -}}
+{{- $h := string . -}}
+{{- range uniq (findRE `<code>[^<]*/[^<]*</code>` $h) }}{{ $h = replace $h . (replace . "/" "/<wbr>") }}{{ end -}}
+{{- $h | safeHTML -}}

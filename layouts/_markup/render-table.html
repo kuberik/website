@@ -1,0 +1,47 @@
+{{- /* Table render hook (shell-a, R2-DES-1; DIRECTION.md 3 "Table", STYLE 7).
+     Role: a look-up table in the card shell. The card (.kd-table, radius 12, 1px line: the docs card shell) is the
+     frame and never moves; the table scrolls sideways inside it (.kd-table-scroll) when its columns cannot fit the
+     reading column, so the page itself never scrolls. Proportions: the dashboard RolloutGrid row (key column first,
+     ink 500, prose after it in ink-muted) and the code window's card frame.
+     Why a wrapper: a <table> cannot be both the rounded clipping frame and the scroll container while its first
+     column stays sticky, and the edge fades need a non-scrolling parent to sit on.
+     Phones (<= 640): a table of three or more columns, or with a key over 24 characters, stacks into the same spec rows (key line, then each other cell
+     under its header as a label), so nothing hides off the right edge; short-key two-column tables stay tables and scroll if they must.
+     The key (first) column never wraps (whole code tokens, min 140px) and is pinned while the rest scrolls when it takes at most 40% of the card (a long annotation key on a phone scrolls with the rest);
+     the fades at either edge say "more this way" and appear only when there is more (layouts/_partials/docs/table-edges.html, added once by docs/page.html). */ -}}
+{{- $cols := 0 -}}{{- $labels := slice -}}
+{{- range .THead }}{{ $cols = len . }}{{ $labels = slice }}{{ range . }}{{ $labels = $labels | append (.Text | plainify | htmlUnescape) }}{{ end }}{{ end -}}
+{{- /* key kind: "tok" when every key cell is a token (no space, or one code chip), so it may never wrap; "prose" when
+     a key is a sentence (Symptom | Cause | Fix), which wraps inside a 140-240 column instead. */ -}}
+{{- $prose := false -}}{{- $keyMax := 0 -}}
+{{- range .TBody }}{{ with index . 0 }}{{ $t := .Text | string | plainify | htmlUnescape }}{{ if and (strings.Contains $t " ") (gt (len $t) 28) }}{{ $prose = true }}{{ end }}{{ if gt (len $t) $keyMax }}{{ $keyMax = len $t }}{{ end }}{{ end }}{{ end -}}
+{{- /* phones stack the table into spec rows when it has 3+ columns or a key longer than 24 characters (it would leave
+     the prose column a sliver); short-key two-column tables stay tables */ -}}
+{{- $stack := or (ge $cols 3) (gt $keyMax 24) -}}
+{{- /* five or more columns cannot share a 680 reading column with a prose column (annotations: key 300 + three short
+     facts + Effect). They render as spec rows instead: key on its own line, the short facts as a labelled meta line,
+     the last column as the row's prose. Same card, same hairlines; the reference is the Stripe API parameter row and
+     the dashboard rail card's dl (label ink-subtle, value ink). A key may break only after its domain's "/". */ -}}
+{{- $spec := ge $cols 5 -}}
+<div class="kd-table{{ if $spec }} kd-spec{{ end }}" data-cols="{{ $cols }}" data-key="{{ cond $prose "prose" "tok" }}"{{ if $stack }} data-stack{{ end }}><div class="kd-table-scroll" tabindex="0" role="region" aria-label="Table, scrolls sideways">
+<table{{ range $k, $v := .Attributes }} {{ $k }}="{{ $v }}"{{ end }}>
+  <thead>
+    {{- range .THead }}
+    <tr>
+      {{- range . }}
+      <th{{ with .Alignment }} style="text-align:{{ . }}"{{ end }}>{{ .Text }}</th>
+      {{- end }}
+    </tr>
+    {{- end }}
+  </thead>
+  <tbody>
+    {{- range .TBody }}
+    <tr>
+      {{- range $i, $c := . }}
+      <td{{ with $c.Alignment }} style="text-align:{{ . }}"{{ end }}{{ if gt $i 0 }} data-label="{{ index $labels $i }}"{{ end }}>{{ if or (gt $i 0) (or $spec $prose) }}{{ partial "docs/wbr-slash.html" $c.Text }}{{ else }}{{ $c.Text }}{{ end }}</td>
+      {{- end }}
+    </tr>
+    {{- end }}
+  </tbody>
+</table>
+</div></div>
