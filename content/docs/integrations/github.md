@@ -121,7 +121,7 @@ The dashboard header now offers **Connect GitHub**. Sign in once; the commit lis
 
 {{% /steps %}}
 
-![The Changes page for the signed-in user: In flight, three pull requests grouped under the environment each has reached, and Landed, with four changes](/images/docs/integrations/github-changes.png)
+![The In flight card of the Changes page for the signed-in user: three pull requests grouped under the environment each has reached, two in development and one in production](/images/docs/integrations/github-changes.png)
 
 ## How it works
 

@@ -27,11 +27,11 @@ An app's Progress tab shows how far each build has gone; a rollout's Gates tab s
 2. When two or more releases are in flight, pick one in the release list, beside the drawing or above it on a narrow screen. The drawing shows every environment as a column, its regions grouped by **Wave**, and each place's state: deployed, deploying, checking, held (with the rule that holds it), waiting for approval, failed, or **Not reached**.
 3. Select a place in the drawing to open that rollout. When the app waits or failed, the banner above also has **Open rollout**. To find what a banner's words mean and how to clear them, look them up in [What the dashboard shows](/docs/operate/troubleshooting/#what-the-dashboard-shows).
 
-![The Progress card of checkout-api on its oldest build in flight, 4.41.0-41: dev runs 4.45.0-45, staging 4.43.0-43, and production is grouped in waves, eu-central and us-east-1 in wave 1, us-east-2 in wave 2, af-south-1 and ap-southeast-2 in wave 3, not reached](/images/docs/operate/dashboard-progress.png)
+![The Progress card of hello-waves-app on build c6f19d2, 5 of 5 places deployed: dev-local in development, eu-west-1 in staging, and production in two waves, eu-west-1 and us-east-1 in wave 1 and ap-south-1 in wave 2](/images/docs/operate/dashboard-progress.png)
 
 4. On the rollout, select the **Gates** tab. **Gated by** lists every gate, the environment before this one and the services this one depends on (its count is gates only), **Downstream** the rollouts that deploy after it. Below it, **Held builds**, **Waiting on** and **Depends on this** list held builds, dependencies and dependents. **All dependencies ›** opens the whole dependency network.
 
-![The Gates card of billing-edge in production: prod is waiting on an approval, and two gates hold build 5.8.0-62, the closed Business hours window and Release approval, which needs approval, each with a Skip once button, while billing-edge runs 5.7.1-61](/images/docs/operate/dashboard-gated-by.png)
+![The Gates graph of billing-edge in production: two gates hold build 5.8.0-62, the closed Business hours window and Release approval, which needs approval, each with a Skip once button, and billing-edge in production runs 5.7.1-61](/images/docs/operate/dashboard-gated-by.png)
 
 5. On a rendered-manifests rollout, select **View source** in the rollout header to read the files that are deployed ([Rendered manifests](/docs/concepts/propagation/#rendered-manifests)).
 
