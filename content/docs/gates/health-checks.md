@@ -6,7 +6,7 @@ weight: 10
 aliases: ["/docs/guides/health-checks/"]
 ---
 
-A [Rollout](/docs/concepts/rollouts/) with health checks marks a deploy succeeded only after its checks stay healthy for the bake time, and fails it when a check turns unhealthy. While a check is unhealthy, new automatic deploys wait.
+A [Rollout](/docs/concepts/rollouts/) with health checks marks a deploy succeeded only after its checks stay healthy for the bake time, and fails it when a check turns unhealthy or `deployTimeout` passes first. Without `deployTimeout`, a build whose checks never turn healthy waits in `Deploying` and holds every newer release. While a check is unhealthy, new automatic deploys wait.
 
 {{< fig id="health-bake" caption="deployTimeout limits the wait for every check to be Healthy, bakeTime runs from that moment, and a check error at any point fails the deploy." >}}
 
@@ -63,7 +63,7 @@ Each deploy, and each retry, then goes through these rules:
 | `deployTimeout` passes before bake starts | The deploy fails ("Deploy timeout reached before bake could start") |
 | `bakeTime` passes with no error | The deploy succeeds. Without `bakeTime`, it succeeds as soon as bake starts |
 
-`deployTimeout` fails the deploy if bake has not started by then. A Rollout without `healthCheckSelector` has no checks: bake starts at once.
+`deployTimeout` fails the deploy if bake has not started by then; without it, the deploy waits. A Rollout without `healthCheckSelector` has no checks: bake starts at once.
 
 ## Hold deploys on an unhealthy check
 
