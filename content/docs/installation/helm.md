@@ -120,6 +120,8 @@ kubectl patch rollout hello-world -n hello-world --type merge \
   -p '{"spec":{"releaseSourceRef":{"name":"hello-world"}}}'
 ```
 
+After a [production install](#use-the-production-values), run `helm upgrade` with `--namespace default -f kuberik/values-production.yaml` instead.
+
 The CRDs are chart resources, so `helm upgrade` installs new CRDs and updates existing ones. If the CRDs were installed outside this release, hand them to it once, or Helm stops with `invalid ownership metadata`:
 
 ```bash {filename="adopt-crds.sh"}
@@ -134,6 +136,8 @@ Use your own release name and namespace; Helm 3.17 and later can do the same wit
 ```bash {filename="Terminal"}
 helm uninstall kuberik --namespace kuberik-system
 ```
+
+After a production install, use `--namespace default`. The chart owns `kuberik-system` there, so the uninstall deletes the namespace and every Secret in it, such as `github-app-credentials` and `datadog-credentials`.
 
 The CRDs stay, with every Rollout and gate in them (`crds.keep`). To remove them too:
 
@@ -167,6 +171,7 @@ The `rollout-controller` Deployment is ready, plus `release-controller`, `rollou
 | `dashboard.gateway.auth is true but auth.enabled is false` | The route asks for sign-in that is not installed | Set `auth.enabled: true` with the OIDC values, or `dashboard.gateway.auth: false` |
 | Sign-in redirects in a loop | The redirect URI or cookie domain does not match the host | Register `https://<canonicalHost>/oauth2/callback`; make `auth.cookieDomain` a parent of the host |
 | Prometheus does not scrape the controller | The ServiceMonitor is in `kuberik-system` | Set `metrics.serviceMonitor.namespace` to the Prometheus Operator's namespace |
+| No ServiceMonitor exists | The Prometheus Operator CRDs were not in the cluster when the chart was installed | Run `helm upgrade` after installing the Prometheus Operator |
 
 ## Next steps
 
