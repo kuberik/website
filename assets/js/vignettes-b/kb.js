@@ -228,8 +228,13 @@
         time() { return (abs() % loop + loop) % loop; },
         abs,
         cycles: labels.length > 0,
-        // the rest frame of the CURRENT cycle (vg.js parks a card here at the end of its turn without rewinding its labels)
-        restAbs(rest) { const T = abs(); const n = Math.floor((T - rest + 0.05) / loop); return n * loop + rest; },
+        // v6k (QA v6j BLOCKING): where vg.js parks a card. NEVER backwards: the latest rest at or before T only when it is at most
+        // 0.25 s back AND no label swapped since (a turn timer that fires late under load); otherwise the NEXT rest, so a version
+        // that arrived during this cycle stays (v6j floored to the current cycle's rest: a card left mid-cycle replayed its build)
+        restAbs(rest) {
+          const T = abs(); const Rc = Math.floor((T - rest) / loop) * loop + rest;
+          return T - Rc <= 0.25 && labels.every((L) => kOf(L, Rc) === kOf(L, T)) ? Rc : Rc + loop;
+        },
         // snap(T): every track at T mod loop (seam checks compare these); snap(T, true) appends the labels at absolute T
         snap(T, withLabels) {
           const t = ((T % loop) + loop) % loop;

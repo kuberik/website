@@ -1,6 +1,6 @@
 /* ===== STEP IN (landing v6j). Day-2 operation; layouts/_partials/home/stepin.html. Page ground between the lagoon
    features stage and the deep spec band. >= 1024: head split (title left, lead right, as #features), then canvas 7 | actions 5.
-   <= 1023: one column, canvas over actions. The poster borrows take B's card: white body, 8px radius, mono versions. ===== */
+   <= 1023: one column, canvas over actions. The canvas holds the Step in vignette (assets/js/vignettes-b/stepin.js). ===== */
 .si-name{margin:0 0 8px;font:500 var(--t-label-s)/var(--t-label-l) var(--sans);color:oklch(.5 .09 182)}
 html.dark .si-name{color:oklch(.82 .1 182)}
 .si-lead .link-arrow{margin-top:16px}
@@ -17,41 +17,17 @@ html.dark .si-name{color:oklch(.82 .1 182)}
 .si-canvas{display:flex;align-items:center;justify-content:center;min-height:320px;padding:32px 24px;border-radius:var(--card-r);border:1px solid var(--card-border);
   background-color:var(--canvas-mint);background-image:radial-gradient(circle,oklch(.195 .014 222/.08) 1px,transparent 1.2px);background-size:20px 20px;background-position:-9px -9px}
 html.dark .si-canvas{background-image:radial-gradient(circle,oklch(.965 .005 222/.08) 1px,transparent 1.2px)}
-.si-poster{width:100%;max-width:460px}
-.si-card{background:var(--page);border:1px solid var(--line);border-radius:8px;box-shadow:0 1px 2px oklch(.195 .014 222/.06),0 10px 24px -12px oklch(.32 .06 206/.3)}
-html.dark .si-card{background:var(--card-fill);box-shadow:inset 0 1px 0 oklch(1 0 0/.06),0 12px 28px -14px oklch(0 0 0/.6)}
-.si-card-head{display:flex;align-items:center;gap:8px;padding:12px 16px;border-bottom:1px solid var(--line);font:600 14px/20px var(--sans);color:var(--ink)}
-.si-chip{height:18px;padding:0 5px;border-radius:4px;font:600 10px/16px var(--sans);letter-spacing:.04em;border:1px solid}
-.si-prod{color:#a800b7;background:#fdf4ff;border-color:#f4a8ff}
-html.dark .si-prod{color:#f4a8ff;background:color-mix(in oklab,#ed00ab 18%,transparent);border-color:color-mix(in oklab,#ed00ab 45%,transparent)}
-.si-site{font:500 13px/20px var(--sans);color:var(--ink-muted)}
-.si-pin{margin-left:auto;display:inline-flex;align-items:center;gap:4px;height:22px;padding:0 8px;border-radius:6px;border:1px solid var(--line);font:500 12px/20px var(--sans);color:var(--ink-muted)}
-.si-hist{list-style:none;margin:0;padding:6px 0}
-.si-hist li{display:grid;grid-template-columns:8px 92px minmax(0,1fr);align-items:center;gap:12px;padding:8px 16px;font:400 13px/20px var(--sans);color:var(--ink-muted)}
-.si-dot{width:8px;height:8px;border-radius:50%;background:oklch(.63 .14 155)}
-.si-ver{font:500 13px/20px var(--mono);color:var(--ink)}
-.si-what{min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
-.si-hist .is-fail .si-dot{background:oklch(.58 .2 27)}
-.si-hist .is-fail .si-what{color:oklch(.5 .17 27)}
-html.dark .si-hist .is-fail .si-what{color:oklch(.75 .13 27)}
-.si-hist .is-run{background:color-mix(in oklab,oklch(.63 .14 155) 8%,transparent)}
-.si-hist .is-run .si-what{color:var(--ink)}
-.si-card-foot{display:flex;align-items:center;gap:12px;padding:12px 16px;border-top:1px solid var(--line)}
-.si-note{flex:1;min-width:0;font:400 12px/18px var(--sans);color:var(--ink-subtle)}
-.si-btn{flex:none;height:30px;padding:0 12px;border-radius:6px;border:1px solid var(--line);background:var(--page);font:500 13px/28px var(--sans);color:var(--ink)}
-html.dark .si-btn{background:oklch(1 0 0/.04)}
 /* the actions: the rail card's dl, one row per action */
 .si-acts{margin:0;display:flex;flex-direction:column;border:1px solid var(--card-border);border-radius:var(--card-r);background:var(--card-fill);box-shadow:var(--card-shadow)}
 .si-act{flex:1;padding:20px var(--card-pad);display:flex;flex-direction:column;justify-content:center}
 .si-act+.si-act{border-top:1px solid var(--line)}
 .si-act dt{display:flex;align-items:baseline;flex-wrap:wrap;gap:4px 12px}
-.si-act-name{font:600 16px/24px var(--sans);color:var(--ink)}
+.si-act-name{font:600 16px/24px var(--sans);color:var(--ink);text-decoration:none}
+a.si-act-name:hover{text-decoration:underline;text-underline-offset:3px}
 .si-handle{margin-left:auto;font:500 12px/18px var(--mono);color:var(--ink-muted)}
 .si-act dd{margin:4px 0 0;font:400 var(--t-card-body-s)/var(--t-card-body-l) var(--sans);color:var(--ink-muted);text-wrap:pretty}
 @media(max-width:640px){
   .si-canvas{min-height:0;padding:24px}
-  .si-hist li{grid-template-columns:8px 80px minmax(0,1fr);gap:10px;padding:8px 12px}
-  .si-card-head,.si-card-foot{padding-inline:12px}
   .si-handle{margin-left:0;flex-basis:100%}
 }
 /* the lead reads at the #features lead size at every width */

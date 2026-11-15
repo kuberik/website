@@ -22,7 +22,7 @@
       <dl class="si-acts reveal">
         {{- range $s.actions }}
         <div class="si-act">
-          <dt><span class="si-act-name">{{ .name }}</span><code class="si-handle">{{ .handle }}</code></dt>
+          <dt>{{ if .href }}<a class="si-act-name" href="{{ .href }}">{{ .name }}</a>{{ else }}<span class="si-act-name">{{ .name }}</span>{{ end }}<code class="si-handle">{{ .handle }}</code></dt>
           <dd>{{ .body }}</dd>
         </div>
         {{- end }}

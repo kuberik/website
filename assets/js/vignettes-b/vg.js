@@ -211,19 +211,41 @@
       let rem = (((v.s.rest - now) % L) + L) % L; if (rem < 0.05) rem = L;
       turn = setTimeout(rotate, rem * 1000);
     };
+    // v6k (review r7 S5): the card the visitor scrolled to wins the first turn over its row-mate. "Scrolled to" = the eligible
+    // card whose vertical centre is nearest the viewport's centre (a side-by-side pair ties within 8 px: the larger area wins).
+    const off = (v) => { const r = v.host.getBoundingClientRect(); return Math.abs((r.top + r.bottom) / 2 - innerHeight / 2); };
+    const centred = () => {
+      let best = null, bd = 0;
+      for (const v of live) { if (!(v.ratio >= MIN)) continue; const d = off(v); if (!best || d < bd - 8 || (Math.abs(d - bd) <= 8 && v.area > best.area)) { best = v; bd = d; } }
+      return best;
+    };
+    let gesture = 0, gestureTimer = null, wonAt = -1, wonBy = 'elect', preempt = false;
     const elect = () => {
-      let best = null;
-      for (const v of live) if (v.ratio >= MIN && (!best || v.area > best.area)) best = v;
+      const best = centred();
       // v6j (tl-landing-ship-2 QA note): the holder keeps its turn while it stays >= MIN in view; the turn passes only at its loop's
       // end (rotate) or when it leaves, so a scroll cannot take a turn back from a card it was just handed to
       const keep = cur && live.includes(cur) && cur.ratio >= MIN;
       const handoff = next && live.includes(next) && next.ratio >= MIN ? next : null;
       next = null;
       const win = handoff || (keep ? cur : best);
-      for (const v of live) { const want = v === win; if (want === v.on && (want || v.atRest)) continue; v.on = want; want ? go(v) : settle(v, v === cur && handoff); }
-      if (win !== cur || handoff) { clearTimeout(turn); turn = null; if (win) schedule(win); }
+      for (const v of live) { const want = v === win; if (want === v.on && (want || v.atRest)) continue; v.on = want; want ? go(v) : settle(v, v === cur && handoff && !preempt); }
+      if (win !== cur || handoff) { clearTimeout(turn); turn = null; if (win) schedule(win); wonAt = gesture; wonBy = handoff ? 'handoff' : 'elect'; }
       cur = win; announce();
     };
+    // a smooth scroll crosses earlier cards first, and the holder keeps its turn while in view, so the card passed on the way
+    // could keep the first turn. When the scroll settles (150 ms quiet), a turn that was WON BY ELECTION during this scroll
+    // gesture goes to the most centred card (handed over like a loop's end: the outgoing card finishes its cycle). A turn
+    // handed over by rotate() or won before the gesture is never taken back, so small scrolls do not flip turns.
+    addEventListener('scroll', () => {
+      if (!gestureTimer) gesture++;
+      clearTimeout(gestureTimer);
+      gestureTimer = setTimeout(() => {
+        gestureTimer = null;
+        if (!cur || wonBy !== 'elect' || wonAt !== gesture || document.hidden) return;
+        const c = centred();
+        if (c && c !== cur) { next = c; preempt = true; elect(); preempt = false; }   // mid-loop: the outgoing card finishes
+      }, 150);
+    }, { passive: true });
     io = new IntersectionObserver((es) => {
       for (const e of es) { const v = live.find((x) => x.host === e.target); if (!v) continue; v.ratio = e.intersectionRatio; v.area = e.intersectionRect.width * e.intersectionRect.height; }
       elect(); kick();
