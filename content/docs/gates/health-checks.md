@@ -6,7 +6,7 @@ weight: 10
 aliases: ["/docs/guides/health-checks/"]
 ---
 
-A [Rollout](/docs/concepts/rollouts/) with health checks marks a deploy succeeded only after its checks stay healthy for the bake time, and fails it when a check turns unhealthy or `deployTimeout` passes first. Without `deployTimeout`, a build whose checks never turn healthy waits in `Deploying` and holds every newer release. While a check is unhealthy, new automatic deploys wait.
+A [Rollout](/docs/concepts/rollouts/) with health checks marks a deploy succeeded once its checks stay healthy for the bake time, and fails it if a check turns unhealthy or `deployTimeout` passes first. Without `deployTimeout`, a build that never turns healthy waits in `Deploying` and holds newer releases.
 
 {{< fig id="health-bake" caption="deployTimeout limits the wait for every check to be Healthy, bakeTime runs from that moment, and a check error at any point fails the deploy." >}}
 
@@ -67,7 +67,7 @@ Each deploy, and each retry, then goes through these rules:
 
 ## Hold deploys on an unhealthy check
 
-You do not configure this: while any selected HealthCheck is `Unhealthy`, the Rollout starts no new automatic deploy and reports `DeploymentBlocked=True` with reason `UnhealthyHealthChecks`. `Pending` does not block. The very first deploy and manual deploys (a pin in `spec.wantedVersion` or `rollout.kuberik.com/force-deploy`) are not held.
+While a check is unhealthy, new automatic deploys wait. You do not configure this: while any selected HealthCheck is `Unhealthy`, the Rollout reports `DeploymentBlocked=True` with reason `UnhealthyHealthChecks`; `Pending` does not block. The very first deploy and manual deploys (a pin in `spec.wantedVersion` or `rollout.kuberik.com/force-deploy`) are not held.
 
 After a deploy fails, the Rollout starts no new automatic deploy until you retry it, set `rollout.kuberik.com/unblock-failed: "true"`, or deploy a version by hand ([Operate with kubectl](/docs/operate/manual-actions/)).
 
