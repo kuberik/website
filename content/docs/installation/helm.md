@@ -35,10 +35,10 @@ integrations:
   openkruise:
     enabled: true       # canary steps with OpenKruise Rollout
   environment:
-    enabled: true       # promotion across clusters via GitHub
+    enabled: true       # promotion between environments via GitHub
 ```
 
-[Datadog](/docs/integrations/datadog/), [Roll Out with a Canary](/docs/releases/canary/) and [GitHub](/docs/integrations/github/) cover the resources each controller reads. The chart does not install the prometheus-controller; [Prometheus](/docs/integrations/prometheus/) shows how to build and deploy it.
+Promotion between environments always goes through GitHub deployments, even when every environment runs in one cluster. [Datadog](/docs/integrations/datadog/), [Roll Out with a Canary](/docs/releases/canary/) and [GitHub](/docs/integrations/github/) cover the resources each controller reads. The chart does not install the prometheus-controller; [Prometheus](/docs/integrations/prometheus/) shows how to build and deploy it.
 
 ## Expose the dashboard
 

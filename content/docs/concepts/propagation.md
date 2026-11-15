@@ -40,7 +40,7 @@ spec:
     name: hello-world
   postBuild:
     substitute:
-      APP_VERSION: "1.0.0"  # default, Kuberik overwrites it
+      ENVIRONMENT: production  # Kuberik adds APP_VERSION
 ```
 
 A rollout in this mode changes exactly one thing: the image tag. Config changes reach the cluster through a separate path, whenever the Kustomization next reconciles git. That keeps each rollout narrow, and it means deploying an older build by hand restores the image, not the configuration that shipped with it.
@@ -88,7 +88,7 @@ spec:
     name: hello-world
 ```
 
-A release in this mode is a tag bump on one OCIRepository. A promotion is the same tag bump on the next environment's OCIRepository. Deploying an older build by hand in production moves that one tag back and leaves staging where it is. Because the artifact carries the whole desired state, a config change is a release: it goes through the same gates, health checks and bake time as a code change, and a failed bake holds further deploys the same way.
+A release in this mode is a tag bump on one OCIRepository. A promotion is the same tag bump on the next environment's OCIRepository. Pinning an older build in production moves that one tag back and leaves staging where it is. Because the artifact carries the whole desired state, a config change is a release: it goes through the same gates, health checks and bake time as a code change, and a failed bake holds further deploys the same way.
 
 This does not replace committing rendered manifests to git. You can do both from the same render: people review the commit in a pull request, and the cluster pulls the artifact built from it.
 

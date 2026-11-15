@@ -1,6 +1,5 @@
 ---
-title: "Operate a Rollout with kubectl"
-linkTitle: "Operate with kubectl"
+title: "Operate with kubectl"
 description: "Pin a version, deploy a specific build, let a build past its gates, or get a Rollout moving again after a failed bake."
 type_: guide
 weight: 20
@@ -39,6 +38,10 @@ kubectl -n hello-world patch rollout hello-world --type=merge -p '{"spec":{"want
 
 After you unpin, the Rollout deploys the newest release the gates allow that is newer than the pinned one. Pin a tag from the [`ReleaseSource`](/docs/releases/publish/) catalogue: a tag outside it deploys, but after unpinning the Rollout cannot tell which releases are newer and deploys nothing on its own.
 
+{{< callout type="warning" >}}
+A pin skips every gate, including the Environment gate that waits for the earlier tier's bake, and the health-check and failed-bake holds. Pin staging to a release that development never baked, or failed, and it deploys to staging at once; when staging's bake succeeds, production's gate allows it too.
+{{< /callout >}}
+
 In the dashboard, **Change version** with **Pin build** turned on sets the pin, and **Clear pin** removes it. Both are disabled while another field manager, such as Flux applying the Rollout from Git, owns `spec.wantedVersion`.
 
 ## Roll back to the previous version
@@ -59,16 +62,18 @@ kubectl -n hello-world patch rollout hello-world --type=merge -p '{"spec":{"want
 
 ## Deploy a specific version
 
-To ship a fix past a bad release, or go back to an older build, set `rollout.kuberik.com/force-deploy` to deploy that one build now. It skips the gates, the unhealthy health-check hold and the failed-bake hold.
+To ship a fix past a bad release, set `rollout.kuberik.com/force-deploy` to deploy that one build now. It skips the gates, the unhealthy health-check hold and the failed-bake hold.
 
 ```bash {filename="Terminal"}
 kubectl -n hello-world annotate rollout hello-world --overwrite \
-  rollout.kuberik.com/force-deploy=1.4.0 \
-  rollout.kuberik.com/deploy-message="Back to 1.4.0 while checkout timeouts are fixed" \
+  rollout.kuberik.com/force-deploy=1.4.2 \
+  rollout.kuberik.com/deploy-message="Ship the checkout timeout fix" \
   rollout.kuberik.com/deploy-user=emma.clarke
 ```
 
 The tag must be in the `ReleaseSource` catalogue, or the Rollout reports `Ready=False` ("force deploy version … is not in available releases"). A pin wins over `force-deploy`. `deploy-message` becomes the history entry's message and `deploy-user` its `triggeredBy` user; without them the entry reads "Manual deployment, with force deploy". The controller removes all three once the build is deployed.
+
+A force-deploy does not hold an older build. With the annotation gone, the Rollout returns to automatic deploys once that build's bake succeeds, and deploys the newest release the gates allow: the bad release again, if it is still newer. To go back to an older build, pin it as in [Roll back to the previous version](#roll-back-to-the-previous-version).
 
 In the dashboard, **Change version** with **Pin build** off writes these annotations with your login and clears any pin. **Deploy** on a held build opens the same dialog.
 

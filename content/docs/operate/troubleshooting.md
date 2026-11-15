@@ -1,11 +1,11 @@
 ---
 title: "Troubleshoot"
-description: "Match what the dashboard or kubectl shows to its fix: a blocked release, a deploy stuck in Deploying, a failed deploy, or a roll back."
+description: "Match what the dashboard or kubectl shows to its fix, from a blocked release to a roll back."
 type_: guide
 weight: 90
 ---
 
-Find what the dashboard shows, or the condition kubectl prints, in the table below and go to its fix. Every example uses the [Rollout](/docs/concepts/rollouts/) `hello-world` in namespace `hello-world`, in the environment `production`.
+Find what the dashboard shows, or the condition kubectl prints, in the table below and go to its fix. Examples use the [Rollout](/docs/concepts/rollouts/) `hello-world` in namespace `hello-world`, environment `production`.
 
 ## What the dashboard shows
 
@@ -16,7 +16,7 @@ The banner at the top of a rollout's **Overview** names what holds it. The words
 | **Deployment failed** banner<br>the **Retry** and **Roll back** buttons | `Ready=False`, `BakeTimeFailed` | [The deployment failed](#the-deployment-failed) |
 | The **stuck** chip<br>"Stuck — deploying for 2h" | `bakeStatus` `Deploying` | [A deploy is stuck in Deploying](#a-deploy-is-stuck-in-deploying) |
 | **Recovery mode**, while a deploy runs | `BakeFailureDisabled=True` | [A HealthCheck failed but the deploy did not](#a-healthcheck-failed-but-the-deploy-did-not) |
-| **Rolled back** | `status.history[0]` is older than the build before it (a pin or a force-deploy) | [Roll back to the previous build](#roll-back-to-the-previous-build) |
+| **Rolled back** | `status.history[0]` is older than the build before it (a pin, or a force-deploy of an older build until its bake succeeds) | [Roll back to the previous build](#roll-back-to-the-previous-build) |
 | **Held** banner<br>"HealthCheck '…' in namespace '…' is not healthy" | `DeploymentBlocked=True`, `UnhealthyHealthChecks` | [Blocked by an unhealthy HealthCheck](#blocked-by-an-unhealthy-healthcheck) |
 | **production is waiting on an approval**<br>**Waiting for approval**<br>**Needs your approval** | `GatesPassing=False`, `NoAllowedVersions` | [Blocked by an approval](#blocked-by-an-approval-or-another-rule) |
 | **production is waiting for payments ^1.67.0** | `GatesPassing=False`, `NoAllowedVersions` | [Blocked by a service dependency](#blocked-by-a-service-dependency) |
@@ -88,7 +88,7 @@ kubectl edit releasesource hello-world -n hello-world
 
 ### Blocked by a closed schedule or a failing gate
 
-`GatesPassing` is False with reason `SomeGatesBlocking`. A release is waiting and a gate has `passing: false`, often a closed deployment window from a [`RolloutSchedule`](/docs/gates/schedules/) or a [`ClusterRolloutSchedule`](/docs/gates/schedules/). With nothing waiting, the condition stays `True` and the closed gate is still listed in `status.gates`. List the gates and schedules.
+`GatesPassing` is False with reason `SomeGatesBlocking`. A release is waiting and a gate has `passing: false`, often a closed window from a [`RolloutSchedule`](/docs/gates/schedules/) or [`ClusterRolloutSchedule`](/docs/gates/schedules/). With nothing waiting, the condition stays `True` and the closed gate is still listed in `status.gates`.
 
 ```bash {filename="Terminal"}
 kubectl get rollout hello-world -n hello-world -o jsonpath='{.status.gates}'
@@ -96,7 +96,7 @@ kubectl get rolloutschedules -n hello-world
 kubectl get clusterrolloutschedules
 ```
 
-To let one build through now, select **Skip once** on the gate's tile in the rollout's **Gates** tab ([Skip a gate once](/docs/operate/dashboard/#skip-a-gate-once)). With kubectl, bypass the gates for that build; the bypass takes effect on the next reconcile.
+To let one build through now, select **Skip once** on the gate's tile ([Skip a gate once](/docs/operate/dashboard/#skip-a-gate-once)). With kubectl, bypass the gates for that build; the bypass takes effect on the next reconcile.
 
 ```bash {filename="Terminal"}
 kubectl annotate rollout hello-world -n hello-world rollout.kuberik.com/bypass-gates=1.4.1 --overwrite
@@ -110,7 +110,7 @@ kubectl annotate rollout hello-world -n hello-world rollout.kuberik.com/bypass-g
 kubectl get rollout hello-world -n hello-world -o jsonpath='{range .status.candidates[*]}{.tag}{"\t"}{.blockedBy}{"\n"}{end}'
 ```
 
-An `approval-gate-…` lets a release through once a [`RolloutApproval`](/docs/gates/approvals/) names it. In the dashboard, select **Approve** on the gate's tile in the rollout's **Gates** tab ([Approve a build](/docs/operate/dashboard/#approve-a-build)). With kubectl, apply one to approve 1.4.1.
+An `approval-gate-…` lets a release through once a [`RolloutApproval`](/docs/gates/approvals/) names it. In the dashboard, select **Approve** on the gate's tile ([Approve a build](/docs/operate/dashboard/#approve-a-build)). With kubectl, apply one to approve 1.4.1.
 
 ```bash {filename="Terminal"}
 kubectl apply -f - <<EOF
@@ -144,7 +144,7 @@ kubectl get healthchecks -n hello-world
 
 ### Blocked by a pin or a pending deploy by hand
 
-`DeploymentBlocked` has reason `ManualDeployment`. A deploy by hand is pending or pinned: `spec.wantedVersion` is set, or a `rollout.kuberik.com/force-deploy` annotation names a tag that has not deployed yet. New releases wait. Remove whichever is set: the **Clear pin** button in the dashboard removes a pin, and the annotate command below removes a force-deploy.
+`DeploymentBlocked` has reason `ManualDeployment`. A deploy by hand is pending or pinned: `spec.wantedVersion` is set, or a `rollout.kuberik.com/force-deploy` annotation names a tag that has not deployed yet. New releases wait. Remove whichever is set, or select **Clear pin** in the dashboard.
 
 ```bash {filename="Terminal"}
 kubectl get rollout hello-world -n hello-world -o jsonpath='{.spec.wantedVersion}{"\t"}{.metadata.annotations.rollout\.kuberik\.com/force-deploy}{"\n"}'
@@ -170,6 +170,21 @@ A bypass for a build that is not newer than the deployed one is ignored (log: "G
 
 ```bash {filename="Terminal"}
 kubectl get rollout hello-world -n hello-world -o jsonpath='{.status.gates[*].name}'
+```
+
+### Promotion stalls and the log reads "API rate limit exceeded"
+
+The environment-controller calls GitHub with each Environment's token on every Rollout change and every `spec.requeueInterval` (default 1 minute). Once the token's hourly limit is spent, reconciles fail before the gate updates, so the gate keeps its last `allowedVersions`.
+
+```bash {filename="Terminal"}
+kubectl logs -n kuberik-system deployment/environment-controller-manager --since=1h | grep "rate limit"
+curl -s -H "Authorization: Bearer <your-token>" https://api.github.com/rate_limit
+```
+
+The error ends in `API rate limit exceeded for …` and `[rate reset in …]`. Promotion resumes after the reset. To spend fewer calls, reconcile each Environment less often; it then sees the earlier tier's bake later.
+
+```bash {filename="Terminal"}
+kubectl patch environment hello-world-production -n hello-world --type merge -p '{"spec":{"requeueInterval":"5m"}}'
 ```
 
 ### The last deploy failed
@@ -216,7 +231,7 @@ kubectl get rollout hello-world -n hello-world -o jsonpath='{.status.history[0].
 
 ### Roll back to the previous build
 
-Kuberik never starts a rollback on its own. **Roll back** on the dashboard's failure banner deploys the build before the failed one and pins the Rollout to it; with kubectl, print that build's tag.
+This works for any build, failed or baked; Kuberik never rolls back on its own. In the dashboard, [Roll back](/docs/operate/dashboard/#roll-back) pins the Rollout to an earlier build. With kubectl, print the previous build's tag.
 
 ```bash {filename="Terminal"}
 kubectl get rollout hello-world -n hello-world -o jsonpath='{.status.history[1].version.tag}{"\n"}'
@@ -228,11 +243,11 @@ Then set `spec.wantedVersion` to the tag it printed.
 kubectl patch rollout hello-world -n hello-world --type merge -p '{"spec":{"wantedVersion":"<previous-tag>"}}'
 ```
 
-The pin deploys past gates and the failed deploy, and the dashboard shows **Rolled back**. New releases wait until you clear the pin, as in [Blocked by a pin](#blocked-by-a-pin-or-a-pending-deploy-by-hand).
+The pin deploys past gates and the failed deploy, and the dashboard shows **Rolled back**. New releases wait until you clear the pin, as in [Blocked by a pin](#blocked-by-a-pin-or-a-pending-deploy-by-hand). Do not roll back with `force-deploy`: once the earlier build's bake succeeds, the Rollout deploys the newest release the gates allow, the failed one included.
 
 ### Retry the same build
 
-**Retry** in the dashboard and the retry annotation do the same thing. The annotation resets the bake to `Deploying` and ignores errors from before the retry. The controller removes it; on a bake that is not `Failed` it logs "Retry annotation ignored".
+**Retry** in the dashboard sets this annotation. It resets the bake to `Deploying` and ignores errors from before the retry. The controller removes it; on a bake that is not `Failed` it logs "Retry annotation ignored".
 
 ```bash {filename="Terminal"}
 kubectl annotate rollout hello-world -n hello-world rollout.kuberik.com/retry=true --overwrite

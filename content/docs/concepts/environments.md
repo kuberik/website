@@ -38,10 +38,6 @@ spec:
 | `backend` | The GitHub repository (`owner/repo`) and the Secret that holds the token. `github` is the only backend. |
 | `site`, `wave`, `lockstep` | Optional. Split one environment across clusters, see [Sites and waves](#sites-and-waves). |
 
-{{< callout type="important" >}}
-`spec.relationship` is accepted and ignored; the Environment then reports `Deprecated`, reason `RelationshipIgnored`.
-{{< /callout >}}
-
 ## How tiers set the order
 
 Tiers have a fixed order. `spec.environment` must be one of these names, and names in one row are the same tier:
@@ -70,6 +66,10 @@ Gates never hold a Rollout's first deploy, and a new gate allows every release u
 GitHub records Git revisions, and the gate lists release tags. The controller maps them through the release catalogue of the Rollout's [ReleaseSource](/docs/releases/publish/), so each release must carry the commit it was built from. A revision with no matching tag is left out.
 
 A pin on the Rollout (`spec.wantedVersion`) is a manual deploy that skips the gate. On a wave leader, the pinned release becomes the wave's pick and the followers deploy it. On a follower, a pin that differs from the wave's pick makes the Environment report `Pinned`. Deleting the Environment deletes its gate, which leaves the Rollout ungated: pin the Rollout first if it must not move.
+
+{{< callout type="warning" >}}
+A pin bypasses the upstream's bake. Pinning staging to a release development never baked, or failed, deploys it to staging at once, and once staging's bake succeeds the production gate allows it.
+{{< /callout >}}
 
 ## Sites and waves
 

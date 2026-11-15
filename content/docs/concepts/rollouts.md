@@ -41,7 +41,7 @@ spec:
 | `bakeTime` | How long the build must stay free of health-check errors once the bake starts (e.g., `5m`, `1h`). |
 | `deployTimeout` | How long to wait for the health checks to become healthy after a deploy. When it passes before the bake starts, the deploy fails. Unset means wait indefinitely. |
 | `healthCheckSelector` | Label selector (and optional namespace selector) for the [HealthCheck](/docs/gates/health-checks/) resources to evaluate. |
-| `wantedVersion` | Pins the Rollout to one tag: it deploys that tag and nothing else until you clear the field. See [Operate a Rollout with kubectl](/docs/operate/manual-actions/#pin-a-version). |
+| `wantedVersion` | Pins the Rollout to one tag: it deploys that tag and nothing else until you clear the field. See [Operate with kubectl](/docs/operate/manual-actions/#pin-a-version). |
 
 ## Rollout status
 
@@ -83,7 +83,7 @@ A Rollout with no `bakeTime`, `deployTimeout` or `healthCheckSelector` marks eac
 
 ## When a bake fails
 
-Kuberik does not roll back. When a bake fails, the failed build keeps running, the Rollout sets `Ready=False`, and no newer build deploys automatically until a person pins a version, deploys a build by hand, sets `rollout.kuberik.com/unblock-failed`, or retries the bake. [Operate a Rollout with kubectl](/docs/operate/manual-actions/) shows each of these.
+Kuberik does not roll back. When a bake fails, the failed build keeps running, the Rollout sets `Ready=False`, and no newer build deploys automatically until a person pins a version, deploys a build by hand, sets `rollout.kuberik.com/unblock-failed`, or retries the bake. [Operate with kubectl](/docs/operate/manual-actions/) shows each of these.
 
 ![Part of the Change version dialog deploying the held build 4.45.0-45 of checkout-api to production: the rule it would override, After staging, the four commits to deploy, the Pin build switch, a required reason, the typed confirmation and Deploy to prod](/images/docs/dashboard/change-version.png)
 

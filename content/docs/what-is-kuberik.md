@@ -13,6 +13,8 @@ Kuberik deploys the versions your CI publishes to Kubernetes: it picks up each n
 
 A release is a tagged artifact in a registry: the application image, or the rendered manifests for one environment pushed as an OCI artifact. From the moment the tag exists, Kuberik takes it through five stages; a person acts only where a gate asks for an approval. See [Propagation Modes](/docs/concepts/propagation/) for how the two kinds of artifact compare.
 
+![Home in the dashboard: Attention, with a billing-edge change waiting for your approval in production and its Approve button, above Your changes, where the pull requests of checkout-api, platform-telemetry and recommender-svc each show the environment they have reached](/images/docs/what-is/home.png)
+
 | Stage | What happens | Resources |
 |---|---|---|
 | Detect | A [`ReleaseSource`](/docs/releases/publish/) lists the new tag and adds it to its catalogue of releases. | `ReleaseSource` |
@@ -23,17 +25,15 @@ A release is a tagged artifact in a registry: the application image, or the rend
 
 A failed bake stops automatic deploys of that Rollout. They resume when someone deploys a version by hand, pins one, unblocks the Rollout, or retries the bake and it succeeds.
 
-![Home in the dashboard: Attention, with a billing-edge change waiting for your approval in production and its Approve button, above Your changes, where the pull requests of checkout-api, platform-telemetry and recommender-svc each show the environment they have reached](/images/docs/what-is/home.png)
-
 ## Works with
 
-Kuberik runs on Kubernetes 1.30 or later and deploys through Flux. The other systems are optional and each adds one thing.
+Kuberik runs on Kubernetes 1.30 or later and deploys through Flux. Promotion between environments goes through GitHub, even on one cluster; the other systems are optional and each adds one thing.
 
 | System | Status | What Kuberik does with it |
 |---|---|---|
 | [Flux](/docs/integrations/fluxcd/) 2.6 or later | Required | Applies each version through a Kustomization or an OCIRepository |
 | Argo CD | Not supported | Nothing yet: Kuberik reads and writes Flux objects only |
-| [GitHub](/docs/integrations/github/) | Optional | Records deployments per environment; dashboard sign-in and pull requests |
+| [GitHub](/docs/integrations/github/) | Required to promote | Carries each bake result from one environment to the next; the dashboard reads commits and pull requests through each person's GitHub connection |
 | [Datadog](/docs/integrations/datadog/), [Prometheus](/docs/integrations/prometheus/) | Optional | Monitors and alerts become HealthChecks |
 | OpenKruise | Optional | Canary steps inside one deploy ([Roll Out with a Canary](/docs/releases/canary/)) |
 

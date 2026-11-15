@@ -60,7 +60,7 @@ spec:
     name: hello-world
   postBuild:
     substitute:
-      APP_VERSION: "1.0.0"  # overwritten by the Rollout
+      ENVIRONMENT: production  # keeps substitution on
 ```
 
 Use the variable in the manifests under `path`:
@@ -83,8 +83,12 @@ spec:
     spec:
       containers:
         - name: hello-world
-          image: ghcr.io/acme/hello-world:${APP_VERSION}
+          image: ghcr.io/acme/hello-world:${APP_VERSION:=1.0.0}
 ```
+
+Keep at least one other key in `postBuild.substitute`, or a `postBuild.substituteFrom` entry, in the Kustomization you commit. With an empty `postBuild` or `substitute`, Flux runs no substitution at all, so until the Rollout writes its key `${APP_VERSION:=1.0.0}` reaches the cluster as written.
+
+Never set `APP_VERSION` itself in Git. When Flux applies this Kustomization from Git with the key set, then after every deploy it writes the Git value back at the parent Kustomization's next reconcile, and the Rollout keeps reporting the version it deployed.
 
 One Kustomization can carry several of these annotations, one per variable, each naming its own Rollout. A frontend and a backend Rollout can then deploy into the same Kustomization independently.
 
@@ -160,7 +164,7 @@ The check polls every 30 seconds and on every Kustomization change. Set `healthc
 
 The ReleaseSource lists releases from the registry. When the Rollout picks a release, it writes the tag with server-side apply under the field manager `rollout-controller`: into the substitute variable, or into the OCIRepository's `spec.ref.tag`. Flux then reconciles as usual.
 
-![The Health checks card of hello-world in production, 3/3 healthy with the Flux Deployment check passing, above the Resources card: 2/2 ready, hello-world, 1/1 ready, and one more ready resource folded](/images/docs/integrations/fluxcd-health-resources.png)
+![The Health checks card, 3/3 healthy with the Flux Deployment check passing, above the Resources card: 2/2 ready, hello-world, 1/1 ready, and one more ready resource folded](/images/docs/integrations/fluxcd-health-resources.png)
 
 ## Troubleshoot
 
@@ -171,6 +175,23 @@ The ReleaseSource lists releases from the registry. When the Rollout picks a rel
 | HealthCheck `Unhealthy`: `Kustomization not found` | Wrong name in `healthcheck.kuberik.com/kustomization` | Use the Kustomization's name, or `<namespace>/<name>` if it lives in another namespace |
 | HealthCheck stays `Pending`: `Kustomization has no managed resources` | The Kustomization has not applied anything yet, or its inventory is empty | Check the Kustomization with `flux get kustomizations -n hello-world` |
 | With `wait: true`, a fixed release waits for the failed one to time out | kustomize-controller runs without `CancelHealthCheckOnNewRevision` | Enable the feature gate (Flux 2.7 or later), or set `wait: false` |
+
+### The version reverts after a deploy
+
+The Kustomization in Git sets the Rollout's substitute key. The Rollout writes the key only when it deploys a new version, and Flux applies the Git copy at its next interval and takes the key back. The cluster then runs the Git value while the Rollout and the dashboard show the deployed one. Compare the two tags; in the field owners, the `manager:` line right after `f:APP_VERSION` reads `kustomize-controller` when Git owns the key.
+
+```bash {filename="Terminal"}
+kubectl -n hello-world get kustomization hello-world -o jsonpath='{.spec.postBuild.substitute.APP_VERSION}{"\n"}'
+kubectl -n hello-world get rollout hello-world -o jsonpath='{.status.history[0].version.tag}{"\n"}'
+kubectl -n hello-world get kustomization hello-world -o yaml --show-managed-fields | grep -E 'manager:|f:APP_VERSION'
+```
+
+Remove `APP_VERSION` from the Kustomization in Git. Once Flux applies that, the key is gone, so put the deployed tag back once; the Rollout keeps it from its next deploy on.
+
+```bash {filename="Terminal"}
+kubectl -n hello-world patch kustomization hello-world --type merge --field-manager=rollout-controller \
+  -p '{"spec":{"postBuild":{"substitute":{"APP_VERSION":"<deployed-tag>"}}}}'
+```
 
 ## Next steps
 

@@ -36,7 +36,7 @@ Each integration is a separate controller in `kuberik-system`. Install only the 
 |---|---|---|
 | [openkruise-controller](/docs/releases/canary/) | Canary steps with OpenKruise Rollout | `https://github.com/kuberik/openkruise-controller/releases/latest/download/install.yaml` |
 | [datadog-controller](/docs/integrations/datadog/) | Datadog monitors and incidents as health checks | `https://github.com/kuberik/datadog-controller/releases/latest/download/install.yaml` |
-| [environment-controller](/docs/integrations/github/) | Promotion across clusters through GitHub deployments | `https://github.com/kuberik/environment-controller/releases/latest/download/install.yaml` |
+| [environment-controller](/docs/integrations/github/) | Promotion between environments through GitHub deployments, on one cluster or many | `https://github.com/kuberik/environment-controller/releases/latest/download/install.yaml` |
 
 Apply each one the same way, server-side: openkruise-controller's `RolloutTest` CRD is larger than the 256 KiB annotation a client-side apply writes.
 

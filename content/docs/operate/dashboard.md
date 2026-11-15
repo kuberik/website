@@ -5,7 +5,7 @@ type_: guide
 weight: 10
 ---
 
-Find any app or rollout, see where each build stands and what holds it, and act on it from the dashboard. For the kubectl way, see [Operate a Rollout with kubectl](/docs/operate/manual-actions/) and, for approvals, [Require a Manual Approval](/docs/gates/approvals/).
+Find any app or rollout, see where each build stands and what holds it, and act on it from the dashboard. For the kubectl way, see [Operate with kubectl](/docs/operate/manual-actions/) and, for approvals, [Require a Manual Approval](/docs/gates/approvals/).
 
 
 ## Find an app or a rollout
@@ -24,7 +24,7 @@ The sidebar pages list what needs you across every cluster; the command palette 
 An app's Progress tab shows how far each build has gone; a rollout's Gates tab shows why it has not gone further.
 
 1. Open an app from **Apps**, then select the **Progress** tab.
-2. When two or more releases are in flight, pick one in the release list, beside the drawing or above it on a narrow screen. The drawing shows every environment as a column, its regions grouped by **Wave**, and each place's state: deployed, deploying, checking, held (with the rule that holds it), waiting for approval, failed, or **Not reached**.
+2. When two or more releases are in flight, pick one in the release list, beside the drawing or above it on a narrow screen. The drawing shows every environment as a column, or as a stacked list when the card is narrow, its regions grouped by **Wave**, and each place's state: deployed, deploying, checking, held (with the rule that holds it), waiting for approval, failed, or **Not reached**.
 3. Select a place in the drawing to open that rollout. When the app waits or failed, the banner above also has **Open rollout**. To find what a banner's words mean and how to clear them, look them up in [What the dashboard shows](/docs/operate/troubleshooting/#what-the-dashboard-shows).
 
 ![The Progress card of hello-waves-app on build c6f19d2, 5 of 5 places deployed: dev-local in development, eu-west-1 in staging, and production in two waves, eu-west-1 and us-east-1 in wave 1 and ap-south-1 in wave 2](/images/docs/operate/dashboard-progress.png)
@@ -74,10 +74,14 @@ Use these when a gate, a bad build or a failed deploy needs a person.
 
 1. On the rollout's **Overview**, select **Change version**.
 2. Pick a build, or search by sha, version or commit.
-3. Turn on **Pin build** to keep the rollout on this build until the pin is cleared. A rollback always pins.
+3. Turn on **Pin build** to keep the rollout on this build until the pin is cleared. Without the pin, an earlier build stays only until its bake succeeds, and then the rollout deploys the newest build its rules allow. A rollback always pins.
 4. When rules still hold the build, write why they should not apply and type the build to confirm. Select **Deploy to *environment***.
 
-![Part of the Change version dialog deploying the held build 4.45.0-45 of checkout-api to production: the rule it would override, After staging, the four commits to deploy, the Pin build switch, a required reason, the typed confirmation and Deploy to prod](/images/docs/dashboard/change-version.png)
+![Part of the Change version dialog deploying the held build 4.45.0-45 of checkout-api to production: the rule it would override, After staging, the four commits to deploy, the Pin build switch, a required reason, the typed confirmation and the Deploy button](/images/docs/dashboard/change-version.png)
+
+{{< callout type="warning" >}}
+Change version skips every rule, including the wait for the earlier environment's bake: a build development never baked, or failed, deploys to staging at once. Once staging bakes it, production may take it.
+{{< /callout >}}
 
 To let the rollout follow new releases again, select **Clear pin** on the Overview banner or on the pin's tile in the **Gates** tab.
 
@@ -86,12 +90,17 @@ To let the rollout follow new releases again, select **Clear pin** on the Overvi
 1. On the rollout's **Overview**, select **Retry** on the **Deployment failed** banner.
 2. Confirm **Redeploy to *environment*?**. When tests failed, the dialog offers to retry the tests or skip them instead.
 
-### Roll back a failed deploy
+<div id="roll-back-a-failed-deploy"></div>
 
-1. For a rollback, select **Roll back** on the **Deployment failed** banner of the rollout's **Overview**. It shows when the rollout has deployed an earlier build.
-2. The deploy dialog opens on the earlier build, with the pin always on. Confirm the deploy.
+### Roll back
 
-The rollout stays on that build, under a **Rolled back** banner, until you select **Clear pin**.
+Roll back works for a failed deploy and for a bad build that passed its bake.
+
+1. After a failed deploy, select **Roll back** on the **Deployment failed** banner of the rollout's **Overview**. It deploys the build before the failed one.
+2. Otherwise, select **Roll back** in the rollout header. It shows whenever an older build exists, and goes to the last older build this environment ran. To pick the build yourself, select **Change version** and choose an older one; the dialog turns into **Roll back *environment* to *build***.
+3. The pin is always on for a rollback, so the dialog shows no **Pin build** switch. Confirm with **Roll back**; in production, type the build first.
+
+The rollout stays on that build, under a **Rolled back** banner, until you select **Clear pin**. A force-deploy back does not hold: see [Operate with kubectl](/docs/operate/manual-actions/#roll-back-to-the-previous-version).
 
 ## Check the result
 
