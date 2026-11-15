@@ -1,5 +1,6 @@
 ---
-title: "Operate a Rollout by Hand"
+title: "Operate a Rollout with kubectl"
+linkTitle: "Operate with kubectl"
 description: "Pin a version, deploy a specific build, let a build past its gates, or get a Rollout moving again after a failed bake."
 type_: guide
 weight: 20

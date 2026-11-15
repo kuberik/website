@@ -5,7 +5,7 @@ type_: guide
 weight: 10
 ---
 
-Find any app or rollout, see where each build stands and what holds it, and act on it from the dashboard. For the kubectl way, see [Operate a Rollout by Hand](/docs/operate/manual-actions/) and, for approvals, [Require a Manual Approval](/docs/gates/approvals/).
+Find any app or rollout, see where each build stands and what holds it, and act on it from the dashboard. For the kubectl way, see [Operate a Rollout with kubectl](/docs/operate/manual-actions/) and, for approvals, [Require a Manual Approval](/docs/gates/approvals/).
 
 {{< callout type="important" >}}
 Needs a rollout-dashboard release newer than v0.9.3-rc.0 and a rollout-controller release newer than v0.11.0. On rollout-controller v0.11.0, Approve has no [RolloutApproval](/docs/gates/approvals/) resource to write, and Skip once lifts every gate instead of one.

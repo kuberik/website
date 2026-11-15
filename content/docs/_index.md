@@ -52,7 +52,7 @@ journeys:
     outcome: "Pin, unblock and watch rollouts day to day."
     links:
       - { url: "/docs/operate/dashboard/", title: "Use the Dashboard" }
-      - { url: "/docs/operate/manual-actions/", title: "Operate a Rollout by Hand" }
+      - { url: "/docs/operate/manual-actions/", title: "Operate a Rollout with kubectl" }
       - { url: "/docs/operate/monitoring/", title: "Monitor Rollouts" }
       - { url: "/docs/operate/troubleshooting/", title: "Troubleshoot" }
   - title: "Integrations"
