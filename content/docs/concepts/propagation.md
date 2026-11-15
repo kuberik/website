@@ -55,7 +55,7 @@ Declare one annotation per substitution variable. A frontend and a backend manag
 
 ## Rendered manifests
 
-Your CI renders the manifests for an environment (`kustomize build`, `helm template`, `cdk8s synth`, whatever you already run) and pushes the result as an OCI artifact to a path scoped to that environment. Kuberik owns the tag on the matching `OCIRepository`.
+Your CI renders the manifests for an environment (`kustomize build`, `helm template`, `cdk8s synth`, whatever you already run) and pushes the result as an OCI artifact to a path scoped to that environment. Kuberik owns the tag on the matching OCIRepository.
 
 ![A rendered-manifests rollout: the artifact tag Kuberik set on the OCIRepository, with View Source to read exactly what was applied](/screenshots/dashboard/overview-manifests.png)
 
@@ -86,7 +86,7 @@ spec:
     name: hello-world
 ```
 
-A release in this mode is a tag bump on one `OCIRepository`. A promotion is the same tag bump on the next environment's `OCIRepository`. Deploying an older build by hand in production moves that one tag back and leaves staging where it is. Because the artifact carries the whole desired state, a config change is a release: it goes through the same gates, health checks and bake time as a code change, and a failed bake holds further deploys the same way.
+A release in this mode is a tag bump on one OCIRepository. A promotion is the same tag bump on the next environment's OCIRepository. Deploying an older build by hand in production moves that one tag back and leaves staging where it is. Because the artifact carries the whole desired state, a config change is a release: it goes through the same gates, health checks and bake time as a code change, and a failed bake holds further deploys the same way.
 
 This does not replace committing rendered manifests to git. You can do both from the same render: people review the commit in a pull request, and the cluster pulls the artifact built from it.
 
@@ -95,7 +95,7 @@ Reach for this when config changes are as risky as code changes, when you want p
 {{< callout type="info" >}}
 **Same namespace**
 
-Kuberik resolves the `ReleaseSource`, `Kustomization`, and `OCIRepository` in the Rollout's own namespace. Resources in other namespaces are ignored.
+Kuberik resolves the ReleaseSource, Kustomization, and OCIRepository in the Rollout's own namespace. Resources in other namespaces are ignored.
 {{< /callout >}}
 
 ## Run both

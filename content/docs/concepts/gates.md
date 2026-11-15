@@ -5,13 +5,13 @@ type_: concept
 weight: 50
 ---
 
-A gate decides which releases a [Rollout](/docs/concepts/rollouts/) may deploy next. Schedules, approvals and service dependencies all work through one resource, the [`RolloutGate`](/docs/reference/api/#rolloutgate), while health checks hold deploys their own way.
+A gate decides which releases a [Rollout](/docs/concepts/rollouts/) may deploy next. Schedules, approvals and service dependencies all work through one resource, the [RolloutGate](/docs/reference/api/#rolloutgate), while health checks hold deploys their own way.
 
 {{< fig id="gate-model" caption="Every gate is a RolloutGate; a release deploys only when every gate lets it through, and an Unhealthy HealthCheck holds it on a separate path." >}}
 
 ## How a gate holds a release
 
-A `RolloutGate` points at one Rollout in its namespace and carries two fields. `passing: false` holds every release. `allowedVersions` lists the release tags the gate lets through. If the field is absent, the gate does not filter releases. If the list is empty, nothing gets through.
+A RolloutGate points at one Rollout in its namespace and carries two fields. `passing: false` holds every release. `allowedVersions` lists the release tags the gate lets through. If the field is absent, the gate does not filter releases. If the list is empty, nothing gets through.
 
 ```yaml {filename="rolloutgate.yaml"}
 apiVersion: kuberik.com/v1alpha1
@@ -32,23 +32,23 @@ You can write gates yourself, or let a controller own them. An [Environment](/do
 
 ## Schedules
 
-A [`RolloutSchedule`](/docs/gates/schedules/) (one namespace) or [`ClusterRolloutSchedule`](/docs/gates/schedules/) (namespaces picked by a selector) opens or closes a time window. Its rules match times of day, days of the week or date ranges in an IANA timezone (`UTC` by default). With the default action `Deny`, the gate holds while a rule matches. With `Allow`, it holds while no rule matches. The controller creates one gate per matched Rollout, named `schedule-gate-…`, and flips its `passing` field.
+A [RolloutSchedule](/docs/gates/schedules/) (one namespace) or [ClusterRolloutSchedule](/docs/gates/schedules/) (namespaces picked by a selector) opens or closes a time window. Its rules match times of day, days of the week or date ranges in an IANA timezone (`UTC` by default). With the default action `Deny`, the gate holds while a rule matches. With `Allow`, it holds while no rule matches. The controller creates one gate per matched Rollout, named `schedule-gate-…`, and flips its `passing` field.
 
 Set one up in [Set Deployment Windows](/docs/gates/schedules/).
 
 ## Manual approvals
 
-An [`ApprovalPolicy`](/docs/gates/approvals/) (one namespace) or [`ClusterApprovalPolicy`](/docs/gates/approvals/) (namespaces picked by a selector) requires a person to approve each release. The controller creates one gate per matched Rollout, named `approval-gate-…`. Its `allowedVersions` is the set of versions named by [`RolloutApproval`](/docs/gates/approvals/) objects for that Rollout. Approving a version therefore means creating a `RolloutApproval` with `spec.rolloutRef` and `spec.version`. The approval can name a version that does not exist yet.
+An [ApprovalPolicy](/docs/gates/approvals/) (one namespace) or [ClusterApprovalPolicy](/docs/gates/approvals/) (namespaces picked by a selector) requires a person to approve each release. The controller creates one gate per matched Rollout, named `approval-gate-…`. Its `allowedVersions` is the set of versions named by [RolloutApproval](/docs/gates/approvals/) objects for that Rollout. Approving a version therefore means creating a RolloutApproval with `spec.rolloutRef` and `spec.version`. The approval can name a version that does not exist yet.
 
 {{< callout type="important" >}}
-`ApprovalPolicy`, `ClusterApprovalPolicy` and `RolloutApproval` need a rollout-controller release after v0.11.0. On v0.11.0, write the approval gate by hand.
+ApprovalPolicy, ClusterApprovalPolicy and RolloutApproval need a rollout-controller release after v0.11.0. On v0.11.0, write the approval gate by hand.
 {{< /callout >}}
 
 Set one up in [Require a Manual Approval](/docs/gates/approvals/).
 
 ## Service dependencies
 
-A [`RolloutDependency`](/docs/gates/dependencies/) holds a consumer Rollout until a provider Rollout serves the contract version the consumer needs. Each consumer release declares its requirement in the `com.kuberik.rollout.requires.<contract>` OCI annotation. The controller writes the releases it admits to a gate named `dependency-<name>`, so it holds only the releases whose requirement is unmet. A provider release counts once its bake has succeeded. The dependency's `Satisfied` condition reads `WaitingForProvider` while a release waits, or `RequirementUnevaluable` when the annotation cannot be parsed.
+A [RolloutDependency](/docs/gates/dependencies/) holds a consumer Rollout until a provider Rollout serves the contract version the consumer needs. Each consumer release declares its requirement in the `com.kuberik.rollout.requires.<contract>` OCI annotation. The controller writes the releases it admits to a gate named `dependency-<name>`, so it holds only the releases whose requirement is unmet. A provider release counts once its bake has succeeded. The dependency's `Satisfied` condition reads `WaitingForProvider` while a release waits, or `RequirementUnevaluable` when the annotation cannot be parsed.
 
 Set one up in [Wait for Service Dependencies](/docs/gates/dependencies/).
 
