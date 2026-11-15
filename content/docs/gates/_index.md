@@ -7,4 +7,4 @@ weight: 40
 aliases: ["/docs/guides/"]
 ---
 
-Hold a deploy until health checks, people, time windows or other services allow it.
+Hold a deploy until health checks, people, time windows or other services allow it. [How Gates Work](/docs/concepts/gates/) explains how they combine.

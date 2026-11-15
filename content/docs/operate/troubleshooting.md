@@ -13,18 +13,18 @@ The banner at the top of a rollout's **Overview** names what holds it. The words
 
 | The dashboard shows | Condition on the Rollout | Go to |
 |---|---|---|
-| **No release source** | `ReleasesUpdated=False`, `ReleaseSourceRequired` | [No release source](#no-release-source) |
-| **No releases yet** | `Ready=False`, `NoReleases` | [No releases yet](#no-releases-yet) |
+| **Deployment failed**, with **Retry** and **Roll back** | `Ready=False`, `BakeTimeFailed` | [The deployment failed](#the-deployment-failed) |
+| The **stuck** chip, "Stuck — deploying for 2h" | `bakeStatus` `Deploying` | [A deploy is stuck in Deploying](#a-deploy-is-stuck-in-deploying) |
+| **Recovery mode** | `BakeFailureDisabled=True` | [A HealthCheck failed but the deploy did not](#a-healthcheck-failed-but-the-deploy-did-not) |
+| **Rolled back** | `spec.wantedVersion` set to an earlier build | [Roll back to the previous build](#roll-back-to-the-previous-build) |
+| **Held**, "Health checks are unhealthy." | `DeploymentBlocked=True`, `UnhealthyHealthChecks` | [Blocked by an unhealthy HealthCheck](#blocked-by-an-unhealthy-healthcheck) |
 | **production is waiting on an approval**, **Waiting for approval**, **Needs your approval** | `GatesPassing=False`, `NoAllowedVersions` | [Blocked by an approval](#blocked-by-an-approval-or-another-rule) |
 | **production is waiting for payments ^1.67.0** | `GatesPassing=False`, `NoAllowedVersions` | [Blocked by a service dependency](#blocked-by-a-service-dependency) |
 | **production is waiting on promotion order**, **Lockstep is set on … only** | `GatesPassing=False`, `NoAllowedVersions` | [Promote Across Environments](/docs/releases/promote/#troubleshoot) |
 | **Automatic deploys are paused**, **production is held** | `GatesPassing=False`, `SomeGatesBlocking` | [Blocked by a closed schedule](#blocked-by-a-closed-schedule-or-a-failing-gate) |
-| **Held**, "Health checks are unhealthy." | `DeploymentBlocked=True`, `UnhealthyHealthChecks` | [Blocked by an unhealthy HealthCheck](#blocked-by-an-unhealthy-healthcheck) |
 | **production is pinned to 1.4.1**, **Clear pin** | `DeploymentBlocked` reason `ManualDeployment` | [Blocked by a pin](#blocked-by-a-pin-or-a-pending-deploy-by-hand) |
-| The **stuck** chip, "Stuck — deploying for 2h" | `bakeStatus` `Deploying` | [A deploy is stuck in Deploying](#a-deploy-is-stuck-in-deploying) |
-| **Deployment failed**, with **Retry** and **Roll back** | `Ready=False`, `BakeTimeFailed` | [The deployment failed](#the-deployment-failed) |
-| **Recovery mode** | `BakeFailureDisabled=True` | [A HealthCheck failed but the deploy did not](#a-healthcheck-failed-but-the-deploy-did-not) |
-| **Rolled back** | `spec.wantedVersion` set to an earlier build | [Roll back to the previous build](#roll-back-to-the-previous-build) |
+| **No release source** | `ReleasesUpdated=False`, `ReleaseSourceRequired` | [No release source](#no-release-source) |
+| **No releases yet** | `Ready=False`, `NoReleases` | [No releases yet](#no-releases-yet) |
 
 To read the same facts with kubectl, print the conditions and the Rollout's events (`HealthCheckBlocking`, `BakeTimeFailed`).
 

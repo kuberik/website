@@ -168,4 +168,4 @@ To confirm cookie growth, open DevTools, then Application, then Cookies for the 
 
 ## Next steps
 
-{{< next "/docs/installation/helm/" "/docs/integrations/github/" "/docs/operate/troubleshooting/" >}}
+{{< next "/docs/getting-started/" "/docs/integrations/github/" "/docs/operate/troubleshooting/" >}}
