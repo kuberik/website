@@ -33,3 +33,7 @@
 {{- with .Params.authors }}{{ with index . 0 }}
 <meta name="author" content="{{ .name }}">
 {{- end }}{{ end }}
+
+{{- /* R8-IA-8: a page opened on a #hash (a shared API field link, a search result) lands on it at once; the html's smooth
+     scrolling is kept for in-page clicks. The browser's anchor jump runs before load, so smooth is off until just after. */ -}}
+<script>if(location.hash){var d=document.documentElement;d.style.scrollBehavior='auto';addEventListener('load',function(){setTimeout(function(){d.style.scrollBehavior=''},800)})}</script>
