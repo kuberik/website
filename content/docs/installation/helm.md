@@ -1,13 +1,20 @@
 ---
 title: "Install with Helm"
-weight: 1
+description: "Install the controllers, the dashboard and dashboard sign-in from one Helm release."
+type_: guide
+icon: cube
+weight: 10
 ---
 
-Install Kuberik via the official Helm chart. One release installs the rollout-controller, opt-in integration controllers, the dashboard, and the shared OIDC auth gate.
+Install Kuberik from its Helm chart: one release installs the rollout-controller, the release-controller, the integration controllers you turn on, and the dashboard.
 
-## Quick Install
+Before you start, you need Helm 3 and [Flux](https://fluxcd.io/flux/installation/) 2.6 or later in the cluster: Kuberik picks the version and [Flux](/docs/integrations/fluxcd/) applies it.
 
-```bash
+## Install the chart
+
+Add the chart repository and install the release into `kuberik-system`. Helm creates the namespace, so the chart leaves it alone.
+
+```bash {filename="Terminal"}
 helm repo add kuberik https://kuberik.github.io/kuberik
 helm repo update
 helm install kuberik kuberik/kuberik \
@@ -15,55 +22,27 @@ helm install kuberik kuberik/kuberik \
   --set createNamespace=false
 ```
 
-The chart is also published as an OCI artifact:
+The chart is also published as an OCI artifact, `oci://ghcr.io/kuberik/charts/kuberik`; use it in place of `kuberik/kuberik` with the same flags. The release-controller, which serves the `ReleaseSource` objects your Rollouts read their releases from, is on by default and needs no values.
 
-```bash
-helm install kuberik oci://ghcr.io/kuberik/charts/kuberik --version 0.8.0 \
-  --namespace kuberik-system --create-namespace \
-  --set createNamespace=false
-```
+## Turn on integration controllers
 
-The release-controller, which serves the `ReleaseSource` and `ReleaseSlice` resources your Rollouts read their releases from, is installed by default. It needs no extra values.
-
-## Enable Integration Controllers
-
-Each integration is off by default. Turn on only what you use:
+Each integration controller is off by default. Turn on the ones you use in your values file:
 
 ```yaml {filename="values.yaml"}
 integrations:
   datadog:
     enabled: true       # Datadog monitors as health checks
   openkruise:
-    enabled: true       # canary rollouts via OpenKruise
+    enabled: true       # canary steps with OpenKruise Rollout
   environment:
-    enabled: true       # multi-cluster promotions via GitHub Environments
+    enabled: true       # promotion across clusters via GitHub
 ```
 
-See the [Datadog](/docs/integrations/datadog/), [GitHub](/docs/integrations/github/), and [FluxCD](/docs/integrations/fluxcd/) integration docs for the matching CR configuration.
+[Datadog](/docs/integrations/datadog/), [Roll Out with a Canary](/docs/releases/canary/) and [GitHub](/docs/integrations/github/) cover the resources each controller reads.
 
-## Expose the Dashboard
+## Expose the dashboard
 
-The dashboard is off by default. Two front-end options — pick **one**.
-
-### Ingress (`networking.k8s.io/v1`)
-
-```yaml {filename="values.yaml"}
-dashboard:
-  enabled: true
-  ingress:
-    enabled: true
-    host: dashboard.kuberik.example.com
-    className: nginx
-    annotations:
-      cert-manager.io/cluster-issuer: letsencrypt-prod
-    tls:
-      - hosts: [dashboard.kuberik.example.com]
-        secretName: kuberik-dashboard-tls
-```
-
-### Gateway API (`gateway.networking.k8s.io`)
-
-Use this when you're standardised on Gateway API or want to gate the dashboard with the [OIDC auth gate](#authenticate-the-dashboard) — that gate requires Gateway API.
+The dashboard is off by default. Turn it on with an Ingress or a Gateway API HTTPRoute; set one, not both. Sign-in needs the Gateway API route.
 
 ```yaml {filename="values.yaml"}
 dashboard:
@@ -76,27 +55,22 @@ dashboard:
     hostname: dashboard.kuberik.example.com
 ```
 
-## Authenticate the Dashboard
+For an Ingress, set `dashboard.ingress.enabled`, `host` and `className` (plus `annotations` and `tls` as your controller needs) in place of `dashboard.gateway`.
 
-Put the dashboard behind your OIDC provider. The chart installs oauth2-proxy in `auth-system` as shared infrastructure — any HTTPRoute in the cluster can opt in later via a `SecurityPolicy`.
+## Turn on dashboard sign-in
+
+The chart installs oauth2-proxy in `auth-system` and attaches an Envoy Gateway `SecurityPolicy` to the dashboard route, so every action runs as the signed-in user, subject to RBAC. Add to the values from the previous section:
 
 ```yaml {filename="values.yaml"}
 dashboard:
-  enabled: true
   gateway:
-    enabled: true
-    parentRef:
-      name: eg
-      namespace: envoy-gateway-system
-    hostname: dashboard.kuberik.example.com
     auth: true            # attach the SecurityPolicy
-
 auth:
   enabled: true
   oidc:
     issuerUrl: https://idp.example.com
     clientId: kuberik-cluster
-    clientSecret: <oidc-client-secret>    # or set existingSecret
+    existingSecret: kuberik-oidc    # keys client-secret and cookie-secret
   canonicalHost: dashboard.kuberik.example.com
   cookieDomain: .example.com
   gateway:
@@ -104,130 +78,92 @@ auth:
     namespace: envoy-gateway-system
 ```
 
-Configure kube-apiserver to trust the same client id so the id_token works as a Kubernetes credential (every dashboard action runs as the logged-in user, subject to RBAC):
+A Secret keeps the client secret out of the rendered manifest and the cookie secret stable across upgrades; `auth.oidc.clientSecret` sets it inline instead. The chart's defaults let `/api/` requests and the dashboard's static files (`^/_app/`, favicon, icons, manifest) through without a sign-in redirect, so a stale session does not break polling or the page bundle {{< needs "Next release" >}}. [Set Up Dashboard Sign-in](/docs/installation/dashboard-auth/) covers the OIDC client and the kube-apiserver flags.
 
-```text {filename="kube-apiserver flags"}
---oidc-issuer-url=https://idp.example.com
---oidc-client-id=kuberik-cluster
---oidc-username-claim=email
-```
+## Connect several clusters
 
-## Configure Multi-cluster Fan-out
-
-The dashboard aggregates rollouts across clusters automatically when `Environment` objects carry `status.environmentInfos[].environmentUrl` entries pointing at other dashboards. No configuration is required for this zero-config discovery path.
-
-![The Apps page: every app across clusters with the version running in each environment](/screenshots/dashboard/apps.png)
-
-Set `dashboard.url` and `dashboard.clusterName` to help the dashboard identify itself behind reverse proxies that don't forward `Host` headers — used for self-exclusion during fan-out and for the cluster display name in the hub UI:
-
-```yaml {filename="values.yaml"}
-dashboard:
-  enabled: true
-  url: https://dashboard.prod.example.com
-  clusterName: prod
-```
-
-To run this instance as a spoke (serves only `/api/*`; redirects all UI traffic to the hub):
+A dashboard finds the dashboards of other clusters on its own, from the `environmentUrl` of each entry in an `Environment`'s `status.environmentInfos`. Name the cluster, and run every dashboard but one as a spoke that serves only `/api/` and sends the browser to the hub:
 
 ```yaml {filename="values.yaml"}
 dashboard:
   enabled: true
   url: https://dashboard.staging.example.com
   clusterName: staging
-  hubUrl: https://dashboard.prod.example.com
+  hubUrl: https://dashboard.production.example.com   # leave empty on the hub
 ```
 
-When any of these fields are set the chart creates a `kuberik-cluster-info` ConfigMap in `.Values.namespace`. The dashboard mounts it automatically via env vars.
+The chart writes these values to the `kuberik-cluster-info` ConfigMap. `insecureSkipTLSVerify: true` skips TLS checks on hub-to-spoke calls; set it only for self-signed development clusters.
 
-{{< callout type="info" >}}
-`insecureSkipTLSVerify: true` skips TLS verification for hub→spoke calls. Use only in development environments with self-signed certificates.
-{{< /callout >}}
+## Use the production values
 
-## Production Overrides
+The chart ships `values-production.yaml`: three controller replicas with a PodDisruptionBudget, the restricted Pod Security level on the namespace, a ServiceMonitor, a NetworkPolicy, the dashboard behind an Ingress, and the Datadog and environment integrations. The chart owns the namespace there, so install into `default` without `--create-namespace`:
 
-A complete opinionated `values-production.yaml` ships with the chart — 3-replica controller with PDB, restricted Pod Security Admission, ServiceMonitor + NetworkPolicy, Datadog and environment-controller integrations.
-
-```bash
+```bash {filename="Terminal"}
+helm pull oci://ghcr.io/kuberik/charts/kuberik --untar
 helm install kuberik oci://ghcr.io/kuberik/charts/kuberik \
-  --namespace kuberik-system --create-namespace \
-  -f values-production.yaml
+  --namespace default -f kuberik/values-production.yaml
 ```
+
+Edit `dashboard.ingress.host` and `metrics.serviceMonitor.namespace` in the file first.
 
 ## Upgrade
 
-```bash
+```bash {filename="Terminal"}
 helm repo update kuberik
 helm upgrade kuberik kuberik/kuberik --namespace kuberik-system -f values.yaml
 ```
 
-{{< callout type="warning" >}}
-**Upgrading to 0.8.0: releases now come from a ReleaseSource**
-
-- `spec.releasesImagePolicy` on a Rollout is deprecated and ignored.
-- Create a `ReleaseSource` for each app and point the Rollout at it with `spec.releaseSourceRef`. An existing Flux ImagePolicy can be referenced from the source with `spec.oci.imagePolicyRef`. See [Getting Started](/docs/getting-started/).
-- A Rollout without `releaseSourceRef` reports the `ReleaseSourceRequired` condition and gets no releases until you add one.
-{{< /callout >}}
-
-Since chart 0.7.0 the CRDs are chart resources, so `helm upgrade` installs new CRDs and updates existing ones. Coming from a chart ≤ 0.6.1, hand the existing CRDs over to the release once first, otherwise Helm refuses with `invalid ownership metadata`:
+The CRDs are chart resources since chart 0.7.0, so `helm upgrade` installs new CRDs and updates existing ones. Coming from chart 0.6.1 or earlier, hand the existing CRDs to the release once, or Helm stops with `invalid ownership metadata`:
 
 ```bash {filename="adopt-crds.sh"}
 kubectl get crd -o name | grep -E 'kuberik\.com$' | xargs -I{} kubectl label --overwrite {} app.kubernetes.io/managed-by=Helm
 kubectl get crd -o name | grep -E 'kuberik\.com$' | xargs -I{} kubectl annotate --overwrite {} meta.helm.sh/release-name=kuberik meta.helm.sh/release-namespace=kuberik-system
 ```
 
-Use your own release name and namespace. Helm 3.17+ can do the same with `helm upgrade --take-ownership`.
+Use your own release name and namespace; Helm 3.17 and later can do the same with `helm upgrade --take-ownership`.
+
+{{< callout type="important" >}}
+After chart 0.7.0, Rollouts get releases only from a `ReleaseSource`: create one per app and set `spec.releaseSourceRef`. A Rollout without it reports `ReleaseSourceRequired`, and `spec.releasesImagePolicy` is ignored.
+{{< /callout >}}
 
 ## Uninstall
 
-```bash
-helm uninstall kuberik -n kuberik-system
+```bash {filename="Terminal"}
+helm uninstall kuberik --namespace kuberik-system
 ```
 
-CRDs (annotated `helm.sh/resource-policy: keep`) and the `auth-system` namespace are not removed. Drop them manually:
+The CRDs stay, with every Rollout and gate in them (`crds.keep`). To remove them too:
 
-```bash
-kubectl delete crd \
+```bash {filename="Terminal"}
+kubectl delete crd --ignore-not-found \
   rollouts.kuberik.com rolloutgates.kuberik.com healthchecks.kuberik.com \
   rolloutschedules.kuberik.com clusterrolloutschedules.kuberik.com \
+  rolloutdependencies.kuberik.com releasesources.kuberik.com releaseslices.kuberik.com \
   rollouttests.rollout.kuberik.com environments.environments.kuberik.com
-kubectl delete namespace auth-system
 ```
 
 {{< callout type="warning" >}}
-Deleting CRDs also deletes every `Rollout`, `RolloutGate`, `HealthCheck`, `RolloutTest`, and `Environment` in the cluster.
+Deleting the CRDs deletes every `Rollout`, `RolloutGate`, `HealthCheck`, `ReleaseSource` and `Environment` in the cluster.
 {{< /callout >}}
 
-## Troubleshooting
+## Check the result
 
-### `namespaces "kuberik-system" already exists` during install
-
-`helm install --create-namespace` and `createNamespace: true` collide. Pick one:
-
-```bash
-# Let helm own the namespace (recommended):
-helm install kuberik <chart> -n kuberik-system --create-namespace \
-  --set createNamespace=false
-
-# Or let the chart own it:
-helm install kuberik <chart> -n kuberik-system
+```bash {filename="Terminal"}
+kubectl -n kuberik-system get deployments
 ```
 
-### `auth.oidc.issuerUrl is required`
+The `rollout-controller` and `release-controller-controller-manager` Deployments are ready, plus `rollout-dashboard` and one Deployment per integration you turned on.
 
-Setting `auth.enabled=true` requires the OIDC provider details up front. Fill in `auth.oidc.issuerUrl`, `auth.canonicalHost`, and `auth.gateway.name` — see [Authenticate the Dashboard](#authenticate-the-dashboard).
+## Troubleshoot {#troubleshooting}
 
-### `dashboard.gateway.auth is true but auth.enabled is false`
+| Symptom | Cause | Fix |
+|---|---|---|
+| `namespaces "kuberik-system" already exists` | `--create-namespace` and the chart's `createNamespace: true` both create it | Add `--set createNamespace=false`, or drop `--create-namespace` |
+| `auth.oidc.issuerUrl is required when auth.enabled is true` | Sign-in is on without the OIDC details | Set `auth.oidc.issuerUrl`, `auth.canonicalHost` and `auth.gateway.name` |
+| `dashboard.gateway.auth is true but auth.enabled is false` | The route asks for sign-in that is not installed | Set `auth.enabled: true` with the OIDC values, or `dashboard.gateway.auth: false` |
+| Sign-in redirects in a loop | The redirect URI or cookie domain does not match the host | Register `https://<canonicalHost>/oauth2/callback`; make `auth.cookieDomain` a parent of the host |
+| Prometheus does not scrape the controller | The ServiceMonitor is in `kuberik-system` | Set `metrics.serviceMonitor.namespace` to the Prometheus Operator's namespace |
 
-You opted the dashboard into the auth gate without installing it. Either set `auth.enabled: true` with full OIDC config, or set `dashboard.gateway.auth: false`.
+## Next steps
 
-### Dashboard returns 302 to /dex/auth in a loop
-
-Your OIDC provider's redirect URI must exactly match `auth.canonicalHost`. Re-register the URI as `https://<canonicalHost>/oauth2/callback` and confirm the cookie domain (`auth.cookieDomain`) is a parent of the dashboard hostname.
-
-### ServiceMonitor not picked up by Prometheus
-
-The ServiceMonitor lives in `.Values.namespace` by default. Point it at the Prometheus Operator's namespace:
-
-```bash
---set metrics.serviceMonitor.namespace=monitoring
-```
+{{< next "/docs/getting-started/" "/docs/installation/dashboard-auth/" >}}
