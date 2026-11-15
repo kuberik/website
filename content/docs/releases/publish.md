@@ -88,6 +88,15 @@ spec:
         order: asc  # the highest timestamp is the newest release
 ```
 
+For a private registry, point `spec.oci.secretRef` at a `kubernetes.io/dockerconfigjson` Secret in the ReleaseSource's namespace.
+
+```bash {filename="Terminal"}
+kubectl create secret docker-registry ghcr-pull -n hello-world \
+  --docker-server=ghcr.io --docker-username=<your-user> --docker-password=<your-token>
+kubectl patch releasesource hello-world -n hello-world --type merge \
+  -p '{"spec":{"oci":{"secretRef":{"name":"ghcr-pull"}}}}'
+```
+
 ## Tag releases by version
 
 Publish only when someone pushes a git tag such as `v1.4.0`, when you want to choose which commits become releases. The image gets the version without the `v`: `1.4.0`.
