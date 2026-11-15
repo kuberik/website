@@ -129,7 +129,7 @@ hugo -d public
 python3 scripts/linkcheck.py public
 ```
 
-Open the page at phone and desktop widths, in light and dark mode. Word budgets: guide 1,000, concept 1,200, integration 1,400, tutorial 1,600.
+Open the page at phone and desktop widths, in light and dark mode. Word budgets: guide 1,000, concept 1,200, integration 1,400, tutorial 1,600, and the Troubleshoot page 2,000, because readers jump to one symptom there.
 
 ## Next steps
 
