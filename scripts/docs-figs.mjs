@@ -711,8 +711,11 @@ function week({ x0, x1, y0, rowH, pitch, axisY, release }) {
     if (i < 5) s += `<rect class="df-win" x="${hx(9)}" y="${y}" width="${n(hx(17) - hx(9))}" height="${rowH}" rx="4"/>`;
   });
   const ty = y0 + pitch + rowH / 2, gy = y0 + pitch + rowH + (pitch - rowH) / 2, wy = y0 + 2 * pitch;
-  s += edge([[hx(19), ty], [hx(19), gy], [hx(9), gy], [hx(9), wy]], { kind: 'held', dashed: true });
-  s += dot(hx(19), ty, 'amber') + dot(n(hx(9) + 8), wy + rowH / 2, 'green');
+  // R6-DES-5: the held wire ends ON the Wednesday dot: down into the gutter, back to just before 09:00, down into the
+  // Wed row and right into the green dot, so the head points at the moment it deploys, not at the window corner.
+  const dx = n(hx(9) + 8), dy = wy + rowH / 2;
+  s += edge([[hx(19), ty], [hx(19), gy], [n(hx(9) - 16), gy], [n(hx(9) - 16), dy], [n(dx - 7), dy]], { kind: 'held', dashed: true });
+  s += dot(hx(19), ty, 'amber') + dot(dx, dy, 'green');
   return s;
 }
 figs['schedule-week'] = {
