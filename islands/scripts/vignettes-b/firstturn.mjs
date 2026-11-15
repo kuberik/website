@@ -6,7 +6,7 @@
 // URL= VW= A= B= N= CPU= BEH= . Default runs the QA repro pairs gates->canary and canary->health, both behaviours.
 import { chromium } from '@playwright/test';
 const URL = process.env.URL ?? 'http://127.0.0.1:1390/', VW = +(process.env.VW ?? 1440), CPU = +(process.env.CPU ?? 1), N = +(process.env.N ?? 8);
-const PAIRS = process.env.A ? [[process.env.A, process.env.B ?? 'canary']] : [['gates', 'canary'], ['canary', 'health'], ['health', 'gitops']];
+const PAIRS = process.env.A ? [[process.env.A, process.env.B ?? 'canary']] : [['gates', 'canary'], ['canary', 'health'], ['gitops', 'dashboard']]   // B is the left card of its row: a side-by-side tie goes to the left card, so a right-hand B would not be a fair target;
 const BEHS = process.env.BEH ? [process.env.BEH] : ['auto', 'smooth'];
 const b = await chromium.launch(); let fail = 0;
 for (const [A, B] of PAIRS) for (const BEH of BEHS) {
@@ -22,17 +22,18 @@ for (const [A, B] of PAIRS) for (const BEH of BEHS) {
     const wait = 700 + i * 640;
     await go(A, 'auto'); await p.waitForTimeout(wait);
     // age of A's turn at the scroll: it was elected when it was centred, so the wait is a lower bound; read it from the page
-    const young = wait < 1000;
     await go(B, BEH);
-    const seen = []; let bPlayed = false, multi = 0, finishA = 0, stray = new Set();
+    const seen = []; let bAt = -1, bPlayed = false, multi = 0, finishA = 0, finA = [], stray = new Set();
     for (let k = 0; k < 40; k++) {
       await p.waitForTimeout(50); const s = await st();
       const pl = Object.entries(s).filter(([, v]) => v === 'play').map(([k2]) => k2); if (pl.length > 1) multi++;
       // a stray in 'play' while A is on rest is a loop-end hand-off to a row-mate: legitimate
-      for (const [id, v] of Object.entries(s)) { if (v !== 'rest' && id !== A && id !== B && s[A] !== 'rest') stray.add(id + ':' + v);   if (id === A && v === 'finish' && young) finishA++; }
+      for (const [id, v] of Object.entries(s)) { if (v !== 'rest' && id !== A && id !== B && s[A] !== 'rest') stray.add(id + ':' + v);   if (id === A && v === 'finish') finA.push(k); }
       seen.push(s[B]);
-      if (s[B] === 'play') bPlayed = true;
+      if (s[B] === 'play' && !bPlayed) { bPlayed = true; bAt = k; }
     }
+    // A's turn age when B took over (the election): a card that was < 1 s into its turn yields at once, so it never finishes
+    if (bPlayed && wait + (bAt + 1) * 50 < 1000) finishA = finA.length;
     await p.waitForTimeout(0); const s2 = await st();
     // B played within 1.5 s (it may already have ended its turn: a card re-elected mid-finish only plays the rest of its loop)
     const ok = bPlayed && !multi && !stray.size && !finishA;

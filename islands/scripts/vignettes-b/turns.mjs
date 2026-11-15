@@ -11,7 +11,8 @@ for (const [vw, vh] of [[1440, 900], [1920, 1080], [2560, 1440]]) {
   for (const anchor of ['gates', 'canary', 'dashboard']) {
     await p.evaluate((a) => document.querySelector(`[data-vg="${a}"]`).scrollIntoView({ block: 'center' }), anchor);
     const inView = await p.evaluate(() => [...document.querySelectorAll('[data-vg]')].filter((h) => { const r = h.getBoundingClientRect(); const vis = Math.max(0, Math.min(r.bottom, innerHeight) - Math.max(r.top, 0)) / r.height; return vis >= 0.5; }).map((h) => h.dataset.vg));
-    const ran = new Set(); let maxRun = 0; const bad = [];
+    const loopMax = Math.max(...Object.values(await p.evaluate(() => window.__vgLoops())).filter(Boolean));
+    const ran = new Set(); let maxRun = 0; const bad = []; const prevSt = {}, finSince = {}; let fins = 0;
     for (let i = 0; i < 88; i++) {
       await p.waitForTimeout(250);
       const s = await p.evaluate(() => [...document.querySelectorAll('[data-vg]')].filter((h) => h.dataset.vgLive).map((h) => {
@@ -19,12 +20,19 @@ for (const [vw, vh] of [[1440, 900], [1920, 1080], [2560, 1440]]) {
       // v6j: the clock is absolute (cycles), so compare loop time; a card that lost its turn mid-loop may still be FINISHING its
       // cycle (state 'finish'); at most one card is 'play', and a stopped card ('rest') sits on its rest frame
       const r = s.filter((x) => x.run && x.st === 'play'); maxRun = Math.max(maxRun, r.length); s.filter((x) => x.run).forEach((x) => ran.add(x.id));
+      // v6k finish-state check: a card is 'finish' only after it was 'play' (never rest -> finish), a finish lasts at most one loop and
+      // ends on rest (the card is not running in state rest), and at most ONE card finishes while another plays (no third mover)
+      for (const x of s) {
+        if (x.st === 'finish') { if (prevSt[x.id] === 'rest') bad.push(`${x.id}@${i} rest->finish`); finSince[x.id] ??= i; if ((i - finSince[x.id]) * 0.25 > loopMax) bad.push(`${x.id}@${i} finish too long`); } else delete finSince[x.id];
+        prevSt[x.id] = x.st;
+      }
+      const nf = s.filter((x) => x.st === 'finish').length; fins = Math.max(fins, nf); if (nf > 1) bad.push(`@${i} ${nf} cards finishing`);
       for (const x of s) if (!x.run && x.st !== 'finish' && Math.abs(x.ct - x.rest) > 0.01) bad.push(`${x.id}@${i} ct ${x.ct.toFixed(2)}`);
       for (const x of s) if (x.run && x.st === 'rest') bad.push(`${x.id}@${i} runs while at rest`);
     }
     const missed = inView.filter((x) => !ran.has(x));
     const ok = maxRun <= 1 && !missed.length && !bad.length; if (!ok) fail++;
-    console.log(`${ok ? 'PASS' : 'FAIL'} turns ${vw}x${vh} @${anchor}: in view ${inView.join(',')}; ran ${[...ran].join(',')}; max running ${maxRun}; off-rest ${bad.length ? bad.slice(0, 4).join('; ') : 'none'}`);
+    console.log(`${ok ? 'PASS' : 'FAIL'} turns ${vw}x${vh} @${anchor}: in view ${inView.join(',')}; ran ${[...ran].join(',')}; max running ${maxRun}; max finishing ${fins}; off-rest ${bad.length ? bad.slice(0, 4).join('; ') : 'none'}`);
   }
   if (errs.length) { fail++; console.log('FAIL errors', errs.slice(0, 3).join(' | ')); }
 }

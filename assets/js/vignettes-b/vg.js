@@ -9,7 +9,7 @@
       posters (rest), ?vg-fps=<n>. window.__vgSet / __vgSnap / __vgRest / __vgLoops / __vgStills stay (they build every host
       first); __vgBuilt() lists the built hosts; VG.spec(name) gives a scene's spec (the poster generator reads its boxes).
    5. Remount on a breakpoint flip re-observes the host (unobserve, then observe) so the observer delivers a fresh entry for the
-      new scene; without it a card that was playing froze after the viewport crossed 640 px.
+      new scene; without it a card that was playing froze after the viewport crossed the phone breakpoint.
    6. One card plays at a time (start(): elect/go/settle/rotate). Among the built hosts at >= 35 % in view the one with the largest
       visible area takes the first turn; a partly visible holder loses it to a challenger with 15 % more area, a (90 %+) fully
       visible one keeps it. A turn is one loop: then the turn passes to the next card in view in page order (rotate), so on a wide
@@ -25,7 +25,7 @@
       The clock is absolute (?vg-t= and __vgSet take absolute scene time; the remount keeps abs()); a turn ends on the rest frame
       of the card's current cycle (restAbs), so versions never rewind; a card that loses the turn mid-loop finishes its cycle on
       screen and stops on rest (patch 6's dissolve through opacity 0 is gone: it was an empty frame).
-   7. Kept: the phone composition (viewport <= 640 px) and the remount that keeps every card's absolute clock (non-playing cards park at restAbs); reduced motion; lazy build; hooks. */
+   7. Kept: the phone composition (viewport <= 1023 px, v6k) and the remount that keeps every card's absolute clock (non-playing cards park at restAbs); reduced motion; lazy build; hooks. */
 (() => {
   const NS = 'http://www.w3.org/2000/svg';
   function bez(x1, y1, x2, y2) {
@@ -127,7 +127,7 @@
   let uid = 0;
   const live = [];
   let io = null, lazy = null, kick = () => {};
-  const PHONE = matchMedia('(max-width: 640px)');
+  const PHONE = matchMedia('(max-width: 1023px)');
   const hosts = () => [...document.querySelectorAll('[data-vg]')];
   const specOf = (host) => { const d = defs.find((x) => x[0] === host.dataset.vg); return d && d[1]; };
   VG.spec = (name) => { const d = defs.find((x) => x[0] === name); return d && d[1]; };
@@ -163,7 +163,8 @@
     for (const [host, T, on, s] of keep) {
       delete host.dataset.vgLive;
       const v = build(host, T); if (!v) continue;
-      if (!on) { if (v.anim) { v.anim.pause(); v.render(v.anim.restAbs(s.rest)); } else { v.t = s.rest; v.render(v.t); } v.atRest = true; host.dataset.vgState = 'rest'; }
+      if (on) { v.on = true; v.atRest = false; host.dataset.vgState = 'play'; if (v.anim && !document.hidden) v.anim.play(); }   // the holder keeps running through the remount (no paused frame)
+      else { if (v.anim) { v.anim.pause(); v.render(v.anim.restAbs(s.rest)); } else { v.t = s.rest; v.render(v.t); } v.atRest = true; host.dataset.vgState = 'rest'; }
       if (io) { io.unobserve(host); io.observe(host); }
     }
     kick();
@@ -192,6 +193,7 @@
       const rem = (((v.s.rest - now) % L) + L) % L;
       if (rem < 0.02 || rem > L - 0.02) { toRest(v); return; }
       v.settling = true; clearTimeout(v.finish);
+      if (v.anim.playState !== 'running') v.anim.play();             // v6k: a card rebuilt by a breakpoint flip is paused mid-cycle: it must run its remainder
       v.host.dataset.vgState = 'finish';
       v.finish = setTimeout(() => { v.finish = null; if (!v.on) toRest(v); }, rem * 1000);
     };
@@ -233,6 +235,7 @@
       // Canary, elected it, and Health then finished its cycle beside Canary: two cards moving for 5.5 s). The settle handler
       // (150 ms quiet) elects. A loop-end hand-off (rotate sets `next`) still goes through.
       if (gestureTimer && !next) return;
+      if (cur && !live.includes(cur)) cur = live.find((v) => v.on) || null;   // the remount replaced the holder's object
       const best = centred();
       // v6j (tl-landing-ship-2 QA note): the holder keeps its turn while it stays >= MIN in view; the turn passes only at its loop's
       // end (rotate) or when it leaves, so a scroll cannot take a turn back from a card it was just handed to
@@ -258,7 +261,7 @@
         if (document.hidden) return;
         if (!cur || !live.includes(cur) || !(moved || (wonBy === 'elect' && wonAt === gesture))) { elect(); return; }   // nothing held, or a small scroll: the normal election (the holder keeps its turn while in view)
         const c = centred();
-        if (c && c !== cur) { next = c; preempt = true; elect(); preempt = false; }   // mid-loop: the outgoing card finishes
+        if (c && c !== cur) { next = c; preempt = true; elect(); preempt = false; } else elect();   // nothing to take the turn (e.g. scrolled to the top): the holder leaves and stops   // mid-loop: the outgoing card finishes
       }, 150);
     }, { passive: true });
     io = new IntersectionObserver((es) => {

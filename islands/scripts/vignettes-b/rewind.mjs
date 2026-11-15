@@ -34,4 +34,17 @@ for (const VW of VWS) for (const CPU of CPUS) {
   if (errs.length) { fail++; console.log('FAIL console', errs.slice(0, 3).join(' | ')); }
   await ctx.close();
 }
+// v6k: every card gets a turn when centred, at every width (Releases never did at 1440): centre it, wait up to 30 s, it must reach 'play'
+for (const VW of VWS) {
+  const ctx = await b.newContext({ viewport: { width: VW, height: VW < 500 ? 844 : 900 } }); const p = await ctx.newPage();
+  await p.goto(URL); await p.waitForFunction(() => document.documentElement.dataset.vgReady);
+  await p.evaluate(() => { document.documentElement.style.scrollBehavior = 'auto'; });
+  for (const ID of IDS) {
+    await p.evaluate((id) => { const h = document.querySelector(`[data-vg="${id}"]`); const r = h.getBoundingClientRect(); scrollTo(0, r.top + scrollY - (innerHeight - r.height) / 2); }, ID);
+    const got = await p.waitForFunction((id) => document.querySelector(`[data-vg="${id}"]`).dataset.vgState === 'play', ID, { timeout: 30000, polling: 100 }).then(() => true, () => false);
+    if (!got) fail++;
+    console.log(`${got ? 'PASS' : 'FAIL'} turn ${ID} ${VW}: centred card reaches play within 30 s`);
+  }
+  await ctx.close();
+}
 await b.close(); process.exit(fail ? 1 : 0);

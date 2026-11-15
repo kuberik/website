@@ -11,7 +11,7 @@ const fam = (txt) => { const o = {};
   for (const m of txt.matchAll(/\b(\d+)\.(\d+)\.0\b(?!-)/g)) o.dep = Math.max(o.dep ?? 0, +m[1] * 1e3 + +m[2]);
   return o; };
 const b = await chromium.launch(); let fail = 0;
-for (const [from, to] of [[390, 844], [1440, 600], [844, 390]]) {
+for (const [from, to] of [[390, 844], [1440, 600], [844, 390], [1000, 1100], [1100, 1000]]) {
   const ctx = await b.newContext({ viewport: { width: from, height: from < 500 ? 844 : 900 } }); const p = await ctx.newPage(); const errs = [];
   p.on('console', (m) => (m.type() === 'error' || m.type() === 'warning') && errs.push(m.text())); p.on('pageerror', (e) => errs.push(String(e)));
   await p.goto(URL); await p.waitForFunction(() => document.documentElement.dataset.vgReady);
