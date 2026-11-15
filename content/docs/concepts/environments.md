@@ -22,7 +22,7 @@ metadata:
 spec:
   rolloutRef:
     name: hello-world
-  name: hello-world            # same on every Environment
+  name: hello-world            # same in every tier
   environment: production
   backend:
     type: github

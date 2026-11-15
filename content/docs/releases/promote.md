@@ -25,7 +25,7 @@ metadata:
 spec:
   rolloutRef:
     name: hello-world
-  name: hello-world        # same in every cluster
+  name: hello-world        # same in every tier
   environment: staging
   backend:
     type: github
@@ -35,6 +35,8 @@ spec:
 ```bash {filename="Terminal"}
 kubectl apply -f staging.yaml
 ```
+
+Give the Environment of every tier the same `spec.name`: production finds staging's deploys in GitHub by that name. With a different name, production finds no upstream and lets every release through.
 
 The controller creates a [RolloutGate](/docs/concepts/gates/) for the Rollout and records each deploy as a GitHub deployment in the environment `kuberik/hello-world/staging`. The token comes from the Secret `github-token` in the `hello-world` namespace, the default when `backend.secret` is not set.
 
@@ -51,7 +53,7 @@ metadata:
 spec:
   rolloutRef:
     name: hello-world
-  name: hello-world
+  name: hello-world        # same in every tier
   environment: production
   backend:
     type: github
@@ -62,7 +64,9 @@ spec:
 kubectl apply -f production.yaml
 ```
 
-When staging finishes the bake of `1.4.0`, the production gate adds `1.4.0` to its `allowedVersions` and the production Rollout deploys it as soon as its other gates allow. A failed bake in staging never reaches production, with one exception. Gates never hold a Rollout's first deploy: it deploys the newest release the gates allow, or the newest release if they allow none. The Environment creates its gate only after the Rollout exists, and the gate allows every release until the Environment has read staging, so a new Rollout's first deploy can take a release staging never baked. Create a new Rollout with `spec.wantedVersion` set to a release staging baked, and remove the pin after that deploy. The order comes from the tier names alone: there is nothing to configure between the two objects.
+When staging finishes the bake of `1.4.0`, the production gate adds `1.4.0` to its `allowedVersions` and the production Rollout deploys it as soon as its other gates allow. A failed bake in staging never reaches production. The order comes from the tier names alone: there is nothing to configure between the two objects.
+
+The one exception is a brand-new Rollout. Gates never hold a Rollout's first deploy, on purpose, so every Rollout reaches a running version: on day one, a release can land in every tier at once. The Environment's gate also allows every release until it has read staging. To start production on a release staging baked, create its Rollout with `spec.wantedVersion` set to that release, and remove the pin after the first deploy.
 
 ## Roll production out in waves
 

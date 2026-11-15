@@ -59,7 +59,7 @@ kubectl -n hello-world patch rollout hello-world --type=merge -p '{"spec":{"want
 
 ## Deploy a specific version
 
-Set `rollout.kuberik.com/force-deploy` to deploy one build now, newer or older than the running one. It skips the gates, the unhealthy health-check hold and the failed-bake hold.
+To ship a fix past a bad release, or go back to an older build, set `rollout.kuberik.com/force-deploy` to deploy that one build now. It skips the gates, the unhealthy health-check hold and the failed-bake hold.
 
 ```bash {filename="Terminal"}
 kubectl -n hello-world annotate rollout hello-world --overwrite \

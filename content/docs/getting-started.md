@@ -109,13 +109,14 @@ spec:
   releaseSourceRef:
     name: hello-world
   bakeTime: 5m  # healthy this long
+  deployTimeout: 10m
   healthCheckSelector:
     selector:
       matchLabels:
         app: hello-world
 ```
 
-Without a health check, the bake starts as soon as Kuberik writes the tag, so the deploy succeeds `bakeTime` later whether or not Flux applied anything. See [Verify with Health Checks](/docs/gates/health-checks/) for the other checks.
+`deployTimeout` fails a deploy whose health checks are not healthy within 10 minutes; without it, a bad build waits in `Deploying` forever and holds every newer release. Without a health check, the bake starts as soon as Kuberik writes the tag, so the deploy succeeds `bakeTime` later whether or not Flux applied anything. See [Verify with Health Checks](/docs/gates/health-checks/) for the other checks.
 
 ```bash {filename="Terminal"}
 kubectl apply -f rollout.yaml

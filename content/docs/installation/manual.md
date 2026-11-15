@@ -8,7 +8,7 @@ weight: 15
 
 Install the Kuberik controllers by applying their release manifests with `kubectl`. The [Helm chart](/docs/installation/helm/) installs the same controllers plus the dashboard in one release; use this page when you manage controllers without Helm.
 
-Before you start, you need `kubectl` access with rights to create CRDs, and Flux 2.6 or later in the cluster ([install Flux](https://fluxcd.io/flux/installation/)): Kuberik picks the version and [Flux](/docs/integrations/fluxcd/) applies it.
+Before you start, you need Kubernetes 1.30 or later, `kubectl` access with rights to create CRDs, and Flux 2.6 or later in the cluster ([install Flux](https://fluxcd.io/flux/installation/)): Kuberik picks the version and [Flux](/docs/integrations/fluxcd/) applies it. The rollout-controller ships ValidatingAdmissionPolicies (`admissionregistration.k8s.io/v1`), which Kubernetes serves from 1.30.
 
 ## Install the rollout-controller
 
