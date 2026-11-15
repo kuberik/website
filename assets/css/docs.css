@@ -232,8 +232,14 @@ html.dark .kd-content :where(code):not(:where(.hextra-code-block code,pre code))
 .kd-callout-body :where(ul,ol){margin-top:6px}
 .kd-callout-body .hextra-code-block{margin-top:12px}
 .kd-callout-default{background:var(--kd-tip-bg);border-color:var(--kd-tip-line)}.kd-callout-default .kd-callout-icon{color:var(--kd-tip-ink)}
-.kd-callout-warning,.kd-callout-important{background:var(--kd-warn-bg);border-color:var(--kd-warn-line)}
-.kd-callout-warning .kd-callout-icon,.kd-callout-important .kd-callout-icon{color:var(--kd-warn-ink)}
+.kd-callout-warning{background:var(--kd-warn-bg);border-color:var(--kd-warn-line)}
+.kd-callout-warning .kd-callout-icon{color:var(--kd-warn-ink)}
+/* availability note (`important`, R2-DES-7): quiet, no fill, hairline, lagoon release glyph; one family with .kd-needs */
+.kd-callout-important{padding:10px 14px;gap:10px;background:transparent;border-color:var(--line);font-size:14px;line-height:22px}
+.kd-callout-important .kd-callout-icon{height:22px;color:var(--kd-eyebrow)}
+.kd-callout-important .kd-callout-icon .kd-icon{width:16px;height:16px}
+.kd-needs{display:inline-flex;align-items:center;gap:4px;height:20px;padding:0 6px;border:1px solid color-mix(in oklab,var(--kd-eyebrow) 40%,transparent);border-radius:4px;background:transparent;color:var(--kd-eyebrow);font:600 11px/16px var(--sans);letter-spacing:.06em;text-transform:uppercase;white-space:nowrap;vertical-align:1px}
+.kd-needs .kd-icon{width:12px;height:12px;flex:none}
 .kd-callout-error{background:var(--kd-err-bg);border-color:var(--kd-err-line)}.kd-callout-error .kd-callout-icon{color:var(--kd-err-ink)}
 
 /* ---------- chip (badge) ---------- */

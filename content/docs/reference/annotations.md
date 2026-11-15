@@ -17,7 +17,7 @@ The rollout-controller reads these from a Kuberik `Rollout` in the Rollout's nam
 | `rollout.kuberik.com/deploy-message` | Free text | `Manual deployment` | You, dashboard | Message of the history entry for a deploy by hand (`force-deploy` or `spec.wantedVersion`), removed after the next deploy ([Deploy a specific version](/docs/operate/manual-actions/#deploy-a-specific-version)). |
 | `rollout.kuberik.com/deploy-user` | User name | Kind `System`, name `rollout-controller` | You, dashboard | Recorded as `triggeredBy` with kind `User` for a deploy by hand, removed after the next deploy; the dashboard writes the signed-in user unless it is a service account ([Deploy a specific version](/docs/operate/manual-actions/#deploy-a-specific-version)). |
 | `rollout.kuberik.com/bypass-gates` | Release tag | None | You, dashboard | Lets that build past every gate once if it is a release newer than the deployed one; health checks and a failed bake still hold it, and the controller removes it after the next deploy ([Let one build past the gates](/docs/operate/manual-actions/#let-one-build-past-the-gates)). |
-| `rollout.kuberik.com/bypass-gates-only` | Comma-separated `RolloutGate` names | Every gate | You, dashboard | Narrows `bypass-gates` to the named gates and is removed with it when that build deploys; unknown names raise a `BypassGatesUnknown` warning event ([Let one build past the gates](/docs/operate/manual-actions/#let-one-build-past-the-gates)). {{< badge content="Next release" >}} |
+| `rollout.kuberik.com/bypass-gates-only` | Comma-separated `RolloutGate` names | Every gate | You, dashboard | Narrows `bypass-gates` to the named gates and is removed with it when that build deploys; unknown names raise a `BypassGatesUnknown` warning event ([Let one build past the gates](/docs/operate/manual-actions/#let-one-build-past-the-gates)). {{< needs "Next release" >}} |
 | `rollout.kuberik.com/unblock-failed` | `"true"` | None | You, dashboard | Lets the next automatic deploy through after a failed bake while gates and the unhealthy hold still apply, removed after that deploy ([Resume after a failed bake](/docs/operate/manual-actions/#resume-after-a-failed-bake)). |
 | `rollout.kuberik.com/retry` | Any, ignored | None | You, dashboard | When the latest bake is `Failed`, resets it to `Deploying`, records `lastRetryTimestamp` and is removed at once ([Retry a failed bake](/docs/operate/manual-actions/#retry-a-failed-bake)). |
 | `rollouttest.kuberik.com/retry-mode` | `retry`, `skip` | `retry` | You, dashboard | Read by the openkruise-controller with `retry`: `retry` runs failed RolloutTests again, `skip` marks them `Skipped`, and the controller removes it after acting ([Retry or skip a failed test](/docs/releases/canary/#retry-or-skip-a-failed-test)). |
@@ -64,11 +64,11 @@ Each class is served by its own controller, which reads only the annotations in 
 
 | Annotation | Values | Default | Set by | Effect |
 |---|---|---|---|---|
-| `healthcheck.kuberik.com/datadog-monitor-ids` | Comma-separated monitor IDs | None | You | Class `datadog`: the check is unhealthy while any of these monitors alerts; set this, `datadog-monitor-tags`, or both ([Fail a deploy on alerting monitors](/docs/integrations/datadog/#fail-a-deploy-on-alerting-monitors)). {{< badge content="Next release" >}} |
-| `healthcheck.kuberik.com/datadog-monitor-tags` | Comma-separated tags | None | You | Class `datadog`: also selects every monitor that carries all of these tags ([Fail a deploy on alerting monitors](/docs/integrations/datadog/#fail-a-deploy-on-alerting-monitors)). {{< badge content="Next release" >}} |
-| `healthcheck.kuberik.com/datadog-group-tags` | Comma-separated tags (`service:api`) | Every group | You | Class `datadog`: counts only the groups of each selected monitor that match these tags ([Fail a deploy on alerting monitors](/docs/integrations/datadog/#fail-a-deploy-on-alerting-monitors)). {{< badge content="Next release" >}} |
-| `healthcheck.kuberik.com/datadog-incident-query` | Datadog incident search query | None, required | You | Class `datadog-incidents`: the check is unhealthy while an open incident matches the query ([Hold deploys during an incident](/docs/integrations/datadog/#hold-deploys-during-an-incident)). {{< badge content="Next release" >}} |
-| `healthcheck.kuberik.com/requeue-interval` | Go duration | `60s` | You | How often Datadog is polled; a value under `10s` or one that does not parse uses the default ([Fail a deploy on alerting monitors](/docs/integrations/datadog/#fail-a-deploy-on-alerting-monitors)). {{< badge content="Next release" >}} |
+| `healthcheck.kuberik.com/datadog-monitor-ids` | Comma-separated monitor IDs | None | You | Class `datadog`: the check is unhealthy while any of these monitors alerts; set this, `datadog-monitor-tags`, or both ([Fail a deploy on alerting monitors](/docs/integrations/datadog/#fail-a-deploy-on-alerting-monitors)). {{< needs "Next release" >}} |
+| `healthcheck.kuberik.com/datadog-monitor-tags` | Comma-separated tags | None | You | Class `datadog`: also selects every monitor that carries all of these tags ([Fail a deploy on alerting monitors](/docs/integrations/datadog/#fail-a-deploy-on-alerting-monitors)). {{< needs "Next release" >}} |
+| `healthcheck.kuberik.com/datadog-group-tags` | Comma-separated tags (`service:api`) | Every group | You | Class `datadog`: counts only the groups of each selected monitor that match these tags ([Fail a deploy on alerting monitors](/docs/integrations/datadog/#fail-a-deploy-on-alerting-monitors)). {{< needs "Next release" >}} |
+| `healthcheck.kuberik.com/datadog-incident-query` | Datadog incident search query | None, required | You | Class `datadog-incidents`: the check is unhealthy while an open incident matches the query ([Hold deploys during an incident](/docs/integrations/datadog/#hold-deploys-during-an-incident)). {{< needs "Next release" >}} |
+| `healthcheck.kuberik.com/requeue-interval` | Go duration | `60s` | You | How often Datadog is polled; a value under `10s` or one that does not parse uses the default ([Fail a deploy on alerting monitors](/docs/integrations/datadog/#fail-a-deploy-on-alerting-monitors)). {{< needs "Next release" >}} |
 
 ### Class `datadog-monitor-crd`
 
@@ -83,15 +83,15 @@ The datadog-controller creates these HealthChecks, named `datadog-check-<monitor
 
 | Annotation | Values | Default | Set by | Effect |
 |---|---|---|---|---|
-| `healthcheck.kuberik.com/prometheus-url` | Prometheus base URL | None, required | You | The Prometheus server whose `ALERTS` series the prometheus-controller queries ([Fail a deploy on a firing alert](/docs/integrations/prometheus/#fail-a-deploy-on-a-firing-alert)). {{< badge content="Next release" >}} |
-| `healthcheck.kuberik.com/prometheus-alert-labels` | Comma-separated `key=value` (`alertname=HighErrorRate,app=hello-world`) | None, required | You | The check is unhealthy while an alert with these labels fires ([Fail a deploy on a firing alert](/docs/integrations/prometheus/#fail-a-deploy-on-a-firing-alert)). {{< badge content="Next release" >}} |
-| `healthcheck.kuberik.com/prometheus-credentials-secret` | `<name>` or `<namespace>/<name>` | No credentials | You | Secret with key `token` (bearer) or `username` and `password` (basic auth); a bare name is looked up in the HealthCheck's namespace ([Authenticate to Prometheus](/docs/integrations/prometheus/#authenticate-to-prometheus)). {{< badge content="Next release" >}} |
-| `healthcheck.kuberik.com/requeue-interval` | Go duration | `30s` | You | How often Prometheus is queried; values under `5s` count as `5s` and a value that does not parse uses the default ([Fail a deploy on a firing alert](/docs/integrations/prometheus/#fail-a-deploy-on-a-firing-alert)). {{< badge content="Next release" >}} |
-| `healthcheck.kuberik.com/observation-limit` | Decimal (`0.05`) | Inferred from a simple rule expression such as `rate(x[5m]) > 0.05` | You | The alert's threshold, shown in `status.observations`; needs `observation-direction` ([Read the status](/docs/integrations/prometheus/#read-the-status)). {{< badge content="Next release" >}} |
-| `healthcheck.kuberik.com/observation-direction` | `Above`, `Below` | Inferred with the limit | You | Whether the value fails above or below the limit; without a valid direction the observation falls back to a count of firing alerts ([Read the status](/docs/integrations/prometheus/#read-the-status)). {{< badge content="Next release" >}} |
-| `healthcheck.kuberik.com/observation-unit` | Text (`%`, `ms`) | None | You | Unit shown with the observed value ([Read the status](/docs/integrations/prometheus/#read-the-status)). {{< badge content="Next release" >}} |
-| `healthcheck.kuberik.com/observation-name` | Text | The `alertname` label, else the rule name, else `alert` | You | Name of the observation ([Read the status](/docs/integrations/prometheus/#read-the-status)). {{< badge content="Next release" >}} |
-| `healthcheck.kuberik.com/last-scrape-time` | RFC 3339 time | One requeue interval ago | prometheus-controller | Start of the next `ALERTS` range query, written after each query so an alert that fired between polls still counts. {{< badge content="Next release" >}} |
+| `healthcheck.kuberik.com/prometheus-url` | Prometheus base URL | None, required | You | The Prometheus server whose `ALERTS` series the prometheus-controller queries ([Fail a deploy on a firing alert](/docs/integrations/prometheus/#fail-a-deploy-on-a-firing-alert)). {{< needs "Next release" >}} |
+| `healthcheck.kuberik.com/prometheus-alert-labels` | Comma-separated `key=value` (`alertname=HighErrorRate,app=hello-world`) | None, required | You | The check is unhealthy while an alert with these labels fires ([Fail a deploy on a firing alert](/docs/integrations/prometheus/#fail-a-deploy-on-a-firing-alert)). {{< needs "Next release" >}} |
+| `healthcheck.kuberik.com/prometheus-credentials-secret` | `<name>` or `<namespace>/<name>` | No credentials | You | Secret with key `token` (bearer) or `username` and `password` (basic auth); a bare name is looked up in the HealthCheck's namespace ([Authenticate to Prometheus](/docs/integrations/prometheus/#authenticate-to-prometheus)). {{< needs "Next release" >}} |
+| `healthcheck.kuberik.com/requeue-interval` | Go duration | `30s` | You | How often Prometheus is queried; values under `5s` count as `5s` and a value that does not parse uses the default ([Fail a deploy on a firing alert](/docs/integrations/prometheus/#fail-a-deploy-on-a-firing-alert)). {{< needs "Next release" >}} |
+| `healthcheck.kuberik.com/observation-limit` | Decimal (`0.05`) | Inferred from a simple rule expression such as `rate(x[5m]) > 0.05` | You | The alert's threshold, shown in `status.observations`; needs `observation-direction` ([Read the status](/docs/integrations/prometheus/#read-the-status)). {{< needs "Next release" >}} |
+| `healthcheck.kuberik.com/observation-direction` | `Above`, `Below` | Inferred with the limit | You | Whether the value fails above or below the limit; without a valid direction the observation falls back to a count of firing alerts ([Read the status](/docs/integrations/prometheus/#read-the-status)). {{< needs "Next release" >}} |
+| `healthcheck.kuberik.com/observation-unit` | Text (`%`, `ms`) | None | You | Unit shown with the observed value ([Read the status](/docs/integrations/prometheus/#read-the-status)). {{< needs "Next release" >}} |
+| `healthcheck.kuberik.com/observation-name` | Text | The `alertname` label, else the rule name, else `alert` | You | Name of the observation ([Read the status](/docs/integrations/prometheus/#read-the-status)). {{< needs "Next release" >}} |
+| `healthcheck.kuberik.com/last-scrape-time` | RFC 3339 time | One requeue interval ago | prometheus-controller | Start of the next `ALERTS` range query, written after each query so an alert that fired between polls still counts. {{< needs "Next release" >}} |
 
 ## DatadogMonitor
 
@@ -125,14 +125,14 @@ The rollout-controller keeps these in sync on every approval gate the policy own
 
 | Annotation | Values | Default | Set by | Effect |
 |---|---|---|---|---|
-| `gate.kuberik.com/pretty-name` | Text | The gate's name (`approval-gate-…`) | You | Becomes the approval gate's `gate.kuberik.com/pretty-name` ([Require an approval](/docs/gates/approvals/#require-an-approval)). {{< badge content="Next release" >}} |
-| `gate.kuberik.com/description` | Text | None | You | Becomes the approval gate's `gate.kuberik.com/description` ([Require an approval](/docs/gates/approvals/#require-an-approval)). {{< badge content="Next release" >}} |
+| `gate.kuberik.com/pretty-name` | Text | The gate's name (`approval-gate-…`) | You | Becomes the approval gate's `gate.kuberik.com/pretty-name` ([Require an approval](/docs/gates/approvals/#require-an-approval)). {{< needs "Next release" >}} |
+| `gate.kuberik.com/description` | Text | None | You | Becomes the approval gate's `gate.kuberik.com/description` ([Require an approval](/docs/gates/approvals/#require-an-approval)). {{< needs "Next release" >}} |
 
 ## RolloutApproval
 
 | Annotation | Values | Default | Set by | Effect |
 |---|---|---|---|---|
-| `approval.kuberik.com/by` | Your Kubernetes user name | None | You, dashboard | Who approved; the admission policy `kuberik-rolloutapproval-by` rejects any name but the requester's and any change after create, and the rollout-controller copies it to `status.history[].approval.by` on deploy ([Approve a build](/docs/gates/approvals/#approve-a-build)). {{< badge content="Next release" >}} |
+| `approval.kuberik.com/by` | Your Kubernetes user name | None | You, dashboard | Who approved; the admission policy `kuberik-rolloutapproval-by` rejects any name but the requester's and any change after create, and the rollout-controller copies it to `status.history[].approval.by` on deploy ([Approve a build](/docs/gates/approvals/#approve-a-build)). {{< needs "Next release" >}} |
 
 ## Environment
 
@@ -140,8 +140,8 @@ The environment-controller reads these from an `Environment`.
 
 | Annotation | Values | Default | Set by | Effect |
 |---|---|---|---|---|
-| `environments.kuberik.com/take-over-site` | `"true"` | None | You | On an Environment in a `DuplicateSite` conflict, marks the other owners of the site deregistered in GitHub and takes the site; it is not removed ([Troubleshoot promotion](/docs/releases/promote/#troubleshoot)). {{< badge content="Next release" >}} |
-| `environments.kuberik.com/skip-deregister` | `"true"` | None | You | On delete, removes the `environments.kuberik.com/deregister` finalizer without calling GitHub, for a dead cluster or a revoked token ([When a site leaves](/docs/concepts/environments/#when-a-site-leaves)). {{< badge content="Next release" >}} |
+| `environments.kuberik.com/take-over-site` | `"true"` | None | You | On an Environment in a `DuplicateSite` conflict, marks the other owners of the site deregistered in GitHub and takes the site; it is not removed ([Troubleshoot promotion](/docs/releases/promote/#troubleshoot)). {{< needs "Next release" >}} |
+| `environments.kuberik.com/skip-deregister` | `"true"` | None | You | On delete, removes the `environments.kuberik.com/deregister` finalizer without calling GitHub, for a dead cluster or a revoked token ([When a site leaves](/docs/concepts/environments/#when-a-site-leaves)). {{< needs "Next release" >}} |
 
 ## ReleaseSlice
 
@@ -149,7 +149,7 @@ The release-controller writes this on every slice of a `ReleaseSource` catalogue
 
 | Annotation | Values | Default | Set by | Effect |
 |---|---|---|---|---|
-| `kuberik.com/source-identity` | `spec.oci.image` or the `imagePolicyRef` name | Set on every slice | release-controller | When the ReleaseSource's identity no longer matches, the controller lists the new source and rebuilds the catalogue from it, keeping the old one if the new source cannot be listed. {{< badge content="Next release" >}} |
+| `kuberik.com/source-identity` | `spec.oci.image` or the `imagePolicyRef` name | Set on every slice | release-controller | When the ReleaseSource's identity no longer matches, the controller lists the new source and rebuilds the catalogue from it, keeping the old one if the new source cannot be listed. {{< needs "Next release" >}} |
 
 ## OpenKruise Rollout
 

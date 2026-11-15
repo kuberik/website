@@ -1,11 +1,15 @@
 {{- /* Callout body (docs visual redesign). Radius 8, tinted fill and 1px tinted border, icon in the type colour;
      no edge stripe (DESIGN-INTENT). Called by the callout shortcode and by hextra's github-style alerts (which pass
-     a class, no type: they get the default style). */ -}}
+     a class, no type: they get the default style).
+     `important` is the availability note ("Needs rollout-controller after v0.11.0", STYLE 5): no fill, a hairline, the
+     release (package) glyph in lagoon ink, the same family as the inline {{< needs >}} chip (R2-DES-7). Amber stays
+     for `warning` only. */ -}}
 {{- $type := .type | default "default" -}}
 <div class="kd-callout kd-callout-{{ $type }}">
   <div class="kd-callout-icon" aria-hidden="true">
-    {{- with .emoji }}<span class="kd-callout-emoji">{{ . }}</span>
-    {{- else }}{{ with .icon }}{{ partial "utils/icon.html" (dict "name" . "attributes" `height=18`) }}{{ end }}{{ end -}}
+    {{- if .emoji }}<span class="kd-callout-emoji">{{ .emoji }}</span>
+    {{- else if eq $type "important" }}{{ partial "docs/icon.html" "releases" }}
+    {{- else if .icon }}{{ partial "utils/icon.html" (dict "name" .icon "attributes" `height=18`) }}{{ end -}}
   </div>
   <div class="kd-callout-body">{{ .content }}</div>
 </div>
