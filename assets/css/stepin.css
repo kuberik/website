@@ -19,5 +19,16 @@ html.dark .si-canvas{background-image:radial-gradient(circle,oklch(.965 .005 222
    are 14 px at 1440 (v6k 16). Its card is 800 x 284 of the box, ~52 % of the 1200 x 364 canvas at 1440 (r7 B1: 50-55 %). */
 /* the lead reads at the #features lead size at every width */
 #step-in .title-body{font-size:var(--t-lead-s);line-height:var(--t-lead-l)}
-/* phone: the canvas's 1 px border comes out of the side padding, so the 326 composition draws at 1.0 in a 350 canvas */
-@media(max-width:640px){.si-canvas{padding:12px 11px}}
+/* <= 1023: the phone composition (326 x 254 at 1.0). The canvas's 1 px border comes out of the side padding, so it draws in a
+   350 canvas. <= 640 under the lead (canvas <= 390, as the feature canvases); 641-1023 (r9 B1) the features' split row: the
+   title, then the lead | the 350 canvas column (v6k drew the 840-wide desktop scene here at 0.65-1.1). */
+@media(max-width:1023px){.si-canvas{padding:12px 11px}}
+@media(max-width:640px){.si-canvas{max-width:390px}}
+@media(min-width:641px) and (max-width:1023px){
+  .si .cont{display:grid;grid-template-columns:minmax(0,1fr) 350px;column-gap:24px;align-items:start}
+  .si .si-head{display:contents}
+  .si .si-head .title{grid-column:1 / -1}
+  .si .si-lead{grid-row:2;grid-column:1}
+  .si .si-grid{grid-row:2;grid-column:2;margin-top:var(--head-gap)}
+  .si .si-lead .title-body{margin-top:var(--head-gap)}
+}

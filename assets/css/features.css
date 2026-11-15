@@ -11,9 +11,8 @@
      Row 2  Canary 14 | Health 10 over GitOps 10 (Canary is 730 tall, the pair stands in a canvas as tall).
      Row 3  Dashboard 10 | Releases 14.
    1024-1343: one card a row; Health, GitOps, Dashboard beside a copy column, Gates, Canary, Releases under their copy.
-   641-1023: one column, copy over canvas.
-   <= 640: the cards drop their shell; copy sits on the stage, canvas padding 12 (the phone composition is 326 wide), 56
-           between cards.
+   <= 1023 (r9 B1): the phone compositions (326 wide, 1.0); the cards drop their shell; copy sits on the stage, canvas padding
+           12, 56 between cards. 641-1023: copy | canvas (350). <= 640: copy over canvas (canvas <= 390).
    Radii (review r8 S2): the page card 12 (--card-r), every canvas 8, every scene card 8 (KB.card), chips 4.
    Canvas hues (data/landing.yaml): Gates L; Canary M, Health M, GitOps L; Dashboard L, Releases M.
    Every host reserves its box from its aspect ratio (--vg-ar, --vg-ar-m): CLS 0 before JS and before the live build. */
@@ -56,9 +55,18 @@ html.dark .fx-stage .b2{background:radial-gradient(closest-side,oklch(.4 .07 182
 html.js .fx .reveal:nth-child(2n){transition-delay:60ms}
 html.js .fx .reveal:nth-child(4){transition-delay:120ms}
 
-/* ---- 641-1023: one column of cards ---- */
+/* ---- 641-1023 (r9 B1): the phone compositions in split rows. The engine draws the 326-wide phone scenes up to 1023 (one
+   unit, 1.0: chips 10, mono 11 rendered); v6k drew the desktop scenes here at 0.65-1.1 with ~half of each canvas empty.
+   Role: the phone layout given the tablet's width. The card keeps the phone's look (no shell, copy on the stage) and the copy
+   moves beside its canvas, as Health / GitOps / Dashboard sit beside theirs at 1024-1343: copy | a 350 canvas column (326 +
+   12 + 12), so the canvas is the scene's own size at every width and the copy takes the rest (195 at 641, 577 at 1023). ---- */
 @media(min-width:641px){
   .fx-copy .fx-body{max-width:640px}
+}
+@media(min-width:641px) and (max-width:1023px){
+  .fx-card{display:grid;grid-template-columns:minmax(0,1fr) 350px;column-gap:24px;align-items:start}
+  .fx-card > .fx-copy{grid-row:1;grid-column:1;padding:0}
+  .fx-card > .fx-canvas{grid-row:1;grid-column:2}
 }
 
 /* ---- 1024-1343: one card per row (review r8 S1: one render scale). The 24-column bento needs a 1200 content width to draw
@@ -97,11 +105,16 @@ html.js .fx .reveal:nth-child(4){transition-delay:120ms}
   .fx-gates{grid-template-columns:40% minmax(0,1fr)}
 }
 
-/* ---- <= 640: no card shell; copy on the stage, then its canvas ---- */
-@media(max-width:640px){
+/* ---- <= 1023 (the phone compositions): no card shell; copy on the stage, then (<= 640) or beside (641-1023) its canvas.
+   <= 640 the canvas stops at 390 (a 430 phone's full width): the scene draws at 1.0 (326) at every phone width, so a wider
+   canvas would only be empty ground (v6k scaled the scene to the canvas: 1.77 at 640, 0.65 at 641). ---- */
+@media(max-width:1023px){
   .fx{gap:56px}
   .fx-card{background:none;border:0;box-shadow:none;border-radius:0}
-  .fx-copy{padding:0 0 20px}
   .fx-canvas{margin:0;padding:12px}
+}
+@media(max-width:640px){
+  .fx-copy{padding:0 0 20px}
+  .fx-canvas{width:100%;max-width:390px}
   .fx-copy .link-arrow{min-height:44px;margin-top:8px}
 }
