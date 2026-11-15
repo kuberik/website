@@ -10,18 +10,18 @@ Production deploys only releases staging has deployed and baked, with no pipelin
 
 {{< fig id="promote-waves" caption="A release reaches production wave 1 only after staging baked it, and wave 2 only after every wave-1 site baked it." >}}
 
-Works with the environment-controller, a GitHub token Secret in each app namespace (see [GitHub](/docs/integrations/github/)), and Rollouts that take their releases from a [ReleaseSource](/docs/releases/publish/). On one cluster, give each tier its own namespace (`hello-world-staging`, `hello-world-production`) with its own Rollout, ReleaseSource, Environment and `github-token` Secret, and use those namespaces below.
+Works with the environment-controller, a GitHub token Secret in each app namespace (see [GitHub](/docs/integrations/github/)), and Rollouts that take their releases from a [ReleaseSource](/docs/releases/publish/). On one cluster, give each tier its own namespace (`hello-world-staging`, `hello-world-production`) holding every object from [Deploy Your First App](/docs/getting-started/) and a `github-token` Secret. Give each tier its own overlay (`deploy/staging`) and its namespace as the Kustomization's `targetNamespace`, or the tiers overwrite one Deployment. Use the tier's namespace for every `namespace:` and `-n` below.
 
 ## Create the staging Environment
 
-Staging is the first tier this app uses, so its gate does not restrict releases. Apply this in the staging cluster or namespace, next to the `hello-world` Rollout:
+Staging is the first tier this app uses, so its gate does not restrict releases. Apply this in the staging cluster, next to the `hello-world` Rollout:
 
 ```yaml {filename="staging.yaml"}
 apiVersion: environments.kuberik.com/v1alpha1
 kind: Environment
 metadata:
   name: hello-world-staging
-  namespace: hello-world
+  namespace: hello-world  # hello-world-staging on one cluster
 spec:
   rolloutRef:
     name: hello-world
@@ -36,20 +36,20 @@ spec:
 kubectl apply -f staging.yaml
 ```
 
-Give the Environment of every tier the same `spec.name`: production finds staging's deploys in GitHub by that name. With a different name, production finds no upstream and lets every release through.
+Give the Environment of every tier the same `spec.name`: production finds staging's deploys in GitHub by that name.
 
 The controller creates a [RolloutGate](/docs/concepts/gates/) for the Rollout and records each deploy as a GitHub deployment in the environment `kuberik/hello-world/staging`.
 
 ## Create the production Environment
 
-Production comes after staging in the tier order, so its gate allows only releases staging baked. Apply this in the production cluster or namespace:
+Production comes after staging in the tier order, so its gate allows only releases staging baked. Apply this in the production cluster:
 
 ```yaml {filename="production.yaml"}
 apiVersion: environments.kuberik.com/v1alpha1
 kind: Environment
 metadata:
   name: hello-world-production
-  namespace: hello-world
+  namespace: hello-world  # hello-world-production on one cluster
 spec:
   rolloutRef:
     name: hello-world
@@ -64,7 +64,7 @@ spec:
 kubectl apply -f production.yaml
 ```
 
-When staging bakes `1.4.0`, the production gate adds it to `allowedVersions`, and production deploys it once its other gates allow. The order comes from the tier names alone.
+When staging bakes `1.4.0`, the production gate adds it to `allowedVersions`, and production deploys it once its other gates allow.
 
 A brand-new Rollout is the exception: gates never hold its first deploy, and the Environment's gate allows every release until it has read staging. To start production on a release staging baked, create its Rollout with `spec.wantedVersion` set to that release, and remove the pin after the first deploy.
 
@@ -118,8 +118,6 @@ The gate whose name starts with `ghd-` belongs to the Environment. The dashboard
 ![The Builds card of invoice-worker: staging and production both run 2.2.0-30 and hold the newer 2.3.0-31](/images/docs/releases/promote-builds.png)
 
 ## Troubleshoot
-
-The conditions printed in [Check the result](#check-the-result) name what holds each Environment.
 
 | Symptom | Cause | Fix |
 |---|---|---|
