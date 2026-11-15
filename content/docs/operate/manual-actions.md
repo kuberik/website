@@ -1,6 +1,6 @@
 ---
 title: "Operate with kubectl"
-description: "Pin a version, deploy a specific build, let a build past its gates, or resume after a failed bake."
+description: "Pin a version, roll back, deploy a specific build, let a build past its gates, or resume after a failed bake."
 type_: guide
 weight: 20
 ---
@@ -58,7 +58,7 @@ Then pin the tag it printed.
 kubectl -n hello-world patch rollout hello-world --type=merge -p '{"spec":{"wantedVersion":"<previous-tag>"}}'
 ```
 
-**Roll back** on the dashboard's **Deployment failed** banner writes the same pin. Clear it as in [Pin a version](#pin-a-version) once a fixed release is out.
+**Roll back** in the dashboard (the failure banner or the rollout header) writes the same pin. Clear it as in [Pin a version](#pin-a-version) once a fixed release is out.
 
 ## Deploy a specific version
 
