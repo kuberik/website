@@ -14,9 +14,12 @@ for (const [vw, vh] of [[1440, 900], [1920, 1080], [2560, 1440]]) {
     for (let i = 0; i < 88; i++) {
       await p.waitForTimeout(250);
       const s = await p.evaluate(() => [...document.querySelectorAll('[data-vg]')].filter((h) => h.dataset.vgLive).map((h) => {
-        const an = h.getAnimations({ subtree: true }).filter((a) => a.effect && a.effect.target !== h.firstElementChild); return { id: h.dataset.vg, run: an.some((a) => a.playState === 'running'), ct: an.length ? an[0].currentTime / 1000 : 0, rest: window.__vgRest(h.dataset.vg) }; }));
-      const r = s.filter((x) => x.run); maxRun = Math.max(maxRun, r.length); r.forEach((x) => ran.add(x.id));
-      for (const x of s) if (!x.run && Math.abs(x.ct - x.rest) > 0.01) bad.push(`${x.id}@${i} ct ${x.ct.toFixed(2)}`);
+        const an = h.getAnimations({ subtree: true }).filter((a) => a.effect && a.effect.target !== h.firstElementChild); const L = window.__vgLoops()[h.dataset.vg]; return { id: h.dataset.vg, st: h.dataset.vgState || 'rest', run: an.some((a) => a.playState === 'running'), ct: an.length ? (an[0].currentTime / 1000) % L : 0, rest: window.__vgRest(h.dataset.vg) }; }));
+      // v6j: the clock is absolute (cycles), so compare loop time; a card that lost its turn mid-loop may still be FINISHING its
+      // cycle (state 'finish'); at most one card is 'play', and a stopped card ('rest') sits on its rest frame
+      const r = s.filter((x) => x.run && x.st === 'play'); maxRun = Math.max(maxRun, r.length); s.filter((x) => x.run).forEach((x) => ran.add(x.id));
+      for (const x of s) if (!x.run && x.st !== 'finish' && Math.abs(x.ct - x.rest) > 0.01) bad.push(`${x.id}@${i} ct ${x.ct.toFixed(2)}`);
+      for (const x of s) if (x.run && x.st === 'rest') bad.push(`${x.id}@${i} runs while at rest`);
     }
     const missed = inView.filter((x) => !ran.has(x));
     const ok = maxRun <= 1 && !missed.length && !bad.length; if (!ok) fail++;

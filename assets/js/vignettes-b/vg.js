@@ -21,6 +21,10 @@
       Why: main-thread cost scales with the number of scenes playing (each compositor scene still costs style work per frame).
       The page tells the nav when anything plays: a `vg-play` event on window, detail true/false (home.html holds the logo's SMIL
       spin while true; an animated SVG <img>/inline mark otherwise requests a main-thread frame per vsync under the sticky nav).
+   8. v6j (tl-landing-v6j): scenes never empty (KB cycles: the loop continues through the product, versions advance by label).
+      The clock is absolute (?vg-t= and __vgSet take absolute scene time; the remount keeps abs()); a turn ends on the rest frame
+      of the card's current cycle (restAbs), so versions never rewind; a card that loses the turn mid-loop finishes its cycle on
+      screen and stops on rest (patch 6's dissolve through opacity 0 is gone: it was an empty frame).
    7. Kept: the phone composition (viewport <= 640 px) and the remount that keeps the playing card's clock (the others stand at rest); reduced motion; lazy build; hooks. */
 (() => {
   const NS = 'http://www.w3.org/2000/svg';
@@ -142,7 +146,7 @@
     // composited sprites), so the rAF clock never touches it; a v3/v4 scene returns render(t)
     const anim = typeof built === 'object' ? built : null;
     const render = anim ? anim.set : built;
-    const v = { host, s, render, anim, t: freeze != null ? freeze % s.loop : keep != null ? keep : s.rest, on: false, atRest: keep == null };
+    const v = { host, s, render, anim, t: freeze != null ? (anim ? freeze : freeze % s.loop) : keep != null ? keep : s.rest, on: false, atRest: keep == null };
     v.render(v.t);
     live.push(v);
     host.dataset.vgLive = '1';
@@ -151,7 +155,7 @@
   const buildAll = () => { for (const h of hosts()) build(h); };
   // the phone has its own composition (one object kept big): re-mount the built hosts when the breakpoint flips, keeping each clock
   PHONE.addEventListener('change', () => {
-    const keep = live.map((v) => [v.host, v.on ? (v.anim ? v.anim.time() : v.t) : null]);   // only the playing card keeps its clock; the rest stand at rest
+    const keep = live.map((v) => [v.host, v.on ? (v.anim ? v.anim.abs() : v.t) : null]);   // only the playing card keeps its clock; the rest stand at rest
     live.length = 0;
     for (const [host, t] of keep) { delete host.dataset.vgLive; const v = build(host, t); if (v && io) { io.unobserve(host); io.observe(host); } }
     kick();
@@ -161,26 +165,32 @@
     if (reduced) { document.documentElement.dataset.vgReady = '1'; return; }   // the posters are the rest frames
     // ONE CARD PLAYS AT A TIME. The observer reports each built host's visible ratio and area; among those >= MIN the one with the
     // largest visible area plays (a playing card keeps the turn until a challenger shows 15 % more area: no flapping). Every other
-    // card shows its rest frame: when a card loses the turn (or leaves the screen) it is paused, dissolved to its rest frame (a short
-    // fade out and in, no hard jump on screen; off screen it just seeks), and a card that is elected again plays from rest.
+    // card shows its rest frame: a card that loses the turn (or leaves the screen) finishes its cycle on screen and stops on rest
+    // (v6j; off screen it seeks), and a card that is elected again plays on from where it is. host.dataset.vgState says which
+    // (play | finish | rest) for the measurement scripts.
     const MIN = 0.35;
     let cur = null, announced = null;
     const announce = () => { const on = !!cur && !document.hidden; if (on !== announced) { announced = on; dispatchEvent(new CustomEvent('vg-play', { detail: on })); } };
-    const toRest = (v) => { if (v.anim) { v.anim.pause(); v.anim.set(v.s.rest); } else { v.t = v.s.rest; v.render(v.t); } v.settling = false; v.atRest = true; };
+    // v6j: the rest frame of the card's CURRENT cycle (its versions stay where the story got to; nothing rewinds a cycle)
+    const toRest = (v) => { clearTimeout(v.finish); v.finish = null; if (v.anim) { v.anim.pause(); v.anim.set(v.anim.restAbs(v.s.rest)); } else { v.t = v.s.rest; v.render(v.t); } v.settling = false; v.atRest = true; v.host.dataset.vgState = 'rest'; };
+    // v6j: a card that loses its turn mid-loop FINISHES its cycle on screen and stops on its rest frame (no dissolve through an
+    // empty card, no jump). For that remainder two scenes run (both compositor-only). Off screen it seeks to rest at once.
     const settle = (v, atEnd) => {
-      const tok = v.tok = (v.tok || 0) + 1, svg = v.host.firstElementChild;
-      if (v.anim) v.anim.pause();                                   // stop moving at once
-      if (atEnd) { toRest(v); return; }                             // a turn ends at the loop's end = the rest frame: no dissolve
-      if (!v.anim && v.t === v.s.rest) return;
-      if (!svg || !svg.animate || !(v.ratio > 0.02)) { toRest(v); return; }   // not on screen: nobody sees the seek
-      v.settling = true;
-      const out = v.fade = svg.animate([{ opacity: 1 }, { opacity: 0 }], { duration: 160, easing: 'ease-in', fill: 'forwards' });
-      out.onfinish = () => { if (v.tok !== tok) return; toRest(v); svg.animate([{ opacity: 0 }, { opacity: 1 }], { duration: 220, easing: 'ease-out' }); out.cancel(); };
+      v.tok = (v.tok || 0) + 1;
+      if (atEnd) { toRest(v); return; }                             // a turn ends at the loop's end = the rest frame
+      if (!v.anim) { if (v.t !== v.s.rest) toRest(v); return; }
+      if (!(v.ratio > 0.02) || document.hidden) { toRest(v); return; }   // not on screen: nobody sees the seek
+      const L = v.s.loop, now = v.anim.time();
+      const rem = (((v.s.rest - now) % L) + L) % L;
+      if (rem < 0.02 || rem > L - 0.02) { toRest(v); return; }
+      v.settling = true; clearTimeout(v.finish);
+      v.host.dataset.vgState = 'finish';
+      v.finish = setTimeout(() => { v.finish = null; if (!v.on) toRest(v); }, rem * 1000);
     };
     const go = (v) => {
       v.tok = (v.tok || 0) + 1; v.atRest = false;
-      if (v.fade) { v.fade.cancel(); v.fade = null; }
-      if (v.settling) toRest(v);                                    // re-elected mid-dissolve: start from rest
+      clearTimeout(v.finish); v.finish = null; v.settling = false;  // re-elected while finishing its cycle: it simply keeps playing
+      v.host.dataset.vgState = 'play';
       if (v.anim && !document.hidden) v.anim.play();
     };
     // turns: a card that wins plays one loop (from rest back to rest), then rotate() passes the turn to the next card in view
@@ -243,9 +253,9 @@
   }
   // test hooks: drive every vignette to second t; they build every host first (a debugging aid, not a page path)
   window.__vgBuilt = () => live.map((v) => v.host.dataset.vg);
-  window.__vgSet = (t) => { buildAll(); for (const v of live) { v.t = t % v.s.loop; v.render(v.t); } };
+  window.__vgSet = (t) => { buildAll(); for (const v of live) { v.t = v.anim ? t : t % v.s.loop; v.render(v.t); } };   // absolute for compositor scenes (KB cycles)
   // loop check: serialise every vignette's DOM at t=a and t=b (render called directly, no modulo)
-  window.__vgSnap = (t) => { buildAll(); return live.map((v) => { if (v.anim) return [v.host.dataset.vg, v.anim.snap(t)]; v.render(t); return [v.host.dataset.vg, v.host.innerHTML]; }); };
+  window.__vgSnap = (t, withLabels) => { buildAll(); return live.map((v) => { if (v.anim) return [v.host.dataset.vg, v.anim.snap(t, withLabels)]; v.render(t); return [v.host.dataset.vg, v.host.innerHTML]; }); };
   window.__vgStills = () => Object.fromEntries(hosts().map((h) => [h.dataset.vg, (specOf(h) || {}).still || []]));
   window.__vgLoops = () => Object.fromEntries(hosts().map((h) => [h.dataset.vg, (specOf(h) || {}).loop]));
   window.__vgRest = (vg) => { const s = VG.spec(vg); return s ? s.rest : 0; };

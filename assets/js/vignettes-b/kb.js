@@ -156,7 +156,7 @@
       if (track) d.style.willChange = 'transform, opacity';
       (parent ? parent.div : root).appendChild(d);
       const s = mk({ x, y, w, h }); d.appendChild(s);
-      const sp = { div: d, g: el('g', {}, s), svg: s, box: { x, y, w, h }, track };
+      const sp = { div: d, g: el('g', {}, s), svg: s, box: { x, y, w, h }, track, parent };
       if (track) sprites.push(sp);
       return sp;
     }
@@ -169,6 +169,26 @@
       return `translate(${+((v[1] / w) * 100).toFixed(3)}%, ${+((v[2] / h) * 100).toFixed(3)}%) rotate(${+v[5].toFixed(2)}deg) scale(${+v[3].toFixed(4)}, ${+v[4].toFixed(4)})`;
     };
     const R = (v) => [+v[0].toFixed(3), +v[1].toFixed(2), +v[2].toFixed(2), +v[3].toFixed(4), +v[4].toFixed(4), +v[5].toFixed(2)];
+    /* v6j CYCLES: the loop never empties; each cycle's identity (a version, a PR, a tag, a region) advances instead.
+       S.label(sp, node, fn, swapAt): node is a <text> (or any element whose textContent we own) drawn inside sprite sp;
+       fn(k) -> string for cycle k; swapAt = a loop time (0 <= swapAt < loop) at which sp (and every parent sprite) is fully
+       transparent from swapAt - 0.10 to swapAt + 0.15 (asserted at build; a late timer must never show the swap).
+       k(T) = floor((T - swapAt) / loop) + 1 for the ABSOLUTE scene time T (k = 0 before the first swap). The timeline keeps an
+       absolute clock: set(T) accepts T >= loop (cycle n = floor(T / loop)), abs() returns it, and labels are rewritten by one
+       main-thread timer per swap while playing (a text write while invisible; the compositor tracks are untouched). */
+    const labels = [];
+    function opaqueAt(sp, t) { for (let q = sp; q; q = q.parent) if (q.track && ((q.track(t) || {}).o ?? 1) > 0.001) return true; return false; }
+    function label(sp, node, fn, swapAt) {
+      for (let d = -0.10; d <= 0.1501; d += 0.01) {
+        const t = (((swapAt + d) % loop) + loop) % loop;
+        if (opaqueAt(sp, t)) { console.warn(`KB.label: sprite visible at ${t.toFixed(2)} (swapAt ${swapAt})`, node.textContent); break; }
+      }
+      const L = { sp, node, fn, swapAt, k: null };
+      labels.push(L);
+      return L;
+    }
+    const kOf = (L, T) => Math.floor((T - L.swapAt) / loop) + 1;
+    const relabel = (T) => { for (const L of labels) { const k = kOf(L, T); if (k !== L.k) { L.k = k; L.node.textContent = L.fn(k); } } };
     function finish(rootTrack) {
       if (rootTrack) { rootSp.track = rootTrack; sprites.unshift(rootSp); root.style.willChange = 'transform, opacity'; }
       anims = [];
@@ -190,15 +210,36 @@
         const a = sp.div.animate(kf, { duration: loop * 1000, iterations: Infinity, easing: 'linear', fill: 'both' });
         a.pause(); anims.push(a);
       }
+      let clock = 0, timer = null;   // clock = absolute seconds when there are no anims (a scene with labels only)
+      const abs = () => (anims.length ? anims[0].currentTime / 1000 : clock);
+      const arm = () => {
+        clearTimeout(timer); timer = null;
+        if (!labels.length || !anims.length || anims[0].playState !== 'running') return;
+        const T = abs(); relabel(T);
+        let next = Infinity;
+        for (const L of labels) next = Math.min(next, L.swapAt + kOf(L, T) * loop);
+        timer = setTimeout(arm, Math.max(0, (next - T) * 1000 + 4));
+      };
       return {
-        set(t) { for (const a of anims) { a.pause(); a.currentTime = ((t % loop) + loop) % loop * 1000; } },
-        play() { const ct = anims.length ? anims[0].currentTime : 0; for (const a of anims) { a.currentTime = ct; a.play(); } },
-        pause() { for (const a of anims) a.pause(); },
-        time() { return anims.length ? (anims[0].currentTime / 1000) % loop : 0; },
-        snap(t) { return sprites.map((sp, i) => `<sp${i} ${R(val(sp, t)).join(' ')}`).join(''); }
+        // T is absolute (T >= loop picks a later cycle's labels); negative T wraps into cycle 0
+        set(T) { if (T < 0) T = ((T % loop) + loop) % loop; clearTimeout(timer); timer = null; clock = T; for (const a of anims) { a.pause(); a.currentTime = T * 1000; } relabel(T); },
+        play() { const ct = anims.length ? anims[0].currentTime : 0; for (const a of anims) { a.currentTime = ct; a.play(); } arm(); },
+        pause() { clearTimeout(timer); timer = null; for (const a of anims) a.pause(); },
+        time() { return (abs() % loop + loop) % loop; },
+        abs,
+        cycles: labels.length > 0,
+        // the rest frame of the CURRENT cycle (vg.js parks a card here at the end of its turn without rewinding its labels)
+        restAbs(rest) { const T = abs(); const n = Math.floor((T - rest + 0.05) / loop); return n * loop + rest; },
+        // snap(T): every track at T mod loop (seam checks compare these); snap(T, true) appends the labels at absolute T
+        snap(T, withLabels) {
+          const t = ((T % loop) + loop) % loop;
+          let s = sprites.map((sp, i) => `<sp${i} ${R(val(sp, t)).join(' ')}`).join('');
+          if (withLabels) s += labels.map((L, i) => `<lb${i} ${L.fn(kOf(L, T))}`).join('');
+          return s;
+        }
       };
     }
-    return { root, base: el('g', {}, svg), stat, sprite, finish, W, H };
+    return { root, base: el('g', {}, svg), stat, sprite, finish, label, W, H };
   }
   /** content in/out as the root track: fade in 150 ms out, exit 300 ms ease-in with a 2 % push (Railway Block 1) */
   const inoutTrack = (exit, exitEnd) => (T) => ({ o: VG.w(T, 0, 0.15, 'out') * (1 - VG.w(T, exit, exitEnd, 'in')), s: T >= exitEnd ? 1 : 1 + 0.02 * VG.w(T, exit, exitEnd, 'in') });
