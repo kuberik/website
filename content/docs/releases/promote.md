@@ -10,18 +10,29 @@ Production deploys only releases staging has deployed and baked, with no pipelin
 
 {{< fig id="promote-waves" caption="A release reaches production wave 1 only after staging baked it, and wave 2 only after every wave-1 site baked it." >}}
 
-Works with the environment-controller, a GitHub token Secret in each app namespace (see [GitHub](/docs/integrations/github/)), and Rollouts that take their releases from a [ReleaseSource](/docs/releases/publish/). On one cluster, give each tier its own namespace (`hello-world-staging`, `hello-world-production`) with its own Rollout, ReleaseSource, Environment and `github-token` Secret, and use those namespaces below.
+Works with the environment-controller, a GitHub token Secret in each app namespace (see [GitHub](/docs/integrations/github/)), and Rollouts fed by a [ReleaseSource](/docs/releases/publish/).
+
+## Run both tiers on one cluster
+
+Give each tier its own namespace, holding every object from [Deploy Your First App](/docs/getting-started/) and a `github-token` Secret:
+
+```bash {filename="Terminal"}
+kubectl create namespace hello-world-staging
+kubectl create namespace hello-world-production
+```
+
+Give each tier its own overlay (`deploy/staging`) and its namespace as the Kustomization's `targetNamespace`, or the tiers overwrite one Deployment. Use the tier's namespace for every `namespace:` and `-n` below.
 
 ## Create the staging Environment
 
-Staging is the first tier this app uses, so its gate does not restrict releases. Apply this in the staging cluster or namespace, next to the `hello-world` Rollout:
+Staging is this app's first tier, so its gate allows every release. Apply this in the staging cluster, next to the `hello-world` Rollout:
 
 ```yaml {filename="staging.yaml"}
 apiVersion: environments.kuberik.com/v1alpha1
 kind: Environment
 metadata:
   name: hello-world-staging
-  namespace: hello-world
+  namespace: hello-world  # hello-world-staging on one cluster
 spec:
   rolloutRef:
     name: hello-world
@@ -36,20 +47,20 @@ spec:
 kubectl apply -f staging.yaml
 ```
 
-Give the Environment of every tier the same `spec.name`: production finds staging's deploys in GitHub by that name. With a different name, production finds no upstream and lets every release through.
+Give the Environment of every tier the same `spec.name`: production finds staging's deploys in GitHub by that name.
 
-The controller creates a [RolloutGate](/docs/concepts/gates/) for the Rollout and records each deploy as a GitHub deployment in the environment `kuberik/hello-world/staging`. The token comes from the Secret `github-token`.
+The controller creates a [RolloutGate](/docs/concepts/gates/) for the Rollout and records each deploy as a GitHub deployment in the environment `kuberik/hello-world/staging`.
 
 ## Create the production Environment
 
-Production comes after staging in the tier order, so its gate allows only releases staging baked. Apply this in the production cluster or namespace:
+Production follows staging, so its gate allows only releases staging baked. Apply this in the production cluster:
 
 ```yaml {filename="production.yaml"}
 apiVersion: environments.kuberik.com/v1alpha1
 kind: Environment
 metadata:
   name: hello-world-production
-  namespace: hello-world
+  namespace: hello-world  # hello-world-production on one cluster
 spec:
   rolloutRef:
     name: hello-world
@@ -64,7 +75,7 @@ spec:
 kubectl apply -f production.yaml
 ```
 
-When staging bakes `1.4.0`, the production gate adds it to `allowedVersions`, and production deploys it once its other gates allow. The order comes from the tier names alone.
+When staging bakes `1.4.0`, the production gate adds it to `allowedVersions`, and production deploys it once its other gates allow.
 
 A brand-new Rollout is the exception: gates never hold its first deploy, and the Environment's gate allows every release until it has read staging. To start production on a release staging baked, create its Rollout with `spec.wantedVersion` set to that release, and remove the pin after the first deploy.
 
@@ -113,13 +124,11 @@ kubectl get rolloutgate -n hello-world \
   -o jsonpath='{range .items[*]}{.metadata.name}: {.spec.allowedVersions}{"\n"}{end}'
 ```
 
-The gate whose name starts with `ghd-` belongs to the Environment. GitHub's **Environments** page lists every deploy and its bake result. The dashboard shows the same order on the app page.
+The gate whose name starts with `ghd-` belongs to the Environment. The dashboard's app page shows each tier's build:
 
 ![The Builds card of invoice-worker: staging and production both run 2.2.0-30 and hold the newer 2.3.0-31](/images/docs/releases/promote-builds.png)
 
 ## Troubleshoot
-
-The conditions printed in [Check the result](#check-the-result) name what holds each Environment.
 
 | Symptom | Cause | Fix |
 |---|---|---|
@@ -131,7 +140,7 @@ The conditions printed in [Check the result](#check-the-result) name what holds 
 | `LockstepConsistent=False`, reason `LockstepMismatch` | A site's `lockstep` differs from the wave-1 leader's; it holds nothing. | Set the same `lockstep` on every site. |
 | `WaveReady=False`, reason `CandidatesUnresolved` | The [ReleaseSlice](/docs/reference/api/#releaseslice) CRD is not served, so revisions cannot be mapped to tags. | Install the release-controller. |
 | `WaveReady=False`, reason `DuplicateSite` | Another Environment owns this site of the tier. | Give each cluster its own `site`, or take the site over (below). |
-| Staging baked, but production still waits (`WaitingFor`) | The GitHub token's rate limit is spent; the environment-controller logs `API rate limit exceeded`. | Wait for the reset, or [reconcile less often](/docs/operate/troubleshooting/#promotion-stalls-and-the-log-reads-api-rate-limit-exceeded). |
+| Staging baked, but production's gate does not list the release and its conditions do not change | The GitHub token's rate limit is spent: the environment-controller logs `API rate limit exceeded` and keeps its last conditions and `allowedVersions`. | Wait for the reset, or [reconcile less often](/docs/operate/troubleshooting/#promotion-stalls-and-the-log-reads-api-rate-limit-exceeded). |
 | Production deploys releases staging never ran | No staging site is registered for this `name`, so production has no upstream; or the Rollout is new, and gates never hold a first deploy. | Use the same `name` and `backend.project` in both; pin a new Rollout's first release (above). |
 
 {{< callout type="warning" >}}

@@ -186,13 +186,13 @@ kubectl -n hello-world get rollout hello-world -o jsonpath='{.status.history[0].
 kubectl -n hello-world get kustomization hello-world -o yaml --show-managed-fields | grep -E 'manager:|f:APP_VERSION'
 ```
 
-Without the key, substitution renders the `${APP_VERSION:=1.0.0}` default, so suspend the Kustomization before you change Git. The parent applies only the fields in Git, so the suspend holds unless Git sets `spec.suspend`.
+Without the key, substitution renders the `${APP_VERSION:=1.0.0}` default, so suspend the Kustomization before you change Git. The parent Kustomization, which applies this one from Git, applies only the fields in Git, so the suspend holds unless Git sets `spec.suspend`.
 
 ```bash {filename="Terminal"}
 flux suspend kustomization hello-world -n hello-world
 ```
 
-Remove `APP_VERSION` from the Kustomization in Git and wait until the parent has applied that (the first `jsonpath` command under the symptom prints nothing). Put the deployed tag back, then resume; the Rollout keeps the key from its next deploy on.
+Remove `APP_VERSION` from the Kustomization in Git and wait until the parent has applied that (the first `jsonpath` command under the symptom prints nothing); `flux reconcile kustomization flux-system --with-source` hurries a bootstrapped parent. Put back the tag the second `jsonpath` command printed, then resume; the Rollout keeps the key from its next deploy on.
 
 ```bash {filename="Terminal"}
 kubectl -n hello-world patch kustomization hello-world --type merge --field-manager=rollout-controller \

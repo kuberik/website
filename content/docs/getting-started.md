@@ -299,6 +299,8 @@ VERSION                   BAKE        MESSAGE
 main-3f9c2ab-1794583200   Succeeded   Automatic deployment
 ```
 
+If the history stays empty, see [No releases yet](/docs/operate/troubleshooting/#no-releases-yet). If the deploy never leaves `Deploying`, see [A deploy is stuck in Deploying](/docs/operate/troubleshooting/#a-deploy-is-stuck-in-deploying) and [Troubleshoot Flux](/docs/integrations/fluxcd/#troubleshoot).
+
 The dashboard shows each rollout with its running build, the pipeline it moved through, and its health checks. It is off by default; [Expose the Dashboard](/docs/installation/helm/#expose-the-dashboard) turns it on, and [Use the Dashboard](/docs/operate/dashboard/) shows how to read it.
 
 ![The deployment pipeline of a production rollout with the shape this tutorial builds: two steps, Started then Check, both done, and the check timer done](/images/docs/getting-started/rollout-pipeline.png)

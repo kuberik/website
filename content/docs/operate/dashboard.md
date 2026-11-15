@@ -38,7 +38,7 @@ Search reaches every app, rollout and pull request.
 
 The Changes page tracks each merged pull request through every service and environment.
 
-1. Open **Changes**. Your failing change, if any, leads in a banner at the top.
+1. Open **Changes**. Your failing change, if any, leads in a banner.
 2. Select a change, then read its page.
 
 | Where | What it shows |
@@ -53,15 +53,13 @@ Without a [GitHub](/docs/integrations/github/) connection, these pages show **Ch
 
 ## Act on a rollout
 
-Each action sits next to what it changes: a gate's tile or the rollout page.
+Each action sits on a gate's tile or the rollout page.
 
 ### Approve a build
 
 1. On the **Gates** tab, find the approval gate that reads **Needs you**. It reads **Needs approval** when you cannot approve it.
 2. Select **Approve**. When the build waits in several regions, it reads **Approve all** and approves them all.
 3. Confirm the **Approve *build*** dialog with **Approve**.
-
-Home, Changes and the app page show **Approve** too.
 
 ### Skip a gate once
 
@@ -74,7 +72,7 @@ Home, Changes and the app page show **Approve** too.
 1. On the rollout's **Overview**, select **Change version**.
 2. Pick a build, or search by sha, version or commit.
 3. Turn on **Pin build** to keep the rollout on this build until you clear it. Without the pin, a build that is not the newest stays only until its bake succeeds, and then the rollout deploys the newest build its rules allow.
-4. In production, write why and type the build. Elsewhere the note is optional, and you type the build too when it failed on this rollout. Select **Deploy to *environment***.
+4. In production, write why and type the build. Elsewhere the note is optional, and you type the build too when it failed on this rollout. Select **Deploy to *environment*** (**Deploy anyway** for a build that failed here, **Roll back** for an older build).
 
 ![The Change version dialog for held build 4.45.0-45 of checkout-api in production: the rule it overrides, the Pin build switch, a reason and the typed confirmation](/images/docs/dashboard/change-version.png)
 
@@ -87,14 +85,14 @@ To follow new releases again, select **Clear pin** on the Overview banner or the
 ### Retry a failed deploy
 
 1. On the rollout's **Overview**, select **Retry** on the **Deployment failed** banner.
-2. Confirm **Redeploy to *environment*?**. When tests failed, it offers to retry or skip them.
+2. In production, or when a rule holds the build, confirm **Redeploy to *environment***. When tests failed, it offers to retry or skip them.
 
 <div id="roll-back-a-failed-deploy"></div>
 
 ### Roll back
 
 1. After a failed deploy, select **Roll back** on the **Deployment failed** banner of the rollout's **Overview**. It deploys the build before the failed one.
-2. Otherwise, select **Roll back** in the rollout header. It shows whenever an older build exists, and goes to the last older build this environment ran, else to the release just below the running one. To pick the build yourself, choose an older one in **Change version**.
+2. Otherwise, select **Roll back** in the rollout header. It goes to the last older build this environment ran, else the release just below the running one. To pick the build yourself, choose an older one in **Change version**.
 3. A rollback always pins, so the dialog has no **Pin build** switch. Confirm with **Roll back**; in production, write why and type the build first.
 
 The rollout stays on that build, under a **Rolled back** banner, until you select **Clear pin**. A force-deploy back does not hold: see [Deploy a specific version](/docs/operate/manual-actions/#deploy-a-specific-version).
