@@ -153,7 +153,7 @@ VG.def('health', {
       KB.markOne(sp.g, mx, my, 'rest');
     });
     const edge = S.sprite({ x: C.x - 2, y: C.y - 2, w: C.w + 4, h: C.h + 4, track: tt((t) => ({ o: w(t, 3.3, 3.43, 'out') * (1 - w(t, 3.55, 3.85, 'in')) })) });
-    el('rect', { x: C.x + 0.5, y: C.y + 0.5, width: C.w - 1, height: C.h - 1, rx: 11.5, class: 'ln-teal nsl', 'stroke-width': 1.5 }, edge.g);
+    el('rect', { x: C.x + 0.5, y: C.y + 0.5, width: C.w - 1, height: C.h - 1, rx: 7.5, class: 'ln-teal nsl', 'stroke-width': 1.5 }, edge.g);
     return S.finish(null); // v6j: no root track: the frame never fades
   }
 });

@@ -1,8 +1,6 @@
 /* ===== STEP IN (landing v6j). Day-2 operation; layouts/_partials/home/stepin.html. Page ground between the lagoon
    features stage and the deep spec band. >= 1024: head split (title left, lead right, as #features), then one canvas across the content width (v6k: the actions list left the landing, owner).
    The canvas holds the Step in vignette (assets/js/vignettes-b/stepin.js). ===== */
-.si-name{margin:0 0 8px;font:500 var(--t-label-s)/var(--t-label-l) var(--sans);color:oklch(.5 .09 182)}
-html.dark .si-name{color:oklch(.82 .1 182)}
 .si-lead .link-arrow{margin-top:16px}
 .si-grid{display:grid;grid-template-columns:minmax(0,1fr);gap:var(--card-gap);margin-top:var(--head-gap)}
 @media(min-width:1024px){
@@ -12,16 +10,14 @@ html.dark .si-name{color:oklch(.82 .1 182)}
   .si .si-lead{max-width:560px}
   .si .si-lead .title-body{margin:0}
 }
-/* the canvas: the feature card's tinted dotted ground, standing alone */
-.si-canvas{display:flex;align-items:center;justify-content:center;min-height:0;padding:36px 24px;border-radius:var(--card-r);border:1px solid var(--card-border);
+/* the canvas: the feature card's tinted dotted ground, standing alone. Radius 8 and padding --canvas-pad, the feature
+   canvases' own (review r8 S2: v6k drew it 12 round around an 8 card, the features 8 around 12). */
+.si-canvas{display:flex;align-items:center;justify-content:center;min-height:0;padding:var(--canvas-pad) min(var(--canvas-pad),16px);border-radius:8px;border:1px solid var(--card-border);
   background-color:var(--canvas-mint);background-image:radial-gradient(circle,oklch(.195 .014 222/.08) 1px,transparent 1.2px);background-size:20px 20px;background-position:-9px -9px}
 html.dark .si-canvas{background-image:radial-gradient(circle,oklch(.965 .005 222/.08) 1px,transparent 1.2px)}
-/* v6k (b19, review r7 B1): the scene (800x316, phone 326x254) is the one object; its card fills ~54 % of the canvas at 1440
-   (Health 59 %, GitOps 56 %). The width cap keeps its text <= ~20 px at very wide sizes (1920: 51 %, 2560: 41 % fill). */
-.si-canvas .vg{flex:1 1 auto;max-width:min(100%,calc(600px + 22vw),1080px);margin-inline:auto}
-@media(max-width:640px){
-  .si-canvas{padding:12px 11px}
-  .si-canvas .vg{max-width:none}
-}
+/* review r8 S1: the scene (840x316, phone 326x254) draws at the features' unit (vignettes.css --vg-u), so its 14 px rows
+   are 14 px at 1440 (v6k 16). Its card is 800 x 284 of the box, ~52 % of the 1200 x 364 canvas at 1440 (r7 B1: 50-55 %). */
 /* the lead reads at the #features lead size at every width */
 #step-in .title-body{font-size:var(--t-lead-s);line-height:var(--t-lead-l)}
+/* phone: the canvas's 1 px border comes out of the side padding, so the 326 composition draws at 1.0 in a 350 canvas */
+@media(max-width:640px){.si-canvas{padding:12px 11px}}

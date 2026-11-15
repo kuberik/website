@@ -27,12 +27,13 @@
       1 px line in its own hue, no card fill, no shadow), in the dashboard's held tone (a pin holds automation: the rollout
       page's pin banner is bg-held-tint / border-held-line / text-held), with the thumbtack glyph. Right-aligned at xr,
       centred on cy. v6j drew it as a neutral bordered pill on the card fill, the button's shape beside "Clear pin". */
-  function pinChip(p, xr, cy, s = 'Pinned') {
+  /* r8 (b22): compact = the phone header's chip (11 px word, 8 px narrower), so the header keeps 10 / 11 px gaps */
+  function pinChip(p, xr, cy, s = 'Pinned', { compact = false } = {}) {
     const g = el('g', { class: 'c-held si-pin' }, p);
-    const h = 20, w = Math.round(s.length * 6.6 + 30), x = xr - w, y = cy - h / 2;
+    const fs = compact ? 11 : 12, h = 20, w = Math.round(s.length * (compact ? 6 : 6.6) + (compact ? 26 : 30)), x = xr - w, y = cy - h / 2;
     el('rect', { x: x + 0.5, y: y + 0.5, width: w - 1, height: h - 1, rx: 4, 'stroke-width': 1, class: 'nsl' }, g);
-    KB.icon(g, 'thumbtack', x + 13, cy, 12, 'ic si-pin-ic');
-    const t = el('text', { x: x + 22, y: cy + 4, 'font-size': 12, 'font-weight': 500 }, g);
+    KB.icon(g, 'thumbtack', x + (compact ? 11 : 13), cy, compact ? 11 : 12, 'ic si-pin-ic');
+    const t = el('text', { x: x + (compact ? 19 : 22), y: cy + (compact ? 3.8 : 4), 'font-size': fs, 'font-weight': 500 }, g);
     t.textContent = s;
     return { g, w, x, y };
   }

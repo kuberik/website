@@ -1,5 +1,5 @@
 /* take B kit v6 (LANGUAGE-B.md v4 look + the v6 polish list). The page's own materials: objects are the page's card (flat fill,
-   1 px line, radius 12 / 8, the page's --card-shadow), the subject takes the thesis figs' mint tile, the build takes the fig
+   1 px line, radius 8: one card radius in every scene, the dashboard's Card, review r8 S2; the page's --card-shadow), the subject takes the thesis figs' mint tile, the build takes the fig
    cube's teal. Marks at their true size (StatusMark 16, rest dot 6, WaveMark 10, Chip 20 tall). Wires are the figs' hairline;
    lit = teal, no glow. viewBox = the canvas's CSS size (1 unit ~ 1 px).
    v6 perf model (the compositor stage proven in v5/k5.js, look unchanged): a scene paints its still parts ONCE into SVG
@@ -28,7 +28,7 @@
 
   /** the page's card. shadow = the page's --card-shadow (light 0 1px 2px .05 + 0 12px 32px -12px .14; dark 0 16px 40px -16px
       black .55 + a 1 px inner top light) as two blurred rects, painted once. tone: page | fig (the thesis tile) | quiet */
-  function card(p, id, { x, y, w, h, r = 12, tone = 'page', shadow = true }) {
+  function card(p, id, { x, y, w, h, r = 8, tone = 'page', shadow = true }) {
     const g = el('g', {}, p);
     if (shadow) {
       el('rect', { x: x + 13, y: y + 13, width: w - 26, height: Math.max(4, h - 24), rx: r, class: 'c-sa', filter: `url(#${id}-sa)` }, g);

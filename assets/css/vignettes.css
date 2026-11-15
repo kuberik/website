@@ -174,10 +174,19 @@ html.dark .vg .kb .band-teal.band-bake{fill:oklch(.43 .07 184);opacity:1}
 html.dark .vg .kb .band-teal.wash-land{fill:oklch(.47 .07 184);opacity:1}
 
 /* ---- production additions (not in v6h) ---- */
-/* the host never draws wider than 1.15x its design box (--vg-w, the scene's viewBox width, set on the host by the poster
-   partial): the canvas centres it. On the phone the composition is 326 wide and the canvas gives it exactly that. */
-.vg{max-width:calc(var(--vg-w,780) * 1.15px);margin-inline:auto}
-@media(max-width:640px){.vg{max-width:none}}
+/* ONE RENDER SCALE (review r8 S1). A host is --vg-w (its scene's viewBox width, set by the poster partial) scene units
+   wide, and one unit (--vg-u) is the same length in every vignette at a given width, so all seven draw at one scale (v6k
+   spread 0.87-1.15 at 1440: Health's 11 px names at 9.6 px, Step in's 14 px rows at 16). The canvases are sized for it
+   (features.css, stepin.css); min(100%) is only a guard. --vg-u resolves cqw against the vignette's grid (.fx, .si-grid:
+   both the content width). 641-1343: fluid, bound by the widest canvas need (Gates 780 + 42 / 66 px of canvas chrome under
+   its copy; Step in 840 + 26 / 34), capped 1.15. 1344-1919 (content 1200): 1.0. >= 1920: 1.15. Phone: the 326 composition
+   fills its canvas (1.0 at 390). */
+.fx,.si-grid{container-type:inline-size}
+.vg{width:min(100%,calc(var(--vg-w,780) * var(--vg-u,1px)));margin-inline:auto;--vg-u:1px}
+@media(min-width:641px) and (max-width:1023px){.vg{--vg-u:min(1.15px,(100cqw - 42px) / 780,(100cqw - 26px) / 840)}}
+@media(min-width:1024px) and (max-width:1343px){.vg{--vg-u:min(1.15px,(100cqw - 66px) / 780,(100cqw - 34px) / 840)}}
+@media(min-width:1920px){.vg{--vg-u:1.15px}}
+@media(max-width:640px){.vg{width:100%}}
 /* the rest posters (layouts/_partials/landing-vignettes, generated): both compositions inside the host, switched by the
    engine's own query; the live build empties the host and draws the scene in their place */
 .vg .vg-p{position:absolute;inset:0}

@@ -30,22 +30,25 @@
    Loop 8.5 s (v6k, brief <= 8.5), rest 8.2 (the resolved state holds 7.92 -> 9.42 when the pin clears, 1.5 s, the longest;
    Baked holds 0.62 s, Failed 0.7 s before the row action shows). */
 VG.def('stepin', {
-  loop: 8.5, rest: 8.2, vb: (ph) => (ph ? [326, 254] : [800, 316]),
+  loop: 8.5, rest: 8.2, vb: (ph) => (ph ? [326, 254] : [840, 316]),
   label: 'The rollout card of checkout-api in prod us-east-1: when a release fails its health check, a person rolls it back from the rollout history to the build before it, and Kuberik keeps that build pinned until the person clears the pin; then new builds deploy again',
   build(svg, id, ph) {
     const { el, w, E } = VG;
     const L = 8.5;
-    const [VW, VH] = ph ? [326, 254] : [800, 316];
+    const [VW, VH] = ph ? [326, 254] : [840, 316];
     const S = KB.stage(svg, VW, VH, L);
     KB.defs(svg, id);
     const st = S.base;
     const md = (t) => ((t % L) + L) % L;
-    // ---- geometry. v6k (b19, row B1; the owner removed the actions list, so Step in is ONE full-width canvas). Desktop: the
+    // ---- geometry. r8 (b22, S1): the box is 840 wide and the card 800 x 284, drawn at the features' common unit (1.0 at
+    // 1440, 1.15 at >= 1920), so its 14 px rows are 14 px beside the feature cards and the card is ~52 % of the 1200 x 364
+    // canvas at 1440 (B1 kept). Before r8:
+    // v6k (b19, row B1; the owner removed the actions list, so Step in is ONE full-width canvas). Desktop: the
     // card is 760 x 284 in an 800 x 316 box (20 / 16 margins: the cursor's entry room); the site draws the box at
     // min(100 %, 600px + 22vw) (1440: 917 px, s 1.15, row text 16 px) in a canvas padded 36 / 24, so the card fills ~54 % of
     // the 1200 x 434 canvas (v6j 33 %; Health 58.8 %, GitOps 56.4 % on the site preview). 390: 302 wide at x 12 of the 326
     // phone composition, so with the features' 12 px canvas padding the card sits 24 px from the canvas edge, centred.
-    const C = ph ? { x: 12, y: 12, w: 302, h: 230 } : { x: 20, y: 16, w: 760, h: 284 };
+    const C = ph ? { x: 12, y: 12, w: 302, h: 230 } : { x: 20, y: 16, w: 800, h: 284 };
     const pad = ph ? 12 : 20, X = C.x, Y = C.y, XR = C.x + C.w - pad;
     const HH = ph ? 45 : 56, LP = ph ? 7 : 8;         // header height, history list padding
     const RH = ph ? 36 : 48, ROW0 = Y + HH + LP + RH / 2;   // row centres ROW0 + RH i
@@ -57,8 +60,9 @@ VG.def('stepin', {
     KB.card(st, id, { ...C, r: 8 });
     const hc = Y + HH / 2;                            // header centre line
     T(st, X + pad, hc + 5, 'checkout-api', ph ? 13 : 15, 600, 'ink');
-    KB.chip(st, X + pad + (ph ? 90 : 108), hc - (ph ? 9 : 10), 'PROD', 'prod', { caps: true, h: ph ? 18 : 20 });
-    T(st, X + pad + (ph ? 136 : 158), hc + 4.5, 'us-east-1', ph ? 12 : 14, 500, 'muted');
+    // r8 (b22, nit): the header's gaps are 10.5 / 11.5 px at 390 and 1440 (v6k phone 5 / 6), the Pinned chip compact on the phone
+    KB.chip(st, X + pad + (ph ? 96 : 110), hc - (ph ? 9 : 10), 'PROD', 'prod', { caps: true, h: ph ? 18 : 20 });
+    T(st, X + pad + (ph ? 147 : 161), hc + 4.5, 'us-east-1', ph ? 12 : 14, 500, 'muted');
     KB.divider(st, C.x, C.x + C.w, Y + HH);
     KB.divider(st, C.x, C.x + C.w, FD);
 
@@ -136,8 +140,10 @@ VG.def('stepin', {
       // solid along the row's foot (--b-prog-fill: light oklch(.76 .16 92), dark oklch(.84 .15 98)), filling with the bake
       el('rect', { x: rowBox.x, y: rowBox.y, width: rowBox.w, height: rowBox.h, class: 'si-bake' }, bp.g);
       el('rect', { x: rowBox.x, y: rowBox.y + rowBox.h - 2, width: rowBox.w, height: 2, class: 'si-bake-bar' }, bp.g);
+      // r8 (b22, nit): the fail wash is the row's own child, not the bake reveal's: under the reveal it stopped where the bake
+      // had reached (~70 % of the row) with a hard right edge, and read clipped. It flashes over the whole row.
       if (r === 2) {
-        const bf = S.sprite({ ...rowBox, parent: bandP, track: (t) => { const q = tau(t); return { o: q < 2 ? w(q, FAIL, FAIL + 0.15, 'io') * (1 - w(q, FAIL + 0.45, FAIL + 0.7, 'in')) : 0 }; } });
+        const bf = S.sprite({ ...rowBox, parent: row, track: (t) => { const q = tau(t); return { o: q < 2 ? w(q, FAIL, FAIL + 0.15, 'io') * (1 - w(q, FAIL + 0.45, FAIL + 0.7, 'in')) : 0 }; } });
         el('rect', { x: rowBox.x, y: rowBox.y, width: rowBox.w, height: rowBox.h, class: 'band-fail' }, bf.g);
         el('rect', { x: rowBox.x, y: rowBox.y + rowBox.h - 2, width: rowBox.w, height: 2, class: 'si-fail-bar' }, bf.g);
       }
@@ -173,7 +179,7 @@ VG.def('stepin', {
     // ---- the header's Pinned chip: leaves when the pin clears (150 ms in), springs in (3 %) when the rollback pins
     const pinned = (t) => (t < HALF ? 1 - w(t, A1, A1 + 0.15, 'in') : w(t, A2, A2 + 0.12, 'out'));
     const pc = S.sprite({ x: XR - 84, y: hc - 13, w: 86, h: 26, origin: [XR - 38, hc], track: (t) => ({ o: pinned(t), s: t < HALF ? 1 - 0.04 * w(t, A1, A1 + 0.15, 'in') : 0.94 + 0.06 * w(t, A2, A2 + 0.25, 'spring') }) });
-    KB.pinChip(pc.g, XR, hc);
+    KB.pinChip(pc.g, XR, hc, 'Pinned', { compact: ph });
 
     // ---- the footer: the pinned note + Clear pin, or the unpinned note
     const press1 = (t) => w(t, P1, P1 + 0.04, 'out') * (1 - w(t, P1 + 0.04, P1 + 0.12, 'out'));
@@ -200,9 +206,9 @@ VG.def('stepin', {
       KB.cursor(s.g, A[0], A[1]);
     };
     const bc = [XR - 38, fy + 2];
-    pointer(ph ? [304, 248] : [772, 306], bc, 0.45, 0.57, 1.12, P1, 1.52, ph ? 10 : 18);
+    pointer(ph ? [304, 248] : [812, 306], bc, 0.45, 0.57, 1.12, P1, 1.52, ph ? 10 : 18);
     const rc = [ACT_X - 52, ROW0 + RH + 2];
-    pointer(ph ? [308, 244] : [778, 290], rc, 6.16, 6.28, 6.84, P2, RUN + 0.06, ph ? 14 : 22);
+    pointer(ph ? [308, 244] : [818, 290], rc, 6.16, 6.28, 6.84, P2, RUN + 0.06, ph ? 14 : 22);
     return S.finish(null);   // no root track: the frame never fades
   }
 });
