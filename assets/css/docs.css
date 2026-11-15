@@ -417,3 +417,7 @@ html.dark .kd-tone-neutral{background:oklch(1 0 0/.05)!important}
   .kd-content .kd-table table{font-size:15px}
   .kd-code-body pre,.hextra-code-block pre{font-size:14px!important;line-height:24px!important}
 }
+/* R5-S-7: in the phone drawer the results panel runs to the bottom of the viewport (hextra caps it at 50vh - 11rem, ~2 results). */
+@media(max-width:767px){
+  .hextra-search-wrapper .hextra-search-results{max-height:calc(100vh - 160px)!important;max-height:calc(100dvh - 160px)!important}
+}
