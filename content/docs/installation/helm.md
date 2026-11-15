@@ -8,7 +8,7 @@ weight: 10
 
 Install Kuberik from its Helm chart: one release installs the rollout-controller, the release-controller, the integration controllers you turn on, and the dashboard.
 
-Before you start, you need Helm 3 and Flux 2.6 or later in the cluster ([install Flux](https://fluxcd.io/flux/installation/)): Kuberik picks the version and [Flux](/docs/integrations/fluxcd/) applies it.
+Before you start, you need Kubernetes 1.30 or later, Helm 3, and Flux 2.6 or later in the cluster ([install Flux](https://fluxcd.io/flux/installation/)): Kuberik picks the version and [Flux](/docs/integrations/fluxcd/) applies it. The rollout-controller ships ValidatingAdmissionPolicies (`admissionregistration.k8s.io/v1`), which Kubernetes serves from 1.30.
 
 ## Install the chart
 

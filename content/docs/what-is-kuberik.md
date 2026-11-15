@@ -27,7 +27,7 @@ A failed bake stops automatic deploys of that Rollout. They resume when someone 
 
 ## Works with
 
-Kuberik deploys through Flux. The other systems are optional and each adds one thing.
+Kuberik runs on Kubernetes 1.30 or later and deploys through Flux. The other systems are optional and each adds one thing.
 
 | System | Status | What Kuberik does with it |
 |---|---|---|
