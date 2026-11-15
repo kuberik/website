@@ -133,7 +133,7 @@ kubectl get healthchecks -n hello-world
 
 ### Blocked by a pin or a pending deploy by hand
 
-`DeploymentBlocked` has reason `ManualDeployment`. A deploy by hand is pending or pinned: `spec.wantedVersion` is set, or a `rollout.kuberik.com/force-deploy` annotation names a tag that has not deployed yet. New releases wait. Remove whichever is set, or select **Clear pin** in the dashboard.
+`DeploymentBlocked` has reason `ManualDeployment`. A deploy by hand is pending or pinned: `spec.wantedVersion` is set, or a `rollout.kuberik.com/force-deploy` annotation names a tag that has not deployed yet. New releases wait. Remove whichever is set: the **Clear pin** button in the dashboard removes a pin, and the annotate command below removes a force-deploy.
 
 ```bash {filename="Terminal"}
 kubectl get rollout hello-world -n hello-world -o jsonpath='{.spec.wantedVersion}{"\t"}{.metadata.annotations.rollout\.kuberik\.com/force-deploy}{"\n"}'
