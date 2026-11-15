@@ -160,7 +160,7 @@ The check polls every 30 seconds and on every Kustomization change. Set `healthc
 
 The ReleaseSource lists releases from the registry. When the Rollout picks a release, it writes the tag with server-side apply under the field manager `rollout-controller`: into the substitute variable, or into the OCIRepository's `spec.ref.tag`. Flux then reconciles as usual.
 
-![The Flux Deployment health check, passing, above the Resources card with the objects the Kustomization manages, 10 of 10 ready](/images/docs/integrations/fluxcd-health-resources.png)
+![The Health checks card of hello-world in production, 3/3 healthy with the Flux Deployment check passing, above the Resources card: 2/2 ready, the hello-world Deployment with 1/1 pods and one more ready resource folded](/images/docs/integrations/fluxcd-health-resources.png)
 
 ## Troubleshoot
 
