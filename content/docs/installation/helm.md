@@ -82,6 +82,10 @@ A Secret keeps the client secret out of the rendered manifest and the cookie sec
 
 ## Connect several clusters
 
+To run Kuberik in multiple clusters, install the chart in every cluster. Each cluster's controllers deploy its own Rollouts, and clusters coordinate only through GitHub deployments ([Sites and waves](/docs/concepts/environments/#sites-and-waves)).
+
+The hub is the dashboard people open. It reads and acts on the other clusters, the spokes, through their `/api/`, and deploys do not depend on it.
+
 A dashboard finds the dashboards of other clusters on its own, from the `environmentUrl` of each entry in an `Environment`'s `status.environmentInfos`. Name the cluster, and run every dashboard but one as a spoke that serves only `/api/` and sends the browser to the hub:
 
 ```yaml {filename="values.yaml"}

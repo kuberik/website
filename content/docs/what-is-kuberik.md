@@ -37,6 +37,8 @@ Kuberik runs on Kubernetes 1.30 or later and deploys through Flux. Promotion bet
 | [Datadog](/docs/integrations/datadog/), [Prometheus](/docs/integrations/prometheus/) | Optional | Monitors and alerts become HealthChecks |
 | OpenKruise | Optional | Canary steps inside one deploy ([Roll Out with a Canary](/docs/releases/canary/)) |
 
+Install Kuberik in every cluster that runs your apps: each cluster's controllers deploy its own Rollouts and reach other clusters only through GitHub deployments ([Sites and waves](/docs/concepts/environments/#sites-and-waves)). One cluster's dashboard is the hub for all of them, and deploys do not depend on it ([Connect several clusters](/docs/installation/helm/#connect-several-clusters)).
+
 ## What stays with you
 
 Your CI builds the artifact and decides when a release exists by pushing its tag. Flux stays your GitOps tool: it fetches sources and applies manifests, and Kuberik only changes which version Flux applies. Kuberik does not build images, run CI, or replace Flux.
