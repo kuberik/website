@@ -7,7 +7,7 @@ weight: 20
 aliases: ["/docs/guides/cross-environment-rollout/"]
 ---
 
-Production deploys only releases staging has deployed and baked, with no pipeline between the clusters. Each cluster runs its own [Rollout](/docs/concepts/rollouts/) and [Environment](/docs/concepts/environments/), and GitHub deployments carry the result from one to the next.
+Production deploys only releases staging has deployed and baked, with no CI job between the clusters. Each cluster runs its own [Rollout](/docs/concepts/rollouts/) and [Environment](/docs/concepts/environments/), and GitHub deployments carry the result from one to the next.
 
 {{< fig id="promote-waves" caption="A release reaches production wave 1 only after staging baked it, and wave 2 only after every wave-1 site baked it." >}}
 

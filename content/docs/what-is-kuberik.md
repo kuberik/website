@@ -2,7 +2,7 @@
 title: "What Is Kuberik"
 description: "What Kuberik does after your CI publishes a release, and what it leaves to you."
 type_: concept
-keywords: ["github down#what-kuberik-needs-from-github-and-what-happens-when-github-is-down", "github outage#what-kuberik-needs-from-github-and-what-happens-when-github-is-down", "outage#what-kuberik-needs-from-github-and-what-happens-when-github-is-down", "gitlab#what-kuberik-needs-from-github-and-what-happens-when-github-is-down", "github token#what-kuberik-needs-from-github-and-what-happens-when-github-is-down"]
+keywords: ["github down#what-kuberik-needs-from-github-and-what-happens-when-github-is-down", "github outage#what-kuberik-needs-from-github-and-what-happens-when-github-is-down", "outage#what-kuberik-needs-from-github-and-what-happens-when-github-is-down", "gitlab#what-kuberik-needs-from-github-and-what-happens-when-github-is-down", "gitlab support#what-kuberik-needs-from-github-and-what-happens-when-github-is-down", "github token#what-kuberik-needs-from-github-and-what-happens-when-github-is-down"]
 weight: -20
 ---
 
@@ -35,6 +35,7 @@ Kuberik runs on Kubernetes 1.30 or later and deploys through Flux. Promotion bet
 | [Flux](/docs/integrations/fluxcd/) 2.6 or later | Required | Applies each version through a Kustomization or an OCIRepository |
 | Argo CD | Not supported | Kuberik reads and writes Flux objects only |
 | [GitHub](/docs/integrations/github/) | Required to promote | Carries each bake result from one environment to the next; the dashboard reads commits and pull requests through each person's GitHub connection |
+| GitLab | Not supported | Environments record and read deploys through GitHub only ([FAQ](#what-kuberik-needs-from-github-and-what-happens-when-github-is-down)) |
 | [Datadog](/docs/integrations/datadog/), [Prometheus](/docs/integrations/prometheus/) | Optional | Monitors and alerts become HealthChecks |
 | OpenKruise | Optional | Canary steps inside one deploy ([Roll Out with a Canary](/docs/releases/canary/)) |
 
@@ -48,11 +49,11 @@ Your CI builds the artifact and decides when a release exists by pushing its tag
 
 ### What Kuberik needs from GitHub, and what happens when GitHub is down
 
-To promote across environments, Kuberik needs a GitHub token in each app namespace that can read and write deployments on the app's repository. The environment-controller uses it only for the deployments API: it records each deploy as a GitHub deployment and reads the other tiers' deployments to decide what each tier may deploy. GitHub is the only backend an `Environment` supports today; GitLab is not one of them. The dashboard's commit and pull request views use a separate, optional GitHub App, and [GitHub](/docs/integrations/github/) sets up both.
+To promote across environments, Kuberik needs a GitHub token in each app namespace that can read and write deployments on the app's repository. The environment-controller uses it only for the deployments API: it records each deploy as a GitHub deployment and reads the other tiers' deployments to decide what each tier may deploy. GitHub is the only backend an `Environment` supports; GitLab is not one of them. The dashboard's commit and pull request views use a separate, optional GitHub App, and [the GitHub integration page](/docs/integrations/github/) sets up both.
 
-When GitHub is unreachable, running workloads are unaffected: Flux and Kubernetes keep running what is deployed, and Rollouts, health checks and bake times never call GitHub. Each environment keeps deploying the releases its gates already allow, and the Environment gate of the first tier's wave 1 allows every release unless `lockstep` holds it, so new builds still reach that wave. Promotion pauses: the controller can neither record new bakes nor read upstream ones, so the gates of later tiers and waves keep their last allowed versions. When GitHub is back, the controller records the deploys still in each Rollout's history, and promotion resumes.
+When GitHub is unreachable, running workloads are unaffected: Flux and Kubernetes keep running what is deployed, and Rollouts, health checks and bake times never call GitHub. Each environment keeps deploying the releases its gates already allow, and the Environment gate of the first tier's wave-1 leader allows every release unless `lockstep` holds it, so new builds still reach that leader. Promotion pauses: the controller can neither record new bakes nor read upstream ones, so the gates of later tiers and waves keep their last allowed versions. When GitHub is back, the controller records the deploys still in each Rollout's history, and promotion resumes.
 
-A `ReleaseSource` reads tags from your registry, not from GitHub. If that registry is `ghcr.io` and it is down as well, new releases arrive once it is back.
+A `ReleaseSource` reads tags from your registry, not from GitHub. If that registry is `ghcr.io` and it is down as well, new releases arrive once it is back; a deploy whose artifact Flux cannot pull meanwhile waits in `Deploying` and fails when its `deployTimeout` runs out, if it has one.
 
 ## Related
 
