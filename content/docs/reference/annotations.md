@@ -187,7 +187,7 @@ The release-controller reads these from each release's OCI manifest, manifest an
 
 ## Example
 
-The rollout-controller removes `force-deploy`, `deploy-message` and `deploy-user` after the deploy, so set them with `kubectl annotate` rather than keeping them in Git.
+The dashboard annotations stay on the Rollout in Git.
 
 ```yaml {filename="rollout.yaml"}
 apiVersion: kuberik.com/v1alpha1
@@ -198,10 +198,16 @@ metadata:
   annotations:
     dashboard.rollout.kuberik.com/theme: production
     dashboard.rollout.kuberik.com/theme-label: "Production EU"
-    rollout.kuberik.com/force-deploy: "v1.4.0"  # removed after v1.4.0 deploys
-    rollout.kuberik.com/deploy-message: "Roll back the checkout fix"
-    rollout.kuberik.com/deploy-user: "emma.clarke"
 spec:
   releaseSourceRef:
     name: hello-world
+```
+
+The rollout-controller removes `force-deploy`, `deploy-message` and `deploy-user` after the deploy, so set them with `kubectl annotate` rather than keeping them in Git.
+
+```bash {filename="Terminal"}
+kubectl -n hello-world annotate rollout hello-world --overwrite \
+  rollout.kuberik.com/force-deploy=1.4.0 \
+  rollout.kuberik.com/deploy-message="Roll back the checkout fix" \
+  rollout.kuberik.com/deploy-user=emma.clarke@acme.com
 ```
