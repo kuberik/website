@@ -13,8 +13,8 @@ Deploy `hello-world` with Kuberik. At the end, every build your CI publishes is 
 
 Before you start, you need:
 
-- A cluster with [Flux](https://fluxcd.io) 2.6 or later; 2.7 with image-reflector-controller for the released controllers ([Install with Helm](/docs/installation/helm/)).
-- [Kuberik](/docs/installation/helm/) from the chart release after 0.7.0 {{< needs "Next release" >}}. This tutorial reads releases through a ReleaseSource, which chart 0.7.0 and its rollout-controller v0.9.2 do not have.
+- A cluster with [Flux](https://fluxcd.io) 2.6 or later.
+- [Kuberik installed with Helm](/docs/installation/helm/).
 - A GitHub repository, here `acme/hello-world`, whose CI can push to `ghcr.io/acme/hello-world`.
 
 Pick Image tag or Rendered manifests in the tabs below; [Propagation Modes](/docs/concepts/propagation/) explains the difference.

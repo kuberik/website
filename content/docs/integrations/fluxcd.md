@@ -12,7 +12,7 @@ Flux applies your manifests and Kuberik decides which version it applies. A [`Ro
 | Requirement | Why |
 |---|---|
 | Flux 2.6 or later | Kuberik writes `kustomize.toolkit.fluxcd.io/v1` Kustomizations and `source.toolkit.fluxcd.io/v1` OCIRepositories |
-| Flux 2.7 or later, with image-reflector-controller | Only for the released rollout-controller, which needs the ImagePolicy v1 API (`image.toolkit.fluxcd.io/v1`) to start |
+| Flux's image-reflector-controller, serving `image.toolkit.fluxcd.io/v1` (optional) | Only for a ReleaseSource that reads an existing `ImagePolicy` through `imagePolicyRef` |
 | Flux 2.7 or later, with the kustomize-controller feature gate `CancelHealthCheckOnNewRevision` | Only for Kustomizations with `wait: true` (see [Report Kustomization health](#report-kustomization-health)) |
 | A [`ReleaseSource`](/docs/releases/publish/) in the Rollout's namespace | Lists your releases. Flux image automation is not required |
 | The Kustomization or OCIRepository in the Rollout's namespace | The Rollout looks for annotated Flux objects only in its own namespace |
