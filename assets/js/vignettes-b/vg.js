@@ -25,7 +25,7 @@
       The clock is absolute (?vg-t= and __vgSet take absolute scene time; the remount keeps abs()); a turn ends on the rest frame
       of the card's current cycle (restAbs), so versions never rewind; a card that loses the turn mid-loop finishes its cycle on
       screen and stops on rest (patch 6's dissolve through opacity 0 is gone: it was an empty frame).
-   7. Kept: the phone composition (viewport <= 640 px) and the remount that keeps the playing card's clock (the others stand at rest); reduced motion; lazy build; hooks. */
+   7. Kept: the phone composition (viewport <= 640 px) and the remount that keeps every card's absolute clock (non-playing cards park at restAbs); reduced motion; lazy build; hooks. */
 (() => {
   const NS = 'http://www.w3.org/2000/svg';
   function bez(x1, y1, x2, y2) {
@@ -155,9 +155,17 @@
   const buildAll = () => { for (const h of hosts()) build(h); };
   // the phone has its own composition (one object kept big): re-mount the built hosts when the breakpoint flips, keeping each clock
   PHONE.addEventListener('change', () => {
-    const keep = live.map((v) => [v.host, v.on ? (v.anim ? v.anim.abs() : v.t) : null]);   // only the playing card keeps its clock; the rest stand at rest
+    // v6k (QA F1): EVERY built card keeps its absolute clock across the remount (v6j rebuilt the non-playing ones at cycle 0 and
+    // their versions rewound to 4.46). The playing card continues in place; every other card is parked at its current/next rest
+    // (restAbs: never a previous one), so a label only moves forward.
+    const keep = live.map((v) => [v.host, v.anim ? v.anim.abs() : v.t, v.on, v.s]);
     live.length = 0;
-    for (const [host, t] of keep) { delete host.dataset.vgLive; const v = build(host, t); if (v && io) { io.unobserve(host); io.observe(host); } }
+    for (const [host, T, on, s] of keep) {
+      delete host.dataset.vgLive;
+      const v = build(host, T); if (!v) continue;
+      if (!on) { if (v.anim) { v.anim.pause(); v.render(v.anim.restAbs(s.rest)); } else { v.t = s.rest; v.render(v.t); } v.atRest = true; host.dataset.vgState = 'rest'; }
+      if (io) { io.unobserve(host); io.observe(host); }
+    }
     kick();
   });
   function start() {
@@ -188,7 +196,7 @@
       v.finish = setTimeout(() => { v.finish = null; if (!v.on) toRest(v); }, rem * 1000);
     };
     const go = (v) => {
-      v.tok = (v.tok || 0) + 1; v.atRest = false;
+      v.tok = (v.tok || 0) + 1; v.atRest = false; if (v.host.dataset.vgState !== 'finish') v.goAt = performance.now();   // v6k: a turn's age (a preempted card younger than 1 s yields at once)
       clearTimeout(v.finish); v.finish = null; v.settling = false;  // re-elected while finishing its cycle: it simply keeps playing
       v.host.dataset.vgState = 'play';
       if (v.anim && !document.hidden) v.anim.play();
@@ -221,6 +229,10 @@
     };
     let gesture = 0, gestureTimer = null, wonAt = -1, wonBy = 'elect', preempt = false, yRest = scrollY;   // scrollY when the last scroll settled
     const elect = () => {
+      // v6k (QA F2): while a scroll is moving nothing is elected from the observer (a smooth scroll crossed Health on its way to
+      // Canary, elected it, and Health then finished its cycle beside Canary: two cards moving for 5.5 s). The settle handler
+      // (150 ms quiet) elects. A loop-end hand-off (rotate sets `next`) still goes through.
+      if (gestureTimer && !next) return;
       const best = centred();
       // v6j (tl-landing-ship-2 QA note): the holder keeps its turn while it stays >= MIN in view; the turn passes only at its loop's
       // end (rotate) or when it leaves, so a scroll cannot take a turn back from a card it was just handed to
@@ -228,7 +240,7 @@
       const handoff = next && live.includes(next) && next.ratio >= MIN ? next : null;
       next = null;
       const win = handoff || (keep ? cur : best);
-      for (const v of live) { const want = v === win; if (want === v.on && (want || v.atRest)) continue; v.on = want; want ? go(v) : settle(v, v === cur && handoff && !preempt); }
+      for (const v of live) { const want = v === win; if (want === v.on && (want || v.atRest)) continue; v.on = want; want ? go(v) : settle(v, (v === cur && handoff && !preempt) || (preempt && performance.now() - (v.goAt || 0) < 1000)); }
       if (win !== cur || handoff) { clearTimeout(turn); turn = null; if (win) schedule(win); wonAt = gesture; wonBy = handoff ? 'handoff' : 'elect'; }
       cur = win; announce();
     };
@@ -243,7 +255,8 @@
       gestureTimer = setTimeout(() => {
         gestureTimer = null;
         const moved = Math.abs(scrollY - yRest) >= 120; yRest = scrollY;   // a deliberate scroll to another card (Canary -> Health is ~150 px)
-        if (!cur || document.hidden || !(moved || (wonBy === 'elect' && wonAt === gesture))) return;
+        if (document.hidden) return;
+        if (!cur || !live.includes(cur) || !(moved || (wonBy === 'elect' && wonAt === gesture))) { elect(); return; }   // nothing held, or a small scroll: the normal election (the holder keeps its turn while in view)
         const c = centred();
         if (c && c !== cur) { next = c; preempt = true; elect(); preempt = false; }   // mid-loop: the outgoing card finishes
       }, 150);
