@@ -61,8 +61,6 @@ Each action sits next to what it changes: a gate's tile or the rollout page.
 2. Select **Approve**. When the build waits in several regions, it reads **Approve all** and approves them all.
 3. Confirm the **Approve *build*** dialog with **Approve**.
 
-Home, Changes and the app page show **Approve** too.
-
 ### Skip a gate once
 
 1. On the **Gates** tab, select **Skip once** on a schedule, approval or hand-written gate. Health checks and pins have no Skip once, and the button shows only when you may change the rollout.
@@ -87,7 +85,7 @@ To follow new releases again, select **Clear pin** on the Overview banner or the
 ### Retry a failed deploy
 
 1. On the rollout's **Overview**, select **Retry** on the **Deployment failed** banner.
-2. Confirm **Redeploy to *environment*?**. When tests failed, it offers to retry or skip them.
+2. In production, or when a rule holds the build, confirm **Redeploy to *environment***. When tests failed, it offers to retry or skip them.
 
 <div id="roll-back-a-failed-deploy"></div>
 
