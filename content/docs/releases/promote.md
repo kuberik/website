@@ -10,11 +10,22 @@ Production deploys only releases staging has deployed and baked, with no pipelin
 
 {{< fig id="promote-waves" caption="A release reaches production wave 1 only after staging baked it, and wave 2 only after every wave-1 site baked it." >}}
 
-Works with the environment-controller, a GitHub token Secret in each app namespace (see [GitHub](/docs/integrations/github/)), and Rollouts that take their releases from a [ReleaseSource](/docs/releases/publish/). On one cluster, give each tier its own namespace (`hello-world-staging`, `hello-world-production`) holding every object from [Deploy Your First App](/docs/getting-started/) and a `github-token` Secret. Give each tier its own overlay (`deploy/staging`) and its namespace as the Kustomization's `targetNamespace`, or the tiers overwrite one Deployment. Use the tier's namespace for every `namespace:` and `-n` below.
+Works with the environment-controller, a GitHub token Secret in each app namespace (see [GitHub](/docs/integrations/github/)), and Rollouts fed by a [ReleaseSource](/docs/releases/publish/).
+
+## Run both tiers on one cluster
+
+Give each tier its own namespace, holding every object from [Deploy Your First App](/docs/getting-started/) and a `github-token` Secret:
+
+```bash {filename="Terminal"}
+kubectl create namespace hello-world-staging
+kubectl create namespace hello-world-production
+```
+
+Give each tier its own overlay (`deploy/staging`) and its namespace as the Kustomization's `targetNamespace`, or the tiers overwrite one Deployment. Use the tier's namespace for every `namespace:` and `-n` below.
 
 ## Create the staging Environment
 
-Staging is the first tier this app uses, so its gate does not restrict releases. Apply this in the staging cluster, next to the `hello-world` Rollout:
+Staging is this app's first tier, so its gate allows every release. Apply this in the staging cluster, next to the `hello-world` Rollout:
 
 ```yaml {filename="staging.yaml"}
 apiVersion: environments.kuberik.com/v1alpha1
@@ -42,7 +53,7 @@ The controller creates a [RolloutGate](/docs/concepts/gates/) for the Rollout an
 
 ## Create the production Environment
 
-Production comes after staging in the tier order, so its gate allows only releases staging baked. Apply this in the production cluster:
+Production follows staging, so its gate allows only releases staging baked. Apply this in the production cluster:
 
 ```yaml {filename="production.yaml"}
 apiVersion: environments.kuberik.com/v1alpha1
@@ -113,7 +124,7 @@ kubectl get rolloutgate -n hello-world \
   -o jsonpath='{range .items[*]}{.metadata.name}: {.spec.allowedVersions}{"\n"}{end}'
 ```
 
-The gate whose name starts with `ghd-` belongs to the Environment. The dashboard shows the same order on the app page.
+The gate whose name starts with `ghd-` belongs to the Environment. The dashboard's app page shows each tier's build:
 
 ![The Builds card of invoice-worker: staging and production both run 2.2.0-30 and hold the newer 2.3.0-31](/images/docs/releases/promote-builds.png)
 
