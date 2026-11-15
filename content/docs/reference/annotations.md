@@ -23,7 +23,7 @@ The rollout-controller reads these from a Kuberik `Rollout` in the Rollout's nam
 | `rollouttest.kuberik.com/retry-mode` | `retry`, `skip` | `retry` | You, dashboard | Read by the openkruise-controller with `retry`: `retry` runs failed RolloutTests again, `skip` marks them `Skipped`, and the controller removes it after acting ([Retry or skip a failed test](/docs/releases/canary/#retry-or-skip-a-failed-test)). |
 | `dashboard.rollout.kuberik.com/theme` | `development`, `staging`, `test`, `production` or a hex colour | From the Environment tier | You | Read by the dashboard: the preset or colour of the Rollout's environment chip. |
 | `dashboard.rollout.kuberik.com/theme-color` | Hex colour (`#7c3aed`) | The theme's colour | You | Read by the dashboard: overrides the chip colour. |
-| `dashboard.rollout.kuberik.com/theme-label` | Text | The environment name | You | Read by the dashboard: the environment chip's tooltip and the Rollout's title in search. The chip itself shows the Environment's name; only on a Rollout with no Environment does it show this text, in lower case. |
+| `dashboard.rollout.kuberik.com/theme-label` | Text | The preset's name when `theme` is a preset, else the environment name | You | Read by the dashboard: the tooltip on the breadcrumb's environment chip, and the environment's title in search; search also finds the Rollout by it. The chip itself shows the Environment's name; only on a Rollout with no Environment that sets `theme` or `theme-color` does the chip show this text, lower-cased. |
 
 ## Kustomization
 
