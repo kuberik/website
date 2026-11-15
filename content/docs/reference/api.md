@@ -30,7 +30,7 @@ Environment is the Schema for the environments API
 <tbody>
     
   
-<tr><td><code>metadata,omitempty,omitzero</code>
+<tr><td><code>metadata</code>
       
 <br/>
 <a href="https://kubernetes.io/docs/reference/generated/kubernetes-api/v1.33/#objectmeta-v1-meta"><code>ObjectMeta</code></a>
@@ -46,7 +46,7 @@ Environment is the Schema for the environments API
 <td>
    spec defines the desired state of Environment</td>
 </tr>
-<tr><td><code>status,omitempty,omitzero</code>
+<tr><td><code>status</code>
       
 <br/>
 <a href="#environmentstatus"><code>EnvironmentStatus</code></a>
@@ -749,7 +749,7 @@ RolloutTest is the Schema for the rollouttests API
 <tbody>
     
   
-<tr><td><code>metadata,omitempty,omitzero</code>
+<tr><td><code>metadata</code>
       
 <br/>
 <a href="https://kubernetes.io/docs/reference/generated/kubernetes-api/v1.33/#objectmeta-v1-meta"><code>ObjectMeta</code></a>
@@ -765,7 +765,7 @@ RolloutTest is the Schema for the rollouttests API
 <td>
    spec defines the desired state of RolloutTest</td>
 </tr>
-<tr><td><code>status,omitempty,omitzero</code>
+<tr><td><code>status</code>
       
 <br/>
 <a href="#rolloutteststatus"><code>RolloutTestStatus</code></a>
@@ -1723,7 +1723,7 @@ ApprovalPolicy is the Schema for the approvalpolicies API
 <tbody>
     
   
-<tr><td><code>metadata,omitzero</code>
+<tr><td><code>metadata</code>
       
 <br/>
 <a href="https://kubernetes.io/docs/reference/generated/kubernetes-api/v1.33/#objectmeta-v1-meta"><code>ObjectMeta</code></a>
@@ -1739,7 +1739,7 @@ ApprovalPolicy is the Schema for the approvalpolicies API
 <td>
    spec defines the desired state of ApprovalPolicy</td>
 </tr>
-<tr><td><code>status,omitzero</code>
+<tr><td><code>status</code>
       
 <br/>
 <a href="#approvalpolicystatus"><code>ApprovalPolicyStatus</code></a>
@@ -1763,7 +1763,7 @@ ClusterApprovalPolicy is the Schema for the clusterapprovalpolicies API
 <tbody>
     
   
-<tr><td><code>metadata,omitzero</code>
+<tr><td><code>metadata</code>
       
 <br/>
 <a href="https://kubernetes.io/docs/reference/generated/kubernetes-api/v1.33/#objectmeta-v1-meta"><code>ObjectMeta</code></a>
@@ -1779,7 +1779,7 @@ ClusterApprovalPolicy is the Schema for the clusterapprovalpolicies API
 <td>
    spec defines the desired state of ClusterApprovalPolicy</td>
 </tr>
-<tr><td><code>status,omitzero</code>
+<tr><td><code>status</code>
       
 <br/>
 <a href="#clusterapprovalpolicystatus"><code>ClusterApprovalPolicyStatus</code></a>
@@ -1923,7 +1923,7 @@ RolloutApproval is the Schema for the rolloutapprovals API
 <tbody>
     
   
-<tr><td><code>metadata,omitzero</code>
+<tr><td><code>metadata</code>
       
 <br/>
 <a href="https://kubernetes.io/docs/reference/generated/kubernetes-api/v1.33/#objectmeta-v1-meta"><code>ObjectMeta</code></a>
@@ -1955,7 +1955,7 @@ RolloutDependency is the Schema for the rolloutdependencies API
 <tbody>
     
   
-<tr><td><code>metadata,omitzero</code>
+<tr><td><code>metadata</code>
       
 <br/>
 <a href="https://kubernetes.io/docs/reference/generated/kubernetes-api/v1.33/#objectmeta-v1-meta"><code>ObjectMeta</code></a>
@@ -1971,7 +1971,7 @@ RolloutDependency is the Schema for the rolloutdependencies API
 <td>
    spec defines the desired state of RolloutDependency</td>
 </tr>
-<tr><td><code>status,omitzero</code>
+<tr><td><code>status</code>
       
 <br/>
 <a href="#rolloutdependencystatus"><code>RolloutDependencyStatus</code></a>
