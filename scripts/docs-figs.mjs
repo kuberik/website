@@ -36,16 +36,19 @@ function plate({ x, y, w, h, kind = 'n', title, sub = [], mono = false, key = fa
   return s + '</g>';
 }
 
-// chip: the product chip, at figure scale: 22 tall, radius 4, 13 600 uppercase .04em (the dashboard's is 11; a
-// figure label never goes under 13 at 1440). Width from a per-character estimate,
-// text centred so an estimate error only changes the padding.
-const CHIP_CH = 9.6;
-function chipW(text) { return Math.round(text.length * CHIP_CH + 16); }
+// chip: the product chip on the landing fig-chip spec (R6-DES-3; scripts/landing-figs.rules.css .fig-chip): 20 tall,
+// radius 4, 11/600 uppercase .06em, 6 px padding. This supersedes the earlier "every figure label is 13" rule for
+// chips only: a 13 px uppercase chip was the loudest mark on the page after the H1. Labels, titles and notes stay
+// 13 (STYLE 6). Width from Inter 600 11px cap advances measured in Chromium (incl. the .66 tracking; 7.66 for any
+// character not listed), plus 6 px padding and the 1 px line each side; text centred so a font change only moves padding.
+const CAP_W = { I: 3.66, '1': 5.66, '-': 5.66, ' ': 3.66, F: 6.66, J: 6.66, L: 6.66, '7': 6.66, A: 8.66, C: 8.66, D: 8.66, G: 8.66,
+  H: 8.66, K: 8.66, N: 8.66, O: 8.66, U: 8.66, V: 8.66, X: 8.66, Y: 8.66, M: 10.66, Q: 9.66, W: 11.66 };
+function chipW(text) { return Math.round([...text.toUpperCase()].reduce((a, c) => a + (CAP_W[c] ?? 7.66), 0) - 0.66 + 14); }
 function chipSvg({ x, cy, text, state = 'gray', anchor = 'middle' }) {
   const w = chipW(text);
   const x0 = anchor === 'middle' ? x - w / 2 : anchor === 'end' ? x - w : x;
-  return `<g class="df-chip df-chip-${state}"><rect x="${n(x0)}" y="${cy - 11}" width="${w}" height="22" rx="4"/>` +
-    `<text x="${n(x0 + w / 2)}" y="${cy + 4.5}" text-anchor="middle">${esc(text.toUpperCase())}</text></g>`;
+  return `<g class="df-chip df-chip-${state}"><rect x="${n(x0)}" y="${cy - 10}" width="${w}" height="20" rx="4"/>` +
+    `<text x="${n(x0 + w / 2)}" y="${cy + 4}" text-anchor="middle">${esc(text.toUpperCase())}</text></g>`;
 }
 
 // pill: a version tag (mono 13, radius 4) – the dashboard's tag token.
