@@ -35,11 +35,15 @@ html.dark .df{
 .df-card{padding:24px 23px;border:1px solid var(--line);border-radius:12px;background:var(--df-bg);overflow:hidden}
 .df-cap,.kd-content .df-cap{margin-top:12px;text-align:left;font:400 14px/20px var(--sans);color:var(--ink-muted)}
 
-/* two drawings: wide from a 680 px figure (the 1440 column), narrow below it */
+/* two drawings (R6-DES-2). The wide one (viewBox 632) shows from a 656 px figure: the card takes 48 (23 padding + 1 line
+   each side), so it renders at 608 or more = scale .962, labels 12.5 px or larger. Below that the narrow one (viewBox 318)
+   shows at 1:1 at most, centred: a drawing is never scaled up, so labels are never larger than the 16 px body (the old
+   400 cap rendered it at 1.26 = 16.4 px on 1024-1365 laptops). The wide drawing cannot go lower than 656: at a 616
+   figure (1280 viewport) it would be .90 = 11.7 px. */
 .df-svg{display:block;height:auto;overflow:visible;font-family:var(--sans)}
 .df-wide{display:none;width:100%}
-.df-narrow{width:100%;max-width:400px;margin:0 auto}
-@container df (min-width:680px){.df-wide{display:block}.df-narrow{display:none}}
+.df-narrow{width:100%;max-width:318px;margin:0 auto}
+@container df (min-width:656px){.df-wide{display:block}.df-narrow{display:none}}
 @container df (max-width:479px){.df-card{padding:16px}}
 
 /* plates */
