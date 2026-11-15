@@ -84,7 +84,7 @@ kubectl get rolloutschedules -n hello-world
 kubectl get clusterrolloutschedules
 ```
 
-To let one build through now, bypass the gates for it. The bypass takes effect on the next reconcile.
+To let one build through now, select **Skip once** on the gate's tile in the rollout's **Gates** tab ([Skip a gate once](/docs/operate/dashboard/#skip-a-gate-once)). With kubectl, bypass the gates for that build; the bypass takes effect on the next reconcile.
 
 ```bash {filename="Terminal"}
 kubectl annotate rollout hello-world -n hello-world rollout.kuberik.com/bypass-gates=1.4.1 --overwrite
@@ -98,7 +98,7 @@ kubectl annotate rollout hello-world -n hello-world rollout.kuberik.com/bypass-g
 kubectl get rollout hello-world -n hello-world -o jsonpath='{range .status.candidates[*]}{.tag}{"\t"}{.blockedBy}{"\n"}{end}'
 ```
 
-An `approval-gate-…` lets a release through once a [`RolloutApproval`](/docs/gates/approvals/) names it. Apply one to approve 1.4.1.
+An `approval-gate-…` lets a release through once a [`RolloutApproval`](/docs/gates/approvals/) names it. In the dashboard, select **Approve** on the gate's tile in the rollout's **Gates** tab ([Approve a build](/docs/operate/dashboard/#approve-a-build)). With kubectl, apply one to approve 1.4.1.
 
 ```bash {filename="Terminal"}
 kubectl apply -f - <<EOF
