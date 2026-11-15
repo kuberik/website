@@ -13,7 +13,6 @@
           <div class="term-head"><span>Terminal</span><button class="copy" id="copy" type="button"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="9" y="9" width="12" height="12" rx="2"/><path d="M5 15V5a2 2 0 0 1 2-2h10"/></svg><span id="copy-l">Copy</span></button></div>
 <pre tabindex="0" role="region" aria-label="Install command"><code id="install-cmd"><span class="p">$ </span>helm install kuberik \
     oci://ghcr.io/kuberik/charts/kuberik \
-    --version 0.8.0 \
     --namespace kuberik-system \
     --create-namespace \
     --set createNamespace=false</code></pre>
