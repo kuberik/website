@@ -269,10 +269,11 @@ These pages have their own Troubleshoot section.
 
 ## Check the result
 
-Run the conditions command again. A Rollout that deploys automatically shows `GatesPassing=True` and `DeploymentBlocked=False`, and after the bake `Ready=True` with reason `BakeTimePassed`.
+Print the conditions again. A Rollout that deploys automatically shows `GatesPassing=True` and `DeploymentBlocked=False`, and after the bake `Ready=True` with reason `BakeTimePassed`.
 
 ```bash {filename="Terminal"}
-kubectl get rollout hello-world -n hello-world
+kubectl get rollout hello-world -n hello-world \
+  -o jsonpath='{range .status.conditions[*]}{.type}{"\t"}{.status}{"\t"}{.reason}{"\n"}{end}'
 ```
 
 ## Next steps
