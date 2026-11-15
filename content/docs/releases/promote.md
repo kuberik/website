@@ -111,7 +111,7 @@ kubectl get rolloutgate -n hello-world \
 
 The gate whose name starts with `ghd-` belongs to the Environment. In GitHub, the repository's **Environments** page lists `kuberik/hello-world/staging` and `kuberik/hello-world/production` with every deploy and its bake result. The dashboard shows the same order on the app page.
 
-![The Builds card of hello-world: development and staging run f68d0ac, one behind the newest build e2c9b47; development is healthy and staging waits for development to deploy e2c9b47; production runs a1b2c3d and waits for staging](/images/docs/releases/promote-builds.png)
+![The Builds card of invoice-worker, an app whose tiers are staging then production: both run 2.2.0-30, one behind the newest build 2.3.0-31, and both hold it](/images/docs/releases/promote-builds.png)
 
 ## Troubleshoot
 
