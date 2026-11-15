@@ -242,6 +242,7 @@ document.addEventListener("DOMContentLoaded", function () {
   // (stems). A synonym hit scores below a literal one (see hit()).
   const SYN = {};
   for (const [k, vs] of Object.entries({
+    changelog: ['changelog', 'upgrad'],
     unblock: ['unblock', 'block', 'resume'],
     block: ['block', 'unblock'],
     approv: ['approv', 'approval', 'approver'],
@@ -317,7 +318,10 @@ document.addEventListener("DOMContentLoaded", function () {
         if (hash === 'related' || hash === 'next-steps') continue;
         const url = route.trimEnd('/') + (hash ? '#' + hash : '');
         const title = strip(text || pageTitle);
-        const content = data[route].data[heading] || '';
+        let content = data[route].data[heading] || '';
+        let labels = [];
+        const li = content.lastIndexOf('\n§labels§');
+        if (li !== -1) { labels = content.slice(li + 9).split('|').map(l => queryTerms(l).join(' ')); content = content.slice(0, li); }
         const paragraphs = content.split('\n').filter(Boolean);
         const sec = {
           route, url, title, crumb, pageTitle,
@@ -330,6 +334,7 @@ document.addEventListener("DOMContentLoaded", function () {
           cw: words(crumb),
           bw: new Set(words(content)),
           body: norm(content),
+          labels,
         };
         seen(sec.tw); seen(sec.bw);
         sections.push(sec);
@@ -384,6 +389,13 @@ document.addEventListener("DOMContentLoaded", function () {
     if (titleHits === terms.length) score += 6;
     // A page's own entry (its title and summary) outranks its sections.
     if (s.isPage && titleHits) score += 8;
+    // R8-IA-1/7: a bold label (dashboard button, banner, chip) that holds the whole query.
+    if (s.labels.length && !gen && !ident) {
+      if (terms.length > 1) {
+        if (s.labels.includes(phrase)) score += 30;
+        else if (s.labels.some(l => l.includes(phrase))) score += 18;
+      }
+    }
     if (s.url === DASHBOARD_WORDS && stateQuery) score += 26;
     if (gen) score *= 0.5;
     return score;
@@ -405,7 +417,7 @@ document.addEventListener("DOMContentLoaded", function () {
     return changed ? out : null;
   }
 
-  function rank(terms, ident, query) {
+  function rank(terms, ident, query, withBlog) {
     const stateQuery = STATE_WORDS.test(query);
     const phrase = terms.join(' ');
     const inDocs = location.pathname.startsWith('/docs/');
@@ -416,7 +428,7 @@ document.addEventListener("DOMContentLoaded", function () {
       // pages it stays in; elsewhere docs lead.
       let w = 1;
       if (s.route.startsWith('/blog/')) {
-        if (inDocs) continue;
+        if (inDocs && !withBlog) continue;
         w = inBlog ? 1 : 0.6;
       } else if (inBlog) w = 0.6;
       const sc = scoreSection(s, terms, phrase, ident, stateQuery) * w;
@@ -447,9 +459,11 @@ document.addEventListener("DOMContentLoaded", function () {
     if (!terms.length) { displayResults([], [], resultsElement); return; }
     const ident = /[a-z][A-Z]/.test(query);
     let ranked = rank(terms, ident, query);
+    // Docs lead on /docs/ pages; the release posts show only when the docs have nothing.
+    if (!ranked.length) ranked = rank(terms, ident, query, true);
     if (!ranked.length) {
       const fixed = correct(terms);
-      if (fixed) { terms = fixed; ranked = rank(terms, ident, query); }
+      if (fixed) { terms = fixed; ranked = rank(terms, ident, query, true); }
     }
     const results = [];
     // R6-IA-3: an exact camelCase field name goes to its table row, with the

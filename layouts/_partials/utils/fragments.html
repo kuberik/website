@@ -68,12 +68,12 @@
       {{ $headingTitle := index $headingTitles $i }}
 
       {{ if eq $i 0 }}
-        {{ $data = $data | merge (dict $headingKey ($content | plainify | htmlUnescape | replaceRE `⟦` "<" | replaceRE `⟧` ">" | strings.TrimSpace)) }}
+        {{ $data = $data | merge (dict $headingKey (printf "%s%s" ($content | plainify | htmlUnescape | replaceRE `⟦` "<" | replaceRE `⟧` ">" | strings.TrimSpace) (partial "utils/kd-labels.html" $content))) }}
       {{ else }}
         {{ $parts := split $content (printf "%s" $headingTitle) }}
         {{ $lastPart := index $parts (sub (len $parts) 1) }}
 
-        {{ $data = $data | merge (dict $headingKey ($lastPart | plainify | htmlUnescape | replaceRE `⟦` "<" | replaceRE `⟧` ">" | strings.TrimSpace)) }}
+        {{ $data = $data | merge (dict $headingKey (printf "%s%s" ($lastPart | plainify | htmlUnescape | replaceRE `⟦` "<" | replaceRE `⟧` ">" | strings.TrimSpace) (partial "utils/kd-labels.html" $lastPart))) }}
         {{ $content = strings.TrimSuffix $lastPart $content }}
         {{ $content = strings.TrimSuffix (printf "%s" $headingTitle) $content }}
       {{ end }}

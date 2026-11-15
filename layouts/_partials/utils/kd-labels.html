@@ -1,0 +1,8 @@
+{{- /* kuberik (R8-IA-1, R8-IA-7): the bold UI labels of one section ("View source", "Not reached"), as a last
+     line "§labels§a|b|c" that assets/js/flexsearch.js reads and boosts; the dashboard's own words are what a reader copies off the screen. */ -}}
+{{- $labels := slice -}}
+{{- range findRESubmatch `(?s)<strong>(.*?)</strong>` . -}}
+  {{- $l := index . 1 | plainify | htmlUnescape | strings.TrimSpace -}}
+  {{- if and $l (le (len $l) 40) (not (in $labels $l)) }}{{ $labels = $labels | append $l }}{{ end -}}
+{{- end -}}
+{{- if $labels }}{{ printf "\n§labels§%s" (delimit $labels "|") }}{{ end -}}
