@@ -648,7 +648,7 @@ figs['promote-waves'] = {
     ].join('')
   },
   narrow: {
-    w: 318, h: 496, body: [
+    w: 318, h: 540, body: [
       group({ x: 0, y: 0, w: 318, h: 128, chip: { text: 'staging', state: 'violet' }, kind: 'n' }),
       group({ x: 0, y: 156, w: 318, h: 128, chip: { text: 'production', state: 'prod' }, label: 'wave 1', kind: 'n' }),
       group({ x: 0, y: 312, w: 318, h: 128, chip: { text: 'production', state: 'prod' }, label: 'wave 2', kind: 'n' }),
@@ -657,6 +657,8 @@ figs['promote-waves'] = {
       edge([[260, 116], [260, 197]]),
       edge([[260, 272], [260, 353]]),
       notes({ x: 0, y: 464, w: 318, items: [
+        { k: 'Wave 1 gets', v: 'what staging baked;', state: 'gray' },
+        { k: 'wave 2 gets', v: 'what every wave-1 site baked.', state: 'gray' },
         { k: '`lockstep: true`', v: 'one release in every wave.', state: 'gray' },
       ] }),
     ].join('')
@@ -677,10 +679,13 @@ figs['canary-steps'] = {
       cvStep(0, 0, 180, 'Step 1', ['replicas: 1', 'traffic: 10%'], 10),
       cvStep(226, 0, 180, 'Step 2', ['replicas: 5', 'traffic: 50%'], 50),
       cvStep(452, 0, 180, 'After the last step', ['phase: Healthy', 'all traffic'], 100),
+      // openkruise-controller unpauses the step it holds (rolloutstepgate_controller.go:519-522, unpauseStep(currentStepIndex)):
+      // the wire returns to Step 1; OpenKruise then moves on to Step 2.
+      edge([[180, 40], [223, 40]]),
       edge([[406, 40], [449, 40]]),
       plate({ x: 40, y: 132, w: 330, h: 72, kind: 'k', key: true, title: 'openkruise-controller', sub: ['RolloutTest smoke-test Succeeded,', 'then ready for `step-1-bake-time`'] }),
-      edge([[90, 100], [90, 129]], { label: { x: 98, y: 120, t: 'paused' } }),
-      edge([[316, 132], [316, 103]], { kind: 'act', label: { x: 324, y: 120, t: 'unpauses' } }),
+      edge([[60, 100], [60, 129]], { label: { x: 68, y: 120, t: 'paused' } }),
+      edge([[150, 132], [150, 103]], { kind: 'act', label: { x: 158, y: 120, t: 'unpauses' } }),
       notes({ x: 0, y: 228, w: 632, items: [
         { k: 'The test fails, or `step-1-ready-timeout` passes:', v: 'the step stays paused, `Stalled=True`.', state: 'red' },
         { k: 'The last step:', v: 'OpenKruise completes it without pausing, so its tests never run.', state: 'gray' },
@@ -692,8 +697,9 @@ figs['canary-steps'] = {
       cvStep(0, 0, 150, 'Step 1', ['replicas: 1', 'traffic: 10%'], 10),
       cvStep(168, 0, 150, 'Step 2', ['replicas: 5', 'traffic: 50%'], 50),
       plate({ x: 0, y: 132, w: 290, h: 72, kind: 'k', key: true, title: 'openkruise-controller', sub: ['RolloutTest smoke-test Succeeded,', 'then ready for `step-1-bake-time`'] }),
-      edge([[75, 100], [75, 129]], { label: { x: 83, y: 120, t: 'paused' } }),
-      edge([[243, 132], [243, 103]], { kind: 'act', label: { x: 235, y: 120, t: 'unpauses', anchor: 'end' } }),
+      edge([[40, 100], [40, 129]], { label: { x: 48, y: 120, t: 'paused' } }),
+      edge([[150, 40], [165, 40]]),
+      edge([[110, 132], [110, 103]], { kind: 'act', label: { x: 118, y: 120, t: 'unpauses' } }),
       edge([[306, 100], [306, 233]]),
       cvStep(0, 236, 318, 'After the last step', ['phase: Healthy', 'all traffic'], 100),
       notes({ x: 0, y: 360, w: 318, items: [
