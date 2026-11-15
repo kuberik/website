@@ -76,7 +76,7 @@ kubectl get releasesource -n hello-world
 
 ### No releases yet
 
-`Ready` is False with reason `NoReleases`. The ReleaseSource admitted no tag: the image has no tags yet, or `spec.oci.filterTags` and `spec.oci.policy` match none of them. Compare the tags in the registry with the filter, then correct the ReleaseSource.
+`Ready` is False with reason `NoReleases`. The ReleaseSource admitted no tag: the image has no tags yet, or `spec.oci.filterTags` and `spec.oci.policy` match none of them. Correct the filter.
 
 ```bash {filename="Terminal"}
 kubectl get releasesource hello-world -n hello-world -o jsonpath='{.status.count}{"\n"}{.spec.oci}{"\n"}'
@@ -144,7 +144,7 @@ kubectl get healthchecks -n hello-world
 
 ### Blocked by a pin or a pending deploy by hand
 
-`DeploymentBlocked` has reason `ManualDeployment`. A deploy by hand is pending or pinned: `spec.wantedVersion` is set, or a `rollout.kuberik.com/force-deploy` annotation names a tag that has not deployed yet. New releases wait. Remove whichever is set: the **Clear pin** button in the dashboard removes a pin, and the annotate command below removes a force-deploy.
+`DeploymentBlocked` has reason `ManualDeployment`. A deploy by hand is pending or pinned: `spec.wantedVersion` is set, or a `rollout.kuberik.com/force-deploy` annotation names a tag that has not deployed yet. New releases wait. Remove whichever is set, or select **Clear pin** in the dashboard.
 
 ```bash {filename="Terminal"}
 kubectl get rollout hello-world -n hello-world -o jsonpath='{.spec.wantedVersion}{"\t"}{.metadata.annotations.rollout\.kuberik\.com/force-deploy}{"\n"}'
@@ -170,6 +170,21 @@ A bypass for a build that is not newer than the deployed one is ignored (log: "G
 
 ```bash {filename="Terminal"}
 kubectl get rollout hello-world -n hello-world -o jsonpath='{.status.gates[*].name}'
+```
+
+### Promotion stalls and the log reads "API rate limit exceeded"
+
+The environment-controller calls GitHub with each Environment's token on every Rollout change and every `spec.requeueInterval` (default 1 minute). Once the token's hourly limit is spent, reconciles fail before the gate updates, so the gate keeps its last `allowedVersions`.
+
+```bash {filename="Terminal"}
+kubectl logs -n kuberik-system deployment/environment-controller-manager --since=1h | grep "rate limit"
+curl -s -H "Authorization: Bearer <your-token>" https://api.github.com/rate_limit
+```
+
+The error ends in `API rate limit exceeded for …` and `[rate reset in …]`. Promotion resumes after the reset. To spend fewer calls, reconcile each Environment less often; it then sees the earlier tier's bake later.
+
+```bash {filename="Terminal"}
+kubectl patch environment hello-world-production -n hello-world --type merge -p '{"spec":{"requeueInterval":"5m"}}'
 ```
 
 ### The last deploy failed
@@ -200,7 +215,7 @@ See [Flux](/docs/integrations/fluxcd/) for the HealthCheck setup.
 
 ### The deploy never fails
 
-Set `deployTimeout` so a deploy whose health checks never turn healthy fails instead of waiting.
+Set `deployTimeout` so such a deploy fails instead of waiting.
 
 ```bash {filename="Terminal"}
 kubectl patch rollout hello-world -n hello-world --type merge -p '{"spec":{"deployTimeout":"15m"}}'
@@ -228,11 +243,11 @@ Then set `spec.wantedVersion` to the tag it printed.
 kubectl patch rollout hello-world -n hello-world --type merge -p '{"spec":{"wantedVersion":"<previous-tag>"}}'
 ```
 
-The pin deploys past gates and the failed deploy, and the dashboard shows **Rolled back**. New releases wait until you clear the pin, as in [Blocked by a pin](#blocked-by-a-pin-or-a-pending-deploy-by-hand). Do not roll back with `force-deploy`: once the earlier build's bake succeeds, the Rollout deploys the newest release the gates allow, the failed one included, and `history[0]` reads "Automatic deployment" on the failed tag again.
+The pin deploys past gates and the failed deploy, and the dashboard shows **Rolled back**. New releases wait until you clear the pin, as in [Blocked by a pin](#blocked-by-a-pin-or-a-pending-deploy-by-hand). Do not roll back with `force-deploy`: once the earlier build's bake succeeds, the Rollout deploys the newest release the gates allow, the failed one included.
 
 ### Retry the same build
 
-**Retry** in the dashboard and the retry annotation do the same thing. The annotation resets the bake to `Deploying` and ignores errors from before the retry. The controller removes it; on a bake that is not `Failed` it logs "Retry annotation ignored".
+**Retry** in the dashboard sets this annotation. It resets the bake to `Deploying` and ignores errors from before the retry. The controller removes it; on a bake that is not `Failed` it logs "Retry annotation ignored".
 
 ```bash {filename="Terminal"}
 kubectl annotate rollout hello-world -n hello-world rollout.kuberik.com/retry=true --overwrite
