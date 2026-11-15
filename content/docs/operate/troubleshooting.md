@@ -206,7 +206,7 @@ kubectl patch rollout hello-world -n hello-world --type merge -p '{"spec":{"depl
 
 ## The deployment failed
 
-The dashboard shows **Deployment failed**; `Ready` is False with reason `BakeTimeFailed`. The message says whether a HealthCheck reported an error or the deploy timeout passed; `failedHealthChecks` records each failing check.
+The dashboard shows **Deployment failed**; `Ready` is False with reason `BakeTimeFailed`. The message says whether a HealthCheck reported an error or the deploy timeout passed; `failedHealthChecks` records each failing check. To ship a fix past the bad build, see [Deploy a specific version](/docs/operate/manual-actions/#deploy-a-specific-version).
 
 ```bash {filename="Terminal"}
 kubectl get rollout hello-world -n hello-world -o jsonpath='{.status.history[0].bakeStatusMessage}{"\n"}{.status.history[0].failedHealthChecks}'
