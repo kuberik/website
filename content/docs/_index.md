@@ -38,6 +38,6 @@ journeys:
     icon: plug
     outcome: "Connect Kuberik to Flux, GitHub, Datadog and Prometheus."
 reference:
-  - { url: "/docs/reference/api/", title: "API Reference", icon: braces, description: "Fields of every Kuberik custom resource." }
+  - { url: "/docs/reference/api/", title: "API Reference", icon: braces, description: "Every field of the Rollout, Environment, OpenKruise and Release resources." }
   - { url: "/docs/reference/annotations/", title: "Annotations", icon: tag, description: "Every annotation Kuberik reads or writes." }
 ---
