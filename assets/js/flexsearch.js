@@ -258,6 +258,8 @@ document.addEventListener("DOMContentLoaded", function () {
       let order = 0;
       for (const heading in data[route].data) {
         const [hash, text] = heading.split('#');
+        // Closing link-card sections (Related, Next steps) are navigation, not answers.
+        if (hash === 'related' || hash === 'next-steps') continue;
         const url = route.trimEnd('/') + (hash ? '#' + hash : '');
         const title = strip(text || pageTitle);
         const content = data[route].data[heading] || '';
