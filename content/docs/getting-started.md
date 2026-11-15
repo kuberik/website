@@ -11,7 +11,7 @@ tabs:
 
 Deploy `hello-world` with Kuberik. At the end, every build your CI publishes is picked up by a [`ReleaseSource`](/docs/releases/publish/) and deployed by a [`Rollout`](/docs/concepts/rollouts/) through Flux.
 
-Before you start, you need a cluster with [Flux](https://fluxcd.io) 2.6 or later and [Kuberik](/docs/installation/helm/) installed, and a GitHub repository, here `acme/hello-world`, whose CI can push to `ghcr.io/acme/hello-world`. `ReleaseSource` is served by the release-controller, which the Helm chart installs from the next chart release. Pick Image tag or Rendered manifests in the tabs below; [Propagation Modes](/docs/concepts/propagation/) explains the difference.
+Before you start, you need a cluster with [Flux](https://fluxcd.io) 2.6 or later and [Kuberik](/docs/installation/helm/) installed, and a GitHub repository, here `acme/hello-world`, whose CI can push to `ghcr.io/acme/hello-world`. This tutorial needs the chart release after 0.7.0 {{< needs "Next release" >}}: it uses `ReleaseSource` and `spec.releaseSourceRef`, which chart 0.7.0 and its rollout-controller v0.9.2 do not have. Pick Image tag or Rendered manifests in the tabs below; [Propagation Modes](/docs/concepts/propagation/) explains the difference.
 
 {{% steps %}}
 
@@ -75,7 +75,7 @@ A `ReleaseSource` lists the tags of an OCI repository, orders them by a policy, 
 kubectl apply -f releasesource.yaml
 ```
 
-For a private registry, add `secretRef` under `oci` with the name of an image pull secret in the same namespace. Releases are kept for 7 days, and at least 30 are always kept; change this with `spec.retention`.
+Its `READY` column reads `False` until CI has pushed the first tag; that is expected at this point. For a private registry, add `secretRef` under `oci` with the name of an image pull secret in the same namespace. Releases are kept for 7 days, and at least 30 are always kept; change this with `spec.retention`.
 
 ### Create the Rollout
 
@@ -172,6 +172,8 @@ Create the Flux objects the Rollout drives. The annotation names the Rollout tha
           - name: app
             image: ghcr.io/acme/hello-world:${APP_VERSION}
   ```
+
+  Until the first release, Kuberik has no tag to write, so Flux applies the image with a literal `${APP_VERSION}`: the Kustomization reads `Ready` while the pod sits in `InvalidImageName`. This clears when the first release is deployed.
   {{< /tab >}}
 
   {{< tab name="Rendered manifests" >}}
@@ -211,7 +213,7 @@ kubectl apply -f flux.yaml
 
 ### Publish a release
 
-Add the workflow for your mode from [Publish Releases from CI](/docs/releases/publish/) to `acme/hello-world` and push a commit to `main`. CI pushes a `main-<sha>-<timestamp>` tag, the `ReleaseSource` lists it within a minute, and the Rollout deploys it.
+Add the workflow for your mode from [Publish Releases from CI](/docs/releases/publish/) to `acme/hello-world` and push a commit to `main`. The workflow builds the image from the repository root, so the repository needs a `Dockerfile` there. CI pushes a `main-<sha>-<timestamp>` tag, the `ReleaseSource` lists it within a minute, and the Rollout deploys it.
 
 {{% /steps %}}
 
@@ -240,7 +242,7 @@ VERSION                   BAKE        MESSAGE
 main-3f9c2ab-1794583200   Succeeded   Automatic deployment
 ```
 
-The dashboard shows the same rollout: the running build, the pipeline it moved through, and its health checks.
+The dashboard shows each rollout with its running build, the pipeline it moved through, and its health checks. It is off by default; [Expose the Dashboard](/docs/installation/helm/#expose-the-dashboard) turns it on, and [Use the Dashboard](/docs/operate/dashboard/) shows how to read it. The screenshot below comes from a larger setup, not from this tutorial.
 
 ![The staging rollout of hello-world-app: the deployment pipeline it moved through, no newer build waiting, and its three health checks passing](/images/docs/getting-started/rollout-pipeline.png)
 
