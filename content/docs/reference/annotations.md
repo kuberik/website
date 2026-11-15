@@ -169,6 +169,7 @@ The openkruise-controller reads and writes these on an OpenKruise `Rollout` (`ro
 | Annotation | Values | Default | Set by | Effect |
 |---|---|---|---|---|
 | `kuberik.com/display-name` | Text | `metadata.name` | You | Read by the dashboard: the test's name in the retry dialog. |
+| `rollout.kuberik.com/link.<label>` | URL | None | You | Read by the dashboard: a link named `<label>` on the test's row in the rollout's pipeline; a `Logs`, `CI` or `Trace` label (any case) replaces the link of that name the dashboard builds from the test job's `DD_SERVICE` and `DD_ENV` variables. |
 
 ## OCI artifact
 
