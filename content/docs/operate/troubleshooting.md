@@ -15,9 +15,9 @@ The banner at the top of a rollout's **Overview** names what holds it. The words
 |---|---|---|
 | **Deployment failed**, with **Retry** and **Roll back** | `Ready=False`, `BakeTimeFailed` | [The deployment failed](#the-deployment-failed) |
 | The **stuck** chip, "Stuck — deploying for 2h" | `bakeStatus` `Deploying` | [A deploy is stuck in Deploying](#a-deploy-is-stuck-in-deploying) |
-| **Recovery mode** | `BakeFailureDisabled=True` | [A HealthCheck failed but the deploy did not](#a-healthcheck-failed-but-the-deploy-did-not) |
-| **Rolled back** | `spec.wantedVersion` set to an earlier build | [Roll back to the previous build](#roll-back-to-the-previous-build) |
-| **Held**, "Health checks are unhealthy." | `DeploymentBlocked=True`, `UnhealthyHealthChecks` | [Blocked by an unhealthy HealthCheck](#blocked-by-an-unhealthy-healthcheck) |
+| **Recovery mode**, while a deploy runs | `BakeFailureDisabled=True` | [A HealthCheck failed but the deploy did not](#a-healthcheck-failed-but-the-deploy-did-not) |
+| **Rolled back** | `status.history[0]` is older than the build before it (a pin or a force-deploy) | [Roll back to the previous build](#roll-back-to-the-previous-build) |
+| **Held**: "HealthCheck '…' in namespace '…' is not healthy" | `DeploymentBlocked=True`, `UnhealthyHealthChecks` | [Blocked by an unhealthy HealthCheck](#blocked-by-an-unhealthy-healthcheck) |
 | **production is waiting on an approval**, **Waiting for approval**, **Needs your approval** | `GatesPassing=False`, `NoAllowedVersions` | [Blocked by an approval](#blocked-by-an-approval-or-another-rule) |
 | **production is waiting for payments ^1.67.0** | `GatesPassing=False`, `NoAllowedVersions` | [Blocked by a service dependency](#blocked-by-a-service-dependency) |
 | **production is waiting on promotion order**, **Lockstep is set on … only** | `GatesPassing=False`, `NoAllowedVersions` | [Promote Across Environments](/docs/releases/promote/#troubleshoot) |
@@ -243,7 +243,7 @@ The next deploy runs with `BakeFailureDisabled=True`, so health check errors do 
 
 ### A HealthCheck failed but the deploy did not
 
-The dashboard shows **Recovery mode**, and `BakeFailureDisabled` is True until the next deploy. This deploy followed a bake that failed or did not finish (`PreviousBakeFailed`), or was made by hand while a HealthCheck was `Unhealthy` (`DeployedWithUnhealthyHealthChecks`).
+While the deploy runs, the dashboard shows **Recovery mode**; `BakeFailureDisabled` stays True until the next deploy starts. This deploy followed a bake that failed or did not finish (`PreviousBakeFailed`), or was made by hand while a HealthCheck was `Unhealthy` (`DeployedWithUnhealthyHealthChecks`).
 
 ```bash {filename="Terminal"}
 kubectl get rollout hello-world -n hello-world -o jsonpath='{.status.conditions[?(@.type=="BakeFailureDisabled")]}'
