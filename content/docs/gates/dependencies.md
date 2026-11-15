@@ -8,7 +8,7 @@ aliases: ["/docs/guides/service-dependencies/"]
 
 Hold a service until the service it depends on has shipped the version it needs, in every environment, without hand-sequencing deploys.
 
-Needs a rollout-controller release after v0.11.0 and Rollouts that take their releases from a [ReleaseSource](/docs/releases/publish/), which reads the contract annotations from the images.
+Works with Rollouts that take their releases from a [ReleaseSource](/docs/releases/publish/), which reads the contract annotations from the images.
 
 A [`RolloutDependency`](/docs/reference/api/#rolloutdependency) connects a consumer [Rollout](/docs/concepts/rollouts/) to a provider Rollout. Each consumer release says which provider version it was built against, and the controller admits it only once the provider has successfully deployed a release that satisfies that constraint.
 

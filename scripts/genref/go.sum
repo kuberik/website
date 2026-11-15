@@ -30,6 +30,8 @@ github.com/kuberik/release-controller v0.0.0-20261111103621-a52ee1ef832f h1:0ua3
 github.com/kuberik/release-controller v0.0.0-20261111103621-a52ee1ef832f/go.mod h1:hX4fES7/NH+GI2HFfuH0nOqgh4AeYdb5rwaDLgmIsPQ=
 github.com/kuberik/rollout-controller v0.11.1-0.20261114222654-ea507f9a18d4 h1:5ocV6R7Ov1tI2BsJTb+XvQVtpgAUPN5Cvo7rDqLQ7c0=
 github.com/kuberik/rollout-controller v0.11.1-0.20261114222654-ea507f9a18d4/go.mod h1:7d2d2p/qlhCqnLmUXXajG6KwFZbDkYbfL5Ju2zdosH8=
+github.com/kuberik/rollout-controller v0.11.1-0.20261115050200-b4fd4aaa23b0 h1:Vld799Cd/jC++rg31vZZYwDMyCorbbDhjqdFeo9y1wY=
+github.com/kuberik/rollout-controller v0.11.1-0.20261115050200-b4fd4aaa23b0/go.mod h1:7d2d2p/qlhCqnLmUXXajG6KwFZbDkYbfL5Ju2zdosH8=
 github.com/modern-go/concurrent v0.0.0-20180228061459-e0a39a4cb421/go.mod h1:6dJC0mAP4ikYIbvyc7fijjWJddQyLn8Ig3JB5CqoB9Q=
 github.com/modern-go/concurrent v0.0.0-20180306012644-bacd9c7ef1dd h1:TRLaZ9cD/w8PVh93nsPXa1VrQ6jlwL5oN8l14QlcNfg=
 github.com/modern-go/concurrent v0.0.0-20180306012644-bacd9c7ef1dd/go.mod h1:6dJC0mAP4ikYIbvyc7fijjWJddQyLn8Ig3JB5CqoB9Q=
@@ -57,6 +59,8 @@ go.yaml.in/yaml/v2 v2.4.3 h1:6gvOSjQoTB3vt1l+CU+tSyi/HOjfOjRLJ4YwYZGwRO0=
 go.yaml.in/yaml/v2 v2.4.3/go.mod h1:zSxWcmIDjOzPXpjlTTbAsKokqkDNAVtZO0WOMiT90s8=
 go.yaml.in/yaml/v3 v3.0.4 h1:tfq32ie2Jv2UxXFdLJdh3jXuOzWiL1fo0bu/FbuKpbc=
 go.yaml.in/yaml/v3 v3.0.4/go.mod h1:DhzuOOF2ATzADvBadXxruRBLzYTpT36CKvDb3+aBEFg=
+golang.org/x/crypto v0.47.0 h1:V6e3FRj+n4dbpw86FJ8Fv7XVOql7TEwpHapKoMJ/GO8=
+golang.org/x/crypto v0.47.0/go.mod h1:ff3Y9VzzKbwSSEzWqJsJVBnWmRwRSHt/6Op5n9bQc4A=
 golang.org/x/mod v0.31.0 h1:HaW9xtz0+kOcWKwli0ZXy79Ix+UW/vOfmWI5QVd2tgI=
 golang.org/x/mod v0.31.0/go.mod h1:43JraMp9cGx1Rx3AqioxrbrhNsLl2l/iNAvuBkrezpg=
 golang.org/x/net v0.49.0 h1:eeHFmOGUTtaaPSGNmjBKpbng9MulQsJURQUAfUwY++o=

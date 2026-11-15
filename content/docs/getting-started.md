@@ -13,8 +13,8 @@ Deploy `hello-world` with Kuberik. At the end, every build your CI publishes is 
 
 Before you start, you need:
 
-- A cluster with [Flux](https://fluxcd.io) 2.6 or later; 2.7 with image-reflector-controller for the released controllers ([Install with Helm](/docs/installation/helm/)).
-- [Kuberik](/docs/installation/helm/) from the chart release after 0.7.0 {{< needs "Next release" >}}. This tutorial reads releases through a ReleaseSource, which chart 0.7.0 and its rollout-controller v0.9.2 do not have.
+- A cluster with [Flux](https://fluxcd.io) 2.6 or later.
+- [Kuberik installed with Helm](/docs/installation/helm/).
 - A GitHub repository, here `acme/hello-world`, whose CI can push to `ghcr.io/acme/hello-world`.
 
 Pick Image tag or Rendered manifests in the tabs below; [Propagation Modes](/docs/concepts/propagation/) explains the difference.
@@ -81,7 +81,7 @@ A `ReleaseSource` lists the tags of an OCI repository, orders them by a policy, 
 kubectl apply -f releasesource.yaml
 ```
 
-Its `READY` column reads `False` until CI has pushed the first tag; that is expected at this point. For a private registry, add `secretRef` under `oci` with the name of an image pull secret in the same namespace. Releases are kept for 7 days, and at least 30 are always kept; change this with `spec.retention`.
+Its `READY` column reads `False` until CI has pushed the first tag; that is expected at this point. For a private registry, see [Pull from a private registry](/docs/releases/publish/#pull-from-a-private-registry): the ReleaseSource takes the pull secret, and so does the OCIRepository in the Rendered manifests steps. Releases are kept for 7 days, and at least 30 are always kept; change this with `spec.retention`.
 
 ### Create the Rollout
 

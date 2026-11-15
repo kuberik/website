@@ -13,7 +13,7 @@ Pin a [Rollout](/docs/concepts/rollouts/) to one version, deploy a build now, le
 | Stay on one version | `spec.wantedVersion` | You |
 | Roll back to the previous build | `spec.wantedVersion` | You |
 | Deploy a build now | `rollout.kuberik.com/force-deploy` | The controller, after the deploy |
-| Let one build past the gates | `rollout.kuberik.com/bypass-gates` (+ `bypass-gates-only` {{< needs "Next release" >}}) | The controller, after the deploy |
+| Let one build past the gates | `rollout.kuberik.com/bypass-gates` (+ `bypass-gates-only`) | The controller, after the deploy |
 | Resume after a failed bake | `rollout.kuberik.com/unblock-failed` | The controller, after the next deploy |
 | Bake the same build again | `rollout.kuberik.com/retry` | The controller, at once |
 
@@ -82,7 +82,7 @@ kubectl -n hello-world annotate rollout hello-world --overwrite rollout.kuberik.
 
 The tag must be a candidate, a release newer than the deployed one; for any other tag nothing happens. The history message reads "Automatic deployment, with gate bypass", and the controller removes the annotation after the next deploy.
 
-To skip only some gates, add `rollout.kuberik.com/bypass-gates-only` with a comma-separated list of [`RolloutGate`](/docs/concepts/gates/) names {{< needs "Next release" >}}. The build then deploys once every gate not named allows it. A name that matches no gate of the Rollout raises a `BypassGatesUnknown` warning event, and the annotation does nothing without `bypass-gates`.
+To skip only some gates, add `rollout.kuberik.com/bypass-gates-only` with a comma-separated list of [`RolloutGate`](/docs/concepts/gates/) names. The build then deploys once every gate not named allows it. A name that matches no gate of the Rollout raises a `BypassGatesUnknown` warning event, and the annotation does nothing without `bypass-gates`.
 
 Schedules, approval policies and dependencies name their gates `schedule-gate-<suffix>`, `approval-gate-<suffix>` and `dependency-<name>`. List the names of the Rollout's gates first.
 

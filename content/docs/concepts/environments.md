@@ -39,7 +39,7 @@ spec:
 | `site`, `wave`, `lockstep` | Optional. Split one environment across clusters, see [Sites and waves](#sites-and-waves). |
 
 {{< callout type="important" >}}
-Tiers, sites and waves need environment-controller newer than v0.2.0-rc.0. Up to v0.2.0-rc.0 the order came from `spec.relationship`, which later versions accept and ignore (the Environment reports `Deprecated`, reason `RelationshipIgnored`).
+`spec.relationship` is accepted and ignored; the Environment then reports `Deprecated`, reason `RelationshipIgnored`.
 {{< /callout >}}
 
 ## How tiers set the order

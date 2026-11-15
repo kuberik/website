@@ -31,7 +31,7 @@ Kuberik deploys through Flux. The other systems are optional and each adds one t
 
 | System | Status | What Kuberik does with it |
 |---|---|---|
-| [Flux](/docs/integrations/fluxcd/) 2.6 or later; 2.7 with image-reflector-controller for the released controllers | Required | Applies each version through a Kustomization or an OCIRepository |
+| [Flux](/docs/integrations/fluxcd/) 2.6 or later | Required | Applies each version through a Kustomization or an OCIRepository |
 | Argo CD | Not supported | Nothing yet: Kuberik reads and writes Flux objects only |
 | [GitHub](/docs/integrations/github/) | Optional | Records deployments per environment; dashboard sign-in and pull requests |
 | [Datadog](/docs/integrations/datadog/), [Prometheus](/docs/integrations/prometheus/) | Optional | Monitors and alerts become HealthChecks |

@@ -10,8 +10,6 @@ Every field of the Kuberik resources, generated from the `api/v1alpha1` types on
 
 ## Rollout API
 
-Latest release is rollout-controller v0.11.0. This page documents main at ea507f9, so it also lists API changes that are not in a release yet.
-
   
     
 
@@ -1752,7 +1750,7 @@ with reason ReleaseSourceRequired.</td>
 <br/>
 <a href="https://kubernetes.io/docs/reference/generated/kubernetes-api/v1.33/#localobjectreference-v1-core"><code>LocalObjectReference</code></a>
 </td>
-<td>Deprecated: ignored; removed in the next release. Releases come from
+<td>Deprecated: ignored; removed in a later version. Releases come from
 releaseSourceRef; to migrate an existing Flux ImagePolicy, create a
 ReleaseSource with spec.oci.imagePolicyRef. A Rollout that sets it reports
 ReleasesImagePolicyIgnored=True.
@@ -1777,7 +1775,7 @@ A value type, so Go clients always send "releasesImagePolicy: {}".</td>
 <br/>
 <code>int32</code>
 </td>
-<td>Deprecated: ignored; retention is ReleaseSource.spec.retention. Removed in the next release.
+<td>Deprecated: ignored; retention is ReleaseSource.spec.retention. Removed in a later version.
 AvailableReleasesRetentionDays defines how many days of available releases to keep based on creation timestamp
 When history is full, releases older than this retention period may be removed.
 Defaults to 7 days if not specified.</td>
@@ -1787,7 +1785,7 @@ Defaults to 7 days if not specified.</td>
 <br/>
 <code>int32</code>
 </td>
-<td>Deprecated: ignored; retention is ReleaseSource.spec.retention. Removed in the next release.
+<td>Deprecated: ignored; retention is ReleaseSource.spec.retention. Removed in a later version.
 AvailableReleasesMinCount defines the minimum number of available releases to always keep
 When history is full, at least this many releases will be retained regardless of other criteria.
 Defaults to 30 if not specified.</td>
@@ -1859,7 +1857,7 @@ Each entry contains the version deployed and the timestamp of the deployment.</t
 <a href="#versioninfo"><code>[]VersionInfo</code></a>
 </td>
 <td>Deprecated: ignored; no longer written (cleared on reconcile). Read
-status.candidates and the ReleaseSlice catalogue instead. Removed in the next release.
+status.candidates and the ReleaseSlice catalogue instead. Removed in a later version.
 AvailableReleases is a list of all releases available in the releases repository.</td>
 </tr>
 <tr id="rolloutstatus-releasecandidates"><td><code>releaseCandidates</code>
@@ -1868,7 +1866,7 @@ AvailableReleases is a list of all releases available in the releases repository
 <a href="#versioninfo"><code>[]VersionInfo</code></a>
 </td>
 <td>Deprecated: ignored; no longer written (cleared on reconcile). Read status.candidates instead.
-Removed in the next release.
+Removed in a later version.
 ReleaseCandidates is a list of releases that are candidates for the next deployment.
 These are filtered from AvailableReleases based on deployment history and version ordering.</td>
 </tr>
@@ -1878,7 +1876,7 @@ These are filtered from AvailableReleases based on deployment history and versio
 <a href="#versioninfo"><code>[]VersionInfo</code></a>
 </td>
 <td>Deprecated: ignored; no longer written (cleared on reconcile). Read status.candidates
-(gated field) instead. Removed in the next release.
+(gated field) instead. Removed in a later version.
 GatedReleaseCandidates is a list of release candidates that have passed through all gates.
 This shows which versions are actually available for deployment after gate evaluation.</td>
 </tr>
@@ -2149,8 +2147,6 @@ whenever the registry is unreachable.</td>
 </table>
 
 ## Environment API
-
-Latest release is environment-controller v0.1.5. This page documents main at 599e1aa, so it also lists API changes that are not in a release yet.
 
   
     
@@ -2811,8 +2807,6 @@ recorded on the next GitHub deployment this site creates.</td>
 
 ## OpenKruise Integration API
 
-Released in openkruise-controller v0.4.1: the API types are identical on main at 06c5d99.
-
   
     
 
@@ -2991,8 +2985,6 @@ When the canaryRevision changes, it indicates a new rollout and the old job shou
 </table>
 
 ## Release API
-
-Not in a release yet. This page documents release-controller main at a52ee1e.
 
   
     

@@ -35,6 +35,16 @@ kubectl get rollout hello-world -n hello-world \
 kubectl events -n hello-world --for rollout/hello-world
 ```
 
+The controllers' logs hold the rest, such as "Retry annotation ignored". The Helm chart runs them in `kuberik-system`.
+
+```bash {filename="Terminal"}
+kubectl logs -n kuberik-system deployment/rollout-controller --since=1h
+kubectl logs -n kuberik-system deployment/release-controller --since=1h
+kubectl logs -n kuberik-system deployment/environment-controller-manager --since=1h
+```
+
+The integrations log as `datadog-controller-controller-manager` and `openkruise-controller-manager`. [Installed with kubectl](/docs/installation/manual/), the first two are `rollout-controller-controller-manager` and `release-controller-controller-manager`, the latter in `release-controller-system`.
+
 ## A new release is blocked
 
 ### No release source
@@ -84,7 +94,7 @@ kubectl get rolloutschedules -n hello-world
 kubectl get clusterrolloutschedules
 ```
 
-To let one build through now, bypass the gates for it. The bypass takes effect on the next reconcile.
+To let one build through now, select **Skip once** on the gate's tile in the rollout's **Gates** tab ([Skip a gate once](/docs/operate/dashboard/#skip-a-gate-once)). With kubectl, bypass the gates for that build; the bypass takes effect on the next reconcile.
 
 ```bash {filename="Terminal"}
 kubectl annotate rollout hello-world -n hello-world rollout.kuberik.com/bypass-gates=1.4.1 --overwrite
@@ -98,7 +108,7 @@ kubectl annotate rollout hello-world -n hello-world rollout.kuberik.com/bypass-g
 kubectl get rollout hello-world -n hello-world -o jsonpath='{range .status.candidates[*]}{.tag}{"\t"}{.blockedBy}{"\n"}{end}'
 ```
 
-An `approval-gate-…` lets a release through once a [`RolloutApproval`](/docs/gates/approvals/) names it {{< needs "Next release" >}}. Apply one to approve 1.4.1.
+An `approval-gate-…` lets a release through once a [`RolloutApproval`](/docs/gates/approvals/) names it. In the dashboard, select **Approve** on the gate's tile in the rollout's **Gates** tab ([Approve a build](/docs/operate/dashboard/#approve-a-build)). With kubectl, apply one to approve 1.4.1.
 
 ```bash {filename="Terminal"}
 kubectl apply -f - <<EOF
@@ -113,8 +123,6 @@ spec:
   version: "1.4.1"
 EOF
 ```
-
-rollout-controller v0.11.0 has no `RolloutApproval`. There, add the build to the gate's `allowedVersions`, as in [Use a hand-written gate on v0.11.0](/docs/gates/approvals/#use-a-hand-written-gate-on-v0110).
 
 ### Blocked by a service dependency
 
@@ -156,7 +164,7 @@ kubectl annotate rollout hello-world -n hello-world rollout.kuberik.com/force-de
 
 ### A `bypass-gates` annotation has no effect
 
-A bypass for a build that is not newer than the deployed one is ignored (log: "Gate bypass requested for version not in candidates"). With `bypass-gates-only` {{< needs "Next release" >}}, unnamed gates still hold the build, and the Event `BypassGatesUnknown` names gates the Rollout does not have. A bypass never skips an `Unhealthy` HealthCheck or a failed bake.
+A bypass for a build that is not newer than the deployed one is ignored (log: "Gate bypass requested for version not in candidates"). With `bypass-gates-only`, unnamed gates still hold the build, and the Event `BypassGatesUnknown` names gates the Rollout does not have. A bypass never skips an `Unhealthy` HealthCheck or a failed bake.
 
 ```bash {filename="Terminal"}
 kubectl get rollout hello-world -n hello-world -o jsonpath='{.status.gates[*].name}'
@@ -228,7 +236,7 @@ The pin deploys past gates and the failed deploy, and the dashboard shows **Roll
 kubectl annotate rollout hello-world -n hello-world rollout.kuberik.com/retry=true --overwrite
 ```
 
-### Let the next release deploy
+### Let a newer release deploy
 
 `unblock-failed` lets automatic deploys continue past the failed build once a newer release passes the gates and no selected HealthCheck is `Unhealthy`. Right after a failed bake a check is often still `Unhealthy`, and then nothing deploys. To roll forward during the incident, deploy by hand with `spec.wantedVersion` or `force-deploy`.
 

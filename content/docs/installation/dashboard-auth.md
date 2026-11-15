@@ -8,11 +8,7 @@ weight: 20
 
 Put the Kuberik dashboard behind your OIDC provider, so people sign in with their own identity. One [oauth2-proxy](https://oauth2-proxy.github.io/oauth2-proxy/) in `auth-system` checks every request through [Envoy Gateway](https://gateway.envoyproxy.io) external authorization.
 
-This page is the manual path. It needs Envoy Gateway and the dashboard's `rollout-dashboard` HTTPRoute in `kuberik-system`; the dashboard and that HTTPRoute come only from the Helm chart (`dashboard.gateway.enabled`). With the [Helm chart](/docs/installation/helm/), the chart renders these manifests instead: set `auth.enabled` with `auth.oidc.issuerUrl`, `auth.canonicalHost` and `auth.gateway.name`, and `dashboard.gateway.enabled` and `dashboard.gateway.auth` with `dashboard.gateway.parentRef.name` and `dashboard.gateway.hostname`.
-
-{{< callout type="important" >}}
-On chart 0.7.0, add the two `--skip-auth-route` flags below through `auth.extraArgs`; charts after 0.7.0 set them by default with `auth.staticRoutes`.
-{{< /callout >}}
+This page is the manual path. It needs Envoy Gateway and the dashboard's `rollout-dashboard` HTTPRoute in `kuberik-system`; the dashboard and that HTTPRoute come only from the Helm chart (`dashboard.gateway.enabled`). With the [Helm chart](/docs/installation/helm/), the chart renders these manifests instead: set `auth.enabled` with `auth.oidc.issuerUrl`, `auth.canonicalHost` and `auth.gateway.name`, and `dashboard.gateway.enabled` and `dashboard.gateway.auth` with `dashboard.gateway.parentRef.name` and `dashboard.gateway.hostname`. The chart also sets the two `--skip-auth-route` flags below, from `auth.staticRoutes`.
 
 ## Register one OIDC client
 

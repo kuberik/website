@@ -40,9 +40,6 @@ Set one up in [Set Deployment Windows](/docs/gates/schedules/).
 
 An [ApprovalPolicy](/docs/gates/approvals/) (one namespace) or [ClusterApprovalPolicy](/docs/gates/approvals/) (namespaces picked by a selector) requires a person to approve each release. The controller creates one gate per matched Rollout, named `approval-gate-…`. Its `allowedVersions` is the set of versions named by [RolloutApproval](/docs/gates/approvals/) objects for that Rollout. Approving a version therefore means creating a RolloutApproval with `spec.rolloutRef` and `spec.version`. The approval can name a version that does not exist yet.
 
-{{< callout type="important" >}}
-ApprovalPolicy, ClusterApprovalPolicy and RolloutApproval need a rollout-controller release after v0.11.0. On v0.11.0, write the approval gate by hand.
-{{< /callout >}}
 
 Set one up in [Require a Manual Approval](/docs/gates/approvals/).
 
@@ -79,7 +76,7 @@ Gates do not hold every deploy.
 
 None of these skips the bake. It still waits for the health checks to turn `Healthy`, and fails on a HealthCheck error or on `deployTimeout`. The exceptions are a deploy that follows a bake that failed or did not finish, and a deploy by hand made while a HealthCheck is `Unhealthy`: their bakes ignore health check errors (`BakeFailureDisabled`).
 
-`bypass-gates-only` needs a rollout-controller release after v0.11.0. The [Annotations](/docs/reference/annotations/) reference lists the exact values.
+The [Annotations](/docs/reference/annotations/) reference lists the exact values.
 
 ## Related
 
