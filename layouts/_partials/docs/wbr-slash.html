@@ -1,5 +1,8 @@
 {{- /* Table cell HTML with a break opportunity after every "/" inside inline code, so a long path, URL or annotation
      key (rollout.kuberik.com/substitute.<variable>.from) may wrap between its parts but never inside a word. */ -}}
 {{- $h := string . -}}
-{{- range uniq (findRE `<code>[^<]*/[^<]*</code>` $h) }}{{ $h = replace $h . (replace . "/" "/<wbr>") }}{{ end -}}
+{{- range uniq (findRE `<code>[^<]*/[^<]*</code>` $h) }}
+  {{- $in := strings.TrimSuffix "</code>" (strings.TrimPrefix "<code>" .) -}}
+  {{- $h = replace $h . (printf "<code>%s</code>" (replace $in "/" "/<wbr>")) -}}
+{{- end -}}
 {{- $h | safeHTML -}}
