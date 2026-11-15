@@ -90,7 +90,7 @@ A release in this mode is a tag bump on one `OCIRepository`. A promotion is the 
 
 This does not replace committing rendered manifests to git. You can do both from the same render: people review the commit in a pull request, and the cluster pulls the artifact built from it.
 
-Reach for this when config changes are as risky as code changes, when you want promotion to move a byte-identical artifact between environments, or when the cluster should not need source access or build tooling to produce its own desired state.
+Reach for this when config changes are as risky as code changes, when you want promotion to move the same tag, rendered from one commit, from one environment to the next, or when the cluster should not need source access or build tooling to produce its own desired state.
 
 {{< callout type="info" >}}
 **Same namespace**
