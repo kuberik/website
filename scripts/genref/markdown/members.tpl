@@ -3,7 +3,7 @@
   {{- range .GetMembers -}}
     {{/* . is a apiMember */}}
     {{- if not .Hidden }}
-<tr><td><code>{{ .FieldName }}</code>
+<tr id="{{ $.Anchor }}-{{ .FieldName }}"><td><code>{{ .FieldName }}</code>
       {{/* a {{- if not .IsOptional }} <B>[Required]</B>{{- end -}} */}}
 <br/>
 {{/* Link for type reference */}}
@@ -18,15 +18,8 @@
 <td>
    {{- if .IsInline -}}
 (Members of <code>{{ .FieldName }}</code> are embedded into this type.)
-   {{- end }}
-   {{ if .GetComment -}}
-   {{ .GetComment }}
-   {{- else -}}
-   <em>No description provided. </em>
-   {{- end }}
-   {{- if and (eq (.GetType.Name.Name) "ObjectMeta") -}}
-Refer to the Kubernetes API documentation for the fields of the <code>metadata</code> field.
-   {{- end -}}
+   {{ end -}}
+   {{- .GetComment -}}
 </td>
 </tr>
     {{- end }}
