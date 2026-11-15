@@ -2,6 +2,14 @@
 
 set -e
 
+# Reproducibility: the four controller modules are pinned in go.mod as Go
+# pseudo-versions of each repo's main branch (no local `replace`). All four are
+# public GitHub repos and resolve through the Go proxy, so no GOPRIVATE or
+# GOFLAGS=-mod=mod setup is needed. If a repo is ever made private, run with
+#   GOPRIVATE=github.com/kuberik/* GOFLAGS=-mod=mod sh build.sh
+# so Go fetches over VCS directly (needs git credentials).
+# To move the pin: cd scripts/genref && go get github.com/kuberik/<repo>@main
+
 GENREF_VERSION=2c8f7e809fd890f52404f08803836ec870080af3
 API_REF_SCRIPT_DIR=$(dirname $(realpath "$0"))
 GENREF_REPO_DIR=${API_REF_SCRIPT_DIR}/genref
@@ -48,4 +56,42 @@ fi
 SITE_DIR=${API_REF_SCRIPT_DIR}/../../content/docs
 API_REFERENCE_DIR=${SITE_DIR}/reference
 mkdir -p ${API_REFERENCE_DIR}
-cat ${API_REF_SCRIPT_DIR}/index-header.md ${BUILD_TEMP_OUT}/* > ${API_REFERENCE_DIR}/api.md
+# genref emits case-preserving heading ids ({#Rollout}) and #Rollout links, but
+# Hextra's sidebar TOC lowercases heading ids. genref's templates have no
+# `lower` function, so lowercase every id and in-page link here.
+for f in ${BUILD_TEMP_OUT}/*.md; do
+    perl -pi -e 's/(\{#)([^}]+)(\})/$1\L$2\E$3/g; s/(href="#)([^"]*)(")/$1\L$2\E$3/g; s/(\]\(#)([^)]*)(\))/$1\L$2\E$3/g' "$f"
+done
+
+# Fields whose json tag carries options print the whole tag as the field name
+# ("metadata,omitempty,omitzero"); keep only the name.
+for f in ${BUILD_TEMP_OUT}/*.md; do
+    perl -pi -e 's/(<tr[^>]*><td><code>)([A-Za-z0-9_]+),[^<]*(<\/code>)/$1$2$3/' "$f"
+    # per-field anchors: <tr id="Type-field,omitempty"> -> id="type-field" (lowercase, no tag options)
+    perl -pi -e 's/<tr id="([^",]+)(?:,[^"]*)?"/"<tr id=\"" . lc($1) . "\""/e' "$f"
+done
+
+# The templates pipe every Go doc comment through `html`, so placeholders such
+# as <namespace>/<name> or com.kuberik.rollout.requires.<contract> render as
+# text instead of being parsed (and dropped) as HTML tags. `html` also escapes
+# quotes and the <br/> that genref puts between comment paragraphs: restore
+# those, so only < > & stay escaped.
+for f in ${BUILD_TEMP_OUT}/*.md; do
+    perl -pi -e 's/&lt;br\/&gt;/<br\/>/g; s/&#34;/"/g; s/&#39;/\x27/g' "$f"
+done
+
+# A templated identifier (<namespace>/<name>, com.kuberik.rollout.requires.<contract>,
+# <source>-<5-digit index>) is set as code, as the annotations reference sets them;
+# surrounding quotes go. "value &lt; limit" is prose and stays as it is.
+for f in ${BUILD_TEMP_OUT}/*.md; do
+    perl -pi -e 'my $T = qr{(?:[\w.\-/]*&lt;[A-Za-z0-9][\w\- ]*?&gt;)+(?:[\w\-/]|\.(?=\w))*}; s{"($T)"}{<code>$1</code>}g; s{(?<![\w.\-/>])($T)}{<code>$1</code>}g' "$f"
+done
+
+# The docs are written as if everything on main is released (STYLE §1), so the
+# groups carry no release-state label, and deprecation notes that promise
+# removal "in the next release" read "in a later version".
+for f in ${BUILD_TEMP_OUT}/*.md; do
+    perl -pi -e 's/([Rr]emoved) in the next release/$1 in a later version/g' "$f"
+done
+
+cat ${API_REF_SCRIPT_DIR}/index-header.md ${BUILD_TEMP_OUT}/rollout-controller.v1alpha1.md ${BUILD_TEMP_OUT}/environment-controller.v1alpha1.md ${BUILD_TEMP_OUT}/openkruise-controller.v1alpha1.md ${BUILD_TEMP_OUT}/release-controller.v1alpha1.md > ${API_REFERENCE_DIR}/api.md

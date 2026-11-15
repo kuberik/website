@@ -1,0 +1,11 @@
+# Docs column of the one site footer (layouts/_partials/home/footer.html), sidebar order and sidebar titles.
+# `icon` overrides the group icon on the 404 section cards (Install and Deploy your first app share the Get started group).
+docs:
+  - { href: "/docs/installation/", name: "Install", icon: "terminal" }
+  - { href: "/docs/getting-started/", name: "Deploy your first app" }
+  - { href: "/docs/concepts/", name: "Concepts" }
+  - { href: "/docs/releases/", name: "Ship releases" }
+  - { href: "/docs/gates/", name: "Gate deploys" }
+  - { href: "/docs/operate/", name: "Operate" }
+  - { href: "/docs/integrations/", name: "Integrations" }
+  - { href: "/docs/reference/api/", name: "API reference" }

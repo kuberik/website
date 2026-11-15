@@ -1,6 +1,0 @@
-[submodule "themes/hextra"]
-	path = themes/hextra
-	url = https://github.com/imfing/hextra.git
-[submodule "scripts/genref/genref"]
-	path = scripts/genref/genref
-	url = https://github.com/kubernetes-sigs/reference-docs.git

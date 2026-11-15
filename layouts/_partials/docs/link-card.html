@@ -1,0 +1,25 @@
+{{- /* THE docs link-card (R3-DES-3/6/4/11, R3-A-4). One component, two variants; every docs surface that links to a page
+     draws it: the docs home journey cards (rows), the docs home Reference row, section index pages, and the Next steps /
+     Related cards ({{< next >}}). Styles: assets/css/docs-cards.css (.kd-lc*).
+     Args (dict): variant "row" | "card"; url; title; desc (card only); icon + tone (optional tile, card only);
+     eyebrow (optional, card only; dropped when it repeats the title, R3-A-4).
+       row  = compact list row: title + arrow, hairline between rows. For a card that already has a header above it
+              (the home journey card).
+       card = tile (optional) + eyebrow + title + full description (R5-DES-2 removed the R3-DES-11 clamp: Next steps is one full-width column, so it fits), arrow top right.
+     Borrowed from: the landing v6 feature card (features.css .fx-card): radius 12 via --card-r, --card-border/-fill/
+     -shadow, its name/title/body type roles (13/15/14 tokens) and its link arrow; the 28px tile is the docs home tile. */ -}}
+{{- $v := .variant | default "card" -}}
+{{- if eq $v "row" -}}
+<a class="kd-lc kd-lc-row" href="{{ .url }}"><span class="kd-lc-title">{{ .title }}</span></a>
+{{- else -}}
+{{- $eb := .eyebrow | default "" -}}
+{{- if eq (lower $eb) (lower .title) }}{{ $eb = "" }}{{ end -}}
+<a class="kd-lc kd-lc-card{{ if not .icon }} kd-lc-notile{{ end }}" href="{{ .url }}">
+  {{- with .icon }}<span class="kd-lc-tile kd-tone-{{ $.tone | default "mint" }}" aria-hidden="true">{{ partial "docs/icon.html" . }}</span>{{ end }}
+  <span class="kd-lc-head">
+    {{- with $eb }}<span class="kd-lc-eyebrow">{{ . }}</span>{{ end }}
+    <span class="kd-lc-title">{{ .title }}</span>
+  </span>
+  {{- with .desc }}<span class="kd-lc-desc">{{ . }}</span>{{ end }}
+</a>
+{{- end -}}

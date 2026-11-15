@@ -1,8 +1,8 @@
 ---
 title: "API Reference"
+description: "Every field of the Rollout, Environment, OpenKruise and Release resources."
+type_: reference
 weight: 1
 ---
 
-This page includes the full API documentation of the Kuberik project.
-
----
+Every field of the Rollout, Environment, OpenKruise and Release resources, grouped by API.

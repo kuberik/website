@@ -2,18 +2,11 @@ module docs-generator
 
 go 1.25.0
 
-replace (
-	github.com/kuberik/environment-controller => /home/luka/projects/kuberik/environment-controller
-	github.com/kuberik/openkruise-controller => /home/luka/projects/kuberik/openkruise-controller
-	github.com/kuberik/release-controller => /home/luka/projects/kuberik/release-controller
-	github.com/kuberik/rollout-controller => /home/luka/projects/kuberik/rollout-controller
-)
-
 require (
-	github.com/kuberik/environment-controller v0.0.0-00010101000000-000000000000
-	github.com/kuberik/openkruise-controller v0.0.0-00010101000000-000000000000
-	github.com/kuberik/release-controller v0.0.0-00010101000000-000000000000
-	github.com/kuberik/rollout-controller v0.7.1-0.20260427060950-541b0af4fd8f
+	github.com/kuberik/environment-controller v0.2.0-rc.0.0.20261114212428-599e1aa85fd3
+	github.com/kuberik/openkruise-controller v0.4.1-0.20260608120856-06c5d991ac20
+	github.com/kuberik/release-controller v0.0.0-20261111103621-a52ee1ef832f
+	github.com/kuberik/rollout-controller v0.11.1-0.20261115050200-b4fd4aaa23b0
 )
 
 require (
@@ -25,7 +18,9 @@ require (
 	github.com/modern-go/reflect2 v1.0.3-0.20250322232337-35a7c28c31ee // indirect
 	github.com/x448/float16 v0.8.4 // indirect
 	go.yaml.in/yaml/v2 v2.4.3 // indirect
+	golang.org/x/crypto v0.47.0 // indirect
 	golang.org/x/net v0.49.0 // indirect
+	golang.org/x/sys v0.40.0 // indirect
 	golang.org/x/text v0.33.0 // indirect
 	gopkg.in/inf.v0 v0.9.1 // indirect
 	k8s.io/api v0.35.0 // indirect

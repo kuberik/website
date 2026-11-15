@@ -1,7 +1,19 @@
-{{/* Load Montserrat for the navbar brand title — matches the landing + dashboard. */}}
-<link rel="preconnect" href="https://fonts.googleapis.com">
-<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Montserrat:wght@300;400;500&display=swap">
+{{- /* Docs and blog pages share the landing's design files (landing v6): tokens.css (palette, type scale, Inter and
+     JetBrains Mono), base.css (nav, buttons, pills, .cont) and footer.css, imported as-is, then docs.css for the docs
+     roles (DIRECTION in .work/docs/visual). hextra's own CSS is in @layer, so these unlayered rules win. */ -}}
+{{- $docsCss := slice (resources.Get "css/tokens.css") (resources.Get "css/base.css") (resources.Get "css/footer.css") (resources.Get "css/docs.css") (resources.Get "css/docs-figs.css") (resources.Get "css/docs-b.css") (resources.Get "css/docs-cards.css") | resources.Concat "css/docs-all.css" | minify | fingerprint -}}
+<link rel="preload" href="{{ "islands/fonts/inter-latin-opsz.woff2" | relURL }}" as="font" type="font/woff2" crossorigin>
+<link rel="stylesheet" href="{{ $docsCss.RelPermalink }}" integrity="{{ $docsCss.Data.Integrity }}">
+{{- /* the docs home (layout: docs-home) also draws the kit figure (thesis.css fig rules) and its own regions */ -}}
+{{- if eq .Layout "docs-home" }}
+{{- $homeCss := slice (resources.Get "css/thesis.css") (resources.Get "css/docs-home.css") | resources.Concat "css/docs-home-all.css" | minify | fingerprint }}
+<link rel="stylesheet" href="{{ $homeCss.RelPermalink }}" integrity="{{ $homeCss.Data.Integrity }}">
+{{- end }}
+{{- /* the blog (layouts/blog/*) draws the docs shell and cards; blog.css adds its post meta line only */ -}}
+{{- if eq .Section "blog" }}
+{{- $blogCss := resources.Get "css/blog.css" | minify | fingerprint }}
+<link rel="stylesheet" href="{{ $blogCss.RelPermalink }}" integrity="{{ $blogCss.Data.Integrity }}">
+{{- end }}
 
 {{/* Link previews: image dimensions + author. The theme emits og:image from
      `images` front matter but not its size; scrapers such as LinkedIn treat a
@@ -21,3 +33,7 @@
 {{- with .Params.authors }}{{ with index . 0 }}
 <meta name="author" content="{{ .name }}">
 {{- end }}{{ end }}
+
+{{- /* R8-IA-8: a page opened on a #hash (a shared API field link, a search result) lands on it at once; the html's smooth
+     scrolling is kept for in-page clicks. The browser's anchor jump runs before load, so smooth is off until just after. */ -}}
+<script>if(location.hash){var d=document.documentElement;d.style.scrollBehavior='auto';addEventListener('load',function(){setTimeout(function(){d.style.scrollBehavior=''},800)})}</script>

@@ -1,0 +1,84 @@
+{{- /* Markdown images render as screenshot figures (R2-DES-5, R2-DES-17).
+     ROLE. A dashboard screenshot is a figure: it sits on the same plate as the kit figures ({{< fig >}},
+     docs-figs.css .df-card: page-alt fill, 1px line, radius 12) and its caption, when the image has a title
+     (![alt](src "Caption.")), uses the kit caption (.df-cap, 14/20 ink-muted). The alt text stays the screen-reader
+     description; the title is the one visible sentence.
+     SIZE. width/height come from the file itself (imageConfig on static/, or the resource under assets/ or the page
+     bundle), so a lazy image reserves its box before it loads: the inline width (capped by max-width:100% in docs-b.css) plus aspect-ratio give the unloaded <img> its final box (a bare width attribute lost to width:auto in the flex plate and left a 2x2 box). Files 1600 px and wider are 2x captures (the
+     2880x1800 dashboard shots), so their attributes are halved to CSS pixels.
+     STYLE. docs-b.css (.kd-shot). Overrides hextra's render-image.html, which emits a bare <img>. The standalone image is
+     not wrapped in a <p> (markup.goldmark.parser.wrapStandAloneImageWithinParagraph = false), so the <figure> is
+     valid HTML; an image inside a sentence (.IsBlock false) stays an inline <img> with its size.
+     VARIANTS (R7, owner 2026-11-15, STYLE 6). A dashboard screenshot has four possible files beside the one the page names:
+       name.png (desktop, light: the file the markdown points at), name.dark.png, name.phone.png, name.phone.dark.png.
+     The hook looks for the siblings under static/ (fileExists) and emits ONE figure holding a light <picture> and, when
+     any dark file exists, a dark <picture> (partials docs/shot-pic.html, docs/shot-file.html). Each picture has a
+     <source media="(max-width: 767px)"> for its phone file when one exists (767/768 is the docs' own drawer breakpoint,
+     docs.css), so a phone-layout capture never shows on desktop and a desktop capture shows on phones only when no phone
+     file exists (one capture may serve both when it reads at 390). A missing dark file falls back to the light one for
+     that slot. Width/height come from each file (the phone source carries its own), so lazy boxes reserve space; the
+     phone's size reaches the <img> through --pw/--par custom properties because the inline desktop size would otherwise
+     win on phones.
+     FRAMED (R9). A capture that spans several cards starts on dashboard canvas, so it draws no frame of its own: write
+     the destination with the fragment #framed (![alt](/images/x.png#framed)) and the figure gets .is-framed (docs-b.css:
+     no border, radius, background or shadow on the img). The fragment is dropped from the emitted src (the static file is
+     resolved from $url.Path), and the .dark/.phone siblings are found from the path as before.
+     THEME. docs-b.css shows the dark picture when <html> has class "dark", or has neither "dark" nor "light" and the
+     system prefers dark; otherwise the light one (JS off = light). The hidden picture is display:none and its <img>
+     loading="lazy", so the browser fetches one variant per figure; the theme toggle (a class swap on <html>) switches live.
+     SIZE RULES for the shots lanes: 1x captures; desktop crops at most 630 px wide and phone crops 324 px (R8-DES-6: the plate interiors, so 1x stays 1:1; the plate is 632 inside the
+     reading column, wider files are scaled down to the plate and their text softens); flush crops at card edges; the light
+     and dark pair captured from the same state. With no sibling files the figure renders exactly as before. */ -}}
+{{- $alt := .PlainText -}}
+{{- $dest := .Destination -}}
+{{- $url := urls.Parse $dest -}}
+{{- $w := 0 -}}{{- $h := 0 -}}{{- $inStatic := false -}}
+{{- if not $url.Scheme -}}
+  {{- with or (.PageInner.Resources.Get $url.Path) (resources.Get $url.Path) -}}
+    {{- $dest = .RelPermalink -}}
+    {{- if eq .ResourceType "image" -}}{{- $w = .Width -}}{{- $h = .Height -}}{{- end -}}
+  {{- else -}}
+    {{- $file := path.Join "static" $url.Path -}}
+    {{- if and (hasPrefix $url.Path "/") (fileExists $file) -}}
+      {{- with imageConfig $file -}}{{- $w = .Width -}}{{- $h = .Height -}}{{- end -}}
+      {{- $dest = relURL (strings.TrimPrefix "/" $url.Path) -}}{{- $inStatic = true -}}
+    {{- end -}}
+  {{- end -}}
+{{- end -}}
+{{- if ge $w 1600 -}}{{- $w = div $w 2 -}}{{- $h = div $h 2 -}}{{- end -}}
+{{- $size := "" -}}
+{{- if $w -}}{{- $size = printf ` width="%d" height="%d" style="width:%dpx;aspect-ratio:%d/%d"` $w $h $w $w $h -}}{{- end -}}
+{{- $attrs := "" -}}
+{{- range $k, $v := .Attributes -}}{{- if $v -}}{{- $attrs = printf "%s %s=%q" $attrs $k ($v | transform.HTMLEscape) -}}{{- end -}}{{- end -}}
+{{- /* sibling files */ -}}
+{{- $ext := path.Ext $url.Path -}}
+{{- $stem := strings.TrimSuffix $ext $url.Path -}}
+{{- $dark := dict "ok" false -}}{{- $phone := dict "ok" false -}}{{- $phoneDark := dict "ok" false -}}
+{{- if and $inStatic .IsBlock (in (slice ".png" ".jpg" ".jpeg" ".webp") $ext) -}}
+  {{- $dark = partial "docs/shot-file.html" (printf "%s.dark%s" $stem $ext) -}}
+  {{- $phone = partial "docs/shot-file.html" (printf "%s.phone%s" $stem $ext) -}}
+  {{- $phoneDark = partial "docs/shot-file.html" (printf "%s.phone.dark%s" $stem $ext) -}}
+{{- end -}}
+{{- $light := dict "url" $dest "w" $w "h" $h -}}
+{{- $pics := "" -}}
+{{- if or $dark.ok $phone.ok $phoneDark.ok -}}
+  {{- $pics = partial "docs/shot-pic.html" (dict "theme" "light" "d" $light "p" $phone "alt" $alt "attrs" $attrs) -}}
+  {{- if or $dark.ok $phoneDark.ok -}}
+    {{- $dd := cond $dark.ok $dark $light -}}
+    {{- $pp := cond $phoneDark.ok $phoneDark $phone -}}
+    {{- $pics = printf "%s%s" $pics (partial "docs/shot-pic.html" (dict "theme" "dark" "d" $dd "p" $pp "alt" $alt "attrs" $attrs)) -}}
+  {{- end -}}
+{{- else -}}
+  {{- $size := "" -}}
+  {{- if $w -}}{{- $size = printf ` width="%d" height="%d" style="width:%dpx;aspect-ratio:%d/%d"` $w $h $w $w $h -}}{{- end -}}
+  {{- $pics = printf `<img src="%s" alt="%s"%s%s loading="lazy" decoding="async">` ($dest | safeURL) ($alt | transform.HTMLEscape) $size $attrs -}}
+{{- end -}}
+{{- $img := $pics -}}
+{{- if .IsBlock -}}
+<figure class="kd-shot{{ if and $w (lt $w 480) }} is-crop{{ end }}{{ if or (hasPrefix $url.Path "/screenshots/") (eq $url.Fragment "framed") }} is-framed{{ end }}">
+  <div class="kd-shot-plate">{{ $img | safeHTML }}</div>
+  {{- with .Title }}<figcaption class="df-cap">{{ . | markdownify }}</figcaption>{{ end }}
+</figure>
+{{- else -}}
+{{ $img | safeHTML }}
+{{- end -}}

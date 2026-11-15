@@ -1,0 +1,471 @@
+/* DOCS (docs visual redesign, .work/docs/visual/DIRECTION.md). Loaded after tokens.css, base.css and footer.css
+   (the landing's own files) on every hextra page: docs and blog. hextra's CSS is layered, so these unlayered rules win.
+   Prefix kd- for docs-only roles. Values come from tokens.css; the few new tokens (callout and chip tints) are below
+   and named for their role. */
+
+/* ---------- tokens ---------- */
+:root{
+  /* hextra's own primary (search highlight, tab focus, anything left unstyled) follows the logo mint */
+  --primary-hue:174deg;--primary-saturation:100%;--primary-lightness:36%;
+  --navbar-height:64px;
+  --kd-side:232px;--kd-toc:208px;--kd-gap:40px;--kd-read:680px;
+  --kd-eyebrow:oklch(.5 .075 206);               /* lagoon ink, the landing fx-name */
+  --kd-link:var(--mint-ink);
+  --kd-link-line:color-mix(in oklab,var(--mint) 45%,transparent);
+  --kd-wash:color-mix(in oklab,var(--mint) 9%,transparent);
+  /* code: the landing code window (tokens.css --win-code-*) with a docs-weight shadow */
+  --kd-code-shadow:0 1px 2px oklch(.195 .014 222/.08),0 10px 24px -14px oklch(.195 .014 222/.35);
+  --kd-code-line:oklch(1 0 0/.1);
+  --kd-code-ink:var(--win-code-key);
+  --kd-code-key:var(--win-code-kind);
+  --kd-code-val:var(--win-code-value);
+  --kd-code-dim:oklch(.66 .025 206);
+  --kd-code-muted:var(--band-muted);
+  /* callouts: tint, border, icon ink per type (new docs role; hues are the landing's lagoon and mint, the
+     dashboard's held amber and failed red) */
+  --kd-info-bg:oklch(.975 .014 206);--kd-info-line:oklch(.9 .035 206);--kd-info-ink:oklch(.5 .075 206);
+  --kd-tip-bg:oklch(.975 .02 182);--kd-tip-line:oklch(.89 .05 182);--kd-tip-ink:var(--mint-ink);
+  --kd-warn-bg:oklch(.98 .025 75);--kd-warn-line:oklch(.89 .07 70);--kd-warn-ink:oklch(.55 .14 50);
+  --kd-err-bg:oklch(.975 .015 25);--kd-err-line:oklch(.88 .06 25);--kd-err-ink:oklch(.53 .19 27);
+  /* chips: the product's chip colours (dashboard tier and state chips) */
+  --kd-chip-gray-bg:#f4f7f9;--kd-chip-gray-line:#dee5e8;--kd-chip-gray-ink:#47555a;
+  --kd-chip-green-bg:#f0fdf4;--kd-chip-green-line:#7bf1a8;--kd-chip-green-ink:#008236;
+  --kd-chip-red-bg:#fef2f2;--kd-chip-red-line:#ffa2a2;--kd-chip-red-ink:#c10007;
+  --kd-chip-amber-bg:#fffbeb;--kd-chip-amber-line:#ffd230;--kd-chip-amber-ink:#bb4d00;
+  --kd-chip-blue-bg:#eff6ff;--kd-chip-blue-line:#8ec5ff;--kd-chip-blue-ink:#1447e6;
+  --kd-chip-violet-bg:#f5f3ff;--kd-chip-violet-line:#c4b4ff;--kd-chip-violet-ink:#5d0ec0;
+}
+html.dark{
+  --hx-color-dark:#0e1619;
+  --kd-code-fill:oklch(.165 .014 215);
+  --kd-eyebrow:oklch(.8 .07 200);
+  --kd-link-line:color-mix(in oklab,var(--mint-ink) 45%,transparent);
+  --kd-wash:color-mix(in oklab,var(--mint) 12%,transparent);
+  --kd-code-shadow:inset 0 1px 0 oklch(1 0 0/.05),0 10px 28px -14px oklch(0 0 0/.6);
+  --kd-info-bg:oklch(.25 .025 206/.6);--kd-info-line:oklch(.4 .045 206/.7);--kd-info-ink:oklch(.8 .07 200);
+  --kd-tip-bg:oklch(.27 .035 182/.6);--kd-tip-line:oklch(.42 .06 182/.7);--kd-tip-ink:var(--mint-ink);
+  --kd-warn-bg:oklch(.3 .05 60/.55);--kd-warn-line:oklch(.45 .08 60/.75);--kd-warn-ink:oklch(.8 .13 70);
+  --kd-err-bg:oklch(.3 .06 25/.55);--kd-err-line:oklch(.45 .1 25/.75);--kd-err-ink:oklch(.75 .14 25);
+  --kd-chip-gray-bg:#162024;--kd-chip-gray-line:#2b393f;--kd-chip-gray-ink:#b6c0c3;
+  --kd-chip-green-bg:#032e15;--kd-chip-green-line:#016630;--kd-chip-green-ink:#b9f8cf;
+  --kd-chip-red-bg:#460809;--kd-chip-red-line:#9f0712;--kd-chip-red-ink:#ffc9c9;
+  --kd-chip-amber-bg:#461901;--kd-chip-amber-line:#973c00;--kd-chip-amber-ink:#fee685;
+  --kd-chip-blue-bg:#162456;--kd-chip-blue-line:#193cb8;--kd-chip-blue-ink:#bedbff;
+  --kd-chip-violet-bg:#2f0d68;--kd-chip-violet-line:#4d179a;--kd-chip-violet-ink:#ddd6ff;
+}
+/* R8-B-2: 1024-1199, sidebar + 680 column would leave the reading column ~608 (screenshots drawn at .82); a 44px page gutter (header and shell share it) gives it 664 so a 680 capture draws at >= .9 */
+@media(min-width:1024px) and (max-width:1199px){:root{--gut:44px}}
+@media(min-width:1920px){:root{--kd-side:264px;--kd-toc:240px;--kd-gap:56px;--kd-read:760px}}
+@media(min-width:2400px){:root{--kd-side:280px;--kd-toc:256px;--kd-gap:64px;--kd-read:800px}}
+
+body{background:var(--page);color:var(--ink)}
+html.dark body{background:var(--page)}
+main{padding-bottom:0}
+
+/* ---------- header (base.css .nav; docs additions) ---------- */
+.kd-nav{border-bottom-color:var(--line)}
+.kd-nav .cont{gap:32px}
+.kd-nav .links a.is-active{color:var(--ink);font-weight:600}
+.kd-nav .logo{color:var(--ink)}
+.kd-search .hextra-search-wrapper{width:232px}
+.kd-search .hextra-search-input{height:36px;padding:0 64px 0 12px;border:1px solid var(--line);border-radius:8px;background:var(--page);color:var(--ink);font:400 14px/20px var(--sans)}
+.kd-search .hextra-search-input::placeholder{color:var(--ink-subtle)}
+.kd-search .hextra-search-input:focus{background:var(--page);border-color:color-mix(in oklab,var(--mint) 60%,var(--line));outline:none;box-shadow:0 0 0 3px color-mix(in oklab,var(--mint) 18%,transparent)}
+.hextra-search-wrapper kbd{height:22px;margin:0;top:7px;padding:0 6px;border:1px solid var(--line);border-radius:4px;background:var(--page-alt);color:var(--ink-subtle);font:500 10px/20px var(--mono)}
+.hextra-search-results{background:var(--page)!important;border:1px solid var(--line)!important;border-radius:12px!important;box-shadow:var(--card-shadow)!important;font-family:var(--sans)}
+.kd-burger{display:none}
+.kd-burger svg{width:20px;height:20px}
+@media(max-width:1199px){.kd-search .hextra-search-wrapper{width:180px}}
+@media(max-width:1023px){.kd-nav .gh-text{display:none}.kd-nav .pill:has(.gh-text){width:36px;padding:0}}
+/* R8-B-2: the docs sidebar is a drawer below 1024 (the reading column at 768-1023 was 374-558 px and drew desktop screenshots at
+   ~.55); the header then carries the phone chrome: menu pill, no search (it is in the drawer), the CTA only from 768 */
+@media(max-width:1023px){
+  .kd-search{display:none}
+  .kd-burger{display:inline-flex}
+  .kd-nav .cont{gap:12px}
+}
+@media(max-width:767px){.kd-nav .nav-cta{display:none}}
+@media(max-width:640px){.kd-nav .links{display:none}}
+
+/* ---------- shell ---------- */
+/* the landing's mint stage, as a wash: the hero gradient and its 20px dot grid, fading out under the page head */
+.kd-wash{position:relative;isolation:isolate}
+.kd-wash::before{content:'';position:absolute;inset:0 0 auto;height:420px;z-index:-1;pointer-events:none;
+  background:radial-gradient(circle,var(--dots) 1px,transparent 1.2px) 0 0/20px 20px,var(--st-hero);
+  -webkit-mask-image:linear-gradient(180deg,#000 0%,rgba(0,0,0,.55) 45%,transparent 100%);mask-image:linear-gradient(180deg,#000 0%,rgba(0,0,0,.55) 45%,transparent 100%);opacity:.55}
+html.dark .kd-wash::before{opacity:.5}
+.kd-shell{display:flex;width:min(var(--cont),100% - 2*var(--gut));margin-inline:auto;gap:var(--kd-gap);align-items:flex-start}
+.kd-article{flex:1 1 auto;min-width:0;display:flex;justify-content:center;order:2}
+.kd-main{width:100%;max-width:var(--kd-read);min-width:0;padding:40px 0 72px}
+.kd-shell .hextra-toc{order:3;width:var(--kd-toc);flex:none;padding:0}
+@media(max-width:1279px){.kd-shell .hextra-toc{display:none}}
+@media(max-width:1023px){.kd-shell{display:block}.kd-main{padding-top:24px}}
+
+/* sidebar */
+.kd-shell .hextra-sidebar-container{order:1;background:var(--page)}
+/* one breakpoint (R6-DES-1, R8-B-2): the drawer is < 1024 and the desktop sidebar >= 1024. Hextra's own utilities switch at 768
+   (md:sticky, max-md transform, md:hidden search, md:h-[...] scroller) and its `@media (max-width:48rem)` rule is inclusive, so
+   the desktop block resets every property those set and the 768-1023 block re-creates the drawer (open state = the class
+   hextra's menu.js toggles on). */
+@media(min-width:1024px){
+  .kd-shell .hextra-sidebar-container{position:sticky;bottom:auto;z-index:auto;padding-top:0;overscroll-behavior:auto;width:var(--kd-side);flex:none;top:64px;background:transparent}
+  .kd-shell .hextra-sidebar-container > .hextra-scrollbar{padding:32px 8px 32px 0;margin-left:-10px;height:calc(100vh - 64px)}
+}
+@media(min-width:768px) and (max-width:1023px){
+  .kd-sidebar.hextra-sidebar-container{position:fixed;top:0;bottom:0;left:0;right:0;z-index:15;align-self:auto;overscroll-behavior:contain;transform:translate3d(0,-100%,0);transition:transform .2s}
+  .kd-sidebar.hextra-sidebar-container[class*="translate3d(0,0,0)"]{transform:translate3d(0,0,0)}
+  .kd-sidebar.hextra-sidebar-container > div:first-child{display:block!important}
+  .kd-sidebar.hextra-sidebar-container > .hextra-scrollbar{height:auto}
+}
+@media(max-width:1023px){
+  .hextra-sidebar-container{padding-top:64px;left:0;right:0;width:100%!important}
+  .hextra-sidebar-container > .hextra-scrollbar{padding:16px var(--gut) 32px}
+  .hextra-sidebar-container > div:first-child{padding:16px var(--gut) 0}
+  .hextra-sidebar-container .hextra-search-wrapper{width:100%}
+  /* R13-DES-4: hextra sizes the panel to the viewport (100vw - 2rem); in the drawer it takes the input's width. */
+  .hextra-sidebar-container .hextra-search-wrapper .hextra-search-results{left:0!important;right:0!important;width:auto!important;max-width:none!important}
+  .hextra-sidebar-container .hextra-search-input{width:100%;height:44px;border:1px solid var(--line);border-radius:8px;background:var(--page-alt);font:400 16px/20px var(--sans);color:var(--ink)}
+}
+.hextra-sidebar-container > div[data-toggle-animation]{display:none}
+.hextra-sidebar-container ul{gap:2px}
+.hextra-sidebar-container a{min-height:32px;padding:6px 10px;border-radius:6px;font:400 14px/20px var(--sans);color:var(--ink-muted);background:transparent}
+.hextra-sidebar-container a:hover{background:var(--page-alt);color:var(--ink)}
+.hextra-sidebar-container .hextra-scrollbar > ul > li > a{color:var(--ink);font-weight:500}
+.hextra-sidebar-container a.hextra-sidebar-active-item,.hextra-sidebar-container .hextra-scrollbar > ul > li > a.hextra-sidebar-active-item{background:var(--kd-wash);color:var(--mint-ink);font-weight:600}
+.hextra-sidebar-container ul ul{margin-left:14px;padding-left:10px}
+.hextra-sidebar-container ul ul::before{background-color:var(--line)!important;width:1px}
+.hextra-sidebar-container ul ul a.hextra-sidebar-active-item{position:relative}
+.hextra-sidebar-container ul ul a.hextra-sidebar-active-item::before{content:'';position:absolute;left:-11px;top:6px;bottom:6px;width:2px;background:var(--mint)}
+.hextra-sidebar-collapsible-button svg{color:var(--ink-subtle)}
+@media(max-width:1023px){.hextra-sidebar-container a{min-height:44px;padding:12px 12px;font-size:16px;line-height:20px}}
+/* sidebar groups (layouts/_partials/sidebar.html): uppercase group labels, always open; Stripe/Linear by-job grouping */
+.kd-tree{display:flex;flex-direction:column;gap:24px}
+.kd-group-label{margin:0 0 6px;padding:0 10px}
+.kd-group-label > :is(a,span){display:block;min-height:0!important;padding:4px 0!important;border-radius:0!important;background:none!important;font:600 12px/16px var(--sans)!important;letter-spacing:.06em;text-transform:uppercase;color:var(--ink-subtle)!important}
+.kd-group-label > a:hover,.kd-group-label > a.kd-active{color:var(--ink)!important}
+.kd-rows,.kd-sub{display:flex;flex-direction:column;gap:2px;margin:0;padding:0;list-style:none}
+.hextra-sidebar-container .kd-row{display:flex;align-items:center;color:var(--ink-muted);font-weight:400}
+.hextra-sidebar-container .kd-row.kd-active{background:var(--kd-wash);color:var(--mint-ink);font-weight:600}
+.kd-sub{position:relative;margin:2px 0 4px 14px;padding-left:10px}
+.kd-sub::before{content:'';position:absolute;left:0;top:4px;bottom:4px;width:1px;background:var(--line)}
+.kd-sub .kd-row.kd-active{position:relative}
+.kd-sub .kd-row.kd-active::before{content:'';position:absolute;left:-11px;top:6px;bottom:6px;width:2px;background:var(--mint)}
+.kd-group-site,.kd-group-top{display:none}
+@media(max-width:1023px){
+  .kd-tree{gap:28px}
+  .kd-group-label > :is(a,span){padding:6px 0!important;font-size:13px!important;line-height:20px!important}
+  .kd-group-top{display:block}
+  .kd-group-site{display:block;padding-top:20px;border-top:1px solid var(--line)}
+}
+
+/* right TOC */
+.hextra-toc > div{top:64px;padding:40px 0 32px;margin:0}
+.hextra-toc > div > p{margin:0 0 12px;font:600 13px/20px var(--sans);color:var(--ink);letter-spacing:0}
+.hextra-toc ul{margin:0;padding:0;list-style:none}
+.hextra-toc > div > ul{border-left:1px solid var(--line)}
+.hextra-toc li{margin:0}
+.hextra-toc a{display:block;position:relative;padding:4px 0 4px 14px!important;font:400 13px/20px var(--sans);color:var(--ink-subtle)!important}
+.hextra-toc a:hover{color:var(--ink)!important}
+.hextra-toc a.hextra-toc-active{color:var(--ink)!important;font-weight:500}
+.hextra-toc a.hextra-toc-active::before{content:'';position:absolute;left:-1px;top:4px;bottom:4px;width:2px;background:var(--mint)}
+.hextra-toc > div > div{margin-top:24px;padding-top:16px;border-top:1px solid var(--line)!important;background:transparent!important;box-shadow:none!important}
+.hextra-toc > div > div a{padding-left:0!important;font-size:13px}
+.hextra-toc > div > div:first-child{display:none}  /* no headings (index pages): no stray rule under an empty TOC */
+
+/* ---------- article type ---------- */
+.kd-content{font:400 16px/28px var(--sans);color:var(--ink-muted)}
+.kd-content :where(p,ul,ol,blockquote){margin:16px 0 0}
+.kd-content :where(strong,b){color:var(--ink);font-weight:600}
+.kd-eyebrow{display:inline-block;margin:0 0 8px;font:500 var(--t-label-s)/var(--t-label-l) var(--sans);color:var(--kd-eyebrow)!important;text-decoration:none!important}
+.kd-eyebrow:hover{color:var(--ink)!important}
+.kd-content h1{margin:0;font:600 var(--t-title-s)/var(--t-title-l) var(--sans);letter-spacing:-.03em;color:var(--ink);text-wrap:balance}
+.kd-content h1 ~ h1{margin-top:72px;font-size:30px;line-height:38px;letter-spacing:-.025em}
+.kd-content h1 + p{margin-top:16px;font:400 var(--t-lead-s)/var(--t-lead-l) var(--sans);color:var(--ink-muted);text-wrap:pretty}
+.kd-content h2{margin:48px 0 0;padding:0;border:0;font:600 24px/32px var(--sans);letter-spacing:-.02em;color:var(--ink)}
+.kd-content h3{margin:36px 0 0;font:600 18px/26px var(--sans);letter-spacing:-.01em;color:var(--ink)}
+.kd-content h4{margin:28px 0 0;font:600 16px/24px var(--sans);color:var(--ink)}
+.kd-content :is(h2,h3,h4) + p{margin-top:8px}
+.kd-content :is(h2,h3,h4) span[id]{margin-top:-96px}
+.kd-content .subheading-anchor::after{color:var(--line)}
+/* R6-A-4: the permalink is a zero-width box after the last word, so it never wraps to a line of its own under a heading that fills the measure */
+.kd-content :is(h1,h2,h3,h4) .subheading-anchor{display:inline-block;width:0;overflow:visible;white-space:nowrap;vertical-align:baseline}
+.kd-content li{margin:6px 0 0}
+.kd-content :where(ul,ol){padding-left:22px}
+.kd-content ul > li::marker{color:var(--ink-subtle)}
+.kd-content ol > li::marker{color:var(--ink-subtle);font:500 14px var(--sans)}
+.kd-content hr{margin:40px 0;border:0;border-top:1px solid var(--line)}
+.kd-content blockquote{padding-left:16px;border-left:2px solid var(--line);color:var(--ink-muted);font-style:normal}
+
+/* links */
+.kd-content a:not(.hextra-card):not(.kd-eyebrow):not(.subheading-anchor):not(.kd-pager-card):not(.kd-lc):not(.kd-tocm-a){color:var(--kd-link);text-decoration:underline;text-decoration-thickness:1px;text-underline-offset:3px;text-decoration-color:var(--kd-link-line);transition:text-decoration-color .15s}
+.kd-content a:not(.hextra-card):not(.kd-eyebrow):not(.subheading-anchor):not(.kd-pager-card):not(.kd-lc):not(.kd-tocm-a):hover{text-decoration-color:currentColor}
+
+/* inline code: the landing's title-body code chip */
+.kd-content :where(code):not(:where(.hextra-code-block code,pre code)){padding:1px 6px;border:1px solid var(--line);border-radius:6px;background:var(--page-alt);color:var(--ink);font:500 13px/1 var(--mono);white-space:normal;overflow-wrap:break-word;-webkit-box-decoration-break:clone;box-decoration-break:clone}
+html.dark .kd-content :where(code):not(:where(.hextra-code-block code,pre code)){background:oklch(1 0 0/.05);border-color:oklch(1 0 0/.1)}
+.kd-content a code{color:inherit}
+/* R5-DES-7: code in a heading is ~.85em of the heading, chip padding scaled with it */
+.kd-content :is(h1,h2,h3,h4) code:not(pre code){font-size:.85em;padding:.06em .42em;border-radius:.4em}
+/* R5-DES-9: one kbd, the header search's chip at body size: Page Mono 12/20, 1px line, radius 4, page-alt */
+html .kd-content kbd{display:inline-block;margin:0 1px;padding:0 6px;border:1px solid var(--line);border-radius:4px;background:var(--page-alt);box-shadow:none;color:var(--ink-muted);font:500 12px/20px var(--mono);vertical-align:baseline;white-space:nowrap}
+
+.kd-nb{white-space:nowrap}
+/* ---------- code window ---------- */
+.kd-content .hextra-code-block,.hextra-code-block{position:relative;margin:24px 0 0;border:1px solid var(--win-code-border);border-radius:12px;background:var(--kd-code-fill,var(--win-code-fill));box-shadow:var(--kd-code-shadow);overflow:hidden;color:var(--kd-code-ink)}
+.kd-code-head{display:flex;align-items:center;gap:10px;height:47px;padding:0 104px 0 16px;border-bottom:1px solid var(--kd-code-line);font:500 13px/20px var(--mono);color:var(--band-ink)}
+.kd-code-name{display:inline-flex;align-items:center;gap:8px;min-width:0;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.kd-code-name > span,.kd-code-name > a{overflow:hidden;text-overflow:ellipsis}
+.kd-code-name a{color:inherit!important;text-decoration:none!important}
+.kd-code-name svg{width:16px;height:16px;flex:none;color:var(--kd-code-muted)}
+.kd-code-lang{margin-left:auto;display:inline-flex;align-items:center;height:22px;padding:0 8px;border-radius:6px;border:1px solid oklch(1 0 0/.18);font:500 11px/20px var(--mono);color:var(--kd-code-muted);white-space:nowrap}
+.kd-copy-wrap{position:absolute;top:0;right:8px;height:47px;display:flex;align-items:center;margin:0!important;opacity:1!important}
+.kd-copy{height:32px;padding:0 10px;border:0!important;border-radius:6px;background:transparent!important;color:var(--kd-code-muted)!important;font:500 12px/20px var(--mono);display:inline-flex;align-items:center;gap:6px;cursor:pointer}
+.kd-copy:hover{background:oklch(1 0 0/.08)!important;color:var(--band-ink)!important}
+.kd-copy:focus-visible{outline:2px solid oklch(.85 .11 182);outline-offset:0}
+.kd-copy-icon{display:inline-flex;width:15px;height:15px}
+/* R6-C-6: on phones the copy button is its icon alone (still 44px wide to tap), so a long filename keeps its room */
+@media(max-width:640px){.kd-copy .kd-copy-l,.kd-copy .kd-copy-done{display:none!important}.kd-copy{width:44px;padding:0;justify-content:center}.kd-copy-wrap{right:4px}.kd-code-name{white-space:normal;overflow:visible;align-items:center}.kd-code-name > span,.kd-code-name > a{overflow:visible;text-overflow:clip;font-size:12px;line-height:16px;overflow-wrap:anywhere}}
+.kd-copy-icon svg{width:15px;height:15px}
+.kd-copy .hextra-success-icon,.kd-copy .kd-copy-done{display:none}
+.kd-copy.copied .hextra-success-icon,.kd-copy.copied .kd-copy-done{display:inline-flex}
+.kd-copy.copied .hextra-copy-icon,.kd-copy.copied .kd-copy-l{display:none}
+.kd-copy.copied{color:oklch(.85 .11 182)!important}
+.kd-code-body pre,.hextra-code-block pre{margin:0!important;padding:16px 20px!important;background:transparent!important;border:0;border-radius:0;overflow-x:auto;font:400 13px/22px var(--mono)!important;color:var(--kd-code-ink);tab-size:2;scrollbar-width:thin;scrollbar-color:oklch(1 0 0/.2) transparent}
+.hextra-code-block pre code{font:inherit!important;background:transparent!important;color:inherit;padding:0;border:0}
+/* syntax: the landing spec window's language (keys mint, strings lagoon, the rest the code ink) */
+html:root .hextra-code-block .chroma{background:transparent!important;color:var(--kd-code-ink)}
+html:root .hextra-code-block .chroma :is(.k,.kd,.kn,.kr,.kt,.kp,.nb,.bp,.nf,.fm,.nn,.nc,.ne,.nl,.ni,.nd){color:var(--kd-code-key);font-weight:500}
+/* R5-DES-3: YAML/JSON keys are the landing's grey key ink at regular weight (only keywords and kind values are mint) */
+html:root .hextra-code-block .chroma :is(.nt){color:var(--kd-code-ink);font-weight:400}
+/* a terminal window (bash/sh/console) is the landing .term: label band-muted, command band-ink, builtins and
+   functions in command ink, not mint (the landing's only mint there is the prompt) */
+.hextra-code-block:has(code:is([data-lang=bash],[data-lang=sh],[data-lang=shell],[data-lang=console],[data-lang=zsh])){--kd-code-ink:var(--band-ink)}
+.hextra-code-block:has(code:is([data-lang=bash],[data-lang=sh],[data-lang=shell],[data-lang=console],[data-lang=zsh])) .kd-code-head{color:var(--band-muted)}
+html:root .hextra-code-block:has(code:is([data-lang=bash],[data-lang=sh],[data-lang=shell],[data-lang=console],[data-lang=zsh])) .chroma :is(.nb,.bp,.nf,.fm,.nv,.vc,.vg,.vi,.nl,.k,.kd){color:var(--band-ink);font-weight:400}
+html:root .hextra-code-block .chroma :is(.kc){color:var(--kd-code-val)}
+/* R6-DES-6: scalars follow the landing window: plain strings (and YAML quoted strings) stay the key grey, lagoon is for numbers, durations and booleans */
+html:root .hextra-code-block .chroma :is(.m,.mi,.mf,.mh,.mo,.il,.na,.no){color:var(--kd-code-val)}
+html:root .hextra-code-block .chroma :is(.l,.ld){color:var(--kd-code-ink)}
+html:root .hextra-code-block .chroma :is(.s,.s1,.s2,.sb,.sc,.sd,.se,.sh,.si,.sx,.sr,.ss,.dl){color:var(--kd-code-val)}
+html:root .hextra-code-block .chroma code[data-lang=yaml] :is(.s,.s1,.s2,.sd){color:var(--kd-code-ink)}
+html:root .hextra-code-block .chroma .kd-kind{color:var(--kd-code-key);font-weight:500}
+html:root .hextra-code-block .chroma :is(.nv,.vc,.vg,.vi){color:var(--kd-code-key)}
+html:root .hextra-code-block .chroma :is(.c,.c1,.cm,.cs,.ch,.cp,.cpf){color:var(--kd-code-dim);font-style:normal}
+html:root .hextra-code-block .chroma :is(.o,.ow,.p,.err,.w,.x,.cl){color:var(--kd-code-ink);font-weight:400}
+html:root .hextra-code-block .chroma .gd{color:oklch(.78 .12 25)}
+html:root .hextra-code-block .chroma .gi{color:oklch(.85 .11 160)}
+html:root .hextra-code-block .chroma .hl{display:block;margin:0 -20px;padding:0 20px;background:oklch(1 0 0/.06);box-shadow:inset 2px 0 0 oklch(.85 .11 182)}
+html:root .hextra-code-block .chroma .ln,html:root .hextra-code-block .chroma .lnt{color:var(--kd-code-dim);margin-right:16px}
+/* bare pre (no code fence attributes) */
+.kd-content pre:not(.chroma){border-radius:12px}
+
+/* ---------- callout ---------- */
+.kd-callout{display:flex;gap:12px;margin:24px 0 0;padding:14px 16px;border:1px solid var(--kd-info-line);border-radius:8px;background:var(--kd-info-bg);font:400 15px/24px var(--sans);color:var(--ink-muted);overflow-x:auto}
+.kd-callout-icon{flex:none;display:flex;height:24px;align-items:center;color:var(--kd-info-ink)}
+.kd-callout-icon svg{width:18px;height:18px}
+.kd-callout-emoji{font-size:18px;line-height:24px}
+.kd-callout-body{min-width:0;flex:1}
+.kd-callout-body > :first-child{margin-top:0}
+.kd-callout-body p{margin:8px 0 0}
+.kd-callout-body :where(ul,ol){margin-top:6px}
+.kd-callout-body .hextra-code-block{margin-top:12px}
+.kd-callout-default{background:var(--kd-tip-bg);border-color:var(--kd-tip-line)}.kd-callout-default .kd-callout-icon{color:var(--kd-tip-ink)}
+.kd-callout-warning{background:var(--kd-warn-bg);border-color:var(--kd-warn-line)}
+.kd-callout-warning .kd-callout-icon{color:var(--kd-warn-ink)}
+/* availability note (`important`, R2-DES-7): quiet, no fill, hairline, lagoon release glyph; one family with .kd-needs */
+.kd-callout-important{padding:10px 14px;gap:10px;background:transparent;border-color:var(--line);font-size:14px;line-height:22px}
+.kd-callout-important .kd-callout-icon{height:22px;color:var(--kd-eyebrow)}
+.kd-callout-important .kd-callout-icon .kd-icon{width:16px;height:16px}
+.kd-needs{display:inline-flex;align-items:center;gap:4px;height:20px;padding:0 6px;border:1px solid color-mix(in oklab,var(--kd-eyebrow) 40%,transparent);border-radius:4px;background:transparent;color:var(--kd-eyebrow);font:600 11px/16px var(--sans);letter-spacing:.06em;text-transform:uppercase;white-space:nowrap;vertical-align:1px}
+.kd-needs .kd-icon{width:12px;height:12px;flex:none}
+.kd-callout-error{background:var(--kd-err-bg);border-color:var(--kd-err-line)}.kd-callout-error .kd-callout-icon{color:var(--kd-err-ink)}
+
+/* ---------- chip (badge) ---------- */
+.kd-chip{display:inline-flex;align-items:center;gap:4px;height:20px;padding:0 6px;border:1px solid var(--kd-chip-gray-line);border-radius:4px;background:var(--kd-chip-gray-bg);color:var(--kd-chip-gray-ink);font:600 11px/16px var(--sans);letter-spacing:.06em;text-transform:uppercase;white-space:nowrap;vertical-align:1px}
+.kd-chip-green{border-color:var(--kd-chip-green-line);background:var(--kd-chip-green-bg);color:var(--kd-chip-green-ink)}
+.kd-chip-red{border-color:var(--kd-chip-red-line);background:var(--kd-chip-red-bg);color:var(--kd-chip-red-ink)}
+.kd-chip-amber{border-color:var(--kd-chip-amber-line);background:var(--kd-chip-amber-bg);color:var(--kd-chip-amber-ink)}
+.kd-chip-blue{border-color:var(--kd-chip-blue-line);background:var(--kd-chip-blue-bg);color:var(--kd-chip-blue-ink)}
+.kd-chip-violet{border-color:var(--kd-chip-violet-line);background:var(--kd-chip-violet-bg);color:var(--kd-chip-violet-ink)}
+
+/* ---------- table: card shell (layouts/_markup/render-table.html, R2-DES-1) ----------
+   .kd-table is the frame (radius 12, 1px line, clip) and never moves; .kd-table-scroll scrolls sideways inside it
+   when the columns cannot fit, so the page never scrolls. The key column never wraps (whole code tokens, >= 140)
+   and is pinned while the rest scrolls; prose cells wrap. Edge fades (.kd-more-l/-r, set by the hook's script)
+   and a thin always-visible scrollbar say there is more. */
+.kd-table{position:relative;margin:24px 0 0;border:1px solid var(--line);border-radius:12px;overflow:hidden;background:var(--page)}
+.kd-table-scroll{overflow-x:auto;overscroll-behavior-x:contain;scrollbar-width:thin;scrollbar-color:color-mix(in oklab,var(--ink-subtle) 45%,transparent) transparent}
+.kd-table-scroll:focus-visible{outline:2px solid var(--mint);outline-offset:-2px;border-radius:12px}
+.kd-table-scroll::-webkit-scrollbar{height:6px}
+.kd-table-scroll::-webkit-scrollbar-thumb{background:color-mix(in oklab,var(--ink-subtle) 45%,transparent);border-radius:3px}
+.kd-table::before,.kd-table::after{content:'';position:absolute;top:0;bottom:0;width:32px;pointer-events:none;opacity:0;transition:opacity .15s;z-index:2}
+.kd-table::after{right:0;background:linear-gradient(to left,var(--page),transparent)}
+.kd-table::before{left:var(--kd-key-w,0px);background:linear-gradient(to right,color-mix(in oklab,var(--ink) 10%,transparent),transparent);width:12px}
+.kd-table.kd-more-r::after,.kd-table.kd-more-l::before{opacity:1}
+.kd-content .kd-table table{display:table;width:100%;min-width:100%;margin:0;border:0;border-radius:0;border-collapse:separate;border-spacing:0;font:400 14px/22px var(--sans);overflow:visible}
+.kd-content .kd-table tr{background:transparent!important;border:0!important}
+.kd-content .kd-table :is(th,td){padding:10px 16px;border:0!important;border-bottom:1px solid var(--line)!important;text-align:left;vertical-align:top;min-width:96px;background:var(--page)}
+.kd-content .kd-table th{background:var(--page-alt);font:600 13px/20px var(--sans);color:var(--ink-subtle);white-space:nowrap}
+html.dark .kd-content .kd-table th{background:color-mix(in oklab,var(--page) 97%,white)}
+.kd-content .kd-table tbody tr:last-child td{border-bottom:0!important}
+.kd-content .kd-table td{color:var(--ink-muted)}
+/* raw HTML tables (the generated API reference): the same card, scrolling as a whole on phones */
+.kd-content table:not(.kd-table table){display:block;width:100%;margin:24px 0 0;overflow-x:auto;border:1px solid var(--line);border-radius:12px;border-collapse:separate;border-spacing:0;font:400 14px/22px var(--sans);scrollbar-width:thin}
+.kd-content table:not(.kd-table table) :is(th,td){padding:10px 16px;border:0!important;border-bottom:1px solid var(--line)!important;text-align:left;vertical-align:top;background:transparent}
+.kd-content table:not(.kd-table table) th{background:var(--page-alt);font:600 13px/20px var(--sans);color:var(--ink-subtle);white-space:nowrap}
+html.dark .kd-content table:not(.kd-table table) th{background:color-mix(in oklab,var(--page) 97%,white)}
+.kd-content table:not(.kd-table table) tr{background:transparent!important;border:0!important}
+.kd-content table:not(.kd-table table) tbody tr:last-child td{border-bottom:0!important}
+.kd-content table:not(.kd-table table) td{color:var(--ink-muted)}
+.kd-content table:not(.kd-table table) td:first-child{min-width:140px;color:var(--ink);font-weight:500}
+.kd-content table:not(.kd-table table) td:first-child code{white-space:nowrap}
+@media(min-width:768px){.kd-content table:not(.kd-table table){display:table;overflow:hidden}}
+/* R7-DES-3: a raw table (the generated API field tables) never sets the page's width: fixed layout, and a cell's long identifier may break anywhere instead of pushing the column out (the 30%/70% split of its header row holds) */
+@media(min-width:768px) and (max-width:899px){.kd-content table:not(.kd-table table){table-layout:fixed}.kd-content table:not(.kd-table table) :is(th,td){overflow-wrap:anywhere}.kd-content table:not(.kd-table table) td:first-child{min-width:0}.kd-content table:not(.kd-table table) td:first-child code{white-space:normal}}
+/* R11P-DES-2: from 900 every generated API field table shares one key track, so the Description column starts at the same x down the page (annotations-style); a key wider than the track breaks at its dots instead of moving the column */
+@media(min-width:900px){.kd-content table:not(.kd-table table){table-layout:fixed}.kd-content table:not(.kd-table table) th:first-child{width:var(--kd-api-key-w,272px)}.kd-content table:not(.kd-table table) td:first-child{min-width:0;overflow-wrap:anywhere}.kd-content table:not(.kd-table table) td:first-child a code{white-space:normal;overflow-wrap:anywhere} /* a type name longer than the key track (HealthCheckObservationDirection) breaks only when it must (QA11-2) */}
+@media(max-width:640px){
+  .kd-content table:not(.kd-table table) thead{position:absolute;width:1px;height:1px;overflow:hidden;clip-path:inset(50%)}
+  .kd-content table:not(.kd-table table) :is(tbody,tr,td){display:block}
+  .kd-content table:not(.kd-table table) tr{padding:12px 12px 14px;border-bottom:1px solid var(--line)!important}
+  .kd-content table:not(.kd-table table) tbody tr:last-child{border-bottom:0!important}
+  .kd-content table:not(.kd-table table) td{padding:0!important;border:0!important;min-width:0}
+  .kd-content table:not(.kd-table table) td + td{margin-top:6px}
+}
+/* key column: never wraps, pinned */
+.kd-content .kd-table :is(th,td):first-child{min-width:140px;white-space:nowrap}
+.kd-content .kd-table[data-key=prose] :is(th,td):first-child{white-space:normal;width:30%;max-width:240px}
+.kd-content .kd-table.kd-pin :is(th,td):first-child{position:sticky;left:0;z-index:1}
+.kd-content .kd-table td:first-child{color:var(--ink);font-weight:500}
+.kd-content .kd-table td:first-child code{white-space:nowrap}
+/* code in other cells (and in sentence keys): wraps at spaces only, never inside a token; a long token widens its column and the card scrolls */
+.kd-content .kd-table td:not(:first-child) code,.kd-content .kd-table[data-key=prose] td:first-child code{white-space:normal;overflow-wrap:normal;word-break:normal}
+/* prose column: the last column of a 3+ column table is the explanation; give it a reading width */
+.kd-content .kd-table:is([data-cols="3"],[data-cols="4"],[data-cols="5"],[data-cols="6"]) :is(th,td):last-child{min-width:220px}
+.kd-content .kd-table td:first-child p{margin:0}
+/* spec rows: 5+ columns at every width, 3+ columns on phones (render-table.html). Key line, labelled meta line, prose. */
+.kd-content .kd-spec thead{position:absolute;width:1px;height:1px;overflow:hidden;clip-path:inset(50%)}
+.kd-content .kd-spec :is(table,tbody){display:block}
+.kd-content .kd-spec tr{display:flex;flex-wrap:wrap;align-items:baseline;column-gap:20px;row-gap:4px;padding:14px 18px 16px;border-bottom:1px solid var(--line)!important}
+.kd-content .kd-spec tbody tr:last-child{border-bottom:0!important}
+.kd-content .kd-spec td{display:block;padding:0!important;min-width:0!important;border:0!important;background:transparent;font:400 13px/20px var(--sans)}
+.kd-content .kd-spec td:first-child{flex:1 0 100%;position:static;white-space:normal;margin-bottom:4px;font:500 14px/22px var(--sans)}
+.kd-content .kd-spec td:first-child code{white-space:nowrap}
+.kd-content .kd-spec td:not(:first-child):not(:last-child)::before{content:attr(data-label);margin-right:6px;font:500 12px/20px var(--sans);color:var(--ink-subtle)}
+.kd-content .kd-spec td:last-child{flex:1 0 100%;min-width:0!important;margin-top:4px;font:400 14px/22px var(--sans);color:var(--ink-muted)}
+@media(max-width:640px){
+  .kd-content .kd-spec tr{padding:12px 12px 14px;column-gap:14px}
+  .kd-content .kd-table:not(.kd-spec)[data-stack] thead{position:absolute;width:1px;height:1px;overflow:hidden;clip-path:inset(50%)}
+  .kd-content .kd-table:not(.kd-spec)[data-stack] :is(table,tbody,tr,td){display:block}
+  .kd-content .kd-table:not(.kd-spec)[data-stack] tr{padding:12px 12px 14px;border-bottom:1px solid var(--line)!important}
+  .kd-content .kd-table:not(.kd-spec)[data-stack] tbody tr:last-child{border-bottom:0!important}
+  .kd-content .kd-table:not(.kd-spec)[data-stack] td{position:static;padding:0!important;min-width:0!important;max-width:none;width:auto;border:0!important;background:transparent;white-space:normal;font:400 14px/22px var(--sans)}
+  .kd-content .kd-table:not(.kd-spec)[data-stack] td:first-child{margin-bottom:6px;font-weight:500}
+  .kd-content .kd-table:not(.kd-spec)[data-stack] td + td{margin-top:6px}
+  .kd-content .kd-table:not(.kd-spec)[data-stack] td + td::before{content:attr(data-label);display:block;font:500 12px/18px var(--sans);color:var(--ink-subtle)}
+  .kd-content .kd-table[data-stack] td:first-child code{white-space:normal;overflow-wrap:anywhere}
+  .kd-content .kd-table[data-stack] td:empty{display:none}
+  .kd-content .kd-table[data-stack][data-cols="2"] td + td::before{display:none}
+}
+@media(min-width:768px){.kd-content .kd-table :is(th,td){min-width:80px;padding:10px 14px}.kd-content .kd-table:is([data-cols="3"],[data-cols="4"]) :is(th,td):last-child{min-width:200px}}
+@media(max-width:640px){.kd-content .kd-table :is(th,td){padding:10px 12px}.kd-content .kd-table:is([data-cols="3"],[data-cols="4"],[data-cols="5"],[data-cols="6"]) :is(th,td):last-child{min-width:200px}}
+
+/* ---------- steps: the progress rail ---------- */
+.hextra-steps{margin:32px 0 48px 12px!important;padding-left:28px!important;border-left:1px solid var(--line)!important;counter-reset:step}
+.kd-content .hextra-steps h3{counter-increment:step;position:relative;margin-top:40px}
+.kd-content .hextra-steps h3:first-child{margin-top:0}
+.kd-content .hextra-steps h3::before{content:counter(step)!important;position:absolute;left:-41px;top:1px;width:24px;height:24px;margin:0!important;display:flex;align-items:center;justify-content:center;border:1px solid var(--mint);border-radius:50%;background:var(--page)!important;color:var(--mint-ink)!important;font:600 12px/1 var(--mono)!important;text-indent:0!important;box-shadow:0 0 0 4px var(--page)}
+
+/* ---------- tabs: the landing cwin-tab ---------- */
+.kd-content [data-tab-group]{margin-top:20px!important;border-bottom:1px solid var(--line)!important;gap:4px;padding:0!important}
+.hextra-tabs-toggle{height:40px;margin:0 0 -1px!important;padding:0 12px!important;border:0!important;border-bottom:2px solid transparent!important;border-radius:0!important;background:transparent!important;font:500 14px/20px var(--sans)!important;color:var(--ink-subtle)!important}
+.hextra-tabs-toggle:hover{color:var(--ink)!important}
+.hextra-tabs-toggle[data-state=selected]{color:var(--ink)!important;border-bottom-color:var(--mint)!important}
+.hextra-tabs-panel{padding-top:4px}
+
+/* ---------- cards: the landing feature-card shell ---------- */
+.kd-content .hextra-cards{margin-top:24px;gap:12px}
+.kd-content a.hextra-card{border:1px solid var(--card-border)!important;border-radius:12px!important;background:var(--card-fill)!important;box-shadow:var(--card-shadow)!important;transition:border-color .15s,transform .15s;padding:16px 18px 18px;text-decoration:none}
+.kd-content a.hextra-card:hover{border-color:color-mix(in oklab,var(--mint) 55%,var(--line))!important;transform:translateY(-1px)}
+.hextra-card-icon{padding:0!important;align-items:center!important;gap:12px!important;font:600 15px/22px var(--sans)!important;color:var(--ink)!important;letter-spacing:-.01em}
+.kd-content .hextra-card .hextra-card-icon svg{width:32px;height:32px;flex:none;padding:7px;border-radius:8px;background:var(--canvas-mint);color:var(--mint-ink);stroke-width:1.6}
+.kd-content a.hextra-card:nth-child(even) .hextra-card-icon svg,.kd-content a.hextra-card:nth-child(even):hover .hextra-card-icon svg{background:var(--canvas-lagoon);color:var(--kd-eyebrow)}
+.hextra-card-subtitle{padding:6px 0 0 44px!important;margin:0!important;font:400 14px/20px var(--sans)!important;color:var(--ink-muted)!important}
+.hextra-card > :empty{display:none}
+
+/* ---------- details ---------- */
+.kd-content .hextra-card:hover .hextra-card-icon svg{color:var(--mint-ink)}
+.kd-content details{margin:24px 0 0;border:1px solid var(--line)!important;border-radius:12px!important;background:var(--page)!important;overflow:hidden}
+.kd-content details > summary{display:flex;align-items:center;gap:10px;min-height:44px;padding:10px 16px!important;font:500 15px/22px var(--sans)!important;color:var(--ink)!important;cursor:pointer;list-style:none;background:transparent!important}
+.kd-content details > summary::-webkit-details-marker{display:none}
+.kd-content details > summary::before{content:''!important;width:16px!important;height:16px!important;flex:none;margin:0!important;padding:0!important;border:0!important;background:var(--ink-subtle)!important;-webkit-mask:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 16 16'%3E%3Cpath d='M6 3.5 10.5 8 6 12.5' fill='none' stroke='black' stroke-width='1.6' stroke-linecap='round' stroke-linejoin='round'/%3E%3C/svg%3E") center/16px 16px no-repeat;mask:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 16 16'%3E%3Cpath d='M6 3.5 10.5 8 6 12.5' fill='none' stroke='black' stroke-width='1.6' stroke-linecap='round' stroke-linejoin='round'/%3E%3C/svg%3E") center/16px 16px no-repeat;transform:none!important;rotate:none!important;transition:transform .15s;vertical-align:0}
+.kd-content details[open] > summary::before{transform:rotate(90deg)!important}
+.kd-content details[open] > summary{border-bottom:1px solid var(--line)}
+.kd-content details > :not(summary){padding-inline:16px}
+.kd-content details > div{padding:4px 16px 16px!important}
+
+/* ---------- filetree ---------- */
+.kd-content .hextra-filetree,.kd-content div:has(> ul > li > .hextra-filetree-folder){border-radius:12px}
+
+/* ---------- images ---------- */
+.kd-content img{border-radius:12px;border:1px solid var(--line);margin-top:24px}
+
+/* ---------- pager ---------- */
+.kd-pager{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:12px;margin-top:64px;padding-top:32px;border-top:1px solid var(--line)}
+.kd-pager-card{display:flex;flex-direction:column;gap:4px;padding:14px 16px 16px;border:1px solid var(--card-border);border-radius:12px;background:var(--card-fill);box-shadow:var(--card-shadow);transition:border-color .15s}
+.kd-pager-card:hover{border-color:color-mix(in oklab,var(--mint) 55%,var(--line))}
+.kd-pager-next{grid-column:2;text-align:right;align-items:flex-end}
+.kd-pager-label{display:inline-flex;align-items:center;gap:4px;font:500 12px/16px var(--sans);color:var(--ink-subtle)}
+.kd-pager-label svg{width:14px;height:14px}
+.kd-pager-title{font:600 15px/22px var(--sans);color:var(--ink);letter-spacing:-.01em}
+@media(max-width:640px){.kd-pager{grid-template-columns:minmax(0,1fr)}.kd-pager-next{grid-column:1}}
+
+/* ---------- section index pages: no TOC, so the card grid takes the TOC's track too (no lone column at 1440+) ---------- */
+.kd-is-index .hextra-toc{display:none}
+.kd-is-index .kd-main{max-width:calc(var(--kd-read) + var(--kd-toc) + var(--kd-gap))}
+@media(min-width:1280px){.kd-is-index .kd-section-cards .hextra-cards{grid-template-columns:repeat(3,minmax(0,1fr))!important}}
+/* group tile tones: the docs home card canvases (docs-home.css .kdh-card / .kdh-mint / .kdh-ref-card) */
+.kd-tone-mint{background:var(--canvas-mint)!important;color:var(--mint-ink)!important}
+.kd-tone-lagoon{background:var(--canvas-lagoon)!important;color:var(--kd-eyebrow)!important}
+.kd-tone-neutral{background:var(--page-alt)!important;color:var(--ink-muted)!important}
+html.dark .kd-tone-neutral{background:oklch(1 0 0/.05)!important}
+/* index head: the group's home-card tile where other pages carry the eyebrow (docs/page.html) */
+.kd-index-tile{display:flex;align-items:center;justify-content:center;width:40px;height:40px;margin:0 0 16px;border-radius:10px}
+.kd-index-tile .kd-icon{width:20px;height:20px}
+
+
+/* ---------- phones ---------- */
+@media(max-width:640px){
+  .kd-content h2{margin-top:40px;font-size:22px;line-height:30px}
+  .kd-content h1 + p{font-size:17px;line-height:26px}
+  .kd-code-body pre,.hextra-code-block pre{font-size:12px!important;line-height:20px!important;padding:14px 16px!important}
+  .kd-code-head{padding-right:56px}
+  .kd-code-lang{display:none}
+  .kd-callout{padding:12px 14px;gap:10px}
+}
+@media(min-width:2400px){
+  .kd-content{font-size:17px;line-height:30px}
+  .kd-content .kd-table table{font-size:15px}
+  .kd-code-body pre,.hextra-code-block pre{font-size:14px!important;line-height:24px!important}
+}
+/* R5-S-7: in the phone drawer the results panel runs to the bottom of the viewport (hextra caps it at 50vh - 11rem, ~2 results). */
+@media(max-width:1023px){
+  .hextra-search-wrapper .hextra-search-results{max-height:calc(100vh - 160px)!important;max-height:calc(100dvh - 160px)!important}
+}
+.hextra-search-no-result-next{display:block;margin-top:8px;font-size:13px}
+.hextra-search-results .hextra-search-no-result-next a{display:inline;min-height:0;padding:0;border-radius:0;background:transparent;font:inherit;color:var(--ink-muted);text-decoration:underline;text-underline-offset:2px}
+.hextra-search-results .hextra-search-no-result-next a:hover{background:transparent;color:var(--ink)}
+.kd-404-search .hextra-search-results{left:0;right:auto}
+
+/* R7-IA-2: an anchor target (API field rows are tr[id]) clears the 64px sticky header with 16px to spare, and the row that was
+   jumped to is tinted in the kit's mint wash */
+.kd-content [id]:not(span){scroll-margin-top:80px}
+.kd-content tr:target > td{background:var(--kd-wash)!important}
+/* R7-DES-4: search dropdown on the kit inks (hextra's slate gray palette is replaced); search-specific block.
+   Match highlight is the link ink, 5.4:1 on white (mint-ink in dark); excerpt is 14/20 on the 4px rhythm. */
+.hextra-search-results li{color:var(--ink)!important}
+.hextra-search-results .hextra-search-title{color:var(--ink)}
+.hextra-search-results .hextra-search-prefix{color:var(--ink-subtle)!important;border-color:var(--line)!important}
+.hextra-search-results .hextra-search-excerpt{color:var(--ink-muted)!important;margin-top:4px;font-size:14px;line-height:20px}
+.hextra-search-results .hextra-search-match{color:var(--mint-ink)!important}
+.hextra-search-results .hextra-search-no-result{color:var(--ink-subtle)!important}

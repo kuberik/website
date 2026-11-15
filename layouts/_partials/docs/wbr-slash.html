@@ -1,0 +1,15 @@
+{{- /* Table cell HTML with a break opportunity after every "/" inside inline code, so a long path, URL or annotation
+     key (rollout.kuberik.com/substitute.<variable>.from) may wrap between its parts but never inside a word. */ -}}
+{{- $h := string . -}}
+{{- range uniq (findRE `<code>[^<]*/[^<]*</code>` $h) }}
+  {{- $in := strings.TrimSuffix "</code>" (strings.TrimPrefix "<code>" .) -}}
+  {{- /* each part between slashes is one unbreakable span: a key never breaks at a hyphen or dot, only after "/" (R3-C-7) */ -}}
+  {{- $parts := slice -}}{{- range split $in "/" }}{{ $parts = $parts | append (printf `<span class="kd-nb">%s</span>` .) }}{{ end -}}
+  {{- $h = replace $h . (printf "<code>%s</code>" (delimit $parts "/<wbr>")) -}}
+{{- end -}}
+{{- /* long snake_case identifiers (metric names) may also break after "_" in the stacked phone layout (R5-DES-8) */ -}}
+{{- range uniq (findRE `<code>[^<]*_[^<]*</code>` $h) }}
+  {{- $in := strings.TrimSuffix "</code>" (strings.TrimPrefix "<code>" .) -}}
+  {{- if gt (len $in) 24 }}{{ $h = replace $h . (printf "<code>%s</code>" (replace $in "_" "_<wbr>")) }}{{ end -}}
+{{- end -}}
+{{- $h | safeHTML -}}

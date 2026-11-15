@@ -1,0 +1,6 @@
+{{- /* a page, then (for a section) its non-excluded children in weight order, recursively; see docs/nav-order.html */ -}}
+{{- $out := slice . -}}
+{{- if .IsSection -}}
+  {{- range (where (union .RegularPages .Sections) "Params.sidebar.exclude" "!=" true).ByWeight }}{{ $out = $out | append (partial "docs/nav-order-walk.html" .) }}{{ end -}}
+{{- end -}}
+{{- return $out -}}

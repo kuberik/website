@@ -1,0 +1,17 @@
+/* BLOG (R7; layouts/blog/*.html). Loaded on /blog/ pages only (custom/head-end.html), after docs-all.css. The blog uses the
+   docs article shell and link-card unchanged; this file holds only what the docs do not have: no sidebar from 768
+   (it stays for the phone drawer, as on the docs home) and the post meta line under the lead. */
+@media(min-width:768px){.kb-shell > .hextra-sidebar-container{display:none}}
+.kb-meta{display:flex;flex-wrap:wrap;align-items:center;gap:8px 16px;margin:20px 0 32px;padding-bottom:20px;border-bottom:1px solid var(--line);font:400 14px/20px var(--sans);color:var(--ink-subtle)}
+.kb-author{display:inline-flex;align-items:center;gap:8px;color:var(--ink-muted);text-decoration:none}
+.kb-author:hover{color:var(--mint-ink)}
+.kb-author img{width:20px;height:20px;border-radius:50%}
+.kb-tag{display:inline-flex;align-items:center;height:22px;padding:0 8px;border:1px solid var(--kd-chip-gray-line);border-radius:6px;background:var(--kd-chip-gray-bg);color:var(--kd-chip-gray-ink);font:500 12px/16px var(--sans)}
+.kd-content .kb-meta a.kb-author{color:var(--ink-muted);text-decoration:none;border:0;background:none}
+.kd-content .kb-meta a.kb-author:hover{color:var(--mint-ink)}
+.kd-content .kb-meta img{display:block;flex:none;margin:0;max-width:none;border:0;border-radius:50%}
+.kd-content .kb-meta a.kb-author{color:var(--ink-muted)!important;text-decoration:none!important;background-image:none!important;border-bottom:0!important}
+.kd-content .kb-meta a.kb-author:hover{color:var(--mint-ink)!important}
+/* R8-DES-9: a dated list is one column, newest first, every post the same size (size must not read as rank) */
+.kd-lc-grid.kb-list{grid-template-columns:1fr!important}
+.kd-lc-grid.kb-list > li{grid-column:auto!important}

@@ -1,0 +1,33 @@
+{{- /* 404 (R3-IA-13, R5-DES-5): the site header (docs nav + search) and footer around a short message and the docs sections.
+     Role: get a lost reader back into the docs. Reference: a docs page head (docs.css .kd-content h1 + lead: --t-title 600,
+     --t-lead muted) and the docs section index (the shared link-card grid, docs/link-card.html variant "card"). The body search
+     is the same input as the header's, restyled with the header search's rules (36px, 1px line, 8px radius; 44px and 16px on
+     phones, where the header search is hidden), so the screen holds one search style. Sections come from data/footer.yaml, the same list as the
+     footer's Docs column; each card's description is the target page's own. */ -}}
+{{ define "main" }}
+<section class="cont kd-404" aria-labelledby="kd-404-h">
+  <p class="kd-404-code">404</p>
+  <h1 id="kd-404-h">This page could not be found.</h1>
+  <p class="kd-404-lead">It may have moved when the docs were reorganised. Search the docs, or start from a section.</p>
+  <div class="kd-404-search">{{ partial "search.html" (dict "params" (dict)) }}</div>
+  <ul class="kd-lc-grid kd-lc-grid-index kd-lc-grid-404">
+    {{- range site.Data.footer.docs }}
+    {{- $d := "" }}{{ $g := dict "icon" "page" "tone" "neutral" }}{{ with site.GetPage (strings.TrimSuffix "/" .href) }}{{ $d = .Description }}{{ $g = partial "docs/group.html" . }}{{ end }}
+    <li>{{ partial "docs/link-card.html" (dict "variant" "card" "url" .href "title" .name "desc" $d "icon" (.icon | default $g.icon) "tone" $g.tone) }}</li>
+    {{- end }}
+  </ul>
+</section>
+<style>
+.kd-404{padding:72px 0 120px}
+.kd-404-code{margin:0 0 12px;font:500 13px/20px var(--mono,ui-monospace,monospace);color:var(--ink-subtle)}
+.kd-404 h1{margin:0;font:600 var(--t-title-s)/var(--t-title-l) var(--sans);letter-spacing:-.03em;color:var(--ink);text-wrap:balance}
+.kd-404-lead{margin:16px 0 0;max-width:60ch;font:400 var(--t-lead-s)/var(--t-lead-l) var(--sans);color:var(--ink-muted);text-wrap:pretty}
+.kd-404-search{margin-top:24px}
+.kd-404-search .hextra-search-wrapper{width:min(360px,100%)}
+.kd-404-search .hextra-search-input{height:36px;padding:0 64px 0 12px;border:1px solid var(--line);border-radius:8px;background:var(--page);color:var(--ink);font:400 14px/20px var(--sans)}
+.kd-404-search .hextra-search-input::placeholder{color:var(--ink-subtle)}
+.kd-404-search .hextra-search-input:focus{background:var(--page);border-color:color-mix(in oklab,var(--mint) 60%,var(--line));outline:none;box-shadow:0 0 0 3px color-mix(in oklab,var(--mint) 18%,transparent)}
+.kd-404 ul.kd-lc-grid{margin-top:48px}
+@media(max-width:640px){.kd-404{padding:48px 0 72px}.kd-404-search .hextra-search-input{height:44px;font-size:16px}}
+</style>
+{{ end }}

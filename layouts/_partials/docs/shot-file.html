@@ -1,0 +1,12 @@
+{{- /* One static screenshot file (R7 image variants): in a url path such as /images/docs/x/name.dark.png; out
+     dict "ok" "url" "w" "h" in CSS pixels (a file 1600 px or wider is a 2x capture, halved). ok is false when the file is
+     not under static/. Used by layouts/_markup/render-image.html for the light/dark and desktop/phone siblings. */ -}}
+{{- $file := path.Join "static" . -}}
+{{- $r := dict "ok" false -}}
+{{- if and (hasPrefix . "/") (fileExists $file) -}}
+  {{- $w := 0 -}}{{- $h := 0 -}}
+  {{- with imageConfig $file -}}{{- $w = .Width -}}{{- $h = .Height -}}{{- end -}}
+  {{- if ge $w 1600 -}}{{- $w = div $w 2 -}}{{- $h = div $h 2 -}}{{- end -}}
+  {{- $r = dict "ok" true "url" (relURL (strings.TrimPrefix "/" .)) "w" $w "h" $h -}}
+{{- end -}}
+{{- return $r -}}

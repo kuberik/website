@@ -1,0 +1,6 @@
+{{- /* One-sentence summary of a post for its list card: the front matter description, else the first sentence of the body
+     (the text before <!--more--> is one paragraph by convention; a longer first sentence is cut at a word). */ -}}
+{{- $t := .Description -}}
+{{- if not $t }}{{ $t = .Summary | plainify | htmlUnescape | strings.TrimSpace }}{{ with findRESubmatch `^(.{20,}?[.!?])(\s|$)` $t 1 }}{{ $t = index (index . 0) 1 }}{{ end }}{{ end -}}
+{{- if gt (len $t) 220 }}{{ $t = printf "%s…" (substr $t 0 (sub (index (findRE `^.{0,200}\S*` $t 1) 0 | len) 0)) }}{{ end -}}
+{{- return $t -}}
