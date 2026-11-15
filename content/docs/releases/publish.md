@@ -222,6 +222,7 @@ jobs:
           set -euo pipefail
           for dir in deploy/*/; do
             env="$(basename "$dir")"
+            [ "$env" = base ] && continue  # shared base, not an environment
             (cd "$dir" && kustomize edit set image "${IMAGE}:${VERSION}")
             out="$(mktemp -d)"
             kustomize build "$dir" -o "$out"
@@ -233,7 +234,7 @@ jobs:
           done
 ```
 
-Each overlay is a directory with a `kustomization.yaml` whose Deployment names the image `ghcr.io/acme/hello-world` without a tag; `kustomize edit set image` adds the build's tag before the render. With `deploy/development`, `deploy/staging` and `deploy/production`, the workflow pushes three artifacts; with only `deploy/production`, it pushes one. `flux push artifact` sets the `source` and `revision` annotations from `--source` and `--revision`.
+Every directory under `deploy/` except `base` is an environment's overlay: a directory with a `kustomization.yaml` whose Deployment names the image `ghcr.io/acme/hello-world` without a tag; `kustomize edit set image` adds the build's tag before the render. With `deploy/development`, `deploy/staging` and `deploy/production`, the workflow pushes three artifacts; with only `deploy/production`, it pushes one. `flux push artifact` sets the `source` and `revision` annotations from `--source` and `--revision`.
 
 Each environment's `ReleaseSource` scans its own artifact with the same timestamp policy as an image. This one is for production:
 
