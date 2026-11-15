@@ -22,7 +22,7 @@ thesis:
 # Every sentence is checked against content/docs (fact sheet in BRIEF.md "Truth rules").
 features:
   title: "Every step of a release, declared."
-  body: "Gates, health checks, canaries and waves are resources the controller reconciles in each cluster. Write them once and every build goes through them."
+  body: "Gates, health checks, canaries and waves are declared on resources the controller reconciles in each cluster. Write them once and every build goes through them."
   # Order = the bento (assets/css/features.css): Gates on its own row; Canary beside Health over GitOps; Dashboard beside Releases.
   # hue = the card's canvas tint (lagoon / mint). The footer's Product links follow this order.
   items:
@@ -54,7 +54,7 @@ features:
       hue: lagoon
       name: "Dashboard"
       title: "Find where a pull request is running."
-      body: "Paste its link into the dashboard search. The change opens with the environments that already run it, the one it is deploying to now and the ones still to come, across all your clusters."
+      body: "Paste its link into the dashboard search. The change opens with the environments that run it, the one it is deploying to now and the ones still to come, across all your clusters."
       link: { text: "Expose the dashboard", href: "/docs/installation/helm/#expose-the-dashboard" }
     - id: releases
       hue: mint
@@ -62,3 +62,28 @@ features:
       title: "Every new tag becomes a release you can trace."
       body: "A ReleaseSource watches your OCI registry, orders the tags by version and records each release's digest and the git commit it was built from."
       link: { text: "Publish releases", href: "/docs/guides/publishing-releases/" }
+
+# STEP IN (landing v6j, LANDING-REVIEW.md): day-2 operation. "Hands-off" invites the question "and when it goes wrong?";
+# this answers it. Every action is a dashboard button on main AND a field or annotation (rollout-controller main):
+# rollback pins (rollouts/[..]/+page.svelte "A rollback started in this product ALWAYS pins"; spec.wantedVersion),
+# Retry (FailurePanel.svelte; rollout.kuberik.com/retry), Skip once (RolloutNeighbourhood.svelte; gate_bypass.go
+# rollout.kuberik.com/bypass-gates, cleared after the next deploy), Approve (ApproveButton.svelte; RolloutApproval).
+# Approve is last on purpose: approvals never lead (owner).
+stepin:
+  name: "Day two"
+  title: "Step in when a release needs you."
+  body: "Kuberik runs promotion on its own, and every rollout page still has the buttons for the moment it shouldn't. Each one sets a field or an annotation on the Rollout, so the same step works from kubectl."
+  link: { text: "Operate a rollout", href: "/docs/concepts/rollouts/" }
+  actions:
+    - name: "Roll back"
+      body: "Pick an earlier build from the history. The rollback pins it, so nothing newer deploys until you clear the pin."
+      handle: "spec.wantedVersion"
+    - name: "Retry"
+      body: "Deploy and bake a failed build again once the cause is fixed, without waiting for a new one."
+      handle: "rollout.kuberik.com/retry"
+    - name: "Skip once"
+      body: "Let one build past a gate, say a deploy window during an incident. The skip clears itself after that deploy."
+      handle: "rollout.kuberik.com/bypass-gates"
+    - name: "Approve"
+      body: "Where a gate asks for a person, approve the build from the page that shows what it is waiting on."
+      handle: "RolloutApproval"
