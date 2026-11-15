@@ -2,9 +2,8 @@
        when it goes wrong?". No existing landing region plays it: the feature cards each show the controller acting alone;
        this is the one place a person acts. Anatomy borrowed from the feature card (name in hue ink, title, body, docs link,
        tinted dotted canvas) and from the spec band's head; the actions are a definition list (name, kubectl handle, one
-       sentence), the dashboard rail card's dl. The canvas holds a STATIC placeholder in take B's look (white card, 8px
-       radius, PROD chip, mono versions): the rest frame of the animation specified in NEW-SECTION-SPEC.md. When the
-       scene exists, replace .si-poster with {{ partial "landing-vignettes/stepin.html" . }}. Copy: data/landing.yaml stepin. */ -}}
+       sentence), the dashboard rail card's dl. The canvas holds the Step in vignette (take B v6j, assets/js/vignettes-b/stepin.js;
+       its host and rest posters are GENERATED into landing-vignettes/stepin.html by posters.mjs). Copy: data/landing.yaml stepin. */ -}}
 {{- $s := site.Data.landing.stepin -}}
 <section class="sec si" id="step-in" aria-labelledby="stepin-h">
   <div class="cont">
@@ -18,20 +17,7 @@
     </div>
     <div class="si-grid">
       <div class="si-canvas reveal" aria-hidden="true">
-        <div class="si-poster">
-          <div class="si-card">
-            <div class="si-card-head">
-              <span class="si-app">checkout-api</span><span class="si-chip si-prod">PROD</span><span class="si-site">us-east-1</span>
-              <span class="si-pin"><svg viewBox="0 0 16 16" width="12" height="12" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M6 2h4l-.5 4 2.5 2.5H4L6.5 6z M8 8.5V14" stroke-linejoin="round" stroke-linecap="round"/></svg>Pinned</span>
-            </div>
-            <ol class="si-hist">
-              <li class="is-fail"><span class="si-dot"></span><span class="si-ver">4.46.0-46</span><span class="si-what">Failed: error-rate over 1%</span></li>
-              <li class="is-run"><span class="si-dot"></span><span class="si-ver">4.45.0-45</span><span class="si-what">Running, rolled back</span></li>
-              <li><span class="si-dot"></span><span class="si-ver">4.44.0-44</span><span class="si-what">Baked</span></li>
-            </ol>
-            <div class="si-card-foot"><span class="si-note">Nothing newer deploys until the pin is cleared.</span><span class="si-btn">Clear pin</span></div>
-          </div>
-        </div>
+        {{ partial "landing-vignettes/stepin.html" . }}
       </div>
       <dl class="si-acts reveal">
         {{- range $s.actions }}

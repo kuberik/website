@@ -9,7 +9,7 @@
 import { chromium } from '@playwright/test';
 import fs from 'fs';
 const URL = process.env.URL ?? 'http://127.0.0.1:1380/', OUT = process.env.OUT ?? '.';
-const cards = (process.argv[2] ?? 'gates,canary,health,gitops,dashboard,releases').split(',');
+const cards = (process.argv[2] ?? 'gates,canary,health,gitops,dashboard,releases,stepin').split(',');
 const cells = process.env.CELLS === 'all' ? [[1440, 'light'], [1440, 'dark'], [390, 'light'], [390, 'dark']] : [[1440, 'light'], [390, 'dark']];
 fs.mkdirSync(OUT, { recursive: true });
 const b = await chromium.launch(); let fail = 0;

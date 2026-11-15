@@ -1,0 +1,17 @@
+/* Step in kit extension (b18, v6j), site copy of take-b/v6j/kb-stepin.css with every .kb rule scoped under .vg like vignettes.css. Load after vignettes.css. */
+/* take B kit extension for STEP IN (b18, v6j). Load after kb.css. Adds only: the fail tokens (the dashboard's danger,
+   styles/language.css --k-danger-solid / -fg / -tint / -line, light and dark), the fail mark, the fail band, the rolled-back
+   row tint, the secondary button. */
+.vg .kb{--b-fail:oklch(.6 .19 25);--b-fail-ink:oklch(.5 .17 25);--b-fail-tint:oklch(.95 .055 20);--b-fail-line:oklch(.86 .06 25);
+  --b-run:oklch(.95 .045 182)}
+html.dark .vg .kb{--b-fail:oklch(.66 .19 25);--b-fail-ink:oklch(.78 .13 25);--b-fail-tint:oklch(.3 .068 25);--b-fail-line:oklch(.46 .13 25);
+  --b-run:oklch(.42 .06 184)}
+.vg .kb .fail-ink{fill:var(--b-fail-ink)}
+.vg .kb .m-fail .md{fill:var(--b-fail-tint);stroke:var(--b-fail-line)}.vg .kb .m-fail .mg{stroke:var(--b-fail-ink)}
+.vg .kb .band-fail{fill:var(--b-fail-tint);opacity:.7}
+/* the running (rolled-back) row: the success tint across the row, as the placeholder's .is-run */
+.vg .kb .row-run{fill:var(--b-run);opacity:.7}
+.vg .kb .row-hover{fill:var(--b-quiet)}
+.vg .kb .btn2 rect{fill:var(--b-card);stroke:var(--b-card-line)}
+/* Step in's canvas is the section's mint canvas: the dark card takes the same lift the mint feature canvases give it */
+html.dark .si-canvas .vg .kb{--b-card:oklch(.355 .035 192);--b-quiet:oklch(.37 .035 192)}

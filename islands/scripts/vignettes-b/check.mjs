@@ -14,7 +14,7 @@ const b = await chromium.launch();
 let fail = 0;
 const ok = (c, m) => { console.log(`${c ? 'PASS' : 'FAIL'} ${m}`); if (!c) fail++; };
 const mk = async (vw, o = {}) => { const ctx = await b.newContext({ viewport: { width: vw, height: vw < 500 ? 844 : 900 }, deviceScaleFactor: 1, ...(vw < 500 ? { isMobile: true, hasTouch: true } : {}), ...o }); await ctx.addInitScript((t) => { try { localStorage.setItem('color-theme', t); } catch {} document.addEventListener('DOMContentLoaded', () => { document.documentElement.style.scrollBehavior = 'auto'; }); }, o.colorScheme ?? 'light'); return ctx; };
-const ids = ['gates', 'canary', 'health', 'gitops', 'dashboard', 'releases'];
+const ids = ['gates', 'canary', 'health', 'gitops', 'dashboard', 'releases', 'stepin'];
 // 1
 {
 	const ctx = await mk(1440), p = await ctx.newPage(); await p.route(/\/islands\/.*\.js/, (r) => r.abort());
