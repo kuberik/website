@@ -19,7 +19,7 @@ Gates, health checks, bake time and cross-environment promotion work the same wa
 
 ## Image tag
 
-Your manifests live in any Flux source, a Git repository or an OCI artifact; it works the same with either. Kuberik selects a version and writes it into the Kustomization's substitution variables; Flux renders the overlay and applies it.
+Your manifests live in any Flux source of the Kustomization: a Git repository, an OCI artifact or a bucket. Kuberik selects a version and writes it into the Kustomization's substitution variables; Flux renders the overlay and applies it.
 
 ![The Resources card of a production rollout: the objects Flux applied for it, here the hello-world Deployment and its canary Rollout, both ready](/images/docs/concepts/propagation-resources.png)
 
@@ -43,7 +43,7 @@ spec:
       ENVIRONMENT: production  # Kuberik adds APP_VERSION
 ```
 
-A rollout in this mode changes exactly one thing: the image tag. Config changes reach the cluster through a separate path, whenever the Kustomization next reconciles git. That keeps each rollout narrow, and it means pinning an older build restores the image, not the configuration that shipped with it.
+A rollout in this mode changes exactly one thing: the image tag. Config changes reach the cluster through a separate path, whenever the Kustomization next reconciles its source. That keeps each rollout narrow, and it means pinning an older build restores the image, not the configuration that shipped with it.
 
 Reach for this when your deployments are a single service whose changes are almost always "new build of the same code", and when you want the smallest possible setup.
 
