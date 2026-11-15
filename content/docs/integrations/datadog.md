@@ -17,10 +17,15 @@ Kuberik reads Datadog monitors and incidents as health checks. A monitor that al
 
 ## Give the controller credentials
 
-The controller reads one set of credentials for the whole cluster, from a Secret named `datadog-credentials` in the `kuberik-system` namespace (the Helm chart creates the namespace). Install the controller, create the Secret, and restart the controller so it reads the Secret:
+The controller reads one set of credentials for the whole cluster, from a Secret named `datadog-credentials` in the `kuberik-system` namespace. Install it with the Helm chart's `integrations.datadog.enabled`, or on its own:
 
 ```bash {filename="Terminal"}
 kubectl apply -f https://github.com/kuberik/datadog-controller/releases/latest/download/install.yaml
+```
+
+Then create the Secret and restart the controller so it reads it. Both install paths name the Deployment the same:
+
+```bash {filename="Terminal"}
 kubectl -n kuberik-system create secret generic datadog-credentials \
   --from-literal=api-key=<your-api-key> \
   --from-literal=app-key=<your-app-key> \
@@ -28,7 +33,7 @@ kubectl -n kuberik-system create secret generic datadog-credentials \
 kubectl -n kuberik-system rollout restart deployment datadog-controller-controller-manager
 ```
 
-The controller maps the keys to `DD_API_KEY`, `DD_APP_KEY` and `DD_SITE`. Leave out `site` if your account is on `datadoghq.com`. With the Helm chart, `integrations.datadog` reads the same Secret (`existingSecret`, default `datadog-credentials`). Without credentials, every `datadog` and `datadog-incidents` HealthCheck stays `Pending` with the message `datadog API credentials are not configured: set DD_API_KEY and DD_APP_KEY`.
+The controller maps the keys to `DD_API_KEY`, `DD_APP_KEY` and `DD_SITE`. Leave out `site` if your account is on `datadoghq.com`. The chart reads the Secret named in `integrations.datadog.existingSecret` (default `datadog-credentials`). Without credentials, every `datadog` and `datadog-incidents` HealthCheck stays `Pending` with the message `datadog API credentials are not configured: set DD_API_KEY and DD_APP_KEY`.
 
 ## Fail a deploy on alerting monitors
 
