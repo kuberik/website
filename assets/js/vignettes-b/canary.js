@@ -1,3 +1,8 @@
+/* CANARY r9 (b24, QA S1): the desktop scene fits a laptop screen. vb 630x820 -> 630x622: the card, pods, slots and text are
+   unchanged; only the air b20/b22 added to fill the tall canvas beside Health over GitOps comes out (margins 75 -> 40, the
+   fork 118 -> 56, the wave 2 -> 3 wires 110 -> 44). Canary now has its own full row at >= 1344 (features.css), so its canvas
+   is the scene + 48 (670 at 1.0, 763 at 1.15): wave 1 -> wave 3 is on screen at 1366x768 (704 under the nav) and 1280x800
+   (736); v6k's canvas was 926 / 991. The seam (r9 S1) is below at T0. 390 unchanged.
 /* CANARY r8 (b22, review r8 S1): every card now draws at one unit (1.0 at 1440, 1.15 at >= 1920), so Canary no longer
    scales up to fill its canvas (v6k drew it at 1.08); the canvas beside Health over GitOps is ~878 tall inside at 1440. vb
    630x730 -> 630x820: the fork 88 -> 118, the wave 2 -> 3 wires 80 -> 110, margins 60 -> 75. Text, cards and pods unchanged.
@@ -24,7 +29,7 @@
    wave 2 slots leave before their regions spring in; page shadow; one dark surface system; resolved hold 1.4 s.
    Loop 6.2 s, rest 4.6. */
 VG.def('canary', {
-  loop: 6.2, rest: 4.6, vb: (ph) => (ph ? [326, 440] : [630, 820]),
+  loop: 6.2, rest: 4.6, vb: (ph) => (ph ? [326, 440] : [630, 622]),
   label: 'payments-svc 3.1.0 canary in prod us-east-1: traffic 10, 50, 100 percent, test passed, baked; then wave 2 regions start deploying',
   build(svg, id, ph) {
     const { el, w } = VG;
@@ -38,15 +43,15 @@ VG.def('canary', {
     const out = (t) => w(t, T0, T0 + 0.07, 'in'), inn = (t) => w(t, T0 + 0.07, T0 + 0.15, 'out');
     const RV = (n) => `3.${1 + n}.0`;
     const back = (t) => w(t, WR, WR + 0.15); // wave 1 back to deploying
-    const [W, H] = ph ? [326, 440] : [630, 820];
+    const [W, H] = ph ? [326, 440] : [630, 622];
     const S = KB.stage(svg, W, H, LOOP);
     KB.defs(svg, id);
     const base = S.base;
     const tt = (fn) => fn; // v6j: no exit; every track hands its end state to t 0 itself
     // v6e: the card is whole from the first frame (no fan-open, no collapse: copy audit, Railway Block 3); wave 2 and 3 sit below it
-    const C = ph ? { x: 12, y: 12, w: 302 } : { x: 45, y: 75, w: 540 };
+    const C = ph ? { x: 12, y: 12, w: 302 } : { x: 45, y: 40, w: 540 };
     const HC = 88, HE = ph ? 228 : 290;
-    const y2 = C.y + HE + (ph ? 40 : 118), y3 = y2 + 76 + (ph ? 36 : 110), h3 = ph ? 40 : 76;
+    const y2 = C.y + HE + (ph ? 40 : 56), y3 = y2 + 76 + (ph ? 36 : 44), h3 = ph ? 40 : 76;
     const slot = (y, h) => (ph ? [{ x: 12, y, w: 145, h }, { x: 169, y, w: 145, h }] : [{ x: 45, y, w: 250, h }, { x: 335, y, w: 250, h }]);
     const E2 = slot(y2, 76).map((e, i) => ({ ...e, n: ['eu-west-1', 'us-east-2'][i] }));
     const E3 = slot(y3, h3).map((e, i) => ({ ...e, n: ['eu-central-1', 'ap-south-1'][i] }));

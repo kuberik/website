@@ -2,15 +2,16 @@
 
    ONE RENDER SCALE (review r8 S1). Every vignette host is drawn at --vg-w x --vg-u (assets/css/vignettes.css): one scene
    unit = the same px in every card at a given width (and in Step in), so the scenes' 13 / 12 / 11 px type and their 8 px
-   card radius draw at one size across the section. --vg-u: 1.0 at 1344-1919, 1.15 at >= 1920, fluid (bound by the widest
-   scene's canvas) below. The grid below is shaped so every canvas holds its scene at that unit: viewBox widths are Gates
-   780, Canary and Releases 630, Health, GitOps, Dashboard 430 (phone compositions 326).
+   card radius draw at one size across the section. --vg-u: 1.0 below 1920, 1.15 at >= 1920 (r9: no fluid bands). The grid below
+   is shaped so every canvas holds its scene at that unit: viewBox widths are Gates 780, Canary and Releases 630, Health, GitOps, Dashboard 430 (phone compositions 326).
 
    >= 1344 (content >= 1200; 24 columns):
      Row 1  Gates, the full row: copy in a left column (30%, 300-440; 40% at >= 2400), the canvas beside it.
-     Row 2  Canary 14 | Health 10 over GitOps 10 (Canary is 730 tall, the pair stands in a canvas as tall).
-     Row 3  Dashboard 10 | Releases 14.
-   1024-1343: one card a row; Health, GitOps, Dashboard beside a copy column, Gates, Canary, Releases under their copy.
+     Row 2  Canary, the full row, split as Gates (r9 QA S1: its canvas is its own height, 670, not the pair's 926).
+     Row 3  Health 12 | GitOps 12.
+     Row 4  Dashboard 10 | Releases 14.
+   1024-1343: one card a row, copy | a canvas fitted to its scene (Health, GitOps, Dashboard; Canary, Releases >= 1132; Gates
+           >= 1282), else copy over canvas.
    <= 1023 (r9 B1): the phone compositions (326 wide, 1.0); the cards drop their shell; copy sits on the stage, canvas padding
            12, 56 between cards. 641-1023: copy | canvas (350). <= 640: copy over canvas (canvas <= 390).
    Radii (review r8 S2): the page card 12 (--card-r), every canvas 8, every scene card 8 (KB.card), chips 4.
@@ -70,39 +71,60 @@ html.js .fx .reveal:nth-child(4){transition-delay:120ms}
 }
 
 /* ---- 1024-1343: one card per row (review r8 S1: one render scale). The 24-column bento needs a 1200 content width to draw
-   every scene at 1.0; narrower, Health | GitOps 6 | 6 drew at 0.85 and Gates at 0.67 (11 px text at 7-9 px). So each card
-   takes the row: the 430-wide scenes (Health, GitOps, Dashboard) beside a copy column, as Gates is at 1440; the 630-780 wide
-   ones (Gates, Canary, Releases) under their copy, so their canvas has the full row. ---- */
+   every scene at 1.0. r9 (N3): the unit is 1.0 here too (v6k: fluid to 1.15, so 1343 -> 1344 stepped 1.15 -> 1.0 and 1023 ->
+   1024 1.0 -> 1.14 on resize). The canvas is fitted instead of the scene grown: a card is a split row, copy | a canvas
+   column of its scene's own width + 48 (--fx-sw), whenever the copy keeps >= 300 (content = viewport - 144): Health, GitOps,
+   Dashboard always (430), Canary and Releases from 1132 (630), Gates from 1282 (780). Narrower, the card keeps its canvas
+   under its copy, where the full row is at most ~1.4x the scene. As the 641-1023 rows, a canvas is never half empty. ---- */
 @media(min-width:1024px) and (max-width:1343px){
-  .fx-health,.fx-gitops,.fx-dashboard{display:grid;grid-template-columns:clamp(300px,30%,440px) minmax(0,1fr);align-items:stretch}
+  .fx-health,.fx-gitops,.fx-dashboard{--fx-sw:430px}
+  .fx-canary,.fx-releases{--fx-sw:630px}
+  .fx-gates{--fx-sw:780px}
+  .fx-health,.fx-gitops,.fx-dashboard{display:grid;grid-template-columns:minmax(0,1fr) calc(var(--fx-sw) + 2 * var(--canvas-pad) + var(--canvas-m));align-items:stretch}
   .fx-health > .fx-copy,.fx-gitops > .fx-copy,.fx-dashboard > .fx-copy{grid-row:1;grid-column:1;align-self:start;padding:var(--card-pad) 32px var(--card-pad) var(--card-pad)}
   .fx-health > .fx-canvas,.fx-gitops > .fx-canvas,.fx-dashboard > .fx-canvas{grid-row:1;grid-column:2;margin:var(--canvas-m) var(--canvas-m) var(--canvas-m) 0}
   .fx-gates .fx-title{font-size:calc(var(--t-card-title-s) + 4px);line-height:calc(var(--t-card-title-l) + 4px)}
 }
+@media(min-width:1132px) and (max-width:1343px){
+  .fx-canary,.fx-releases{display:grid;grid-template-columns:minmax(0,1fr) calc(var(--fx-sw) + 2 * var(--canvas-pad) + var(--canvas-m));align-items:stretch}
+  .fx-canary > .fx-copy,.fx-releases > .fx-copy{grid-row:1;grid-column:1;align-self:start;padding:var(--card-pad) 32px var(--card-pad) var(--card-pad)}
+  .fx-canary > .fx-canvas,.fx-releases > .fx-canvas{grid-row:1;grid-column:2;margin:var(--canvas-m) var(--canvas-m) var(--canvas-m) 0}
+}
+@media(min-width:1282px) and (max-width:1343px){
+  .fx-gates{display:grid;grid-template-columns:minmax(0,1fr) calc(var(--fx-sw) + 2 * var(--canvas-pad) + var(--canvas-m));align-items:stretch}
+  .fx-gates > .fx-copy{grid-row:1;grid-column:1;align-self:start;padding:var(--card-pad) 32px var(--card-pad) var(--card-pad)}
+  .fx-gates > .fx-canvas{grid-row:1;grid-column:2;margin:var(--canvas-m) var(--canvas-m) var(--canvas-m) 0}
+}
 
 /* ---- >= 1344 (content 1200 and up): the bento. Each card = a copy track + a canvas track (subgrid), so a row's canvases
-   share top and bottom. 24 columns: Canary 14 | Health over GitOps 10, Dashboard 10 | Releases 14. At 1200 that gives every
-   canvas the room to draw its scene at 1.0 (Canary 629 / 630, the pair 425 / 430, Gates 783 / 780); at 1440 and 1920 at
-   the 1.15 cap. Canary (730 tall) stands in a canvas as tall as Health + GitOps; at 2400+ the same rows (v6k drew Canary as a
-   split row there: ~730 px of empty copy column under "Run a canary", review r8 S4). ---- */
+   share top and bottom. 24 columns:
+     Row 1  Gates, the full row: copy in a left column (30%, 300-440; 40% at >= 2400), the canvas beside it.
+     Row 2  Canary, the full row, the same split (r9, QA S1): v6k stood Canary beside Health over GitOps, so its canvas was
+            that pair's height (926 at 1440, 1013 at 1920) and wave 1 -> wave 3 was taller than a laptop screen (704 under
+            the nav at 1366x768). Alone in its row the canvas is its scene + 48: 670 at 1.0, 763 at 1.15 (canary.js vb 630x622).
+     Row 3  Health 12 | GitOps 12 (the 430 scenes in 536 inner).
+     Row 4  Dashboard 10 | Releases 14.
+   At 1200 every canvas holds its scene at 1.0 (Gates 783 / 780, Canary 782 / 630, the pair 536 / 430, Dashboard 425 / 430
+   with 20 px padding, Releases 637 / 630); at >= 1920 (content 1440) at 1.15. ---- */
 @media(min-width:1344px){
   .fx{grid-template-columns:repeat(24,minmax(0,1fr));grid-template-rows:repeat(8,auto);row-gap:0;column-gap:var(--fx-gap)}
   .fx-card{display:grid;grid-template-rows:subgrid;row-gap:0;margin-bottom:var(--fx-gap)}
   .fx-card > .fx-copy{grid-row:1}
-  .fx-card > .fx-canvas{grid-row:2 / -1;align-self:stretch;padding-inline:20px}   /* 20: the pair's 10 columns hold 430 at 1.0 */
-  .fx-gates{grid-column:1 / -1;grid-row:1 / span 2;grid-template-rows:none;grid-template-columns:clamp(300px,30%,440px) minmax(0,1fr);align-items:stretch}
-  .fx-gates > .fx-copy{grid-row:1;grid-column:1;align-self:start;padding:var(--card-pad) 32px var(--card-pad) var(--card-pad)}
-  .fx-gates > .fx-canvas{grid-row:1;grid-column:2;margin:var(--canvas-m) var(--canvas-m) var(--canvas-m) 0}
-  .fx-gates .fx-title{font-size:calc(var(--t-card-title-s) + 4px);line-height:calc(var(--t-card-title-l) + 4px)}
-  .fx-canary{grid-column:1 / span 14;grid-row:3 / span 4}
-  .fx-health{grid-column:15 / -1;grid-row:3 / span 2}
-  .fx-gitops{grid-column:15 / -1;grid-row:5 / span 2}
+  .fx-card > .fx-canvas{grid-row:2 / -1;align-self:stretch;padding-inline:20px}   /* 20: Dashboard's 10 columns hold 430 at 1.0 */
+  .fx-gates,.fx-canary{grid-column:1 / -1;grid-template-rows:none;grid-template-columns:clamp(300px,30%,440px) minmax(0,1fr);align-items:stretch}
+  .fx-gates{grid-row:1 / span 2}
+  .fx-canary{grid-row:3 / span 2}
+  .fx-gates > .fx-copy,.fx-canary > .fx-copy{grid-row:1;grid-column:1;align-self:start;padding:var(--card-pad) 32px var(--card-pad) var(--card-pad)}
+  .fx-gates > .fx-canvas,.fx-canary > .fx-canvas{grid-row:1;grid-column:2;margin:var(--canvas-m) var(--canvas-m) var(--canvas-m) 0}
+  .fx-gates .fx-title,.fx-canary .fx-title{font-size:calc(var(--t-card-title-s) + 4px);line-height:calc(var(--t-card-title-l) + 4px)}
+  .fx-health{grid-column:1 / span 12;grid-row:5 / span 2}
+  .fx-gitops{grid-column:13 / -1;grid-row:5 / span 2}
   .fx-dashboard{grid-column:1 / span 10;grid-row:7 / span 2}
   .fx-releases{grid-column:11 / -1;grid-row:7 / span 2}
   .fx-releases,.fx-dashboard{margin-bottom:0}
 }
 @media(min-width:2400px){
-  .fx-gates{grid-template-columns:40% minmax(0,1fr)}
+  .fx-gates,.fx-canary{grid-template-columns:40% minmax(0,1fr)}
 }
 
 /* ---- <= 1023 (the phone compositions): no card shell; copy on the stage, then (<= 640) or beside (641-1023) its canvas.
