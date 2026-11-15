@@ -1,7 +1,6 @@
 {{- /* Section index (R3-DES-6; STYLE 2 "index"). Role: the section's docs home card, expanded. The home card
      (docs/home.html .kdh-card) is the group's header, outcome and a row per page; this is the same set with EVERY child
-     page (sidebar order, sidebar.exclude left out) as a link-card carrying the child's title and description clamped to
-     two lines, in a 2-column grid. The group's tile is already the page head, so the cards carry no tile (the old
+     page (sidebar order, sidebar.exclude left out) as a link-card carrying the child's title and full description, in a 2-column grid. The group's tile is already the page head, so the cards carry no tile (the old
      six-identical-tiles grid read thinner than the home card it expands). Component: docs/link-card.html, variant "card". */ -}}
 {{- $p := . -}}
 {{- $kids := where (union $p.RegularPages $p.Sections) "Params.sidebar.exclude" "!=" true -}}

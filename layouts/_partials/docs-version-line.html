@@ -1,6 +1,20 @@
-{{- /* Which release the docs describe (R3-IA-3). Plain text, one line, from data/releases.yaml. Role: tell a reader that a
-     page may describe main-only behaviour and which tags exist. No existing component fits (it is a sentence, not a card),
-     so it borrows the lead's type role: --ink-muted at the docs small size. Included under the docs-home hero. */ -}}
+{{- /* Which release the docs describe (R3-IA-3, redesigned R5-DES-6). Role: tell a reader the docs follow main and which
+     tag each component last shipped, so a reader scanning for "which version" finds a name and a tag, not a sentence.
+     Why new: no existing component lists name -> value pairs; the landing has no spec table and the docs card is a link.
+     Borrowed proportions: the lead role (--t-lead) for the one short sentence at the 640/720 reading measure, and the
+     docs definition rows (hairline per row, 14px muted name left, 13px inline-code chip right, same chip as .kd-content
+     code). Two columns from 641, one at phone width. Unreleased components are named plainly under the pairs.
+     Data: data/releases.yaml (released: name + tag, unreleased: names). Included under the docs-home hero. */ -}}
 {{- with site.Data.releases }}
-<p class="kdh-version" id="kdh-version">These docs describe the main branch. Latest releases: {{ range $i, $r := .released }}{{ if $i }}, {{ end }}<span class="kdh-rel">{{ $r.name }} <code>{{ $r.tag }}</code></span>{{ end }}.{{ with .unreleased }} Not yet released: {{ delimit . ", " " and " }}.{{ end }}</p>
+<div class="kdh-version" id="kdh-version">
+  <p class="kdh-version-lead">These docs describe main.</p>
+  <dl class="kdh-rels" aria-label="Latest release of each component">
+    {{- range .released }}
+    <div><dt>{{ .name }}</dt><dd><code>{{ .tag }}</code></dd></div>
+    {{- end }}
+  </dl>
+  {{- with .unreleased }}
+  <p class="kdh-version-note">Not released yet, documented from main: {{ delimit . ", " " and " }}.</p>
+  {{- end }}
+</div>
 {{- end }}
