@@ -7,6 +7,8 @@ weight: 40
 
 Kuberik reads Prometheus alerts as health checks. An alert that fires after a deploy fails that deploy, and new automatic deploys wait while it keeps firing.
 
+To chart and alert on Kuberik's own deploy state in Prometheus, see [Monitor Rollouts](/docs/operate/monitoring/).
+
 {{< callout type="important" >}}
 The `prometheus-alert` class comes from prometheus-controller, which has no release yet. Build it from its main branch as shown below.
 {{< /callout >}}
