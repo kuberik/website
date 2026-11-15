@@ -1,0 +1,7 @@
+{{- /* Which release the docs describe (R3-IA-3). Plain text, one line, from data/releases.yaml. Role: tell a reader that a
+     page may describe main-only behaviour and which tags exist. No existing component fits (it is a sentence, not a card),
+     so it borrows the lead's type role: --ink-muted at the docs small size. Included under the docs-home hero. */ -}}
+{{- with site.Data.releases }}
+<p class="kdh-version" id="kdh-version">These docs describe the main branch. Latest releases: {{ range $i, $r := .released }}{{ if $i }}, {{ end }}{{ $r.name }} <code>{{ $r.tag }}</code>{{ end }}.{{ with .unreleased }} Not yet released: {{ delimit . ", " " and " }}.{{ end }}</p>
+<style>.kdh-version{margin:0 0 28px;max-width:72ch;color:var(--ink-muted);font-size:14px;line-height:1.6}.kdh-version code{font-size:.92em;white-space:nowrap}</style>
+{{- end }}
