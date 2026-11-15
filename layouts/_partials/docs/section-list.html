@@ -1,13 +1,12 @@
 {{- /* Section index (R3-DES-6; STYLE 2 "index"). Role: the section's docs home card, expanded. The home card
      (docs/home.html .kdh-card) is the group's header, outcome and a row per page; this is the same set with EVERY child
-     page (sidebar order, sidebar.exclude left out) as a link-card carrying the child's title and full description, in a 2-column grid. R6-DES-8: the cards carry the group's tile, as the home card and Next steps do, so one card has one anatomy. Component: docs/link-card.html, variant "card". */ -}}
+     page (sidebar order, sidebar.exclude left out) as a link-card carrying the child's title and full description, in a 2-column grid. The cards carry no tile (R6 decision): every child would repeat the group's tile the page head already shows. The 404 cards do carry theirs, as they are different sections. Component: docs/link-card.html, variant "card". */ -}}
 {{- $p := . -}}
 {{- $kids := where (union $p.RegularPages $p.Sections) "Params.sidebar.exclude" "!=" true -}}
-{{- $g := partial "docs/group.html" $p -}}
 {{- with $kids -}}
 <ul class="kd-lc-grid kd-lc-grid-index">
   {{- range .ByWeight }}
-  <li>{{ partial "docs/link-card.html" (dict "variant" "card" "url" .RelPermalink "title" .Title "desc" .Description "icon" ($g.icon | default "page") "tone" $g.tone) }}</li>
+  <li>{{ partial "docs/link-card.html" (dict "variant" "card" "url" .RelPermalink "title" .Title "desc" .Description) }}</li>
   {{- end }}
 </ul>
 {{- end -}}
