@@ -13,16 +13,16 @@ The banner at the top of a rollout's **Overview** names what holds it. The words
 
 | The dashboard shows | Condition on the Rollout | Go to |
 |---|---|---|
-| **Deployment failed**, with **Retry** and **Roll back** | `Ready=False`, `BakeTimeFailed` | [The deployment failed](#the-deployment-failed) |
-| The **stuck** chip, "Stuck — deploying for 2h" | `bakeStatus` `Deploying` | [A deploy is stuck in Deploying](#a-deploy-is-stuck-in-deploying) |
+| **Deployment failed** banner<br>the **Retry** and **Roll back** buttons | `Ready=False`, `BakeTimeFailed` | [The deployment failed](#the-deployment-failed) |
+| The **stuck** chip<br>"Stuck — deploying for 2h" | `bakeStatus` `Deploying` | [A deploy is stuck in Deploying](#a-deploy-is-stuck-in-deploying) |
 | **Recovery mode**, while a deploy runs | `BakeFailureDisabled=True` | [A HealthCheck failed but the deploy did not](#a-healthcheck-failed-but-the-deploy-did-not) |
 | **Rolled back** | `status.history[0]` is older than the build before it (a pin or a force-deploy) | [Roll back to the previous build](#roll-back-to-the-previous-build) |
-| **Held**: "HealthCheck '…' in namespace '…' is not healthy" | `DeploymentBlocked=True`, `UnhealthyHealthChecks` | [Blocked by an unhealthy HealthCheck](#blocked-by-an-unhealthy-healthcheck) |
-| **production is waiting on an approval**, **Waiting for approval**, **Needs your approval** | `GatesPassing=False`, `NoAllowedVersions` | [Blocked by an approval](#blocked-by-an-approval-or-another-rule) |
+| **Held** banner<br>"HealthCheck '…' in namespace '…' is not healthy" | `DeploymentBlocked=True`, `UnhealthyHealthChecks` | [Blocked by an unhealthy HealthCheck](#blocked-by-an-unhealthy-healthcheck) |
+| **production is waiting on an approval**<br>**Waiting for approval**<br>**Needs your approval** | `GatesPassing=False`, `NoAllowedVersions` | [Blocked by an approval](#blocked-by-an-approval-or-another-rule) |
 | **production is waiting for payments ^1.67.0** | `GatesPassing=False`, `NoAllowedVersions` | [Blocked by a service dependency](#blocked-by-a-service-dependency) |
-| **production is waiting on promotion order**, **Lockstep is set on … only** | `GatesPassing=False`, `NoAllowedVersions` | [Promote Across Environments](/docs/releases/promote/#troubleshoot) |
-| **Automatic deploys are paused**, **production is held** | `GatesPassing=False`, `SomeGatesBlocking` | [Blocked by a closed schedule](#blocked-by-a-closed-schedule-or-a-failing-gate) |
-| **production is pinned to 1.4.1**, **Clear pin** | `DeploymentBlocked` reason `ManualDeployment` | [Blocked by a pin](#blocked-by-a-pin-or-a-pending-deploy-by-hand) |
+| **production is waiting on promotion order**<br>**Lockstep is set on … only** | `GatesPassing=False`, `NoAllowedVersions` | [Promote Across Environments](/docs/releases/promote/#troubleshoot) |
+| **Automatic deploys are paused**<br>**production is held** | `GatesPassing=False`, `SomeGatesBlocking` | [Blocked by a closed schedule](#blocked-by-a-closed-schedule-or-a-failing-gate) |
+| **production is pinned to 1.4.1**<br>the **Clear pin** button | `DeploymentBlocked` reason `ManualDeployment` | [Blocked by a pin](#blocked-by-a-pin-or-a-pending-deploy-by-hand) |
 | **No release source** | `ReleasesUpdated=False`, `ReleaseSourceRequired` | [No release source](#no-release-source) |
 | **No releases yet** | `Ready=False`, `NoReleases` | [No releases yet](#no-releases-yet) |
 
