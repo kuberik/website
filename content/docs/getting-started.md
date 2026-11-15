@@ -11,7 +11,7 @@ tabs:
 
 Deploy `hello-world` with Kuberik. At the end, every build your CI publishes is picked up by a [`ReleaseSource`](/docs/releases/publish/) and deployed by a [`Rollout`](/docs/concepts/rollouts/) through Flux.
 
-Before you start, you need a cluster with [Flux](https://fluxcd.io) 2.6 or later and [Kuberik](/docs/installation/helm/) installed, and a GitHub repository, here `acme/hello-world`, whose CI can push to `ghcr.io/acme/hello-world`. `ReleaseSource` is served by the release-controller, which the Helm chart installs from the next chart release. Pick Image tag or Rendered manifests in the tabs below; [Propagation Modes](/docs/concepts/propagation/) explains the difference.
+Before you start, you need a cluster with [Flux](https://fluxcd.io) 2.6 or later and [Kuberik](/docs/installation/helm/) installed, and a GitHub repository, here `acme/hello-world`, whose CI can push to `ghcr.io/acme/hello-world`. This tutorial needs the chart release after 0.7.0 {{< needs "Next release" >}}: it uses `ReleaseSource` and `spec.releaseSourceRef`, which chart 0.7.0 and its rollout-controller v0.9.2 do not have. Pick Image tag or Rendered manifests in the tabs below; [Propagation Modes](/docs/concepts/propagation/) explains the difference.
 
 {{% steps %}}
 
