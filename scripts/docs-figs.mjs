@@ -576,8 +576,10 @@ figs['health-bake'] = {
       chipSvg({ x: hbx(4) + 6, cy: 108, text: 'Healthy', state: 'green', anchor: 'start' }),
       band({ x: hbx(0), y: 127, w: hbx(4) - hbx(0), h: 2, state: 'gray' }),
       band({ x: hbx(4), y: 127, w: hbx(14) - hbx(4), h: 2, state: 'green' }),
-      text({ x: hbx(0) + 6, y: 156, t: 'deployTimeout: 15m, the bake must start inside it', role: 'label' }),
-      dim({ x1: hbx(0), x2: hbx(15), y: 170 }),
+      // deployTimeout is the clock until the bake starts (rollout_controller.go:1344-1357: only while BakeStartTime is
+      // nil), so its line ends where InProgress begins; bakeTime picks up from that tick to Succeeded.
+      text({ x: hbx(0) + 6, y: 156, t: 'deployTimeout: 15m, the limit for the bake to start', role: 'label' }),
+      dim({ x1: hbx(0), x2: hbx(4), y: 170 }),
       text({ x: hbx(4) + 6, y: 202, t: 'bakeTime: 10m, no error, then Succeeded', role: 'label' }),
       dim({ x1: hbx(4), x2: hbx(14), y: 216 }),
       notes({ x: 0, y: 238, w: 632, items: [
@@ -587,22 +589,23 @@ figs['health-bake'] = {
     ].join('')
   },
   narrow: {
-    w: 318, h: 284, body: [
-      band({ x: 0, y: 12, w: 6, h: 64, state: 'blue' }),
-      band({ x: 0, y: 76, w: 6, h: 160, state: 'yellow' }),
+    w: 318, h: 276, body: [
+      band({ x: 0, y: 12, w: 6, h: 88, state: 'blue' }),
+      band({ x: 0, y: 100, w: 6, h: 160, state: 'yellow' }),
       chipSvg({ x: 20, cy: 12, text: 'Deploying', state: 'blue', anchor: 'start' }),
       text({ x: 130, y: 16, t: 'deploy starts' }),
       text({ x: 20, y: 44, t: 'checks reset to Pending' }),
-      chipSvg({ x: 20, cy: 76, text: 'InProgress', state: 'yellow', anchor: 'start' }),
-      text({ x: 140, y: 80, t: 'every check Healthy' }),
-      chipSvg({ x: 20, cy: 236, text: 'Succeeded', state: 'green', anchor: 'start' }),
-      text({ x: 130, y: 240, t: 'bakeTime passed' }),
-      dim({ x1: 76, x2: 236, y: 290, v: true }),
-      text({ x: 280, y: 160, t: 'bakeTime: 10m', anchor: 'end' }),
-      dim({ x1: 12, x2: 252, y: 310, v: true }),
-      text({ x: 310, y: 276, t: 'deployTimeout: 15m', anchor: 'end' }),
-      dot(24, 147, 'red', 3.5),
-      text({ x: 36, y: 151, t: ['a check error', 'here or before:', 'Failed'] }),
+      chipSvg({ x: 20, cy: 100, text: 'InProgress', state: 'yellow', anchor: 'start' }),
+      text({ x: 140, y: 104, t: 'every check Healthy' }),
+      chipSvg({ x: 20, cy: 260, text: 'Succeeded', state: 'green', anchor: 'start' }),
+      text({ x: 130, y: 264, t: 'bakeTime passed' }),
+      // one measure column, two consecutive clocks: deployTimeout until the bake starts, then bakeTime.
+      dim({ x1: 12, x2: 100, y: 304, v: true }),
+      text({ x: 290, y: 70, t: 'deployTimeout: 15m', anchor: 'end' }),
+      dim({ x1: 100, x2: 260, y: 304, v: true }),
+      text({ x: 290, y: 184, t: 'bakeTime: 10m', anchor: 'end' }),
+      dot(24, 171, 'red', 3.5),
+      text({ x: 36, y: 175, t: ['a check error', 'here or before:', 'Failed'] }),
     ].join('')
   }
 };
