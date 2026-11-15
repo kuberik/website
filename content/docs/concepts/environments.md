@@ -73,7 +73,7 @@ Pinning staging to a release development never baked, or failed, deploys it to s
 
 ## Sites and waves
 
-One environment can run in several clusters. Each cluster's Environment is a site, named by `spec.site` (for example `eu-west-1`). Without `spec.site`, the controller uses its default site: the `site` key of the `kuberik-cluster-info` ConfigMap in the controller's namespace, else `default`.
+One environment can run in several clusters. Each cluster's Environment is a site, named by `spec.site` (for example `eu-west-1`), so an environment split across clusters sets `spec.site` on each of its Environments. An Environment without `spec.site` uses the controller's default site. With the [kubectl install](/docs/installation/manual/) that is the `site` key of the `kuberik-cluster-info` ConfigMap in the controller's namespace; with the [Helm chart](/docs/installation/helm/), or without that key, it is `default`.
 
 Sites roll out in waves. `spec.wave` defaults to 1, and wave N starts a release only after every site of wave N-1 baked it. Number waves from 1 without gaps: a missing wave closes the gates of every site in that environment and sets reason `InvalidTopology`.
 
