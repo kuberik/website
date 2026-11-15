@@ -6,9 +6,13 @@ icon: cube
 weight: 10
 ---
 
-Install Kuberik from its Helm chart: one release installs the rollout-controller, the release-controller, the integration controllers you turn on, and the dashboard.
+Install Kuberik from its Helm chart: one release installs the rollout-controller, the release-controller {{< needs "Next release" >}}, the integration controllers you turn on, and the dashboard.
 
-Before you start, you need Helm 3 and [Flux](https://fluxcd.io/flux/installation/) 2.6 or later in the cluster: Kuberik picks the version and [Flux](/docs/integrations/fluxcd/) applies it.
+Before you start, you need Helm 3 and Flux 2.7 or later in the cluster ([install Flux](https://fluxcd.io/flux/installation/)): Kuberik picks the version and [Flux](/docs/integrations/fluxcd/) applies it. The rollout-controller the chart installs does not start without Flux's `ImagePolicy` CRD (`image.toolkit.fluxcd.io/v1`), and a default `flux install` leaves out the image-reflector-controller that serves it. Add it:
+
+```bash {filename="Terminal"}
+flux install --components-extra=image-reflector-controller
+```
 
 ## Install the chart
 
@@ -22,7 +26,7 @@ helm install kuberik kuberik/kuberik \
   --set createNamespace=false
 ```
 
-The chart is also published as an OCI artifact, `oci://ghcr.io/kuberik/charts/kuberik`; use it in place of `kuberik/kuberik` with the same flags. The release-controller, which serves the `ReleaseSource` objects your Rollouts read their releases from, is on by default and needs no values.
+The chart is also published as an OCI artifact, `oci://ghcr.io/kuberik/charts/kuberik`; use it in place of `kuberik/kuberik` with the same flags. The release-controller, which serves the `ReleaseSource` objects your Rollouts read their releases from, is on by default and needs no values {{< needs "Next release" >}}.
 
 ## Turn on integration controllers
 
@@ -32,15 +36,13 @@ Each integration controller is off by default. Turn on the ones you use in your 
 integrations:
   datadog:
     enabled: true       # Datadog monitors as health checks
-  prometheus:
-    enabled: true       # Prometheus alerts as health checks
   openkruise:
     enabled: true       # canary steps with OpenKruise Rollout
   environment:
     enabled: true       # promotion across clusters via GitHub
 ```
 
-[Datadog](/docs/integrations/datadog/), [Prometheus](/docs/integrations/prometheus/), [Roll Out with a Canary](/docs/releases/canary/) and [GitHub](/docs/integrations/github/) cover the resources each controller reads.
+[Datadog](/docs/integrations/datadog/), [Roll Out with a Canary](/docs/releases/canary/) and [GitHub](/docs/integrations/github/) cover the resources each controller reads. The prometheus-controller has no release yet, so the chart does not install it; [Prometheus](/docs/integrations/prometheus/) shows how to build and deploy it.
 
 ## Expose the dashboard
 
@@ -80,7 +82,7 @@ auth:
     namespace: envoy-gateway-system
 ```
 
-A Secret keeps the client secret out of the rendered manifest and the cookie secret stable across upgrades; `auth.oidc.clientSecret` sets it inline instead. The chart's defaults let `/api/` requests and the dashboard's static files (`^/_app/`, favicon, icons, manifest) through without a sign-in redirect, so a stale session does not break polling or the page bundle {{< needs "Next release" >}}. [Set Up Dashboard Sign-in](/docs/installation/dashboard-auth/) covers the OIDC client and the kube-apiserver flags.
+A Secret keeps the client secret out of the rendered manifest and the cookie secret stable across upgrades; `auth.oidc.clientSecret` sets it inline instead. The chart's defaults answer `/api/` requests with 401 instead of a sign-in redirect, and serve the dashboard's static files (`^/_app/`, favicon, icons, manifest) without sign-in, so a stale session does not break polling or the page bundle {{< needs "Next release" >}}. The API itself still needs a signed-in user. [Set Up Dashboard Sign-in](/docs/installation/dashboard-auth/) covers the OIDC client and the kube-apiserver flags.
 
 ## Connect several clusters
 
@@ -134,7 +136,7 @@ After chart 0.7.0, Rollouts get releases only from a `ReleaseSource`: create one
 helm uninstall kuberik --namespace kuberik-system
 ```
 
-The CRDs stay, with every Rollout and gate in them (`crds.keep`). To remove them too:
+The CRDs stay, with every Rollout and gate in them (`crds.keep`). To remove them too (`releasesources` and `releaseslices` come with the release-controller {{< needs "Next release" >}}; `--ignore-not-found` skips them before that):
 
 ```bash {filename="Terminal"}
 kubectl delete crd --ignore-not-found \
@@ -154,7 +156,7 @@ Deleting the CRDs deletes every `Rollout`, `RolloutGate`, `HealthCheck`, `Releas
 kubectl -n kuberik-system get deployments
 ```
 
-The `rollout-controller` and `release-controller-controller-manager` Deployments are ready, plus `rollout-dashboard` and one Deployment per integration you turned on.
+The `rollout-controller` Deployment is ready, plus `release-controller` {{< needs "Next release" >}}, `rollout-dashboard` and one Deployment per integration you turned on.
 
 ## Troubleshoot {#troubleshooting}
 
