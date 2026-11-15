@@ -178,9 +178,9 @@ html.dark .vg .kb .band-teal.wash-land{fill:oklch(.47 .07 184);opacity:1}
    units wide, and one unit (--vg-u) is the same length in every vignette at a given width, so all seven draw at one scale.
    r9: ONE unit everywhere below 1920 (1.0), 1.15 at >= 1920 (where --cont steps 1200 -> 1440). The fluid bands are gone:
    641-1023 drew the desktop scenes at 0.65-1.1 (chips 6.5-8.4 px) and 1343 -> 1344 stepped 1.15 -> 1.0 on resize. The
-   canvases are sized for the unit (features.css, stepin.css); min(100%) is only a guard.
+   canvases are sized for the unit (features.css); min(100%) is only a guard.
    <= 1023 the host holds the PHONE composition (every one 326 wide, posters.mjs; the engine's PHONE query is the same
-   1023): 326 x the unit, in a 350 canvas column (features.css, stepin.css). 390 draws exactly as before (326 in 350). */
+   1023): 326 x the unit, in a 350 canvas column (features.css). 390 draws exactly as before (326 in 350). */
 .vg{width:min(100%,calc(var(--vg-w,780) * var(--vg-u,1px)));margin-inline:auto;--vg-u:1px}
 @media(min-width:1920px){.vg{--vg-u:1.15px}}
 /* r11 (R11-DES-3, owner rule: no lone small object at very wide sizes): >= 2400 --cont steps 1440 -> 1920 (tokens.css), and at

@@ -13,8 +13,6 @@ html.dark .vg .kb{--b-fail:oklch(.66 .19 25);--b-fail-ink:oklch(.78 .13 25);--b-
 .vg .kb .row-run{fill:var(--b-run);opacity:.7}
 .vg .kb .row-hover{fill:var(--b-quiet)}
 .vg .kb .btn2 rect{fill:var(--b-card);stroke:var(--b-card-line)}
-/* Step in's canvas is the section's mint canvas: the dark card takes the same lift the mint feature canvases give it */
-html.dark .si-canvas .vg .kb{--b-card:oklch(.355 .035 192);--b-quiet:oklch(.37 .035 192)}
 /* v6k (b19). S6: the Pinned status chip's glyph takes the chip's held ink (the text gets it from .c-held text). */
 .vg .kb .si-pin .si-pin-ic{stroke:var(--b-held-ink)}
 /* v6k (b19, nit): Step in's bake wash and bar. Light: the kit's pale prog wash (.55, as .band-prog). Dark: the card's neutral

@@ -10,7 +10,7 @@
       <p>Open source under Apache 2.0.<br>© {{ now.Year }} the Kuberik authors.</p>
     </div>
     <nav class="foot-col" aria-labelledby="fc-product"><h2 id="fc-product">Product</h2>
-      {{- range site.Data.landing.features.items }}<a href="{{ if not $.IsHome }}/{{ end }}#{{ .id }}">{{ .name }}</a>{{ end -}}<a href="{{ if not $.IsHome }}/{{ end }}#step-in">{{ site.Data.landing.stepin.name }}</a>
+      {{- range site.Data.landing.features.items }}<a href="{{ if not $.IsHome }}/{{ end }}#{{ .id }}">{{ .name }}</a>{{ end -}}
     </nav>
     <nav class="foot-col" aria-labelledby="fc-docs"><h2 id="fc-docs">Docs</h2>
       {{- range site.Data.footer.docs }}<a href="{{ .href }}">{{ .name }}</a>{{ end }}

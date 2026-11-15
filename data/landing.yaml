@@ -18,12 +18,13 @@ thesis:
     - { fig: update,  name: update,  own: "Kuberik",  q: "How does it reach the cluster?" }
     - { fig: health,  name: health,  own: "Optional", q: "Did it actually work?" }
 
-# FEATURES: six peers, one anatomy (visual card, title, two lines of body, one docs link).
+# FEATURES: seven peers, one anatomy (visual card, title, two lines of body, one docs link).
 # Every sentence is checked against content/docs (fact sheet in BRIEF.md "Truth rules").
 features:
   title: "Every step of a release, declared."
   body: "Gates, health checks, canaries and waves are declared on resources the controller reconciles in each cluster. Write them once and every build goes through them."
-  # Order = the bento (assets/css/features.css): Gates on its own row; Canary beside Health over GitOps; Dashboard beside Releases.
+  # Order = the bento (assets/css/features.css): Gates, then Canary, each on its own row; Health beside GitOps; Dashboard beside
+  # Releases; Step in on its own row.
   # hue = the card's canvas tint (lagoon / mint). The footer's Product links follow this order.
   items:
     - id: gates
@@ -62,14 +63,12 @@ features:
       title: "Every new tag becomes a release you can trace."
       body: "A ReleaseSource watches your OCI registry, orders the tags by version and records each release's digest and the git commit it was built from."
       link: { text: "Publish releases", href: "/docs/releases/publish/" }
+    # Step in (the seventh card): day-2 operation, the one person-driven story: a failed release, rolled back from the
+    # history, which pins the build (spec.wantedVersion). The full list of manual actions stays on the docs page.
+    - id: stepin
+      hue: lagoon
+      name: "Rollback"
+      title: "Step in when a release needs you."
+      body: "When a release fails, roll it back from the rollout's history; Kuberik keeps that build pinned until you clear the pin."
+      link: { text: "Roll back a release", href: "/docs/operate/manual-actions/#roll-back-to-the-previous-version" }
 
-# STEP IN (landing v6j/v6k, LANDING-REVIEW.md): day-2 operation. "Hands-off" invites the question "and when it goes wrong?";
-# this answers it with the one person-driven story the vignette enacts: a failed release, rolled back from the history,
-# which pins (rollouts/[..]/+page.svelte "A rollback started in this product ALWAYS pins"; spec.wantedVersion).
-# v6k: the actions list (Roll back / Retry / Skip once / Approve + handles) left the landing (owner: "not sure we need
-# these on the landing"); the docs page lists them.
-stepin:
-  name: "Day two"
-  title: "Step in when a release needs you."
-  body: "When a release fails, roll it back from the rollout's history; Kuberik keeps that build pinned until you clear the pin."
-  link: { text: "Operate a rollout", href: "/docs/operate/manual-actions/" }

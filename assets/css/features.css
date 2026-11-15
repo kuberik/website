@@ -1,17 +1,24 @@
 /* ===== FEATURES (landing v6). DIRECTION 1.4 / 2 / 3; the canvases hold the take B feature vignettes. =====
 
    ONE RENDER SCALE (review r8 S1). Every vignette host is drawn at --vg-w x --vg-u (assets/css/vignettes.css): one scene
-   unit = the same px in every card at a given width (and in Step in), so the scenes' 13 / 12 / 11 px type and their 8 px
+   unit = the same px in every card at a given width, so the scenes' 13 / 12 / 11 px type and their 8 px
    card radius draw at one size across the section. --vg-u: 1.0 below 1920, 1.15 at >= 1920 (r9: no fluid bands). The grid below
-   is shaped so every canvas holds its scene at that unit: viewBox widths are Gates 780, Canary and Releases 630, Health, GitOps, Dashboard 430 (phone compositions 326).
+   is shaped so every canvas holds its scene at that unit: viewBox widths are Step in 840, Gates 780, Canary and Releases 630, Health, GitOps,
+   Dashboard 430 (phone compositions 326). --vg-u: 1.4 at >= 2400 (vignettes.css).
+
+   SEVEN CARDS. Step in is the seventh card, last: the six show the controller acting, the seventh the one place a person acts. Every row below is full:
+   a full-row card or a pair; no lone cell, no ragged row end at any width.
 
    >= 1344 (content >= 1200; 24 columns):
      Row 1  Gates, the full row: copy in a left column (30%, 300-440; 40% at >= 2400), the canvas beside it.
      Row 2  Canary, the full row, split as Gates (r9 QA S1: its canvas is its own height, 670, not the pair's 926).
      Row 3  Health 12 | GitOps 12.
      Row 4  Dashboard 10 | Releases 14.
+     Row 5  Step in, the full row: copy | a canvas fitted to its 840 scene at the unit (1.0 / 1.15 / 1.4), the copy takes
+            the rest (>= 300). 1282-1343 split as Gates at 0.93.
    1024-1343: one card a row, copy | a canvas fitted to its scene (Health, GitOps, Dashboard; Canary, Releases >= 1132; Gates
-           >= 1282), else copy over canvas.
+           >= 1282), else copy over canvas. Step in: from 1282 split as Gates (same columns, its 840 scene at 0.93);
+           below, copy over canvas, canvas side padding 8 so the 840 scene holds 1.0 (inner 846; its section drew it in 846 too).
    <= 1023 (r9 B1): the phone compositions (326 wide, 1.0); the cards drop their shell; copy sits on the stage, canvas padding
            12, 56 between cards. 641-1023: copy | canvas (350). <= 640: copy over canvas (canvas <= 390).
    Radii (review r8 S2): the page card 12 (--card-r), every canvas 8, every scene card 8 (KB.card), chips 4.
@@ -41,6 +48,7 @@ html.dark .fx-stage .b2{background:radial-gradient(closest-side,oklch(.4 .07 182
 .fx{list-style:none;margin:var(--head-gap) 0 0;padding:0;display:grid;grid-template-columns:minmax(0,1fr);gap:var(--fx-gap)}
 .fx-card{position:relative;display:flex;flex-direction:column;min-width:0;scroll-margin-top:96px;
   background:var(--card-fill);border:1px solid var(--card-border);border-radius:var(--card-r);box-shadow:var(--card-shadow)}
+.fx-anchor{position:absolute;top:0;left:0;scroll-margin-top:96px}   /* #step-in, the id of the former Step in section; absolute, so it takes no grid cell */
 .fx-copy{display:flex;flex-direction:column;align-items:flex-start;padding:var(--card-pad) var(--card-pad) 24px;min-width:0}
 .fx-name{margin:0;font:500 var(--t-label-s)/var(--t-label-l) var(--sans);color:var(--fx-ink-lagoon)}
 .fx-mint .fx-name{color:var(--fx-ink-mint)}
@@ -84,6 +92,7 @@ html.js .fx .reveal:nth-child(4){transition-delay:120ms}
   .fx-health > .fx-copy,.fx-gitops > .fx-copy,.fx-dashboard > .fx-copy{grid-row:1;grid-column:1;align-self:start;padding:var(--card-pad) 32px var(--card-pad) var(--card-pad)}
   .fx-health > .fx-canvas,.fx-gitops > .fx-canvas,.fx-dashboard > .fx-canvas{grid-row:1;grid-column:2;margin:var(--canvas-m) var(--canvas-m) var(--canvas-m) 0}
   .fx-gates .fx-title{font-size:calc(var(--t-card-title-s) + 4px);line-height:calc(var(--t-card-title-l) + 4px)}
+  .fx-stepin > .fx-canvas{padding-inline:8px}
 }
 @media(min-width:1132px) and (max-width:1343px){
   .fx-canary,.fx-releases{display:grid;grid-template-columns:minmax(0,1fr) calc(var(--fx-sw) + 2 * var(--canvas-pad) + var(--canvas-m));align-items:stretch}
@@ -91,9 +100,11 @@ html.js .fx .reveal:nth-child(4){transition-delay:120ms}
   .fx-canary > .fx-canvas,.fx-releases > .fx-canvas{grid-row:1;grid-column:2;margin:var(--canvas-m) var(--canvas-m) var(--canvas-m) 0}
 }
 @media(min-width:1282px) and (max-width:1343px){
-  .fx-gates{display:grid;grid-template-columns:minmax(0,1fr) calc(var(--fx-sw) + 2 * var(--canvas-pad) + var(--canvas-m));align-items:stretch}
-  .fx-gates > .fx-copy{grid-row:1;grid-column:1;align-self:start;padding:var(--card-pad) 32px var(--card-pad) var(--card-pad)}
-  .fx-gates > .fx-canvas{grid-row:1;grid-column:2;margin:var(--canvas-m) var(--canvas-m) var(--canvas-m) 0}
+  .fx-gates,.fx-stepin{display:grid;grid-template-columns:minmax(0,1fr) calc(var(--fx-sw) + 2 * var(--canvas-pad) + var(--canvas-m));align-items:stretch}
+  .fx-stepin{--fx-sw:780px}   /* split as Gates, the same columns; its 840 scene draws at 0.93 */
+  .fx-gates > .fx-copy,.fx-stepin > .fx-copy{grid-row:1;grid-column:1;align-self:start;padding:var(--card-pad) 32px var(--card-pad) var(--card-pad)}
+  .fx-gates > .fx-canvas,.fx-stepin > .fx-canvas{grid-row:1;grid-column:2;margin:var(--canvas-m) var(--canvas-m) var(--canvas-m) 0;padding-inline:var(--canvas-pad)}
+  .fx-stepin .fx-title{font-size:calc(var(--t-card-title-s) + 4px);line-height:calc(var(--t-card-title-l) + 4px)}
 }
 
 /* ---- >= 1344 (content 1200 and up): the bento. Each card = a copy track + a canvas track (subgrid), so a row's canvases
@@ -104,10 +115,12 @@ html.js .fx .reveal:nth-child(4){transition-delay:120ms}
             the nav at 1366x768). Alone in its row the canvas is its scene + 48: 670 at 1.0, 763 at 1.15 (canary.js vb 630x622).
      Row 3  Health 12 | GitOps 12 (the 430 scenes in 536 inner).
      Row 4  Dashboard 10 | Releases 14.
+     Row 5  Step in, the full row: copy | a canvas fitted to its 840 scene at the unit (840 x --fx-u + 48), the copy
+            the rest (>= 300), so it draws at 1.0 / 1.15 / 1.4 like the six. Title at the full rows' +4 size.
    At 1200 every canvas holds its scene at 1.0 (Gates 783 / 780, Canary 782 / 630, the pair 536 / 430, Dashboard 425 / 430
    with 20 px padding, Releases 637 / 630); at >= 1920 (content 1440) at 1.15. ---- */
 @media(min-width:1344px){
-  .fx{grid-template-columns:repeat(24,minmax(0,1fr));grid-template-rows:repeat(8,auto);row-gap:0;column-gap:var(--fx-gap)}
+  .fx{grid-template-columns:repeat(24,minmax(0,1fr));grid-template-rows:repeat(10,auto);row-gap:0;column-gap:var(--fx-gap)}
   .fx-card{display:grid;grid-template-rows:subgrid;row-gap:0;margin-bottom:var(--fx-gap)}
   .fx-card > .fx-copy{grid-row:1}
   .fx-card > .fx-canvas{grid-row:2 / -1;align-self:stretch;padding-inline:20px}   /* 20: Dashboard's 10 columns hold 430 at 1.0 */
@@ -121,10 +134,16 @@ html.js .fx .reveal:nth-child(4){transition-delay:120ms}
   .fx-gitops{grid-column:13 / -1;grid-row:5 / span 2}
   .fx-dashboard{grid-column:1 / span 10;grid-row:7 / span 2}
   .fx-releases{grid-column:11 / -1;grid-row:7 / span 2}
-  .fx-releases,.fx-dashboard{margin-bottom:0}
+  .fx-stepin{grid-column:1 / -1;grid-row:9 / span 2;margin-bottom:0;grid-template-rows:none;--fx-u:1px;
+    grid-template-columns:minmax(300px,1fr) min(calc(840 * var(--fx-u) + 40px + var(--canvas-m)),calc(100% - 300px));align-items:stretch}
+  .fx-stepin > .fx-copy{grid-row:1;grid-column:1;align-self:start;padding:var(--card-pad) 32px var(--card-pad) var(--card-pad)}
+  .fx-stepin > .fx-canvas{grid-row:1;grid-column:2;margin:var(--canvas-m) var(--canvas-m) var(--canvas-m) 0}
+  .fx-stepin .fx-title{font-size:calc(var(--t-card-title-s) + 4px);line-height:calc(var(--t-card-title-l) + 4px)}
 }
+@media(min-width:1920px){.fx-stepin{--fx-u:1.15px}}   /* --fx-u follows .vg --vg-u (vignettes.css) */
 @media(min-width:2400px){
   .fx-gates,.fx-canary{grid-template-columns:40% minmax(0,1fr)}
+  .fx-stepin{--fx-u:1.4px}
 }
 
 /* ---- <= 1023 (the phone compositions): no card shell; copy on the stage, then (<= 640) or beside (641-1023) its canvas.

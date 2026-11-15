@@ -96,10 +96,10 @@ node scripts/film/strip.mjs /tmp/jit 'cut gates' strip.png       # the ~60 fps f
 - The served page shows only the current film: re-shoot the posters with every first-frame change.
 - No music, no popover or site picker, no slogans, no overlays carrying numbers the product does not print.
 
-# Feature vignettes (the six feature cards)
+# Feature vignettes (the seven feature cards)
 
-The six cards under "Every step of a release, declared." are not islands. Each canvas holds a designed motion graphic, take B v6h
-(owner pick, 2026-11-14), built from the dashboard's marks, chips, wires and tokens, not from the dashboard's components. They were
+The seven feature cards are not islands. Each canvas holds a designed motion graphic,
+built from the dashboard's marks, chips, wires and tokens, not from the dashboard's components. They were
 section islands (real dashboard Cards at natural scale) until 2026-11-14; that mechanism, its posters, `data/section_poster.yaml` and
 `scripts/section/` are gone. The hero film is unchanged and is the only island left (`registry.ts` has one entry).
 
