@@ -57,6 +57,8 @@ Declare one annotation per substitution variable. A frontend and a backend manag
 
 Your CI renders the manifests for an environment (`kustomize build`, `helm template`, `cdk8s synth`, whatever you already run) and pushes the result as an OCI artifact to a path scoped to that environment. Kuberik owns the tag on the matching OCIRepository.
 
+On a rendered-manifests rollout, **View source** in the rollout header shows the files of the artifact that is deployed, one tab per file:
+
 ![The View source dialog of a rendered-manifests rollout in production: Source files for checkout-edge at artifact tag vd09e6f4, one tab per rendered file (deployment.yaml, configmap.yaml), and the Deployment exactly as it was applied](/images/docs/concepts/overview-manifests.png)
 
 ```yaml {filename="ocirepository.yaml"}
