@@ -57,6 +57,10 @@ function pill({ x, y, text, state = 'gray' }) {
 
 // edge: an arrow along points, corners rounded (r 8, the landing Gates wire), open chevron head.
 // kind: ink (default, ink-subtle), act (Kuberik writes: mint), held (amber), pass (green).
+// COLOUR RULE (R6-DES-4): amber means held/waiting on a gate or a window, and it is one hue in every figure (the
+// dashboard's held token, see docs-figs.css): chips state 'amber', wires kind 'held', dots 'amber'. InProgress is
+// yellow (the dashboard's checking colour: actively baking, not held). HealthCheck Pending is gray (no verdict yet),
+// as in health-bake, so a reader learns one code across all figures.
 function edge(pts, { kind = 'ink', dashed = false, head = true, label, r = 8 } = {}) {
   let d = `M${pts[0][0]} ${pts[0][1]}`;
   for (let i = 1; i < pts.length; i++) {
@@ -397,7 +401,7 @@ figs['flux-propagation'] = {
 // ============ datadog-health-paths: two ways Datadog state reaches a Rollout (integrations/datadog) ============
 const hcChips = (x, cy) => chipSvg({ x, cy, text: 'Healthy', state: 'green', anchor: 'start' }) +
   chipSvg({ x: x + chipW('Healthy') + 8, cy, text: 'Unhealthy', state: 'red', anchor: 'start' }) +
-  chipSvg({ x: x + chipW('Healthy') + chipW('Unhealthy') + 16, cy, text: 'Pending', state: 'amber', anchor: 'start' });
+  chipSvg({ x: x + chipW('Healthy') + chipW('Unhealthy') + 16, cy, text: 'Pending', state: 'gray', anchor: 'start' });
 figs['datadog-health-paths'] = {
   title: 'datadog-controller turns monitors and incidents into HealthChecks; the Rollout reads only the HealthChecks',
   desc: 'Two paths. Through the API: datadog-controller reads Datadog monitors and incidents with DD_API_KEY and DD_APP_KEY and writes HealthChecks of class datadog or datadog-incidents. Through the Datadog Operator: a DatadogMonitor resource synced by the operator and annotated kuberik.com/health-check: "true" makes datadog-controller write a HealthCheck datadog-check-<name> of class datadog-monitor-crd. The Rollout selects both with healthCheckSelector. A HealthCheck is Healthy, Unhealthy or Pending.',
