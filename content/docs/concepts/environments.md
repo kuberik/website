@@ -38,10 +38,6 @@ spec:
 | `backend` | The GitHub repository (`owner/repo`) and the Secret that holds the token. `github` is the only backend. |
 | `site`, `wave`, `lockstep` | Optional. Split one environment across clusters, see [Sites and waves](#sites-and-waves). |
 
-{{< callout type="important" >}}
-`spec.relationship` is accepted and ignored; the Environment then reports `Deprecated`, reason `RelationshipIgnored`.
-{{< /callout >}}
-
 ## How tiers set the order
 
 Tiers have a fixed order. `spec.environment` must be one of these names, and names in one row are the same tier:
