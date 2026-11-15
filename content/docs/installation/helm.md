@@ -139,6 +139,7 @@ kubectl delete crd --ignore-not-found \
   rollouts.kuberik.com rolloutgates.kuberik.com healthchecks.kuberik.com \
   rolloutschedules.kuberik.com clusterrolloutschedules.kuberik.com \
   rolloutdependencies.kuberik.com releasesources.kuberik.com releaseslices.kuberik.com \
+  approvalpolicies.kuberik.com clusterapprovalpolicies.kuberik.com rolloutapprovals.kuberik.com \
   rollouttests.rollout.kuberik.com environments.environments.kuberik.com
 ```
 
