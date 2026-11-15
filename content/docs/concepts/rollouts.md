@@ -11,7 +11,7 @@ A **Rollout** deploys the builds of one OCI artifact into one environment, one b
 
 A [Rollout](/docs/reference/api/#rollout) reads its releases from a [`ReleaseSource`](/docs/releases/publish/), which lists the tags of an OCI repository. Every release newer than the deployed one is a candidate. The Rollout deploys the newest candidate that every [gate](#when-a-deploy-is-held) allows, by writing the version to the Flux source it owns: a `Kustomization` substitution variable or an `OCIRepository` tag. It then [bakes](#how-a-deploy-is-verified) the build and records the outcome in `status.history`.
 
-Kuberik deploys one version at a time. If `v1.2.0` is deploying or baking when `v1.3.0` and `v1.4.0` arrive, both wait as candidates. When `v1.2.0` succeeds, the Rollout deploys the newest candidate the gates allow, `v1.4.0`, and skips `v1.3.0`.
+Kuberik deploys one version at a time. If 1.2.0 is deploying or baking when 1.3.0 and 1.4.0 arrive, both wait as candidates. When 1.2.0 succeeds, the Rollout deploys the newest candidate the gates allow, 1.4.0, and skips 1.3.0.
 
 ## Rollout resource
 
