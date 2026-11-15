@@ -92,7 +92,7 @@ To follow new releases again, select **Clear pin** on the Overview banner or on 
 2. Otherwise, select **Roll back** in the rollout header. It shows whenever an older build exists, and goes to the last older build this environment ran, else to the release just below the running one. To pick the build yourself, select **Change version** and choose an older one; the dialog turns into **Roll back *environment* to *build***.
 3. A rollback always pins, so the dialog has no **Pin build** switch. Confirm with **Roll back**; in production, write why and type the build first.
 
-The rollout stays on that build, under a **Rolled back** banner, until you select **Clear pin**. A force-deploy back does not hold: see [Operate with kubectl](/docs/operate/manual-actions/#roll-back-to-the-previous-version).
+The rollout stays on that build, under a **Rolled back** banner, until you select **Clear pin**. A force-deploy back does not hold: see [Deploy a specific version](/docs/operate/manual-actions/#deploy-a-specific-version).
 
 ## Check the result
 
