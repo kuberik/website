@@ -82,8 +82,9 @@
     </nav>
     {{- /* hextra pins the active row (.hextra-sidebar-active-item) to the top of the list, hiding its group label; the
          tree marks it .kd-active instead and scrolls only when the row is out of view. The scroll lands on the active
-         group's label when the group fits, else on a whole row, so the first visible line is never cut (R11P-DES-1) */}}
-    <script>(function(){var s=document.currentScript.parentNode,a=s.querySelector('.kd-active');if(!a)return;var r=a.getBoundingClientRect(),c=s.getBoundingClientRect();if(r.bottom<=c.bottom-24)return;function y(e){return e.getBoundingClientRect().top-c.top+s.scrollTop}var t=y(a)-c.height/2+r.height/2,g=a.closest('.kd-group'),l=g&&g.querySelector('.kd-group-label');if(l&&y(a)+r.height-y(l)<c.height-24)t=y(l)-8;t=Math.min(t,s.scrollHeight-s.clientHeight);var b=0;s.querySelectorAll('.kd-group-label,.kd-row').forEach(function(e){var v=y(e)-(e.classList.contains('kd-row')?0:8);if(v<=t&&v>b)b=v});s.scrollTop=Math.max(0,b)})()</script>
+         group's label when the group fits, else on a whole row, so the first visible line is never cut (R11P-DES-1); only snaps that keep the active row inside
+         the list count; when none does (the row sits at the very end), it scrolls to the target unrounded (QA11-1) */}}
+    <script>(function(){var s=document.currentScript.parentNode,a=s.querySelector('.kd-active');if(!a)return;var r=a.getBoundingClientRect(),c=s.getBoundingClientRect();if(r.bottom<=c.bottom-24)return;function y(e){return e.getBoundingClientRect().top-c.top+s.scrollTop}var t=y(a)-c.height/2+r.height/2,g=a.closest('.kd-group'),l=g&&g.querySelector('.kd-group-label');if(l&&y(a)+r.height-y(l)<c.height-24)t=y(l)-8;t=Math.min(t,s.scrollHeight-s.clientHeight);var f=y(a)+r.height-c.height+8,b=-1;s.querySelectorAll('.kd-group-label,.kd-row').forEach(function(e){var v=y(e)-(e.classList.contains('kd-row')?0:8);if(v<=t&&v>=f&&v>b)b=v});s.scrollTop=Math.max(0,b<0?t:b)})()</script>
   </div>
 </aside>
 
