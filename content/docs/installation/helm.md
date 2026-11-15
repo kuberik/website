@@ -82,7 +82,7 @@ auth:
     namespace: envoy-gateway-system
 ```
 
-A Secret keeps the client secret out of the rendered manifest and the cookie secret stable across upgrades; `auth.oidc.clientSecret` sets it inline instead. The chart's defaults let `/api/` requests and the dashboard's static files (`^/_app/`, favicon, icons, manifest) through without a sign-in redirect, so a stale session does not break polling or the page bundle {{< needs "Next release" >}}. [Set Up Dashboard Sign-in](/docs/installation/dashboard-auth/) covers the OIDC client and the kube-apiserver flags.
+A Secret keeps the client secret out of the rendered manifest and the cookie secret stable across upgrades; `auth.oidc.clientSecret` sets it inline instead. The chart's defaults answer `/api/` requests with 401 instead of a sign-in redirect, and serve the dashboard's static files (`^/_app/`, favicon, icons, manifest) without sign-in, so a stale session does not break polling or the page bundle {{< needs "Next release" >}}. The API itself still needs a signed-in user. [Set Up Dashboard Sign-in](/docs/installation/dashboard-auth/) covers the OIDC client and the kube-apiserver flags.
 
 ## Connect several clusters
 
