@@ -89,7 +89,7 @@ kubectl get rolloutdependency checkout-needs-payments -n hello-world -o jsonpath
 
 The dashboard shows the same on the rollout's **Gates** tab: what the consumer waits on, the version it needs against the version running, and the contract across every environment. The home page and the Environments page name the provider on every held card.
 
-![The rollout's Gates tab: the gate graph, what the rollout waits on, and the version it needs against the version running](/images/docs/rollout-dependencies.png)
+![The Gates tab of hello-frontend-app in production: the gate graph with the hello-api-app dependency passing, and Waiting on, where hello-api-app runs 1.97.0 against the ^1.97.0 the frontend needs, not holding](/images/docs/rollout-dependencies.png "Here the provider already runs a version the consumer accepts, so the dependency passes and nothing is held.")
 
 Once the provider bakes, the consumer follows a few seconds later, unprompted.
 
