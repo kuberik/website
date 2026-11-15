@@ -96,7 +96,7 @@ For every entry in the Rollout's history the controller creates a GitHub deploym
 
 The deployment payload carries the site, wave and owner, which is how the other clusters see this one. The repository's **Environments** page in GitHub shows the same history, and the dashboard's Environments page shows where each release stands.
 
-![The production environment on the Environments page: 13 places across 7 apps, eu-west with a build waiting, and two regions waiting for eu-west and us-east](/images/docs/concepts/environments.png)
+![The Production environment on the Environments page: 13 places across 7 apps, one checking; eu-west has a build waiting, and two regions wait for eu-west and us-east](/images/docs/concepts/environments.png)
 
 ## Conditions
 
