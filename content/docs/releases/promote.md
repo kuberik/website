@@ -6,15 +6,15 @@ weight: 20
 aliases: ["/docs/guides/cross-environment-rollout/"]
 ---
 
-Production deploys only the releases staging has already deployed and baked, with no pipeline between the clusters. Each cluster runs its own [Rollout](/docs/concepts/rollouts/) and [Environment](/docs/concepts/environments/), and GitHub deployments carry the result from one to the next.
+Production deploys only releases staging has deployed and baked, with no pipeline between the clusters. Each cluster runs its own [Rollout](/docs/concepts/rollouts/) and [Environment](/docs/concepts/environments/), and GitHub deployments carry the result from one to the next.
 
 {{< fig id="promote-waves" caption="A release reaches production wave 1 only after staging baked it, and wave 2 only after every wave-1 site baked it." >}}
 
-Works with the environment-controller, a GitHub token Secret in each app namespace (see [GitHub](/docs/integrations/github/)), and Rollouts that take their releases from a [ReleaseSource](/docs/releases/publish/). The GitHub token is needed even when every tier runs in one cluster.
+Works with the environment-controller, a GitHub token Secret in each app namespace (see [GitHub](/docs/integrations/github/)), and Rollouts that take their releases from a [ReleaseSource](/docs/releases/publish/). On one cluster, give each tier its own namespace (`hello-world-staging`, `hello-world-production`) with its own Rollout, Environment and `github-token` Secret.
 
 ## Create the staging Environment
 
-Staging is the first tier this app uses, so its gate does not restrict releases. Apply this in the staging cluster, next to the `hello-world` Rollout:
+Staging is the first tier this app uses, so its gate does not restrict releases. Apply this in the staging cluster or namespace, next to the `hello-world` Rollout:
 
 ```yaml {filename="staging.yaml"}
 apiVersion: environments.kuberik.com/v1alpha1
@@ -38,11 +38,11 @@ kubectl apply -f staging.yaml
 
 Give the Environment of every tier the same `spec.name`: production finds staging's deploys in GitHub by that name. With a different name, production finds no upstream and lets every release through.
 
-The controller creates a [RolloutGate](/docs/concepts/gates/) for the Rollout and records each deploy as a GitHub deployment in the environment `kuberik/hello-world/staging`. The token comes from the Secret `github-token` in the `hello-world` namespace, the default when `backend.secret` is not set.
+The controller creates a [RolloutGate](/docs/concepts/gates/) for the Rollout and records each deploy as a GitHub deployment in the environment `kuberik/hello-world/staging`. The token comes from the Secret `github-token`.
 
 ## Create the production Environment
 
-Production comes after staging in the tier order, so its gate allows only the releases staging baked successfully. Apply this in the production cluster:
+Production comes after staging in the tier order, so its gate allows only releases staging baked. Apply this in the production cluster or namespace:
 
 ```yaml {filename="production.yaml"}
 apiVersion: environments.kuberik.com/v1alpha1
@@ -64,13 +64,13 @@ spec:
 kubectl apply -f production.yaml
 ```
 
-When staging finishes the bake of `1.4.0`, the production gate adds `1.4.0` to its `allowedVersions` and the production Rollout deploys it as soon as its other gates allow. A failed bake in staging never reaches production. The order comes from the tier names alone: there is nothing to configure between the two objects.
+When staging finishes the bake of `1.4.0`, the production gate adds `1.4.0` to its `allowedVersions` and the production Rollout deploys it as soon as its other gates allow. The order comes from the tier names alone.
 
-The one exception is a brand-new Rollout. Gates never hold a Rollout's first deploy, on purpose, so every Rollout reaches a running version: on day one, a release can land in every tier at once. The Environment's gate also allows every release until it has read staging. To start production on a release staging baked, create its Rollout with `spec.wantedVersion` set to that release, and remove the pin after the first deploy.
+A brand-new Rollout is the exception: gates never hold its first deploy, and the Environment's gate allows every release until it has read staging. To start production on a release staging baked, create its Rollout with `spec.wantedVersion` set to that release, and remove the pin after the first deploy.
 
 ## Roll production out in waves
 
-Give each production cluster a site, and put the clusters that should go later into a later wave. This Environment, in a second production cluster, starts a release only after the wave-1 site `eu-west-1` baked it:
+Give each production cluster a site, and put later clusters in a later wave. This Environment, in a second production cluster, starts a release only after the wave-1 site `eu-west-1` baked it:
 
 ```yaml {filename="production-us-east-1.yaml"}
 apiVersion: environments.kuberik.com/v1alpha1
@@ -90,11 +90,11 @@ spec:
     project: acme/hello-world
 ```
 
-Set `site: eu-west-1` (and the default `wave: 1`) on the first production cluster's Environment. Changing the site of an existing Environment deregisters its old site in GitHub and registers the new one. To keep production on one release until every wave has it, set `lockstep: true` on every production Environment, in every wave. A site that differs from the wave-1 leader puts `LockstepConsistent=False`, reason `LockstepMismatch`, on every production Environment.
+Set `site: eu-west-1` (and the default `wave: 1`) on the first production cluster's Environment. To keep production on one release until every wave has it, set `lockstep: true` on every production Environment.
 
 ## Check the result
 
-Read the Environment's conditions in the production cluster:
+Read the production Environment's conditions:
 
 ```bash {filename="Terminal"}
 kubectl get environment hello-world-production -n hello-world \
@@ -113,31 +113,26 @@ kubectl get rolloutgate -n hello-world \
   -o jsonpath='{range .items[*]}{.metadata.name}: {.spec.allowedVersions}{"\n"}{end}'
 ```
 
-The gate whose name starts with `ghd-` belongs to the Environment. In GitHub, the repository's **Environments** page lists `kuberik/hello-world/staging` and `kuberik/hello-world/production` with every deploy and its bake result. The dashboard shows the same order on the app page.
+The gate whose name starts with `ghd-` belongs to the Environment. The repository's **Environments** page in GitHub lists every deploy and its bake result. The dashboard shows the same order on the app page.
 
-![The Builds card of invoice-worker, an app whose tiers are staging then production: both run 2.2.0-30, one behind the newest build 2.3.0-31, and both hold it](/images/docs/releases/promote-builds.png)
+![The Builds card of invoice-worker: staging and production both run 2.2.0-30 and hold the newer 2.3.0-31](/images/docs/releases/promote-builds.png)
 
 ## Troubleshoot
 
-Each Environment explains what holds it in its `WaveReady` and `LockstepConsistent` conditions.
-
-```bash {filename="Terminal"}
-kubectl get environment hello-world-production -n hello-world \
-  -o jsonpath='{range .status.conditions[*]}{.type}{"\t"}{.status}{"\t"}{.reason}{"\t"}{.message}{"\n"}{end}'
-```
+Each Environment explains what holds it in the `WaveReady` and `LockstepConsistent` conditions printed in [Check the result](#check-the-result).
 
 | Symptom | Cause | Fix |
 |---|---|---|
-| `WaveReady=False`, reason `WaitingFor` | Staging (or an earlier wave) has not baked the release yet, or its bake failed. The message names the site. | Wait for the bake, or fix the failure in staging. |
+| `WaveReady=False`, reason `WaitingFor` | An earlier tier or wave has not baked the release, or its bake failed; the message names the site. | Wait for the bake, or fix the failure in staging. |
 | `WaveReady=False`, reason `WaitingForCandidate` | The revision staging deployed has no release tag in the production Rollout's ReleaseSource. | Check that both clusters read the same releases. |
 | `WaveReady=False`, reason `InvalidTopology` or `UnknownTier` | Two names of one tier are in use (`staging` and `preprod`), the tier is not known, or the waves have a gap. | Use one tier name, and number waves from 1 without gaps. |
-| `WaveReady=False`, reason `Pinned` | `spec.wantedVersion` on the Rollout differs from the build the wave selected. | Remove the pin from the Rollout. |
+| `WaveReady=False`, reason `Pinned` | `spec.wantedVersion` on the Rollout differs from the build the wave selected. | Remove the pin. |
 | `WaveReady=False`, reason `LockstepWaiting` | A lockstep wave waits until every site has baked the selected release. The message names the site. | Wait for that site's bake. |
-| `LockstepConsistent=False`, reason `LockstepMismatch` | A site's `lockstep` differs from the wave-1 leader's. This only informs: it holds nothing. | Set the same `lockstep` on every site. |
+| `LockstepConsistent=False`, reason `LockstepMismatch` | A site's `lockstep` differs from the wave-1 leader's; it holds nothing. | Set the same `lockstep` on every site. |
 | `WaveReady=False`, reason `CandidatesUnresolved` | The [ReleaseSlice](/docs/reference/api/#releaseslice) CRD is not served, so revisions cannot be mapped to tags. | Install the release-controller. |
-| `WaveReady=False`, reason `DuplicateSite` | Another Environment already owns this site of the tier. | Give each cluster its own `site`, or take the site over (below). |
+| `WaveReady=False`, reason `DuplicateSite` | Another Environment owns this site of the tier. | Give each cluster its own `site`, or take the site over (below). |
+| Staging baked the release, but production still waits (`WaveReady=False`, `WaitingFor`) | The GitHub token's rate limit is spent; the environment-controller logs `API rate limit exceeded`. | Wait for the reset, or [reconcile less often](/docs/operate/troubleshooting/#promotion-stalls-and-the-log-reads-api-rate-limit-exceeded). |
 | Production deploys releases staging never ran | No staging site is registered for this `name`, so production has no upstream. | Check that both Environments use the same `name` and `backend.project`. |
-| A new production Rollout deploys a release staging never baked | Gates never hold a first deploy, and the Environment's gate allows every release until the Environment has read staging. | Create the Rollout with `spec.wantedVersion` set to a release staging baked; remove the pin after that deploy. |
 
 {{< callout type="warning" >}}
 Taking a site over deregisters the Environment that owns it, in another cluster. Do it only when that owner is gone or replaced.

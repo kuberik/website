@@ -142,6 +142,7 @@ kubectl logs -n kuberik-system deployment/environment-controller-manager
 | `failed to get GitHub token secret github-token` | The Secret is not in the Environment's namespace, or has another name. | Create it in that namespace, or set `backend.secret`. |
 | `token key not found in secret` | The Secret has no `token` key. | Recreate it with `--from-literal=token=<your-token>`. |
 | `failed to create GitHub deployment` | The token cannot write deployments to the repository, or the release's commit is not in it. | Check the token's scope and repository access, and the image's revision annotation. |
+| `API rate limit exceeded for …` | The token spent its hourly GitHub API limit. Each gate keeps its last `allowedVersions`, so promotion stalls. | Wait for the reset, or [reconcile less often](/docs/operate/troubleshooting/#promotion-stalls-and-the-log-reads-api-rate-limit-exceeded). |
 | The dashboard shows **Not configured** | The dashboard has no `GITHUB_APP_CLIENT_ID` or `GITHUB_APP_CLIENT_SECRET`. | Create the Secret in `kuberik-system`, check `dashboard.githubApp.existingSecret`, and restart the dashboard. |
 | GitHub says `redirect_uri is not associated with this application` | The app's Callback URL does not match `https://<dashboard-host>/api/auth/github/callback`, scheme and host included. | Correct the Callback URL. |
 
