@@ -4,7 +4,7 @@
      (![alt](src "Caption.")), uses the kit caption (.df-cap, 14/20 ink-muted). The alt text stays the screen-reader
      description; the title is the one visible sentence.
      SIZE. width/height come from the file itself (imageConfig on static/, or the resource under assets/ or the page
-     bundle), so a lazy image reserves its box before it loads. Files 1600 px and wider are 2x captures (the
+     bundle), so a lazy image reserves its box before it loads: the inline width (capped by max-width:100% in docs-b.css) plus aspect-ratio give the unloaded <img> its final box (a bare width attribute lost to width:auto in the flex plate and left a 2x2 box). Files 1600 px and wider are 2x captures (the
      2880x1800 dashboard shots), so their attributes are halved to CSS pixels.
      STYLE. docs-b.css (.kd-shot). Overrides hextra's render-image.html, which emits a bare <img>. The standalone image is
      not wrapped in a <p> (markup.goldmark.parser.wrapStandAloneImageWithinParagraph = false), so the <figure> is
@@ -27,7 +27,7 @@
 {{- end -}}
 {{- if ge $w 1600 -}}{{- $w = div $w 2 -}}{{- $h = div $h 2 -}}{{- end -}}
 {{- $size := "" -}}
-{{- if $w -}}{{- $size = printf ` width="%d" height="%d"` $w $h -}}{{- end -}}
+{{- if $w -}}{{- $size = printf ` width="%d" height="%d" style="width:%dpx;aspect-ratio:%d/%d"` $w $h $w $w $h -}}{{- end -}}
 {{- $attrs := "" -}}
 {{- range $k, $v := .Attributes -}}{{- if $v -}}{{- $attrs = printf "%s %s=%q" $attrs $k ($v | transform.HTMLEscape) -}}{{- end -}}{{- end -}}
 {{- $img := printf `<img src="%s" alt="%s"%s%s loading="lazy" decoding="async">` ($dest | safeURL) ($alt | transform.HTMLEscape) $size $attrs -}}

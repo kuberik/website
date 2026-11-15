@@ -17,7 +17,10 @@
 {{- range .TBody }}{{ with index . 0 }}{{ $t := .Text | string | plainify | htmlUnescape }}{{ if and (strings.Contains $t " ") (gt (len $t) 28) }}{{ $prose = true }}{{ end }}{{ if gt (len $t) $keyMax }}{{ $keyMax = len $t }}{{ end }}{{ end }}{{ end -}}
 {{- /* phones stack the table into spec rows when it has 3+ columns or a key longer than 24 characters (it would leave
      the prose column a sliver); short-key two-column tables stay tables */ -}}
-{{- $stack := or (ge $cols 3) (gt $keyMax 24) -}}
+{{- /* R3-A-5: a two-column table whose prose cell is a sentence also stacks, or the prose column is a 150px sliver */ -}}
+{{- $otherMax := 0 -}}
+{{- range .TBody }}{{ range $i, $c := . }}{{ if gt $i 0 }}{{ $n := len ($c.Text | string | plainify | htmlUnescape) }}{{ if gt $n $otherMax }}{{ $otherMax = $n }}{{ end }}{{ end }}{{ end }}{{ end -}}
+{{- $stack := or (ge $cols 3) (gt $keyMax 24) (gt $otherMax 40) -}}
 {{- /* five or more columns cannot share a 680 reading column with a prose column (annotations: key 300 + three short
      facts + Effect). They render as spec rows instead: key on its own line, the short facts as a labelled meta line,
      the last column as the row's prose. Same card, same hairlines; the reference is the Stripe API parameter row and
