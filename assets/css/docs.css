@@ -75,7 +75,7 @@ main{padding-bottom:0}
 .kd-burger svg{width:20px;height:20px}
 @media(max-width:1199px){.kd-search .hextra-search-wrapper{width:180px}}
 @media(max-width:1023px){.kd-nav .gh-text{display:none}.kd-nav .pill:has(.gh-text){width:36px;padding:0}}
-@media(max-width:767px){
+@media(max-width:768px){
   .kd-search,.kd-nav .nav-cta{display:none}
   .kd-burger{display:inline-flex}
   .kd-nav .cont{gap:12px}
@@ -94,15 +94,16 @@ html.dark .kd-wash::before{opacity:.5}
 .kd-main{width:100%;max-width:var(--kd-read);min-width:0;padding:40px 0 72px}
 .kd-shell .hextra-toc{order:3;width:var(--kd-toc);flex:none;padding:0}
 @media(max-width:1279px){.kd-shell .hextra-toc{display:none}}
-@media(max-width:767px){.kd-shell{display:block}.kd-main{padding-top:24px}}
+@media(max-width:768px){.kd-shell{display:block}.kd-main{padding-top:24px}}
 
 /* sidebar */
 .kd-shell .hextra-sidebar-container{order:1;background:var(--page)}
-@media(min-width:768px){
+/* one breakpoint (R6-DES-1): hextra's md utilities switch the sidebar from drawer to sticky between 768 and 769, so the drawer rules end at 768 and the desktop rules start at 769 */
+@media(min-width:769px){
   .kd-shell .hextra-sidebar-container{width:var(--kd-side);flex:none;top:64px;background:transparent}
   .kd-shell .hextra-sidebar-container > .hextra-scrollbar{padding:32px 8px 32px 0;margin-left:-10px;height:calc(100vh - 64px)}
 }
-@media(max-width:767px){
+@media(max-width:768px){
   .hextra-sidebar-container{padding-top:64px;left:0;right:0;width:100%!important}
   .hextra-sidebar-container > .hextra-scrollbar{padding:16px var(--gut) 32px}
   .hextra-sidebar-container > div:first-child{padding:16px var(--gut) 0}
@@ -120,7 +121,7 @@ html.dark .kd-wash::before{opacity:.5}
 .hextra-sidebar-container ul ul a.hextra-sidebar-active-item{position:relative}
 .hextra-sidebar-container ul ul a.hextra-sidebar-active-item::before{content:'';position:absolute;left:-11px;top:6px;bottom:6px;width:2px;background:var(--mint)}
 .hextra-sidebar-collapsible-button svg{color:var(--ink-subtle)}
-@media(max-width:767px){.hextra-sidebar-container a{min-height:44px;padding:12px 12px;font-size:16px;line-height:20px}}
+@media(max-width:768px){.hextra-sidebar-container a{min-height:44px;padding:12px 12px;font-size:16px;line-height:20px}}
 /* sidebar groups (layouts/_partials/sidebar.html): uppercase group labels, always open; Stripe/Linear by-job grouping */
 .kd-tree{display:flex;flex-direction:column;gap:24px}
 .kd-group-label{margin:0 0 6px;padding:0 10px}
@@ -134,7 +135,7 @@ html.dark .kd-wash::before{opacity:.5}
 .kd-sub .kd-row.kd-active{position:relative}
 .kd-sub .kd-row.kd-active::before{content:'';position:absolute;left:-11px;top:6px;bottom:6px;width:2px;background:var(--mint)}
 .kd-group-site{display:none}
-@media(max-width:767px){
+@media(max-width:768px){
   .kd-tree{gap:28px}
   .kd-group-label > :is(a,span){padding:6px 0!important;font-size:13px!important;line-height:20px!important}
   .kd-group-site{display:block;padding-top:20px;border-top:1px solid var(--line)}
@@ -418,6 +419,6 @@ html.dark .kd-tone-neutral{background:oklch(1 0 0/.05)!important}
   .kd-code-body pre,.hextra-code-block pre{font-size:14px!important;line-height:24px!important}
 }
 /* R5-S-7: in the phone drawer the results panel runs to the bottom of the viewport (hextra caps it at 50vh - 11rem, ~2 results). */
-@media(max-width:767px){
+@media(max-width:768px){
   .hextra-search-wrapper .hextra-search-results{max-height:calc(100vh - 160px)!important;max-height:calc(100dvh - 160px)!important}
 }
