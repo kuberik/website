@@ -16,7 +16,7 @@ The banner at the top of a rollout's **Overview** names what holds it. The words
 | **Deployment failed** banner<br>the **Retry** and **Roll back** buttons | `Ready=False`, `BakeTimeFailed` | [The deployment failed](#the-deployment-failed) |
 | The **stuck** chip<br>"Stuck — deploying for 2h" | `bakeStatus` `Deploying` | [A deploy is stuck in Deploying](#a-deploy-is-stuck-in-deploying) |
 | **Recovery mode**, while a deploy runs | `BakeFailureDisabled=True` | [A HealthCheck failed but the deploy did not](#a-healthcheck-failed-but-the-deploy-did-not) |
-| **Rolled back** | `status.history[0]` is older than the build before it (a pin or a force-deploy) | [Roll back to the previous build](#roll-back-to-the-previous-build) |
+| **Rolled back** | `status.history[0]` is older than the build before it (a pin) | [Roll back to the previous build](#roll-back-to-the-previous-build) |
 | **Held** banner<br>"HealthCheck '…' in namespace '…' is not healthy" | `DeploymentBlocked=True`, `UnhealthyHealthChecks` | [Blocked by an unhealthy HealthCheck](#blocked-by-an-unhealthy-healthcheck) |
 | **production is waiting on an approval**<br>**Waiting for approval**<br>**Needs your approval** | `GatesPassing=False`, `NoAllowedVersions` | [Blocked by an approval](#blocked-by-an-approval-or-another-rule) |
 | **production is waiting for payments ^1.67.0** | `GatesPassing=False`, `NoAllowedVersions` | [Blocked by a service dependency](#blocked-by-a-service-dependency) |
@@ -228,7 +228,7 @@ Then set `spec.wantedVersion` to the tag it printed.
 kubectl patch rollout hello-world -n hello-world --type merge -p '{"spec":{"wantedVersion":"<previous-tag>"}}'
 ```
 
-The pin deploys past gates and the failed deploy, and the dashboard shows **Rolled back**. New releases wait until you clear the pin, as in [Blocked by a pin](#blocked-by-a-pin-or-a-pending-deploy-by-hand).
+The pin deploys past gates and the failed deploy, and the dashboard shows **Rolled back**. New releases wait until you clear the pin, as in [Blocked by a pin](#blocked-by-a-pin-or-a-pending-deploy-by-hand). Do not roll back with `force-deploy`: once the earlier build's bake succeeds, the Rollout deploys the newest release the gates allow, the failed one included, and `history[0]` reads "Automatic deployment" on the failed tag again.
 
 ### Retry the same build
 
