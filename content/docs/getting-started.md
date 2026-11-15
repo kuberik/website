@@ -307,4 +307,4 @@ The dashboard shows each rollout with its running build, the pipeline it moved t
 
 ## Next steps
 
-{{< next "/docs/releases/publish/" "/docs/gates/approvals/" "/docs/concepts/propagation/" >}}
+{{< next "/docs/releases/pipeline-in-one-file/" "/docs/releases/publish/" "/docs/gates/approvals/" >}}

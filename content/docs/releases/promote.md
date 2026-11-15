@@ -11,7 +11,7 @@ Production deploys only releases staging has deployed and baked, with no pipelin
 
 {{< fig id="promote-waves" caption="A release reaches production wave 1 only after staging baked it, and wave 2 only after every wave-1 site baked it." >}}
 
-Works with the environment-controller, a GitHub token Secret in each app namespace (see [GitHub](/docs/integrations/github/)), and Rollouts fed by a [ReleaseSource](/docs/releases/publish/).
+Works with the environment-controller, a GitHub token Secret in each app namespace (see [GitHub](/docs/integrations/github/)), and Rollouts fed by a [ReleaseSource](/docs/releases/publish/). [Define the Pipeline Once](/docs/releases/pipeline-in-one-file/) writes each tier's objects once, in a kustomize component.
 
 ## Run both tiers on one cluster
 
