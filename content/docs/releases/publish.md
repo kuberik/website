@@ -213,7 +213,7 @@ jobs:
           image="${IMAGE_NAME,,}"  # ghcr.io needs a lowercase path
           for env in development staging production; do
             out="$(mktemp -d)"
-            kustomize build "k8s/envs/${env}" -o "$out"
+            kustomize build "deploy/${env}" -o "$out"
             flux push artifact \
               "oci://${REGISTRY}/${image}/${env}/manifests:${VERSION}" \
               --path "$out" \

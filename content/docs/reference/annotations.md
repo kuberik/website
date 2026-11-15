@@ -14,7 +14,7 @@ The rollout-controller reads these from a Kuberik `Rollout` in the Rollout's nam
 | Annotation | Values | Default | Set by | Effect |
 |---|---|---|---|---|
 | `rollout.kuberik.com/force-deploy` | Release tag | None | You, dashboard | Deploys that tag now, past the gates, the unhealthy health-check hold and the failed-bake hold; the tag must be in the `ReleaseSource` catalogue, `spec.wantedVersion` wins, and the controller removes it after the tag deploys ([Deploy a specific version](/docs/operate/manual-actions/#deploy-a-specific-version)). |
-| `rollout.kuberik.com/deploy-message` | Free text | `Manual deployment` | You, dashboard | Message of the history entry for a deploy by hand (`force-deploy` or `spec.wantedVersion`), removed after the next deploy ([Deploy a specific version](/docs/operate/manual-actions/#deploy-a-specific-version)). |
+| `rollout.kuberik.com/deploy-message` | Free text | `Manual deployment` for `spec.wantedVersion`, `Manual deployment, with force deploy` for `force-deploy` | You, dashboard | Message of the history entry for a deploy by hand (`force-deploy` or `spec.wantedVersion`), removed after the next deploy ([Deploy a specific version](/docs/operate/manual-actions/#deploy-a-specific-version)). |
 | `rollout.kuberik.com/deploy-user` | User name | Kind `System`, name `rollout-controller` | You, dashboard | Recorded as `triggeredBy` with kind `User` for a deploy by hand, removed after the next deploy; the dashboard writes the signed-in user unless it is a service account ([Deploy a specific version](/docs/operate/manual-actions/#deploy-a-specific-version)). |
 | `rollout.kuberik.com/bypass-gates` | Release tag | None | You, dashboard | Lets that build past every gate once if it is a release newer than the deployed one; health checks and a failed bake still hold it, and the controller removes it after the next deploy ([Let one build past the gates](/docs/operate/manual-actions/#let-one-build-past-the-gates)). |
 | `rollout.kuberik.com/bypass-gates-only` | Comma-separated `RolloutGate` names | Every gate | You, dashboard | Narrows `bypass-gates` to the named gates and is removed with it when that build deploys; unknown names raise a `BypassGatesUnknown` warning event ([Let one build past the gates](/docs/operate/manual-actions/#let-one-build-past-the-gates)). {{< needs "Next release" >}} |
@@ -169,6 +169,7 @@ The openkruise-controller reads and writes these on an OpenKruise `Rollout` (`ro
 | Annotation | Values | Default | Set by | Effect |
 |---|---|---|---|---|
 | `kuberik.com/display-name` | Text | `metadata.name` | You | Read by the dashboard: the test's name in the retry dialog. |
+| `rollout.kuberik.com/link.<label>` | URL | None | You | Read by the dashboard: a link named `<label>` on the test's row in the rollout's pipeline; a `Logs`, `CI` or `Trace` label (any case) replaces the link of that name the dashboard builds from the test job's `DD_SERVICE` and `DD_ENV` variables. |
 
 ## OCI artifact
 
@@ -186,7 +187,7 @@ The release-controller reads these from each release's OCI manifest, manifest an
 
 ## Example
 
-The rollout-controller removes `force-deploy`, `deploy-message` and `deploy-user` after the deploy, so set them with `kubectl annotate` rather than keeping them in Git.
+The dashboard annotations stay on the Rollout in Git.
 
 ```yaml {filename="rollout.yaml"}
 apiVersion: kuberik.com/v1alpha1
@@ -197,10 +198,16 @@ metadata:
   annotations:
     dashboard.rollout.kuberik.com/theme: production
     dashboard.rollout.kuberik.com/theme-label: "Production EU"
-    rollout.kuberik.com/force-deploy: "v1.4.0"  # removed after v1.4.0 deploys
-    rollout.kuberik.com/deploy-message: "Roll back the checkout fix"
-    rollout.kuberik.com/deploy-user: "emma.clarke"
 spec:
   releaseSourceRef:
     name: hello-world
+```
+
+The rollout-controller removes `force-deploy`, `deploy-message` and `deploy-user` after the deploy, so set them with `kubectl annotate` rather than keeping them in Git.
+
+```bash {filename="Terminal"}
+kubectl -n hello-world annotate rollout hello-world --overwrite \
+  rollout.kuberik.com/force-deploy=1.4.0 \
+  rollout.kuberik.com/deploy-message="Roll back the checkout fix" \
+  rollout.kuberik.com/deploy-user=emma.clarke@acme.com
 ```

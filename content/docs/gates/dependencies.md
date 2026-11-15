@@ -16,11 +16,11 @@ A [`RolloutDependency`](/docs/reference/api/#rolloutdependency) connects a consu
 The dependency lives on the images, not in the manifests. The provider announces the contract version it serves in the standard OCI version annotation, and the consumer adds one annotation per contract it requires.
 
 ```bash {filename="Terminal"}
-docker buildx build --push -t ghcr.io/acme/api:rel-64 \
+docker buildx build --push -t ghcr.io/acme/payments:rel-64 \
   --annotation "index:org.opencontainers.image.version=1.64.0-64" .
-docker buildx build --push -t ghcr.io/acme/frontend:rel-64 \
+docker buildx build --push -t ghcr.io/acme/checkout:rel-64 \
   --annotation "index:org.opencontainers.image.version=2.64.0-64" \
-  --annotation "index:com.kuberik.rollout.requires.api=^1.64.0" .
+  --annotation "index:com.kuberik.rollout.requires.payments=^1.64.0" .
 ```
 
 The annotation key is `com.kuberik.rollout.requires.<contract>`. The value is a [Masterminds/semver constraint](https://github.com/Masterminds/semver#checking-version-constraints), applied verbatim: `^1.64.0`, `~1.64.0`, `>=1.64.0 <2.0.0` and `1.64.x` all work.
@@ -35,21 +35,21 @@ The `-64` suffix is a per-build ordinal. Attach it as a SemVer pre-release ident
 
 Create one object per consumer and contract, in the consumer's namespace.
 
-```yaml {filename="frontend-needs-api.yaml"}
+```yaml {filename="checkout-needs-payments.yaml"}
 apiVersion: kuberik.com/v1alpha1
 kind: RolloutDependency
 metadata:
-  name: frontend-needs-api
-  namespace: production
+  name: checkout-needs-payments
+  namespace: hello-world
 spec:
   rolloutRef:
-    name: frontend
+    name: checkout
   providerRef:
-    name: api
-  contract: api     # matches com.kuberik.rollout.requires.api
+    name: payments
+  contract: payments  # matches com.kuberik.rollout.requires.payments
 ```
 
-`rolloutRef` names the consumer being gated. `contract` defaults to the provider Rollout's name, and `providerRef.namespace` defaults to the dependency's namespace. Apply the object in every environment that has both Rollouts. Each environment waits on its own copy of the provider: production's frontend waits for production's api, not for staging's.
+`rolloutRef` names the consumer being gated. `contract` defaults to the provider Rollout's name, and `providerRef.namespace` defaults to the dependency's namespace. Apply the object in every environment that has both Rollouts. Each environment waits on its own copy of the provider: production's checkout waits for production's payments, not for staging's.
 
 The controller compares each consumer release's requirement with the contract version of the most recent provider deploy whose bake succeeded. It publishes the verdict as a [`RolloutGate`](/docs/concepts/gates/) named `dependency-<name>`, whose `allowedVersions` lists the admitted releases. A dependency therefore holds back only the releases whose requirement is unmet. Older releases stay deployable, so you can roll back while a newer release waits.
 
@@ -62,18 +62,18 @@ Gates never hold a Rollout's first deploy: a brand-new consumer deploys the newe
 `kubectl get` shows the version the provider serves and whether any consumer release waits on it.
 
 ```bash {filename="Terminal"}
-kubectl get rolloutdependency -n production
+kubectl get rolloutdependency -n hello-world
 ```
 
 ```text {filename="Output"}
-NAME                 ROLLOUT    PROVIDER   PROVIDED   SATISFIED   AGE
-frontend-needs-api   frontend   api        1.64.0     False       2d
+NAME                      ROLLOUT    PROVIDER   PROVIDED   SATISFIED   AGE
+checkout-needs-payments   checkout   payments   1.64.0     False       2d
 ```
 
 `status.blockedReleases` names each held release and the constraint it needs.
 
 ```bash {filename="Terminal"}
-kubectl get rolloutdependency frontend-needs-api -n production -o jsonpath='{.status.blockedReleases}'
+kubectl get rolloutdependency checkout-needs-payments -n hello-world -o jsonpath='{.status.blockedReleases}'
 ```
 
 ```json {filename="Output"}

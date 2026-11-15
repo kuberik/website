@@ -60,24 +60,24 @@ With kubectl, create the `RolloutApproval` yourself. It can name a version that 
 apiVersion: kuberik.com/v1alpha1
 kind: RolloutApproval
 metadata:
-  name: hello-world-v1-4-0
+  name: hello-world-1-4-0
   namespace: hello-world
   annotations:
     approval.kuberik.com/by: emma.clarke@acme.com  # optional; must equal your username
 spec:
   rolloutRef:
     name: hello-world
-  version: v1.4.0
+  version: 1.4.0
 ```
 
 ```bash {filename="Terminal"}
 kubectl apply -f approval.yaml
 ```
 
-The name `hello-world-v1-4-0` is the one the dashboard uses for the same build, so both ways of approving land on one object. One approval satisfies every approval gate of the Rollout. To withdraw it before the build deploys, delete it:
+The name `hello-world-1-4-0` is the one the dashboard uses for the same build, so both ways of approving land on one object. One approval satisfies every approval gate of the Rollout. To withdraw it before the build deploys, delete it:
 
 ```bash {filename="Terminal"}
-kubectl -n hello-world delete rolloutapproval hello-world-v1-4-0
+kubectl -n hello-world delete rolloutapproval hello-world-1-4-0
 ```
 
 ## Choose who may approve
@@ -103,7 +103,7 @@ subjects:
     name: james.porter@acme.com
 ```
 
-Two admission policies come with the controller and need Kubernetes 1.30 or later. `kuberik-rolloutapproval-by` rejects an `approval.kuberik.com/by` that is not the requesting user, so the name on an approval is trustworthy; the dashboard shows it only where that policy denies. `kuberik-approval-gate-guard` lets only the controller change an approval gate, so editing the gate's `allowedVersions` is refused.
+Two admission policies come with the controller and need Kubernetes 1.30 or later. `kuberik-rolloutapproval-by` rejects an `approval.kuberik.com/by` that is not the requesting user, so the name on an approval is trustworthy. The dashboard shows that name only when the cluster has the binding `kuberik-rolloutapproval-by` with the `Deny` action, because a `Warn` or `Audit` binding lets a false name through. `kuberik-approval-gate-guard` lets only the controller change an approval gate, so editing the gate's `allowedVersions` is refused.
 
 ## Know when approval is skipped
 
@@ -129,7 +129,7 @@ spec:
 
 ```bash {filename="Terminal"}
 kubectl -n hello-world patch rolloutgate production-approval --type=json \
-  -p='[{"op": "add", "path": "/spec/allowedVersions/-", "value": "v1.4.0"}]'
+  -p='[{"op": "add", "path": "/spec/allowedVersions/-", "value": "1.4.0"}]'
 ```
 
 ## Check the result
@@ -159,7 +159,7 @@ kubectl -n hello-world get rollout hello-world -o jsonpath='{.status.history[0].
 ```
 
 ```text {filename="Output"}
-{"by":"emma.clarke@acme.com","name":"hello-world-v1-4-0"}
+{"by":"emma.clarke@acme.com","name":"hello-world-1-4-0"}
 ```
 
 ## Troubleshoot
