@@ -8,6 +8,8 @@ aliases: ["/docs/guides/canary-rollouts/"]
 
 Move traffic to a new version in steps, and let each step continue only after it has stayed ready for a bake time and its tests have passed. Use it for user-facing services where problems show only under real traffic.
 
+{{< fig id="canary-steps" caption="Each step stays paused until its test passed and its bake time ran; the last step never pauses." >}}
+
 Works with: [OpenKruise Rollout](https://openkruise.io/rollouts/user-manuals/basic-usage) and the Kuberik openkruise-controller v0.4.1. Install it on its own, or with the Helm chart's `integrations.openkruise.enabled` and `integrations.openkruise.image.tag: v0.4.1` (the chart's default is v0.4.0):
 
 ```bash {filename="Terminal"}

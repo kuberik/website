@@ -83,3 +83,16 @@ html.dark .df{
 .df-dot{fill:var(--ink-subtle)}
 .df-dot-amber{fill:var(--df-held)}.df-dot-red{fill:var(--kd-chip-red-line)}
 .df-dot-green{fill:var(--df-pass)}
+
+/* guide figures (R1-DES-7): state bands, durations, moments, shares, calendar days */
+/* bars use the dashboard's solid state tokens (rollout-dashboard language.css:200/217/221 light, :294/310/314 dark) */
+.df{--df-solid-blue:oklch(.6 .19 262);--df-solid-yellow:oklch(.82 .16 98)}
+html.dark .df{--df-solid-blue:oklch(.65 .18 260);--df-solid-yellow:oklch(.84 .15 98)}
+.df-band-blue{fill:var(--df-solid-blue)}.df-band-yellow{fill:var(--df-solid-yellow)}
+.df-band-green{fill:var(--df-pass)}.df-band-gray{fill:var(--df-n-line)}
+.df-dim{fill:none;stroke:var(--ink-subtle);stroke-width:1}
+.df-guide{fill:none;stroke:var(--line);stroke-width:1;stroke-dasharray:2 3}
+.df-meter{fill:var(--df-n-fill);stroke:var(--df-n-line);stroke-width:1}
+.df-meter-fill{fill:var(--df-solid-blue)}
+.df-day{fill:var(--df-n-fill);stroke:var(--df-n-line);stroke-width:1}
+.df-win{fill:color-mix(in oklab,var(--df-pass) 24%,var(--df-n-fill));stroke:var(--kd-chip-green-line);stroke-width:1}

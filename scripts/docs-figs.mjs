@@ -536,6 +536,210 @@ figs['gate-model'] = {
   }
 };
 
+// ---------- guide-figure parts (R1-DES-7) ----------
+// band: a state over time, a 6-unit bar in the state chip's line colour (blue Deploying, yellow InProgress).
+const band = ({ x, y, w, h = 6, state }) => `<rect class="df-band df-band-${state}" x="${x}" y="${y}" width="${w}" height="${h}" rx="${Math.min(3, h / 2)}"/>`;
+// dim: a duration, drawn as a dimension line with end ticks (ink-subtle 1 px); horizontal unless v.
+const dim = ({ x1, x2, y, v = false }) => v
+  ? `<path class="df-dim" d="M${y - 6} ${x1}H${y + 6}M${y} ${x1}V${x2}M${y - 6} ${x2}H${y + 6}"/>`
+  : `<path class="df-dim" d="M${x1} ${y - 6}V${y + 6}M${x1} ${y}H${x2}M${x2} ${y - 6}V${y + 6}"/>`;
+// guide: a moment, a dashed hairline in --line.
+const guide = (x, y1, y2) => `<path class="df-guide" d="M${x} ${y1}V${y2}"/>`;
+// meter: a share (traffic weight), one fill on a neutral track (single fill, never two-tone).
+const meter = ({ x, y, w, pct }) => `<rect class="df-meter" x="${x}" y="${y}" width="${w}" height="6" rx="3"/>` +
+  `<rect class="df-meter-fill" x="${x}" y="${y}" width="${n(w * pct / 100)}" height="6" rx="3"/>`;
+const dot = (cx, cy, state, r = 5) => `<circle class="df-dot df-dot-${state}" cx="${cx}" cy="${cy}" r="${r}"/>`;
+
+// ============ health-bake: one deploy's bake on a clock (gates/health-checks) ============
+// ROLE: the guide's view of the bake. rollout-bake (concepts/rollouts) is the state machine, every edge; this is
+// one deploy against the two durations the guide sets (deployTimeout 15m, bakeTime 10m), so a reader sees which
+// clock runs when. Borrows rollout-bake's chips and footnote rule and release-stages' eyebrow row; the time lanes
+// are new (no existing figure has a time axis): a 6-unit state band per lane, dimension lines for durations.
+const HB = { x0: 104, k: 28 }; const hbx = (m) => HB.x0 + m * HB.k;
+figs['health-bake'] = {
+  title: 'One deploy on the clock: deployTimeout bounds the wait for health, bakeTime runs from the moment every check is Healthy',
+  desc: 'A deploy starts: its bakeStatus is Deploying and every selected HealthCheck is reset to Pending. When every check is Healthy again, here four minutes in, the bake starts and bakeStatus is InProgress. deployTimeout, 15 minutes from the deploy, is the limit for that moment. bakeTime, 10 minutes from the bake start, ends in Succeeded. A check error at any point after the deploy started fails it, before or during the bake; without healthCheckSelector the bake starts at once.',
+  wide: {
+    w: 632, h: 290, body: [
+      text({ x: hbx(0), y: 14, t: 'deploy starts' }),
+      text({ x: hbx(4), y: 14, t: 'every check Healthy' }),
+      text({ x: hbx(14), y: 14, t: 'bakeTime passed', anchor: 'end' }),
+      guide(hbx(0), 22, 132), guide(hbx(4), 22, 132), guide(hbx(14), 22, 132),
+      text({ x: 0, y: 48, t: 'bakeStatus', role: 'mono' }),
+      chipSvg({ x: hbx(0) + 6, cy: 44, text: 'Deploying', state: 'blue', anchor: 'start' }),
+      chipSvg({ x: hbx(4) + 6, cy: 44, text: 'InProgress', state: 'yellow', anchor: 'start' }),
+      chipSvg({ x: hbx(14) + 6, cy: 44, text: 'Succeeded', state: 'green', anchor: 'start' }),
+      band({ x: hbx(0), y: 64, w: hbx(4) - hbx(0), state: 'blue' }),
+      band({ x: hbx(4), y: 64, w: hbx(14) - hbx(4), state: 'yellow' }),
+      text({ x: 0, y: 112, t: 'HealthChecks' }),
+      chipSvg({ x: hbx(0) + 6, cy: 108, text: 'Pending', state: 'gray', anchor: 'start' }),
+      chipSvg({ x: hbx(4) + 6, cy: 108, text: 'Healthy', state: 'green', anchor: 'start' }),
+      band({ x: hbx(0), y: 127, w: hbx(4) - hbx(0), h: 2, state: 'gray' }),
+      band({ x: hbx(4), y: 127, w: hbx(14) - hbx(4), h: 2, state: 'green' }),
+      text({ x: hbx(0) + 6, y: 156, t: 'deployTimeout: 15m, the bake must start inside it', role: 'label' }),
+      dim({ x1: hbx(0), x2: hbx(15), y: 170 }),
+      text({ x: hbx(4) + 6, y: 202, t: 'bakeTime: 10m, no error, then Succeeded', role: 'label' }),
+      dim({ x1: hbx(4), x2: hbx(14), y: 216 }),
+      notes({ x: 0, y: 238, w: 632, items: [
+        { k: 'A check error after the deploy starts:', v: 'Failed, before or during the bake.', state: 'red' },
+        { k: 'No healthCheckSelector:', v: 'the bake starts at once.', state: 'gray' },
+      ] }),
+    ].join('')
+  },
+  narrow: {
+    w: 318, h: 284, body: [
+      band({ x: 0, y: 12, w: 6, h: 64, state: 'blue' }),
+      band({ x: 0, y: 76, w: 6, h: 160, state: 'yellow' }),
+      chipSvg({ x: 20, cy: 12, text: 'Deploying', state: 'blue', anchor: 'start' }),
+      text({ x: 130, y: 16, t: 'deploy starts' }),
+      text({ x: 20, y: 44, t: 'checks reset to Pending' }),
+      chipSvg({ x: 20, cy: 76, text: 'InProgress', state: 'yellow', anchor: 'start' }),
+      text({ x: 140, y: 80, t: 'every check Healthy' }),
+      chipSvg({ x: 20, cy: 236, text: 'Succeeded', state: 'green', anchor: 'start' }),
+      text({ x: 130, y: 240, t: 'bakeTime passed' }),
+      dim({ x1: 76, x2: 236, y: 290, v: true }),
+      text({ x: 280, y: 160, t: 'bakeTime: 10m', anchor: 'end' }),
+      dim({ x1: 12, x2: 252, y: 310, v: true }),
+      text({ x: 310, y: 276, t: 'deployTimeout: 15m', anchor: 'end' }),
+      dot(24, 147, 'red', 3.5),
+      text({ x: 36, y: 151, t: ['a check error', 'here or before:', 'Failed'] }),
+    ].join('')
+  }
+};
+
+// ============ promote-waves: one release down the tiers, then wave by wave (releases/promote) ============
+// ROLE: the guide's view of promotion: which release may go where next. env-tiers-github (concepts/environments)
+// shows the mechanism (two clusters, GitHub between); this shows the order the guide configures: staging, then
+// production wave 1, then wave 2, for one release. Regions and chips are env-tiers-github's (tier chip + label);
+// plates are 172 wide in 196 regions, the architecture figure's column rhythm. A site that has not started is a
+// dashed plate (a state, not an object), titled with its WaveReady reason in words.
+const pwPlates = (o) => [
+  plate({ x: o[0][0], y: o[0][1], w: o[2], kind: 'k', chip: { text: 'Succeeded', state: 'green' }, sub: ['baked 1.4.0', 'GitHub has the result'] }),
+  plate({ x: o[1][0], y: o[1][1], w: o[2], kind: 'k', key: true, chip: { text: 'InProgress', state: 'yellow' }, sub: ['`site: eu-west-1`', 'staging baked 1.4.0'] }),
+];
+figs['promote-waves'] = {
+  title: 'One release, in order: staging bakes it, then production wave 1, then wave 2',
+  desc: 'Release 1.4.0 has baked in staging (Succeeded) and GitHub has the result. The production Environment of the wave-1 site eu-west-1 allows it because staging baked it, and it is baking there (InProgress). The wave-2 site us-east-1 waits: WaveReady is False until every wave-1 site has baked 1.4.0. With lockstep: true, production stays on one release until every wave baked it.',
+  wide: {
+    w: 632, h: 214, body: [
+      group({ x: 0, y: 0, w: 196, h: 132, chip: { text: 'staging', state: 'violet' }, kind: 'n' }),
+      group({ x: 218, y: 0, w: 196, h: 132, chip: { text: 'production', state: 'prod' }, label: 'wave 1', kind: 'n' }),
+      group({ x: 436, y: 0, w: 196, h: 132, chip: { text: 'production', state: 'prod' }, label: 'wave 2', kind: 'n' }),
+      ...pwPlates([[12, 44], [230, 44], 172]),
+      plate({ x: 448, y: 44, w: 172, h: 72, kind: 'n', dashed: true, title: 'Waits for wave 1', sub: ['`site: us-east-1`', '`WaveReady=False`'] }),
+      edge([[184, 80], [227, 80]]),
+      edge([[402, 80], [445, 80]]),
+      notes({ x: 0, y: 156, w: 632, items: [
+        { k: 'Wave 1 gets', v: 'what staging baked; wave 2 gets what every wave-1 site baked.', state: 'gray' },
+        { k: 'lockstep: true', v: 'keeps production on one release until every wave baked it.', state: 'gray' },
+      ] }),
+    ].join('')
+  },
+  narrow: {
+    w: 318, h: 496, body: [
+      group({ x: 0, y: 0, w: 318, h: 128, chip: { text: 'staging', state: 'violet' }, kind: 'n' }),
+      group({ x: 0, y: 156, w: 318, h: 128, chip: { text: 'production', state: 'prod' }, label: 'wave 1', kind: 'n' }),
+      group({ x: 0, y: 312, w: 318, h: 128, chip: { text: 'production', state: 'prod' }, label: 'wave 2', kind: 'n' }),
+      ...pwPlates([[12, 44], [12, 200], 294]),
+      plate({ x: 12, y: 356, w: 294, h: 72, kind: 'n', dashed: true, title: 'Waits for wave 1', sub: ['`site: us-east-1`', '`WaveReady=False`'] }),
+      edge([[260, 116], [260, 197]]),
+      edge([[260, 272], [260, 353]]),
+      notes({ x: 0, y: 464, w: 318, items: [
+        { k: 'lockstep: true', v: 'one release in every wave.', state: 'gray' },
+      ] }),
+    ].join('')
+  }
+};
+
+// ============ canary-steps: traffic in steps, each held by Kuberik (releases/canary) ============
+// ROLE: the guide's flow: OpenKruise moves traffic in steps; openkruise-controller holds each paused step until its
+// test passed and its bake time ran, then unpauses it. No existing figure shows a share, so the step plates carry a
+// meter (one fill on a neutral track, the dashboard's single-fill bar rule). Plates, wires and the footnote rule are
+// the architecture figure's; OpenKruise is an external system, so its steps are lagoon and the controller is mint.
+const cvStep = (x, y, w, title, sub, pct) => plate({ x, y, w, h: 100, kind: 'f', title, sub, mono: true }) + meter({ x: x + 14, y: y + 80, w: w - 28, pct });
+figs['canary-steps'] = {
+  title: 'OpenKruise moves traffic in steps; openkruise-controller unpauses a step once its test passed and its bake time ran',
+  desc: 'Step 1 sends 10% of traffic to one canary replica and pauses. openkruise-controller waits until the RolloutTest smoke-test for step 1 Succeeded, then until the step has stayed ready for step-1-bake-time, and unpauses it. Step 2 sends 50% to five replicas. OpenKruise completes the last step without pausing, and the rollout is Healthy with all traffic on the new version. A failed test or a passed ready-timeout leaves the step paused with Stalled=True.',
+  wide: {
+    w: 632, h: 296, body: [
+      cvStep(0, 0, 180, 'Step 1', ['replicas: 1', 'traffic: 10%'], 10),
+      cvStep(226, 0, 180, 'Step 2', ['replicas: 5', 'traffic: 50%'], 50),
+      cvStep(452, 0, 180, 'After the last step', ['phase: Healthy', 'all traffic'], 100),
+      edge([[406, 40], [449, 40]]),
+      plate({ x: 40, y: 132, w: 330, h: 72, kind: 'k', key: true, title: 'openkruise-controller', sub: ['RolloutTest smoke-test Succeeded,', 'then ready for step-1-bake-time'] }),
+      edge([[90, 100], [90, 129]], { label: { x: 98, y: 120, t: 'paused' } }),
+      edge([[316, 132], [316, 103]], { kind: 'act', label: { x: 324, y: 120, t: 'unpauses' } }),
+      notes({ x: 0, y: 228, w: 632, items: [
+        { k: 'The test fails, or step-1-ready-timeout passes:', v: 'the step stays paused, Stalled=True.', state: 'red' },
+        { k: 'The last step:', v: 'OpenKruise completes it without pausing, so its tests never run.', state: 'gray' },
+      ] }),
+    ].join('')
+  },
+  narrow: {
+    w: 318, h: 416, body: [
+      cvStep(0, 0, 150, 'Step 1', ['replicas: 1', 'traffic: 10%'], 10),
+      cvStep(168, 0, 150, 'Step 2', ['replicas: 5', 'traffic: 50%'], 50),
+      plate({ x: 0, y: 132, w: 290, h: 72, kind: 'k', key: true, title: 'openkruise-controller', sub: ['RolloutTest smoke-test Succeeded,', 'then ready for step-1-bake-time'] }),
+      edge([[75, 100], [75, 129]], { label: { x: 83, y: 120, t: 'paused' } }),
+      edge([[243, 132], [243, 103]], { kind: 'act', label: { x: 235, y: 120, t: 'unpauses', anchor: 'end' } }),
+      edge([[306, 100], [306, 233]]),
+      cvStep(0, 236, 318, 'After the last step', ['phase: Healthy', 'all traffic'], 100),
+      notes({ x: 0, y: 360, w: 318, items: [
+        { k: 'Test fails or times out:', v: 'stays paused.', state: 'red' },
+        { k: 'Last step:', v: 'never pauses.', state: 'gray' },
+      ] }),
+    ].join('')
+  }
+};
+
+// ============ schedule-week: an Allow window over a week (gates/schedules) ============
+// ROLE: the guide's business-hours schedule as a week: when the gate passes, and what happens to a release that
+// arrives outside it. New object (no figure has a calendar): one 18-unit track per day, the window in the green
+// (allowed) chip colours, the held release an amber dot with a dashed amber wire to where it deploys. Day labels
+// and the axis use the kit's label and mono roles; the footnote rule is rollout-gating's.
+const DAYS = ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'];
+function week({ x0, x1, y0, rowH, pitch, axisY, release }) {
+  const hx = (h) => n(x0 + h * (x1 - x0) / 24);
+  let s = ['00:00', '09:00', '17:00', '24:00'].map((t, i) => text({ x: hx([0, 9, 17, 24][i]), y: axisY, t, role: 'mono', anchor: ['start', 'middle', 'middle', 'end'][i] })).join('');
+  DAYS.forEach((d, i) => {
+    const y = y0 + i * pitch;
+    s += text({ x: 0, y: y + rowH / 2 + 4.5, t: d });
+    s += `<rect class="df-day" x="${x0}" y="${y}" width="${x1 - x0}" height="${rowH}" rx="4"/>`;
+    if (i < 5) s += `<rect class="df-win" x="${hx(9)}" y="${y}" width="${n(hx(17) - hx(9))}" height="${rowH}" rx="4"/>`;
+  });
+  const ty = y0 + pitch + rowH / 2, gy = y0 + pitch + rowH + (pitch - rowH) / 2, wy = y0 + 2 * pitch;
+  s += edge([[hx(19), ty], [hx(19), gy], [hx(9), gy], [hx(9), wy]], { kind: 'held', dashed: true });
+  s += dot(hx(19), ty, 'amber') + dot(n(hx(9) + 8), wy + rowH / 2, 'green');
+  return s;
+}
+figs['schedule-week'] = {
+  title: 'business-hours over a week: the gate passes inside the window, and a release that arrives outside it waits for the next one',
+  desc: 'A RolloutSchedule with action Allow and one rule, 09:00 to 17:00 Monday to Friday in America/New_York, makes its gate pass during those hours only. A release that arrives on Tuesday at 19:00 is held while the gate has passing false, and deploys on Wednesday at 09:00 when the window opens and the gate passes again. Saturday and Sunday have no window.',
+  wide: {
+    w: 632, h: 302, body: [
+      text({ x: 0, y: 14, t: 'action: Allow', role: 'mono' }),
+      text({ x: 632, y: 14, t: 'timezone: America/New_York', role: 'mono', anchor: 'end' }),
+      week({ x0: 48, x1: 632, y0: 52, rowH: 18, pitch: 26, axisY: 40, release: true }),
+      notes({ x: 0, y: 248, w: 632, items: [
+        { k: 'Tuesday 19:00, a release arrives:', v: 'held, the schedule gate has passing: false.', state: 'amber' },
+        { k: 'Wednesday 09:00:', v: 'the window opens, the gate passes, and the release deploys.', state: 'green' },
+      ] }),
+    ].join('')
+  },
+  narrow: {
+    w: 318, h: 302, body: [
+      text({ x: 0, y: 14, t: 'action: Allow', role: 'mono' }),
+      text({ x: 0, y: 32, t: 'timezone: America/New_York', role: 'mono' }),
+      week({ x0: 40, x1: 318, y0: 66, rowH: 16, pitch: 24, axisY: 56, release: true }),
+      notes({ x: 0, y: 248, w: 318, items: [
+        { k: 'Tue 19:00:', v: 'held, passing: false.', state: 'amber' },
+        { k: 'Wed 09:00:', v: 'the gate passes, it deploys.', state: 'green' },
+      ] }),
+    ].join('')
+  }
+};
+
+
 for (const [id, f] of Object.entries(figs)) {
   const html = `{{/* GENERATED by scripts/docs-figs.mjs: edit the generator, not this file. */}}\n` +
     svg(id, 'wide', f.wide, f.title, f.desc) + '\n' + svg(id, 'narrow', f.narrow, f.title, f.desc) + '\n';
