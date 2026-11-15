@@ -34,13 +34,13 @@ Rollouts read their releases from `ReleaseSource` objects, which the release-con
 
 ## Add integration controllers
 
-Each integration is a separate controller. Install only the ones you use; each page names the version it needs and the manifest to apply.
+Each integration is a separate controller. Install only the ones you use; the linked page names the version it needs.
 
 | Controller | Adds | Install from |
 |---|---|---|
 | openkruise-controller | Canary steps with OpenKruise Rollout | [Roll Out with a Canary](/docs/releases/canary/) |
 | datadog-controller | Datadog monitors and incidents as health checks | [Datadog](/docs/integrations/datadog/) |
-| environment-controller | Promotion across clusters through GitHub deployments | [GitHub](/docs/integrations/github/) |
+| environment-controller | Promotion across clusters through GitHub deployments | No release manifest yet for the version [GitHub](/docs/integrations/github/) describes {{< needs "Next release" >}}: build it from [its repository](https://github.com/kuberik/environment-controller) |
 
 ## Install everything from one bundle
 
