@@ -23,7 +23,7 @@ A release is a tagged artifact in a registry: the application image, or the rend
 
 A failed bake stops automatic deploys of that Rollout. They resume when someone deploys a version by hand, pins one, unblocks the Rollout, or retries the bake and it succeeds.
 
-![The dashboard home: what is deploying right now, what a rule is holding, and your merged changes with how far each one got](/screenshots/dashboard/home.png)
+![Home in the dashboard: Your changes, with checkout-api, platform-telemetry and recommender-svc and the environment each pull request has reached, above the Fleet card, where four apps are held, checkout-edge is deploying to development and production, and the recent deploys are listed](/images/docs/what-is/home.png)
 
 ## Works with
 

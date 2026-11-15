@@ -20,7 +20,7 @@ The sidebar pages list what needs you across every cluster; the command palette 
 3. Type part of a name. Results are grouped as **Rollouts**, **Builds**, **Apps**, **Environments**, **Changes**, **Namespaces** and **Commands**.
 4. To find a pull request, paste its GitHub URL, `owner/repo#123` or a commit sha into the box, then select **Open change #123 · repo**.
 
-![The command palette with a GitHub pull request URL pasted in and a single result, Open change #12 · kuberik-testing](/images/docs/dashboard/command-palette-pr.png)
+![The command palette with the URL of pull request 80 in exampleco/checkout-api pasted in and a single result, Open change #80 · checkout-api, 4 of 7 live, queued for 2](/images/docs/dashboard/command-palette-pr.png)
 
 ## Read a rollout
 
