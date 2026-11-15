@@ -12,14 +12,14 @@ A [Rollout](/docs/concepts/rollouts/) decides which version runs in an environme
 | Kuberik watches | A [`ReleaseSource`](/docs/releases/publish/) over your app image | A `ReleaseSource` over your manifest artifact |
 | Kuberik writes | `postBuild.substitute` on a `Kustomization` | `spec.ref.tag` on an `OCIRepository` |
 | Annotation | `rollout.kuberik.com/substitute.<VAR>.from` | `rollout.kuberik.com/rollout` |
-| Flux source | Any source of the `Kustomization`, usually a `GitRepository` | `OCIRepository` |
+| Flux source | Any source of the `Kustomization`: `GitRepository`, `OCIRepository` or `Bucket` | `OCIRepository` |
 | A release changes | One variable | Everything in the artifact |
 
 Gates, health checks, bake time and cross-environment promotion work the same way in both modes.
 
 ## Image tag
 
-Your manifests live in git. Kuberik selects a version and writes it into the Kustomization's substitution variables; Flux renders the overlay and applies it.
+Your manifests live in any Flux source, a Git repository or an OCI artifact; it works the same with either. Kuberik selects a version and writes it into the Kustomization's substitution variables; Flux renders the overlay and applies it.
 
 ![The Resources card of a production rollout: the objects Flux applied for it, here the hello-world Deployment and its canary Rollout, both ready](/images/docs/concepts/propagation-resources.png)
 

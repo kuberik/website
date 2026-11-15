@@ -41,7 +41,7 @@ If you already run a Flux `ImagePolicy`, set `spec.oci.imagePolicyRef.name` inst
 
 ## Set a Kustomization substitute
 
-Annotate the Kustomization with `rollout.kuberik.com/substitute.<variable>.from: <rollout name>`. The Rollout writes the release tag into `spec.postBuild.substitute.<variable>`:
+Annotate the Kustomization with `rollout.kuberik.com/substitute.<variable>.from: <rollout name>`. The Rollout writes the release tag into `spec.postBuild.substitute.<variable>`. The Kustomization's `sourceRef` can be a `GitRepository`, an `OCIRepository` or a `Bucket`; the Rollout does not read it:
 
 ```yaml {filename="kustomization.yaml"}
 apiVersion: kustomize.toolkit.fluxcd.io/v1

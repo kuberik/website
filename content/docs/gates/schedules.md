@@ -12,7 +12,7 @@ Hold automatic deploys outside the hours you choose, or block them during a free
 
 ## Allow deploys during business hours
 
-A schedule selects Rollouts by label and is active while any of its rules matches the current time. With `action: Allow`, deploys pass only while the schedule is active. This one allows deploys Monday to Friday, 09:00 to 17:00 New York time.
+A schedule selects Rollouts by label and is active while any of its rules matches the current time. Its `action` defaults to `Deny`, which holds deploys while the schedule is active; with `action: Allow`, deploys pass only while it is active. This one allows deploys Monday to Friday, 09:00 to 17:00 New York time.
 
 ```yaml {filename="business-hours.yaml"}
 apiVersion: kuberik.com/v1alpha1
@@ -39,7 +39,7 @@ spec:
 
 `Allow` passes deploys while a rule matches and holds them otherwise; `Deny` is the reverse. A held deploy starts automatically when the gate passes again. A closed window does not hold a Rollout's first deploy or a deploy you start by hand.
 
-`action` defaults to `Deny` and `timezone` defaults to `UTC`. Always set `action: Allow` on an allow window: without it, the schedule blocks deploys during exactly the hours you meant to allow.
+`timezone` defaults to `UTC`. Always set `action: Allow` on an allow window: without it, the schedule blocks deploys during exactly the hours you meant to allow.
 
 Label the Rollout so the schedule selects it.
 
