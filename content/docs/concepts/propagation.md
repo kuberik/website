@@ -40,7 +40,7 @@ spec:
     name: hello-world
   postBuild:
     substitute:
-      APP_VERSION: "1.0.0"  # default, Kuberik overwrites it
+      ENVIRONMENT: production  # Kuberik adds APP_VERSION
 ```
 
 A rollout in this mode changes exactly one thing: the image tag. Config changes reach the cluster through a separate path, whenever the Kustomization next reconciles git. That keeps each rollout narrow, and it means deploying an older build by hand restores the image, not the configuration that shipped with it.

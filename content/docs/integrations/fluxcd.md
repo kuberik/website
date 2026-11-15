@@ -60,7 +60,7 @@ spec:
     name: hello-world
   postBuild:
     substitute:
-      APP_VERSION: "1.0.0"  # overwritten by the Rollout
+      ENVIRONMENT: production  # keeps substitution on
 ```
 
 Use the variable in the manifests under `path`:
@@ -83,8 +83,10 @@ spec:
     spec:
       containers:
         - name: hello-world
-          image: ghcr.io/acme/hello-world:${APP_VERSION}
+          image: ghcr.io/acme/hello-world:${APP_VERSION:=1.0.0}
 ```
+
+Keep at least one other key in `postBuild.substitute`, or a `postBuild.substituteFrom` entry, in the Kustomization you commit. With an empty `postBuild` or `substitute`, Flux runs no substitution at all, so until the Rollout writes its key `${APP_VERSION:=1.0.0}` reaches the cluster as written.
 
 One Kustomization can carry several of these annotations, one per variable, each naming its own Rollout. A frontend and a backend Rollout can then deploy into the same Kustomization independently.
 
