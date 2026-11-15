@@ -8,7 +8,7 @@ weight: 10
 
 Install Kuberik from its Helm chart: one release installs the rollout-controller, the release-controller {{< needs "Next release" >}}, the integration controllers you turn on, and the dashboard.
 
-Before you start, you need Helm 3 and Flux 2.7 or later in the cluster ([install Flux](https://fluxcd.io/flux/installation/)): Kuberik picks the version and [Flux](/docs/integrations/fluxcd/) applies it. The rollout-controller the chart installs does not start without Flux's `ImagePolicy` CRD (`image.toolkit.fluxcd.io/v1`), and a default `flux install` leaves out the image-reflector-controller that serves it. Add it:
+Before you start, you need Helm 3 and Flux 2.7 or later in the cluster ([install Flux](https://fluxcd.io/flux/installation/)): Kuberik picks the version and [Flux](/docs/integrations/fluxcd/) applies it. The released rollout-controller the chart installs needs Flux's ImagePolicy v1 API (`image.toolkit.fluxcd.io/v1`), which Flux 2.7 serves with the image-reflector-controller; a default `flux install` leaves that controller out. Add it:
 
 ```bash {filename="Terminal"}
 flux install --components-extra=image-reflector-controller
