@@ -202,27 +202,36 @@ document.addEventListener("DOMContentLoaded", function () {
   }
   function words(s) { return norm(s).match(WORD) || []; }
   // Words an operator uses for the same task. Each group is symmetric.
-  const SYNONYMS = [
-    ['unblock', 'blocked', 'blocks', 'blocking', 'resume', 'unblocked'],
-    ['approve', 'approval', 'approvals', 'approved', 'approving', 'approver', 'approvers'],
-    ['install', 'installing', 'installation', 'installed'],
-    ['upgrade', 'upgrading', 'upgraded'],
-    ['stuck', 'stalled', 'hung'],
-    ['pin', 'pinned', 'pinning'],
-  ];
-  const SYN = {};
-  for (const g of SYNONYMS) for (const w of g) SYN[w] = g;
+  // One-way: a query word expands to the words an operator may mean by it.
+  // A synonym hit scores below a literal one (see hit()).
+  const SYN = {
+    unblock: ['unblock', 'unblocked', 'blocked', 'blocks', 'blocking', 'resume'],
+    blocked: ['blocked', 'blocks', 'blocking', 'unblock'],
+    approve: ['approve', 'approval', 'approvals', 'approved', 'approving', 'approver', 'approvers'],
+    approval: ['approval', 'approvals', 'approve', 'approved', 'approver', 'approvers'],
+    install: ['install', 'installing', 'installation', 'installed'],
+    upgrade: ['upgrade', 'upgrading', 'upgraded'],
+    stuck: ['stuck', 'stalled', 'hung'],
+    pin: ['pin', 'pinned', 'pinning'],
+  };
   function variants(t) { return SYN[t] || [t]; }
-  // A word matches a term if it is the term or starts with it (typing "dep").
+  // 2 literal word, 1 literal prefix (typing "dep"), 0.7 synonym word, 0.4 synonym prefix.
   function hit(ws, t) {
     let best = 0;
     for (const v of variants(t)) {
+      const lit = v === t;
       for (const w of ws) {
-        if (w === v) return 2;
-        if (w.startsWith(v)) best = 1;
+        if (w === v) { if (lit) return 2; best = Math.max(best, 0.7); }
+        else if (w.startsWith(v)) best = Math.max(best, lit ? 1 : 0.4);
       }
     }
     return best;
+  }
+  const strip = (x) => ('' + x).replace(/<[^>]*>/g, '').replace(/&amp;/g, '&').replace(/&lt;/g, '<').replace(/&gt;/g, '>').replace(/&quot;/g, '"').replace(/&#39;/g, "'");
+  function count(hay, needle) {
+    let n = 0, i = -1;
+    while (n < 10 && (i = hay.indexOf(needle, i + 1)) !== -1) n++;
+    return n;
   }
 
   async function preloadIndex() {
@@ -238,19 +247,19 @@ document.addEventListener("DOMContentLoaded", function () {
         searchUrl += urlParts[i] + '/';
         const cd = data[searchUrl];
         if (!cd) continue;
-        let title = cd.title;
+        let title = strip(cd.title);
         if (title == "_index") title = urlParts[i].split("-").join(" ");
         crumb += title;
         if (i < urlParts.length - 1) crumb += ' > ';
       }
       crumbs[route] = crumb;
-      const pageTitle = data[route].title;
+      const pageTitle = strip(data[route].title);
       const generated = route.startsWith('/docs/reference/');
       let order = 0;
       for (const heading in data[route].data) {
         const [hash, text] = heading.split('#');
         const url = route.trimEnd('/') + (hash ? '#' + hash : '');
-        const title = text || pageTitle;
+        const title = strip(text || pageTitle);
         const content = data[route].data[heading] || '';
         const paragraphs = content.split('\n').filter(Boolean);
         sections.push({
@@ -258,7 +267,7 @@ document.addEventListener("DOMContentLoaded", function () {
           isPage: !hash,
           order: order++,
           generated,
-          display: paragraphs[0] || '',
+          display: strip(paragraphs[0] || ''),
           tw: words(title),
           pw: words(pageTitle),
           cw: words(crumb),
@@ -273,9 +282,12 @@ document.addEventListener("DOMContentLoaded", function () {
     if (inputElement && inputElement.value) inputElement.dispatchEvent(new Event('keyup'));
   }
 
-  function scoreSection(s, terms, phrase) {
+  function scoreSection(s, terms, phrase, ident) {
     let score = 0;
     let titleHits = 0;
+    // Generated reference pages carry no body weight, except for an exact
+    // field name (camelCase query), where the definition is what is wanted.
+    const gen = s.generated && !ident;
     for (const t of terms) {
       const th = hit(s.tw, t);
       const ph = s.isPage ? 0 : hit(s.pw, t);
@@ -290,16 +302,20 @@ document.addEventListener("DOMContentLoaded", function () {
         if (hit(s.cw, t)) { score += 0.5; continue; }
         return 0; // every word must be somewhere
       }
-      if (th) { score += th === 2 ? 10 : 6; titleHits++; }
-      else if (ph) score += 2;
-      else score += s.generated ? 0.1 : 1;
+      if (th) { score += th >= 2 ? 10 : th >= 1 ? 6 : th >= 0.7 ? 7 * 0.7 + 2 : 3; if (th >= 1) titleHits++; }
+      else if (ph) score += ph >= 1 ? 2 : 1;
+      else {
+        // Body hit: more mentions rank higher, so ties are not index order.
+        const n = Math.max(...variants(t).map(v => count(s.body, v)));
+        score += gen ? 0.1 : 1 + Math.min(n, 10) * 0.12 + (ident && s.generated ? 3 : 0);
+      }
     }
     if (terms.length > 1 && norm(s.title).includes(phrase)) score += 12;
-    else if (terms.length > 1 && s.body.includes(phrase)) score += s.generated ? 0 : 4;
+    else if (terms.length > 1 && s.body.includes(phrase)) score += gen ? 0 : 4;
     if (titleHits === terms.length) score += 6;
     // A page's own entry (its title and summary) outranks its sections.
     if (s.isPage && titleHits) score += 8;
-    if (s.generated) score *= 0.5;
+    if (gen) score *= 0.5;
     return score;
   }
 
@@ -319,6 +335,7 @@ document.addEventListener("DOMContentLoaded", function () {
 
     const terms = words(query);
     const phrase = terms.join(' ');
+    const ident = /[a-z][A-Z]/.test(query);
     if (!terms.length) { displayResults([], query); return; }
     const inDocs = location.pathname.startsWith('/docs/');
     const inBlog = location.pathname.startsWith('/blog/');
@@ -331,7 +348,7 @@ document.addEventListener("DOMContentLoaded", function () {
         if (inDocs) continue;
         w = inBlog ? 1 : 0.6;
       } else if (inBlog) w = 0.6;
-      const sc = scoreSection(s, terms, phrase) * w;
+      const sc = scoreSection(s, terms, phrase, ident) * w;
       if (sc <= 0) continue;
       let p = pages.get(s.route);
       if (!p) pages.set(s.route, p = { best: 0, items: [], crumb: s.crumb, order: pages.size });
@@ -342,7 +359,7 @@ document.addEventListener("DOMContentLoaded", function () {
     const results = [];
     ranked.forEach((p, i) => {
       p.items.sort((a, b) => b.sc - a.sc || a.s.order - b.s.order);
-      p.items.slice(0, 4).forEach((it, j) => {
+      p.items.filter((it, j) => j === 0 || it.sc >= p.best * 0.5).slice(0, 4).forEach((it, j) => {
         results.push({
           id: `${i}_${j}`,
           route: it.s.url,
@@ -369,11 +386,27 @@ document.addEventListener("DOMContentLoaded", function () {
       return;
     }
 
-    // Highlight the query in the result text.
+    // Highlight the query words (and their synonyms) in plain text, then escape.
+    const esc = (x) => x.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
+    const alts = [];
+    for (const t of words(query)) {
+      for (const v of variants(t)) {
+        const e = v.replace(/[-\\^$*+?.()|[\]{}]/g, '\\$&');
+        alts.push(v === 'rollback' ? 'roll(?:s|ed|ing)?[\\s-]?back' : e);
+      }
+    }
+    const hlRe = alts.length ? new RegExp('(?<![0-9a-z\\u00C0-\\u017F])(?:' + alts.join('|') + ')', 'gi') : null;
     function highlightMatches(text, query) {
-      const escapedQuery = query.replace(/[-\\^$*+?.()|[\]{}]/g, '\\$&');
-      const regex = new RegExp(escapedQuery, 'gi');
-      return text.replace(regex, (match) => `<span class="hextra-search-match">${match}</span>`);
+      text = strip(text);
+      if (!hlRe) return esc(text);
+      let out = '', last = 0, m;
+      hlRe.lastIndex = 0;
+      while ((m = hlRe.exec(text))) {
+        if (!m[0]) { hlRe.lastIndex++; continue; }
+        out += esc(text.slice(last, m.index)) + '<span class="hextra-search-match">' + esc(m[0]) + '</span>';
+        last = m.index + m[0].length;
+      }
+      return out + esc(text.slice(last));
     }
 
     // Create a DOM element from the HTML string.
@@ -399,7 +432,7 @@ document.addEventListener("DOMContentLoaded", function () {
       const result = results[i];
       if (result.prefix) {
         fragment.appendChild(createElement(`
-          <div class="hextra-search-prefix">${result.prefix}</div>`));
+          <div class="hextra-search-prefix">${esc(result.prefix)}</div>`));
       }
         let li = createElement(`
         <li>
