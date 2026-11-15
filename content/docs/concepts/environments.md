@@ -71,6 +71,10 @@ GitHub records Git revisions, and the gate lists release tags. The controller ma
 
 A pin on the Rollout (`spec.wantedVersion`) is a manual deploy that skips the gate. On a wave leader, the pinned release becomes the wave's pick and the followers deploy it. On a follower, a pin that differs from the wave's pick makes the Environment report `Pinned`. Deleting the Environment deletes its gate, which leaves the Rollout ungated: pin the Rollout first if it must not move.
 
+{{< callout type="warning" >}}
+A pin bypasses the upstream's bake. Pinning staging to a release development never baked, or failed, deploys it to staging at once, and once staging's bake succeeds the production gate allows it.
+{{< /callout >}}
+
 ## Sites and waves
 
 One environment can run in several clusters. Each cluster's Environment is a site, named by `spec.site` (for example `eu-west-1`). Without `spec.site`, the controller uses its default site: the `site` key of the `kuberik-cluster-info` ConfigMap in the controller's namespace, else `default`.

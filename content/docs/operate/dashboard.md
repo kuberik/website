@@ -79,6 +79,10 @@ Use these when a gate, a bad build or a failed deploy needs a person.
 
 ![Part of the Change version dialog deploying the held build 4.45.0-45 of checkout-api to production: the rule it would override, After staging, the four commits to deploy, the Pin build switch, a required reason, the typed confirmation and Deploy to prod](/images/docs/dashboard/change-version.png)
 
+{{< callout type="warning" >}}
+Change version skips every rule, including the wait for the earlier environment's bake: a build development never baked, or failed, deploys to staging at once. Once staging bakes it, production may take it.
+{{< /callout >}}
+
 To let the rollout follow new releases again, select **Clear pin** on the Overview banner or on the pin's tile in the **Gates** tab.
 
 ### Retry a failed deploy

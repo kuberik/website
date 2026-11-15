@@ -39,6 +39,10 @@ kubectl -n hello-world patch rollout hello-world --type=merge -p '{"spec":{"want
 
 After you unpin, the Rollout deploys the newest release the gates allow that is newer than the pinned one. Pin a tag from the [`ReleaseSource`](/docs/releases/publish/) catalogue: a tag outside it deploys, but after unpinning the Rollout cannot tell which releases are newer and deploys nothing on its own.
 
+{{< callout type="warning" >}}
+A pin skips every gate, including the Environment gate that waits for the earlier tier's bake, and the health-check and failed-bake holds. Pin staging to a release that development never baked, or failed, and it deploys to staging at once; when staging's bake succeeds, production's gate allows it too.
+{{< /callout >}}
+
 In the dashboard, **Change version** with **Pin build** turned on sets the pin, and **Clear pin** removes it. Both are disabled while another field manager, such as Flux applying the Rollout from Git, owns `spec.wantedVersion`.
 
 ## Roll back to the previous version
