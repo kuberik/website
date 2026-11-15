@@ -1,15 +1,16 @@
 /* ===== STEP IN (landing v6j). Day-2 operation; layouts/_partials/home/stepin.html. Page ground between the lagoon
    features stage and the deep spec band. >= 1024: head split (title left, lead right, as #features), then canvas 7 | actions 5.
    <= 1023: one column, canvas over actions. The poster borrows take B's card: white body, 8px radius, mono versions. ===== */
-.si .si-head{gap:16px}
 .si-name{margin:0 0 8px;font:500 var(--t-label-s)/var(--t-label-l) var(--sans);color:oklch(.5 .09 182)}
 html.dark .si-name{color:oklch(.82 .1 182)}
 .si-lead .link-arrow{margin-top:16px}
 .si-grid{display:grid;grid-template-columns:minmax(0,1fr);gap:var(--card-gap);margin-top:var(--head-gap)}
 @media(min-width:1024px){
-  .si .si-head{display:grid;grid-template-columns:minmax(0,7fr) minmax(0,5fr);gap:var(--card-gap);align-items:start}
-  /* title and lead share a top line (the lead is 4 lines; align-items:end put its first line above the title) */
-  .si .si-head .title-body{justify-self:start;margin-top:6px}
+  /* v6k (review r7 B2): the head IS the #features / #spec head (base .head: 1fr | 1fr, gap 24, bottom-aligned, body
+     left-aligned in its column, 560 max); the lead column is body + docs link, so the link's line sits on the title's
+     last line, as the feature head's body does. No offsets. */
+  .si .si-lead{max-width:560px}
+  .si .si-lead .title-body{margin:0}
   .si-grid{grid-template-columns:minmax(0,7fr) minmax(0,5fr);align-items:stretch}
 }
 /* the canvas: the feature card's tinted dotted ground, standing alone */
@@ -45,11 +46,13 @@ html.dark .si-btn{background:oklch(1 0 0/.04)}
 .si-act+.si-act{border-top:1px solid var(--line)}
 .si-act dt{display:flex;align-items:baseline;flex-wrap:wrap;gap:4px 12px}
 .si-act-name{font:600 16px/24px var(--sans);color:var(--ink)}
-.si-handle{margin-left:auto;font:500 12px/18px var(--mono);color:var(--ink-subtle)}
-.si-act dd{margin:4px 0 0;font:400 15px/22px var(--sans);color:var(--ink-muted);text-wrap:pretty}
+.si-handle{margin-left:auto;font:500 12px/18px var(--mono);color:var(--ink-muted)}
+.si-act dd{margin:4px 0 0;font:400 var(--t-card-body-s)/var(--t-card-body-l) var(--sans);color:var(--ink-muted);text-wrap:pretty}
 @media(max-width:640px){
-  .si-canvas{min-height:0;padding:24px 12px}
+  .si-canvas{min-height:0;padding:24px}
   .si-hist li{grid-template-columns:8px 80px minmax(0,1fr);gap:10px;padding:8px 12px}
   .si-card-head,.si-card-foot{padding-inline:12px}
   .si-handle{margin-left:0;flex-basis:100%}
 }
+/* the lead reads at the #features lead size at every width */
+#step-in .title-body{font-size:var(--t-lead-s);line-height:var(--t-lead-l)}
