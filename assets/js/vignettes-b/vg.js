@@ -212,11 +212,11 @@
       turn = setTimeout(rotate, rem * 1000);
     };
     // v6k (review r7 S5): the card the visitor scrolled to wins the first turn over its row-mate. "Scrolled to" = the eligible
-    // card whose vertical centre is nearest the viewport's centre (a side-by-side pair ties within 8 px: the larger area wins).
+    // card whose vertical centre is nearest the viewport's centre (a side-by-side pair ties within 8 px: the first in reading order wins, the left card; rotate() then hands the turn on).
     const off = (v) => { const r = v.host.getBoundingClientRect(); return Math.abs((r.top + r.bottom) / 2 - innerHeight / 2); };
     const centred = () => {
       let best = null, bd = 0;
-      for (const v of live) { if (!(v.ratio >= MIN)) continue; const d = off(v); if (!best || d < bd - 8 || (Math.abs(d - bd) <= 8 && v.area > best.area)) { best = v; bd = d; } }
+      for (const v of live) { if (!(v.ratio >= MIN)) continue; const d = off(v); if (!best || d < bd - 8 || (Math.abs(d - bd) <= 8 && order(v) < order(best))) { best = v; bd = d; } }
       return best;
     };
     let gesture = 0, gestureTimer = null, wonAt = -1, wonBy = 'elect', preempt = false;
