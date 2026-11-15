@@ -60,24 +60,24 @@ With kubectl, create the `RolloutApproval` yourself. It can name a version that 
 apiVersion: kuberik.com/v1alpha1
 kind: RolloutApproval
 metadata:
-  name: hello-world-v1-4-0
+  name: hello-world-1-4-0
   namespace: hello-world
   annotations:
     approval.kuberik.com/by: emma.clarke@acme.com  # optional; must equal your username
 spec:
   rolloutRef:
     name: hello-world
-  version: v1.4.0
+  version: 1.4.0
 ```
 
 ```bash {filename="Terminal"}
 kubectl apply -f approval.yaml
 ```
 
-The name `hello-world-v1-4-0` is the one the dashboard uses for the same build, so both ways of approving land on one object. One approval satisfies every approval gate of the Rollout. To withdraw it before the build deploys, delete it:
+The name `hello-world-1-4-0` is the one the dashboard uses for the same build, so both ways of approving land on one object. One approval satisfies every approval gate of the Rollout. To withdraw it before the build deploys, delete it:
 
 ```bash {filename="Terminal"}
-kubectl -n hello-world delete rolloutapproval hello-world-v1-4-0
+kubectl -n hello-world delete rolloutapproval hello-world-1-4-0
 ```
 
 ## Choose who may approve
@@ -129,7 +129,7 @@ spec:
 
 ```bash {filename="Terminal"}
 kubectl -n hello-world patch rolloutgate production-approval --type=json \
-  -p='[{"op": "add", "path": "/spec/allowedVersions/-", "value": "v1.4.0"}]'
+  -p='[{"op": "add", "path": "/spec/allowedVersions/-", "value": "1.4.0"}]'
 ```
 
 ## Check the result
@@ -159,7 +159,7 @@ kubectl -n hello-world get rollout hello-world -o jsonpath='{.status.history[0].
 ```
 
 ```text {filename="Output"}
-{"by":"emma.clarke@acme.com","name":"hello-world-v1-4-0"}
+{"by":"emma.clarke@acme.com","name":"hello-world-1-4-0"}
 ```
 
 ## Troubleshoot
