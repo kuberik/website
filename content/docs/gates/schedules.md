@@ -19,7 +19,7 @@ metadata:
   name: business-hours
   namespace: hello-world
   annotations:
-    gate.kuberik.com/pretty-name: "Business hours"
+    gate.kuberik.com/pretty-name: "Business Hours Only"
     gate.kuberik.com/description: "Deploys allowed Monday to Friday, 09:00 to 17:00 New York time"
 spec:
   rolloutSelector:
