@@ -81,7 +81,7 @@ A `ReleaseSource` lists the tags of an OCI repository, orders them by a policy, 
 kubectl apply -f releasesource.yaml
 ```
 
-Its `READY` column reads `False` until CI has pushed the first tag; that is expected at this point. For a private registry, add `secretRef` under `oci` with the name of an image pull secret in the same namespace. Releases are kept for 7 days, and at least 30 are always kept; change this with `spec.retention`.
+Its `READY` column reads `False` until CI has pushed the first tag; that is expected at this point. For a private registry, see [Pull from a private registry](/docs/releases/publish/#pull-from-a-private-registry): the ReleaseSource and the OCIRepository you create below each take the pull secret. Releases are kept for 7 days, and at least 30 are always kept; change this with `spec.retention`.
 
 ### Create the Rollout
 

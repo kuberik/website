@@ -37,7 +37,7 @@ spec:
         range: ">=1.0.0"
 ```
 
-If you already run a Flux `ImagePolicy`, set `spec.oci.imagePolicyRef.name` instead of `image` and `policy`; the ReleaseSource reads the image, filter and policy from it. [Publish Releases from CI](/docs/releases/publish/) covers tag schemes and private registries.
+If you already run a Flux `ImagePolicy`, set `spec.oci.imagePolicyRef.name` instead of `image` and `policy`; the ReleaseSource reads the image, filter and policy from it. [Publish Releases from CI](/docs/releases/publish/) covers tag schemes, and [Pull from a private registry](/docs/releases/publish/#pull-from-a-private-registry) covers private registries.
 
 ## Set a Kustomization substitute
 
