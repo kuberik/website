@@ -7,7 +7,9 @@ html.dark .si-name{color:oklch(.82 .1 182)}
 .si-lead .link-arrow{margin-top:16px}
 .si-grid{display:grid;grid-template-columns:minmax(0,1fr);gap:var(--card-gap);margin-top:var(--head-gap)}
 @media(min-width:1024px){
-  .si .si-head{display:grid;grid-template-columns:minmax(0,7fr) minmax(0,5fr);gap:var(--card-gap);align-items:end}
+  .si .si-head{display:grid;grid-template-columns:minmax(0,7fr) minmax(0,5fr);gap:var(--card-gap);align-items:start}
+  /* title and lead share a top line (the lead is 4 lines; align-items:end put its first line above the title) */
+  .si .si-head .title-body{justify-self:start;margin-top:6px}
   .si-grid{grid-template-columns:minmax(0,7fr) minmax(0,5fr);align-items:stretch}
 }
 /* the canvas: the feature card's tinted dotted ground, standing alone */
