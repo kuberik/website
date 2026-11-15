@@ -32,7 +32,12 @@ html.dark .kd-content .kd-shot img,html.dark .kd-shot img{border-color:oklch(1 0
 .hextra-toc .kd-toc-l3 > a{padding:3px 0 3px 26px!important;font-size:12px;line-height:18px;color:var(--ink-subtle)!important}
 .hextra-toc li > ul{margin:0 0 4px}
 .hextra-toc .kd-toc-l2 > a:hover,.hextra-toc .kd-toc-l3 > a:hover,.hextra-toc a.hextra-toc-active{color:var(--ink)!important}
-.hextra-toc .kd-toc-l3 > a.hextra-toc-active::before{top:3px;bottom:3px}
+/* R1-DES-9 (r5): H3 rows are indented 12 (26 vs 14); error-string H3s ("ReleasesUpdated is False with reason ...") ran to
+   three lines in the 171 px text measure, so a row clamps at two. Clamping needs overflow hidden, which would clip the
+   active tick (::before at left -1), so an H3's tick is an inset shadow on the row instead. */
+.hextra-toc .kd-toc-l3 > a{display:-webkit-box;-webkit-box-orient:vertical;-webkit-line-clamp:2;overflow:hidden;overflow-wrap:anywhere}
+.hextra-toc .kd-toc-l3 > a.hextra-toc-active::before{display:none}
+.hextra-toc .kd-toc-l3 > a.hextra-toc-active{box-shadow:inset 2px 0 0 var(--mint)}
 .kd-toc-fold > li > ul{display:none}
 .kd-toc-fold > li:has(a.hextra-toc-active) > ul{display:block}
 
@@ -56,5 +61,18 @@ html.dark .kd-content .kd-shot img,html.dark .kd-shot img{border-color:oklch(1 0
 @media(max-width:640px){
   .hextra-steps{margin-left:11px!important;padding-left:18px!important}
   .kd-content .hextra-steps h3::before{left:-29px;top:2px;width:22px;height:22px;font-size:11px!important}
-  .kd-content .hextra-steps .hextra-code-block{margin-left:-19px;width:calc(100% + 19px)}
+  /* R1L-13 (r5): code, tables and screenshot plates inside a step break out of the rail to the full 350 column
+     (margin -30 = rail x 11 + 1 border + 18 padding); the step text stays on the 30 px indent beside its node. */
+  .kd-content .hextra-steps :is(.hextra-code-block,.kd-table,.kd-shot){margin-left:-30px;width:calc(100% + 30px)}
+}
+
+/* ---------- docs home hero band (R1-DES-13, R1L-21; markup: layouts/_partials/docs/home.html) ----------
+   ALIGNMENT. The mint stage is inset by --stage-inset like the landing's, so its content box must start at the page
+   gutter (--gut = inset + stage pad), the same x as the header logo and the journey cards below. It started
+   inset + gut (16 px right of them at 1024, 8 px at 390). The width below is the page .cont measured from the stage.
+   2400+. The art grows with the container (the landing's showcase window does: --win-w 1600) so the 1920 container
+   is not a copy block and a drawing 700 px apart. */
+.kdh .kdh-hero-in{width:min(var(--cont),100% - 2*(var(--gut) - var(--stage-inset)))}
+@media(min-width:2400px){
+  .kdh .kdh-art{max-width:1040px}
 }

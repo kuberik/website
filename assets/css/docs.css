@@ -163,7 +163,7 @@ html.dark .kd-wash::before{opacity:.5}
 .kd-content h1{margin:0;font:600 var(--t-title-s)/var(--t-title-l) var(--sans);letter-spacing:-.03em;color:var(--ink);text-wrap:balance}
 .kd-content h1 ~ h1{margin-top:72px;font-size:30px;line-height:38px;letter-spacing:-.025em}
 .kd-content h1 + p{margin-top:16px;font:400 var(--t-lead-s)/var(--t-lead-l) var(--sans);color:var(--ink-muted);text-wrap:pretty}
-.kd-content h2{margin:56px 0 0;padding:0;border:0;font:600 24px/32px var(--sans);letter-spacing:-.02em;color:var(--ink)}
+.kd-content h2{margin:48px 0 0;padding:0;border:0;font:600 24px/32px var(--sans);letter-spacing:-.02em;color:var(--ink)}
 .kd-content h3{margin:36px 0 0;font:600 18px/26px var(--sans);letter-spacing:-.01em;color:var(--ink)}
 .kd-content h4{margin:28px 0 0;font:600 16px/24px var(--sans);color:var(--ink)}
 .kd-content :is(h2,h3,h4) + p{margin-top:8px}
@@ -394,7 +394,8 @@ html.dark .kd-tone-neutral{background:oklch(1 0 0/.05)!important}
 
 /* ---------- phones ---------- */
 @media(max-width:640px){
-  .kd-content h2{margin-top:44px;font-size:22px;line-height:30px}
+  .kd-content h2{margin-top:40px;font-size:22px;line-height:30px}
+  .kd-content h1 + p{font-size:17px;line-height:26px}
   .kd-code-body pre,.hextra-code-block pre{font-size:12px!important;line-height:20px!important;padding:14px 16px!important}
   .kd-code-head{padding-right:96px}
   .kd-code-lang{display:none}
