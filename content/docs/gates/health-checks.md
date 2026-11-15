@@ -60,7 +60,7 @@ Each deploy, and each retry, then goes through these rules:
 | Deploy starts | Every selected HealthCheck is reset to `Pending` and its `lastErrorTime` is cleared, and the deploy's `bakeStatus` is `Deploying` |
 | Every check is `Healthy` again | Bake starts: `bakeStatus` is `InProgress` |
 | Any check reports an error after the deploy started | The deploy fails (`bakeStatus` `Failed`, `Ready` reason `BakeTimeFailed`), before or during bake |
-| `deployTimeout` passes before bake starts | The deploy fails |
+| `deployTimeout` passes before bake starts | The deploy fails ("Deploy timeout reached before bake could start") |
 | `bakeTime` passes with no error | The deploy succeeds. Without `bakeTime`, it succeeds as soon as bake starts |
 
 `deployTimeout` fails the deploy if bake has not started by then. A Rollout without `healthCheckSelector` has no checks: bake starts at once.

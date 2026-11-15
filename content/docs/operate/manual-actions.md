@@ -1,20 +1,20 @@
 ---
 title: "Operate with kubectl"
-description: "Pin a version, deploy a specific build, let a build past its gates, or get a Rollout moving again after a failed bake."
+description: "Pin a version, deploy a specific build, let a build past its gates, or resume after a failed bake."
 type_: guide
 weight: 20
 ---
 
-Pin a [Rollout](/docs/concepts/rollouts/) to one version, deploy a build now, let a held build past its gates, or resume after a failed bake. Each action is one field or annotation on the Rollout, and the dashboard writes the same ones.
+Each action below is one field or annotation on the [Rollout](/docs/concepts/rollouts/); the dashboard writes the same ones.
 
-| Goal | Set on the Rollout | Removed by |
-|------|-----|------------|
-| Stay on one version | `spec.wantedVersion` | You |
-| Roll back to the previous build | `spec.wantedVersion` | You |
-| Deploy a build now | `rollout.kuberik.com/force-deploy` | The controller, after the deploy |
-| Let one build past the gates | `rollout.kuberik.com/bypass-gates` (+ `bypass-gates-only`) | The controller, after the deploy |
-| Resume after a failed bake | `rollout.kuberik.com/unblock-failed` | The controller, after the next deploy |
-| Bake the same build again | `rollout.kuberik.com/retry` | The controller, at once |
+| Goal | Set on the Rollout |
+|------|-----|
+| Stay on one version | `spec.wantedVersion` |
+| Roll back to the previous build | `spec.wantedVersion` |
+| Deploy a build now | `rollout.kuberik.com/force-deploy` |
+| Let one build past the gates | `rollout.kuberik.com/bypass-gates` (+ `bypass-gates-only`) |
+| Resume after a failed bake | `rollout.kuberik.com/unblock-failed` |
+| Bake the same build again | `rollout.kuberik.com/retry` |
 
 ## Pin a version
 
@@ -36,17 +36,17 @@ spec:
 kubectl -n hello-world patch rollout hello-world --type=merge -p '{"spec":{"wantedVersion":null}}'
 ```
 
-After you unpin, the Rollout deploys the newest release the gates allow that is newer than the pinned one. Pin a tag from the [`ReleaseSource`](/docs/releases/publish/) catalogue: a tag outside it deploys, but after unpinning the Rollout cannot tell which releases are newer and deploys nothing on its own.
+After you unpin, the Rollout deploys the newest release the gates allow that is newer than the pinned one. Pin a tag from the [`ReleaseSource`](/docs/releases/publish/) catalogue: a tag outside it deploys, but after unpinning the Rollout deploys nothing on its own.
 
 {{< callout type="warning" >}}
-A pin skips every gate, including the Environment gate that waits for the earlier tier's bake, and the health-check and failed-bake holds. Pin staging to a release that development never baked, or failed, and it deploys to staging at once; when staging's bake succeeds, production's gate allows it too.
+A pin also skips the Environment gate that waits for the earlier tier's bake. Pin staging to a release that development never baked, or failed, and it deploys to staging at once; when staging's bake succeeds, production's gate allows it too.
 {{< /callout >}}
 
-In the dashboard, **Change version** with **Pin build** turned on sets the pin, and **Clear pin** removes it. Both are disabled while another field manager, such as Flux applying the Rollout from Git, owns `spec.wantedVersion`.
+In the dashboard, **Change version** with **Pin build** turned on sets the pin, and **Clear pin** removes it. Both are disabled while another field manager, such as Flux, owns `spec.wantedVersion`.
 
 ## Roll back to the previous version
 
-Kuberik never starts a rollback on its own. To go back, pin the build deployed before the current one: `status.history[0]` is the current deploy, `status.history[1]` the one before it. Print its tag.
+To go back, pin the build deployed before the current one: `status.history[0]` is the current deploy, `status.history[1]` the one before it. Print its tag.
 
 ```bash {filename="Terminal"}
 kubectl -n hello-world get rollout hello-world -o jsonpath='{.status.history[1].version.tag}{"\n"}'
@@ -71,15 +71,15 @@ kubectl -n hello-world annotate rollout hello-world --overwrite \
   rollout.kuberik.com/deploy-user=emma.clarke
 ```
 
-The tag must be in the `ReleaseSource` catalogue, or the Rollout reports `Ready=False` ("force deploy version … is not in available releases"). A pin wins over `force-deploy`. `deploy-message` becomes the history entry's message and `deploy-user` its `triggeredBy` user; without them the entry reads "Manual deployment, with force deploy". The controller removes all three once the build is deployed.
+The tag must be in the `ReleaseSource` catalogue, or the Rollout reports `Ready=False` ("force deploy version … is not in available releases"). A pin wins over `force-deploy`. `deploy-message` and `deploy-user` fill the history entry's message and `triggeredBy` ([defaults](/docs/reference/annotations/#rollout-action-annotations)). The controller removes all three once the build is deployed.
 
-A force-deploy does not hold an older build. With the annotation gone, the Rollout returns to automatic deploys once that build's bake succeeds, and deploys the newest release the gates allow: the bad release again, if it is still newer. To go back to an older build, pin it as in [Roll back to the previous version](#roll-back-to-the-previous-version).
+A force-deploy does not hold an older build: once its bake succeeds, the Rollout deploys the newest release the gates allow, the bad release again if it is still newer. To stay on an older build, pin it as in [Roll back to the previous version](#roll-back-to-the-previous-version).
 
 In the dashboard, **Change version** with **Pin build** off writes these annotations with your login and clears any pin. **Deploy** on a held build opens the same dialog.
 
 ## Let one build past the gates
 
-Set `rollout.kuberik.com/bypass-gates` to let one held build through every gate, once. Health checks and a failed bake still hold it, and the next build meets the gates as before.
+Set `rollout.kuberik.com/bypass-gates` to let one held build through every gate, once. Health checks and a failed bake still hold it.
 
 ```bash {filename="Terminal"}
 kubectl -n hello-world annotate rollout hello-world --overwrite rollout.kuberik.com/bypass-gates=1.4.1
@@ -89,7 +89,7 @@ The tag must be a candidate, a release newer than the deployed one; for any othe
 
 To skip only some gates, add `rollout.kuberik.com/bypass-gates-only` with a comma-separated list of [`RolloutGate`](/docs/concepts/gates/) names. The build then deploys once every gate not named allows it. A name that matches no gate of the Rollout raises a `BypassGatesUnknown` warning event, and the annotation does nothing without `bypass-gates`.
 
-Schedules, approval policies and dependencies name their gates `schedule-gate-<suffix>`, `approval-gate-<suffix>` and `dependency-<name>`. List the names of the Rollout's gates first.
+Schedules, approval policies and dependencies name their gates `schedule-gate-<suffix>`, `approval-gate-<suffix>` and `dependency-<name>`. List the Rollout's gate names first.
 
 ```bash {filename="Terminal"}
 kubectl -n hello-world get rollout hello-world -o jsonpath='{.status.gates[*].name}'
@@ -101,59 +101,40 @@ kubectl -n hello-world annotate rollout hello-world --overwrite \
   rollout.kuberik.com/bypass-gates-only=schedule-gate-x7k2p,approval-gate-9fqzt
 ```
 
-Both annotations are removed when that build deploys. **Skip once** on a gate's tile in the rollout's **Gates** tab writes them for the gates of that rule.
+Both annotations are removed when that build deploys. The dashboard's **Skip once** on a gate writes them for that rule's gates.
 
 ## Resume after a failed bake
 
-After a failed bake the Rollout deploys nothing on its own. Pinning or deploying by hand moves it on; to let the next automatic deploy through instead, set `rollout.kuberik.com/unblock-failed` to `"true"`.
+After a failed bake the Rollout deploys nothing on its own. To let the next automatic deploy through, set `rollout.kuberik.com/unblock-failed` to `"true"`.
 
 ```bash {filename="Terminal"}
 kubectl -n hello-world annotate rollout hello-world --overwrite rollout.kuberik.com/unblock-failed=true
 ```
 
-Gates and the unhealthy health-check hold still apply. The deploy's history message reads "Automatic deployment, with failed bake unblock", and the controller removes the annotation after it. The dashboard has no button for this.
+Gates and the unhealthy health-check hold still apply. Its history message reads "Automatic deployment, with failed bake unblock", and the controller removes the annotation after it. The dashboard has no button for this.
 
 ## Retry a failed bake
 
-Set `rollout.kuberik.com/retry` (any value) to bake the same build again. If the latest bake status is `Failed`, the controller resets it to `Deploying` and records `lastRetryTimestamp`: health-check errors from before the retry no longer count and `deployTimeout` starts again. It removes the annotation either way.
+Set `rollout.kuberik.com/retry` (any value) to bake the same build again. If the latest bake status is `Failed`, the controller resets it to `Deploying` and records `lastRetryTimestamp`: health-check errors from before the retry no longer count and [`deployTimeout`](/docs/gates/health-checks/#select-health-checks-from-the-rollout) starts again. It removes the annotation either way.
 
 ```bash {filename="Terminal"}
 kubectl -n hello-world annotate rollout hello-world --overwrite rollout.kuberik.com/retry=true
 ```
 
-For an OpenKruise canary, add `rollouttest.kuberik.com/retry-mode=skip` to mark failed [RolloutTests](/docs/releases/canary/) as skipped instead of re-running them (`retry`, the default). The openkruise-controller removes it after the retry.
+For an OpenKruise canary, `rollouttest.kuberik.com/retry-mode=skip` marks failed RolloutTests as skipped instead of re-running them: see [Retry or skip a failed test](/docs/releases/canary/#retry-or-skip-a-failed-test).
 
 In the dashboard, **Retry** on the **Deployment failed** banner sets `retry`; when RolloutTests failed it offers **Retry tests** or **Skip tests**.
 
-## Fail deploys that never turn healthy
-
-Set `spec.deployTimeout` so a deploy whose health checks do not become healthy in time fails instead of waiting forever. The timer runs from the deploy, or the last retry, until the bake starts.
-
-```yaml {filename="rollout.yaml"}
-apiVersion: kuberik.com/v1alpha1
-kind: Rollout
-metadata:
-  name: hello-world
-  namespace: hello-world
-spec:
-  releaseSourceRef:
-    name: hello-world
-  deployTimeout: 10m  # healthy within 10m
-  bakeTime: 15m
-```
-
-When it runs out, the bake status becomes `Failed` ("Deploy timeout reached before bake could start") and the failed-bake hold applies.
-
 ## Check the result
 
-The latest history entry shows what deployed, why and who started it:
+The latest history entry shows what deployed, why and by whom:
 
 ```bash {filename="Terminal"}
 kubectl -n hello-world get rollout hello-world \
   -o jsonpath='{.status.history[0].version.tag} {.status.history[0].message} {.status.history[0].bakeStatus}{"\n"}'
 ```
 
-A deploy that follows a failed or cancelled bake, or a hand deploy that starts while a health check is `Unhealthy`, runs with `BakeFailureDisabled=True` (reason `PreviousBakeFailed` or `DeployedWithUnhealthyHealthChecks`). Health-check errors and `deployTimeout` do not fail that deploy: it succeeds `bakeTime` after every check first turns healthy, even if a check reports an error during that window.
+A deploy that follows a failed or cancelled bake, or a hand deploy made while a health check is `Unhealthy`, runs with `BakeFailureDisabled=True`: health-check errors and `deployTimeout` do not fail it ([When a bake fails](/docs/concepts/rollouts/#when-a-bake-fails)).
 
 ## Next steps
 
