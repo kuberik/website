@@ -74,7 +74,7 @@ Use these when a gate, a bad build or a failed deploy needs a person.
 
 1. On the rollout's **Overview**, select **Change version**.
 2. Pick a build, or search by sha, version or commit.
-3. Turn on **Pin build** to keep the rollout on this build until the pin is cleared. Without the pin, an earlier build stays only until its bake succeeds, and then the rollout deploys the newest build its rules allow. A rollback always pins.
+3. Turn on **Pin build** to keep the rollout on this build until the pin is cleared. Without the pin, a build that is not the newest stays only until its bake succeeds, and then the rollout deploys the newest build its rules allow. A rollback always pins.
 4. When rules still hold the build, write why they should not apply and type the build to confirm. Select **Deploy to *environment***.
 
 ![Part of the Change version dialog deploying the held build 4.45.0-45 of checkout-api to production: the rule it would override, After staging, the four commits to deploy, the Pin build switch, a required reason, the typed confirmation and the Deploy button](/images/docs/dashboard/change-version.png)
