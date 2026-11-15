@@ -139,10 +139,11 @@ html.dark .kd-wash::before{opacity:.5}
 .kd-sub::before{content:'';position:absolute;left:0;top:4px;bottom:4px;width:1px;background:var(--line)}
 .kd-sub .kd-row.kd-active{position:relative}
 .kd-sub .kd-row.kd-active::before{content:'';position:absolute;left:-11px;top:6px;bottom:6px;width:2px;background:var(--mint)}
-.kd-group-site{display:none}
+.kd-group-site,.kd-group-top{display:none}
 @media(max-width:767px){
   .kd-tree{gap:28px}
   .kd-group-label > :is(a,span){padding:6px 0!important;font-size:13px!important;line-height:20px!important}
+  .kd-group-top{display:block}
   .kd-group-site{display:block;padding-top:20px;border-top:1px solid var(--line)}
 }
 
@@ -308,6 +309,8 @@ html.dark .kd-content table:not(.kd-table table) th{background:color-mix(in okla
 .kd-content table:not(.kd-table table) td:first-child{min-width:140px;color:var(--ink);font-weight:500}
 .kd-content table:not(.kd-table table) td:first-child code{white-space:nowrap}
 @media(min-width:768px){.kd-content table:not(.kd-table table){display:table;overflow:hidden}}
+/* R7-DES-3: a raw table (the generated API field tables) never sets the page's width: fixed layout, and a cell's long identifier may break anywhere instead of pushing the column out (the 30%/70% split of its header row holds) */
+@media(min-width:768px) and (max-width:899px){.kd-content table:not(.kd-table table){table-layout:fixed}.kd-content table:not(.kd-table table) :is(th,td){overflow-wrap:anywhere}.kd-content table:not(.kd-table table) td:first-child{min-width:0}.kd-content table:not(.kd-table table) td:first-child code{white-space:normal}}
 @media(max-width:640px){
   .kd-content table:not(.kd-table table) thead{position:absolute;width:1px;height:1px;overflow:hidden;clip-path:inset(50%)}
   .kd-content table:not(.kd-table table) :is(tbody,tr,td){display:block}
@@ -440,3 +443,8 @@ html.dark .kd-tone-neutral{background:oklch(1 0 0/.05)!important}
 .hextra-search-no-result-next a{color:var(--ink-muted);text-decoration:underline;text-underline-offset:2px}
 .hextra-search-no-result-next a:hover{color:var(--ink)}
 .kd-404-search .hextra-search-results{left:0;right:auto}
+
+/* R7-IA-2: an anchor target (API field rows are tr[id]) clears the 64px sticky header with 16px to spare, and the row that was
+   jumped to is tinted in the kit's mint wash */
+.kd-content [id]:not(span){scroll-margin-top:80px}
+.kd-content tr:target > td{background:var(--kd-wash)!important}
