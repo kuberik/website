@@ -108,9 +108,14 @@ Edit `dashboard.ingress.host` and `metrics.serviceMonitor.namespace` in the file
 
 ## Upgrade
 
+First, write a [ReleaseSource](/docs/releases/publish/) for each Rollout. Rollouts read releases only from a ReleaseSource: until a Rollout's `spec.releaseSourceRef` names one, it deploys nothing new and reports [No release source](/docs/operate/troubleshooting/#no-release-source). The ReleaseSource kind and the field come with the upgrade, so apply them right after it.
+
 ```bash {filename="Terminal"}
 helm repo update kuberik
 helm upgrade kuberik kuberik/kuberik --namespace kuberik-system -f values.yaml
+kubectl apply -f releasesource.yaml
+kubectl patch rollout hello-world -n hello-world --type merge \
+  -p '{"spec":{"releaseSourceRef":{"name":"hello-world"}}}'
 ```
 
 The CRDs are chart resources, so `helm upgrade` installs new CRDs and updates existing ones. If the CRDs were installed outside this release, hand them to it once, or Helm stops with `invalid ownership metadata`:
@@ -121,10 +126,6 @@ kubectl get crd -o name | grep -E 'kuberik\.com$' | xargs -I{} kubectl annotate 
 ```
 
 Use your own release name and namespace; Helm 3.17 and later can do the same with `helm upgrade --take-ownership`.
-
-{{< callout type="important" >}}
-Rollouts get releases only from a `ReleaseSource`: create one per app and set `spec.releaseSourceRef`. A Rollout without it reports `ReleaseSourceRequired`, and `spec.releasesImagePolicy` is ignored.
-{{< /callout >}}
 
 ## Uninstall
 

@@ -33,6 +33,8 @@ An app's Progress tab shows how far each build has gone; a rollout's Gates tab s
 
 ![The Gates card of billing-edge in production: prod is waiting on an approval, and two gates hold build 5.8.0-62, the closed Business hours window and Release approval, which needs approval, each with a Skip once button, while billing-edge runs 5.7.1-61](/images/docs/operate/dashboard-gated-by.png)
 
+5. On a rendered-manifests rollout, select **View source** in the rollout header to read the files that are deployed ([Rendered manifests](/docs/concepts/propagation/#rendered-manifests)).
+
 ## Follow a change
 
 The Changes page tracks your pull requests after merge, so you can see which service and environment each one has reached.
