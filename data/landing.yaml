@@ -31,19 +31,19 @@ features:
       name: "Gates"
       title: "A build moves when every gate passes."
       body: "Schedules, the services it needs and the environment before it, plus an approval where you want one. Then it goes on its own."
-      link: { text: "How gates work", href: "/docs/concepts/rollouts/#gating-process" }
+      link: { text: "How gates work", href: "/docs/concepts/gates/" }
     - id: canary
       hue: mint
       name: "Canary and waves"
       title: "Each region waits for the one before it to bake."
       body: "OpenKruise moves traffic in steps, with a test where you ask for one. Wave 2 waits until wave 1 has baked."
-      link: { text: "Run a canary", href: "/docs/guides/canary-rollouts/" }
+      link: { text: "Run a canary", href: "/docs/releases/canary/" }
     - id: health
       hue: mint
       name: "Health checks"
       title: "A release has to stay healthy for the whole bake."
       body: "Your Flux Kustomization and Datadog monitors stay healthy for the whole bake, or the release fails."
-      link: { text: "Add health checks", href: "/docs/guides/health-checks/" }
+      link: { text: "Add health checks", href: "/docs/gates/health-checks/" }
     - id: gitops
       hue: lagoon
       name: "GitOps"
@@ -61,4 +61,4 @@ features:
       name: "Releases"
       title: "Every version, and where it came from."
       body: "A ReleaseSource reads your OCI tags, orders them by version and keeps each digest and git revision."
-      link: { text: "Publish releases", href: "/docs/guides/publishing-releases/" }
+      link: { text: "Publish releases", href: "/docs/releases/publish/" }
