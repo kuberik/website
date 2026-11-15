@@ -57,7 +57,6 @@ VG.def('releases', {
     const pop = (t) => w(t, 0.50, 0.72, 'spring');           // the pushed tag springs into the top row
     const let0 = (t) => w(t, LET, LET + 0.13, 'in');         // the old trace lets go
     const mv = (t) => w(t, 0.75, 1.25, 'spring');            // the one travel
-    const fill = (t) => w(t, 1.2, 1.35, 'out');              // the slot becomes the Release
     const hand = (t) => w(t, 1.28, 1.41);                     // chip -> title
     const a1 = (t) => w(t, 1.48, 1.61, 'out'), t1 = (t) => w(t, 1.52, 1.82, 'io'), h1 = (t) => w(t, 1.78, 1.91);
     const a2 = (t) => w(t, 1.98, 2.11, 'out'), t2 = (t) => w(t, 2.02, 2.32, 'io'), h2 = (t) => w(t, 2.28, 2.41);
@@ -157,37 +156,48 @@ VG.def('releases', {
     KB.path(KB.reveal(S, boxA, tt((t) => Math.min(1, mv(t))), { axis: axA }).g, A[0], 'w-lit', A[1]);
     KB.path(KB.reveal(S, box1, tt(t1), { axis: ax1, from: from1 }).g, D1[0], 'w-lit', D1[1]);
     KB.path(KB.reveal(S, box2, tt(t2), { axis: ax2, from: from2 }).g, D2[0], 'w-lit', D2[1]);
-    // ---- the Release: a dashed slot (not reached yet), then the card
-    el('rect', { x: D.x + 0.5, y: D.y + 0.5, width: D.w - 1, height: D.h - 1, rx: 11.5, class: 'c-slot nsl', 'stroke-width': 1 }, st);
-    // v6j: the previous Release (last cycle's card, resolved) is in front at the opening; at the push it steps back into the
-    // deck (200 ms ease-in: 5 % smaller, 10 px up, 55 % opacity) behind the dashed slot; as the new Release fills in front of it
-    // the deck card falls away (200 ms ease-in, 1.25-1.45). Rewritten while hidden (2.5). Same pixels as the card below at
-    // the end of the cycle.
-    const back = (t) => w(t, PUSH, PUSH + 0.2, 'in');
-    const away = (t) => w(t, 1.25, 1.45, 'in');   // the deck card falls away as the new Release fills in front of it
-    const prev = S.sprite({ x: D.x - 24, y: D.y - 16, w: D.w + 48, h: D.h + 48, origin: [D.x + D.w / 2, D.y], track: (t) => ({ o: (1 - 0.1 * back(t)) * (1 - away(t)), s: 1 - 0.05 * back(t), y: -10 * back(t) }) });
-    // its content leaves as it steps back (the deck shows plates, not values: the chip lands on a clean slot)
-    const prevC = S.sprite({ x: D.x, y: D.y, w: D.w, h: D.h, parent: prev, track: (t) => ({ o: 1 - back(t) }) });
-    {
-      const g = prev.g;
-      KB.card(g, id, { ...D, tone: 'fig' });
-      const c = prevC.g;
+    // ---- the Release. v6k (b21, S1): a DECK SWAP, never an empty shell. Three plates, all the same drawing (relCard):
+    // OLD   = the deck card (release n-2), behind, 5 % smaller and lifted (peeks 10 px at 1440, 6 px at 390); it falls away
+    //         (1.02-1.20 ease-in, further back and out) as the outgoing card takes its place; rewritten while hidden (1.40).
+    // OUT   = the outgoing Release (n-1), in front and resolved from the opening, KEEPING its content through the push and the
+    //         travel; as the tag arrives it steps back into the deck (1.02-1.24 ease-in-out: 5 % smaller, lifted, its values dim)
+    //         and at 1.60 hands over to OLD (identical pixels) until the next cycle.
+    // CARD  = the incoming Release (n): arrives OVER the outgoing one (1.08: 100 ms fade, 8 px rise, 250 ms ease-out) as the
+    //         chip lands (1.25) and hands over to its title. At the seam CARD -> OUT and OUT-in-deck -> OLD: same pixels.
+    const LIFT = ph ? 6 : 10, SWAP = 0.76, HAND = 1.60;
+    const back = (t) => w(t, SWAP, SWAP + 0.22, 'io');
+    const away = (t) => w(t, SWAP, SWAP + 0.18, 'in');
+    const arr = (t) => w(t, 0.86, 0.96, 'out'), rise = (t) => w(t, 0.86, 1.11, 'out');
+    const DECK = { o: 0.9, s: 0.95, y: -LIFT, c: 0.4 };   // the deck pose: plate 90 %, values 40 %
+    const relCard = (track, cTrack, d, swapAt) => {
+      const sp = S.sprite({ x: D.x - 24, y: D.y - 16, w: D.w + 48, h: D.h + 48, origin: [D.x + D.w / 2, D.y], track });
+      KB.card(sp.g, id, { ...D, tone: 'fig' });
+      const cs = S.sprite({ x: D.x, y: D.y, w: D.w, h: D.h, parent: sp, track: cTrack });
+      const c = cs.g;
       KB.divider(c, D.x, D.x + D.w, D.y + Y.div);
-      const tt0 = KB.text(c, D.x + 18, D.y + Y.v, '4.45.0-45', 'monoInk'); tt0.setAttribute('font-size', 18);
-      S.label(prevC, tt0, (k) => TAG(k - 1), 2.5);
+      const t0 = KB.text(c, D.x + 18, D.y + Y.v, '4.45.0-45', 'monoInk'); t0.setAttribute('font-size', 18);
+      S.label(sp, t0, (k) => TAG(k + d), swapAt);
       KB.text(c, D.x + 18, D.y + Y.dg, 'digest', 'tag');
       const dv = KB.text(c, D.x + 84, D.y + Y.dg, 'sha256:', 'mono'); if (ph) dv.setAttribute('class', 'mono teal-ink');
-      S.label(prevC, dv, (k) => `sha256:${DG(k - 1)}`, 2.5);
+      S.label(sp, dv, (k) => `sha256:${DG(k + d)}`, swapAt);
       KB.text(c, D.x + 18, D.y + Y.rv, 'revision', 'tag');
       el('circle', { cx: D.x + 89, cy: D.y + Y.rv - 4, r: 3.5, class: 'md-rest' }, c);
       const rv = KB.text(c, D.x + 98, D.y + Y.rv, '', 'mono'); if (ph) rv.setAttribute('class', 'mono teal-ink');
-      S.label(prevC, rv, (k) => SHA(k - 1), 2.5);
+      S.label(sp, rv, (k) => SHA(k + d), swapAt);
       KB.markOne(c, D.x + D.w - 24, D.y + Y.v - 6, 'rest');
-    }
-    // the dashed slot stays in front of the deck card while it waits (shown with the step back, covered by the new Release)
-    const slotF = S.sprite({ x: D.x, y: D.y, w: D.w, h: D.h, track: (t) => ({ o: back(t) * (1 - away(t)) }) });
-    el('rect', { x: D.x + 0.5, y: D.y + 0.5, width: D.w - 1, height: D.h - 1, rx: 11.5, class: 'c-slot nsl', 'stroke-width': 1 }, slotF.g);
-    const card = S.sprite({ x: D.x - 24, y: D.y - 16, w: D.w + 48, h: D.h + 48, track: tt((t) => ({ o: fill(t) })) });
+      return sp;
+    };
+    // OLD: in the deck pose 0..SWAP (shows n-2 with k = n), falls away; from HAND in the deck pose again (shows n-1, k = n+1)
+    relCard((t) => {
+      if (t >= HAND) return { o: DECK.o, s: DECK.s, y: DECK.y };
+      const a = away(t);
+      return { o: DECK.o * (1 - a), s: DECK.s - 0.05 * a, y: DECK.y - 8 * a };
+    }, () => ({ o: DECK.c }), -2, 1.40);
+    // OUT: in front 0..SWAP (n-1), steps back into the deck pose, hidden from HAND (OLD has it)
+    relCard((t) => (t >= HAND ? { o: 0 } : { o: 1 - (1 - DECK.o) * back(t), s: 1 - (1 - DECK.s) * back(t), y: DECK.y * back(t) }),
+      (t) => ({ o: 1 - (1 - DECK.c) * w(t, SWAP, SWAP + 0.1, 'out') }), -1, 3.0);
+    const fill = (t) => arr(t);
+    const card = S.sprite({ x: D.x - 24, y: D.y - 16, w: D.w + 48, h: D.h + 48, track: tt((t) => ({ o: arr(t), y: 8 * (1 - rise(t)) })) });
     KB.card(card.g, id, { ...D, tone: 'fig' });
     KB.divider(card.g, D.x, D.x + D.w, D.y + Y.div);
     const ttl = S.sprite({ x: D.x, y: D.y + Y.v - 20, w: 160, h: 26, track: tt((t) => ({ o: hand(t) })) });
@@ -197,13 +207,14 @@ VG.def('releases', {
     // turns teal as its trace starts (the same 130 ms change and teal-ink as the source values): the wire's two ends read.
     const row = (sp, y, k, val, dot, on, fn) => {
       const p = sp.g;
-      KB.text(p, D.x + 18, y, k, 'tag');
+      // v6k (b21, S1): the keys arrive with the card (its fields, pending); only the values land with the traces
+      KB.text(card.g, D.x + 18, y, k, 'tag');
       // v6i (b15 fix 1): the Release's revision mark resolves too. It was a hollow ring for good; now, as the revision's trace
       // sets off from it (2.02, the beat its value turns teal at 390), the ring hands over to the teal dot with the commit's own
       // pop (vg spring 0 -> 1.031 -> 1, 240 ms). The trace then runs to the commit, which pops at 2.26: Release end, then source end.
       if (dot) {
         const RP0 = 2.02, rpop = (t) => w(t, RP0, RP0 + 0.24, 'spring');
-        const d0 = S.sprite({ x: D.x + 83, y: y - 10, w: 12, h: 12, parent: sp, track: tt((t) => ({ o: 1 - w(t, RP0, RP0 + 0.08) })) });
+        const d0 = S.sprite({ x: D.x + 83, y: y - 10, w: 12, h: 12, parent: card, track: tt((t) => ({ o: 1 - w(t, RP0, RP0 + 0.08) })) });
         el('circle', { cx: D.x + 89, cy: y - 4, r: 3, class: 'md-wait nsl', style: 'stroke-dasharray:none;stroke:var(--b-muted)', 'stroke-width': 1.2 }, d0.g);
         const d1 = S.sprite({ x: D.x + 83, y: y - 10, w: 12, h: 12, parent: sp, track: tt((t) => ({ o: t < RP0 ? 0 : 1, s: Math.max(0.001, rpop(t)) })) });
         el('circle', { cx: D.x + 89, cy: y - 4, r: 3.5, class: 'md-rest' }, d1.g);
@@ -220,7 +231,7 @@ VG.def('releases', {
     row(r1, D.y + Y.dg, 'digest', 'sha256:9c1e…7a40', false, (t) => w(t, 1.52, 1.65), (k) => `sha256:${DG(k - 1)}`);
     const r2 = S.sprite({ x: D.x, y: D.y + Y.rv - 16, w: D.w, h: 22, track: tt((t) => ({ o: a2(t), x: -6 * (1 - a2(t)) })) });
     row(r2, D.y + Y.rv, 'revision', 'e2b4f81', true, (t) => w(t, 2.02, 2.15), (k) => SHA(k - 1));
-    const mk = S.sprite({ x: D.x + D.w - 34, y: D.y + Y.v - 16, w: 20, h: 20, track: tt((t) => ({ o: fill(t) })) });
+    const mk = S.sprite({ x: D.x + D.w - 34, y: D.y + Y.v - 16, w: 20, h: 20, parent: card });
     KB.mark(S, D.x + D.w - 24, D.y + Y.v - 6, ['wait', 'rest'], tt((t) => ({ wait: 1 - ok(t), rest: ok(t) })), { parent: mk });
     // v6h: no edge light on the Release; the commit mark's pop (above) is the climax
     // ---- the pushed tag (the build chip): springs into the top row, travels the ReleaseSource wire, hands over to the title

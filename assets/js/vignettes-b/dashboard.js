@@ -26,9 +26,9 @@ VG.def('dashboard', {
     const st = S.base;
     const tt = (fn) => fn;   // v6j: no exit
     // the pull request of cycle k (k = 1 at cycle 0's rest: #112, 4.46.0-46)
-    const TITLES = ['Retry payments on timeout', 'Cache tax rates per region', 'Idempotent refund requests', 'Trim cart payload'];
+    const TITLES = ['Retry payments on timeout', 'Cache tax rates per region', 'Idempotent refund requests', 'Trim cart payload',
+      'Validate coupon expiry', 'Log payment provider latency', 'Batch inventory reservations', 'Queue webhook deliveries'];   // v6k: 8, no repeat inside 8 PRs
     const pr = (k) => 111 + k, ttl = (k) => TITLES[(((k - 1) % TITLES.length) + TITLES.length) % TITLES.length], ver = (k) => `checkout-api 4.${45 + k}.0-${45 + k}`;
-    const CLR = 0.05;   // the search clears
     // ---- the hub's search field
     const F = ph ? { x: 12, y: 28, w: 302, h: 40 } : { x: 24, y: 30, w: 382, h: 40 };
     const press = (t) => w(t, 1.35, 1.4, 'out') * (1 - w(t, 1.4, 1.46, 'out'));
@@ -39,18 +39,22 @@ VG.def('dashboard', {
     KB.card(fs, id, { ...F, r: 8 });
     const sx = F.x + 20, sy = F.y + F.h / 2, tx = F.x + 36;
     KB.icon(fs, 'search', sx, sy, 16, 'ic');
+    // v6k (b21, row a): the field is never empty. The opening keeps last cycle's link; the press focuses the field (caret at the
+    // end), select-all highlights the old link (1.48, 100 ms), the paste swaps it (1.65: the old link and its highlight leave in
+    // 70 ms, the new one arrives 100 ms with a 4 px settle). Old (lkO) and new (lkN) are two labels: lkN at the end of cycle n and
+    // lkO at the start of n+1 read the same link (same pixels at the seam).
     const pst = (t) => w(t, 1.65, 1.75, 'out');
-    const phd = S.sprite({ x: tx - 2, y: sy - 10, w: 240, h: 20, track: tt((t) => ({ o: w(t, CLR + 0.05, CLR + 0.18, 'out') * (1 - w(t, 1.65, 1.72, 'out')) })) });
-    KB.text(phd.g, tx, sy + 4.5, 'Search, or paste a PR link or sha', 'meta').setAttribute('class', 'subtle');
+    const sel = (t) => w(t, 1.48, 1.58, 'out') * (1 - w(t, 1.65, 1.72, 'out'));
     const LINK = 'github.com/acme/checkout/pull/112', len = LINK.length * 7.23;
-    // v6j: the pasted link stays until the next cycle's clear (CLR, 130 ms ease-in); rewritten while hidden (0.6)
-    const lk = S.sprite({ x: tx - 2, y: sy - 10, w: len + 6, h: 20, track: tt((t) => (t < 1 ? { o: 1 - w(t, CLR, CLR + 0.13, 'in') } : { o: pst(t), x: -4 * (1 - pst(t)) })) });
-    S.label(lk, KB.text(lk.g, tx, sy + 4.5, LINK, 'monoInk'), (k) => `github.com/acme/checkout/pull/${pr(k)}`, 0.6);
-    // the caret: at the start once focused, at the end of the link once pasted
-    for (const [cx, o] of [[tx - 1, (t) => (foc(t) > 0.5 && pst(t) < 0.5 ? 1 : 0)], [tx + len + 2, (t) => (foc(t) > 0.5 && pst(t) >= 0.5 ? 1 : 0)]]) {
-      const c = S.sprite({ x: cx - 1, y: sy - 9, w: 3.2, h: 18, track: tt((t) => ({ o: o(t) })) });
-      el('rect', { x: cx, y: sy - 8, width: 1.2, height: 16, class: 'caret' }, c.g);
-    }
+    const sl = S.sprite({ x: tx - 3, y: sy - 11, w: len + 8, h: 22, track: tt((t) => ({ o: sel(t) })) });
+    el('rect', { x: tx - 2, y: sy - 9, width: len + 5, height: 18, rx: 2, style: 'fill:var(--b-focus);opacity:.24' }, sl.g);
+    const lkO = S.sprite({ x: tx - 2, y: sy - 10, w: len + 6, h: 20, track: tt((t) => ({ o: 1 - w(t, 1.65, 1.72, 'out') })) });
+    S.label(lkO, KB.text(lkO.g, tx, sy + 4.5, LINK, 'monoInk'), (k) => `github.com/acme/checkout/pull/${pr(k)}`, 3.0);
+    const lkN = S.sprite({ x: tx - 2, y: sy - 10, w: len + 6, h: 20, track: tt((t) => ({ o: pst(t), x: -4 * (1 - pst(t)) })) });
+    S.label(lkN, KB.text(lkN.g, tx, sy + 4.5, LINK, 'monoInk'), (k) => `github.com/acme/checkout/pull/${pr(k)}`, 0.6);
+    // the caret: at the end of the link while focused, hidden while the link is selected
+    const c = S.sprite({ x: tx + len + 1, y: sy - 9, w: 3.2, h: 18, track: tt((t) => ({ o: foc(t) > 0.5 && !(t >= 1.48 && t < 1.7) ? 1 : 0 })) });
+    el('rect', { x: tx + len + 2, y: sy - 8, width: 1.2, height: 16, class: 'caret' }, c.g);
     const C = ph ? { x: 12, y: 90, w: 302, h: 214 } : { x: 24, y: 92, w: 382, h: 208 };
     const cx0 = C.x + 16, cxr = C.x + C.w - 16;
     const ENTER = 2.12;
@@ -65,10 +69,12 @@ VG.def('dashboard', {
     const pts = !ph ? P.map((_, i) => [cx0 + ((C.w - 32) / 4) * i + (C.w - 32) / 8, C.y + 128]) : P.map((_, i) => [cx0 + 8, C.y + 90 + i * 34]);
     const seg = (a, b) => `M${pts[a][0]} ${pts[a][1]}L${pts[b][0]} ${pts[b][1]}`;
     const rbox = (a, b) => (ph ? { x: pts[a][0] - 2, y: pts[a][1], w: 4, h: pts[b][1] - pts[a][1] } : { x: pts[a][0], y: pts[a][1] - 2, w: pts[b][0] - pts[a][0], h: 4 });
-    const view = (track, live, swapAt) => {
+    const view = (track, live, swapAt, plate = null) => {
+      // v6k (b21, row c): PREV's plate is its own sprite so it can stay under the incoming view until that one covers it
+      if (plate) KB.card(S.sprite({ x: C.x - 24, y: C.y - 16, w: C.w + 48, h: C.h + 48, track: plate }).g, id, { ...C, tone: 'fig' });
       const cs = S.sprite({ ...C, track });
       const cg = cs.g;
-      KB.card(cg, id, { ...C, tone: 'fig' });
+      if (!plate) KB.card(cg, id, { ...C, tone: 'fig' });
       S.label(cs, KB.text(cg, cx0, C.y + 28, '#112', 'mono'), (k) => `#${pr(k)}`, swapAt);
       S.label(cs, KB.text(cg, cx0 + 40, C.y + 28, 'Retry payments on timeout', 'label'), ttl, swapAt);
       S.label(cs, KB.text(cg, cx0, C.y + 49, 'checkout-api 4.46.0-46', 'mono'), ver, swapAt);
@@ -105,20 +111,25 @@ VG.def('dashboard', {
       KB.markOne(mk.g, pts[3][0], pts[3][1], 'wait');
       return cs;
     };
-    view((t) => ({ o: 1 - gone(t), y: 6 * gone(t) }), false, 3.0);
+    // v6k (b21, row c): the v6j site sheet's blank frame (390 dark, loop t 2.22) was this beat: PREV (plate and values) left
+    // 2.18-2.33 while CUR only began at 2.28, so for ~100 ms neither was there. Now PREV's values leave on Enter as before but
+    // its plate holds until CUR is opaque over it (2.38), then leaves under it (2.38-2.50).
+    view((t) => ({ o: 1 - gone(t), y: 6 * gone(t) }), false, 3.0, (t) => ({ o: 1 - w(t, IN + 0.1, IN + 0.22, 'in') }));
     view((t) => ({ o: w(t, IN, IN + 0.1, 'out'), y: 14 * (1 - inn(t)) }), true, 1.0);
     // ---- the palette's ref row under the field, preselected; Enter presses it. v6j: drawn over the previous change view (the
     // palette is a dropdown over the page; the hub list used to sit lower to leave it room)
-    const RR = { x: F.x, y: F.y + F.h + 6, w: F.w, h: 36 };
-    const ref = (t) => w(t, 1.8, 1.95, 'out') * (1 - gone(t));
+    // v6k (b21, row b): inset 8 px inside the change card's sides and 32 px tall from 4 px under the field, so its bottom edge
+    // (field + 36) sits clear of the card's title line (cap top at card + 18) at both widths; it closes on Enter (150 ms ease-in)
+    const RR = { x: C.x + 8, y: F.y + F.h + 4, w: C.w - 16, h: 32 };
+    const ref = (t) => w(t, 1.8, 1.95, 'out') * (1 - w(t, ENTER + 0.06, ENTER + 0.21, 'in'));
     const ent = (t) => w(t, ENTER - 0.06, ENTER, 'out') * (1 - w(t, ENTER, ENTER + 0.06, 'out'));
     const rr = S.sprite({ ...RR, origin: [RR.x + RR.w / 2, RR.y + RR.h / 2], track: tt((t) => ({ o: ref(t), y: -4 * (1 - w(t, 1.8, 1.98, 'out')), s: 1 - 0.015 * ent(t) })) });
     KB.card(rr.g, id, { ...RR, r: 8 });
     el('rect', { x: RR.x + 4.5, y: RR.y + 4.5, width: RR.w - 9, height: RR.h - 9, rx: 5, class: 'c-quiet nsl', 'stroke-width': 1 }, rr.g);
-    KB.text(rr.g, RR.x + 16, RR.y + 22.5, 'Open change', 'meta');
-    S.label(rr, KB.text(rr.g, RR.x + 98, RR.y + 22.5, '#112', 'monoInk'), (k) => `#${pr(k)}`, 0.6);
-    KB.text(rr.g, RR.x + 140, RR.y + 22.5, 'acme/checkout', 'meta').setAttribute('class', 'subtle');
-    const kb = { x: RR.x + RR.w - 34, y: RR.y + 9, w: 22, h: 18 };
+    KB.text(rr.g, RR.x + 16, RR.y + 20.5, 'Open change', 'meta');
+    S.label(rr, KB.text(rr.g, RR.x + 98, RR.y + 20.5, '#112', 'monoInk'), (k) => `#${pr(k)}`, 0.6);
+    KB.text(rr.g, RR.x + 140, RR.y + 20.5, 'acme/checkout', 'meta').setAttribute('class', 'subtle');
+    const kb = { x: RR.x + RR.w - 34, y: RR.y + 7, w: 22, h: 18 };
     el('rect', { x: kb.x + 0.5, y: kb.y + 0.5, width: kb.w - 1, height: kb.h - 1, rx: 4, class: 'c-page nsl', 'stroke-width': 1 }, rr.g);
     KB.text(rr.g, kb.x + kb.w / 2, kb.y + 13, '↵', 'small', 'middle');
     // ---- the pointer: dwell, an eased curved travel, dwell, press, step aside
