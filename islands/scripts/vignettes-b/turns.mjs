@@ -1,5 +1,6 @@
 // turns.mjs: with several cards in view, every one gets a turn (one loop each), at most one runs at a time, and the
-// outgoing card stops on its rest frame. Sits on each bento row for 22 s, sampling every 250 ms.
+// outgoing card stops on its rest frame. Sits on each bento row for 22 s, sampling every 250 ms (off-rest is not counted in
+// the first 500 ms after a scroll: a card that lost its turn is mid-dissolve, 380 ms, by design).
 import { chromium } from '@playwright/test';
 const URL = process.env.URL ?? 'http://127.0.0.1:1376/';
 const b = await chromium.launch(); let fail = 0;

@@ -214,7 +214,9 @@
     const elect = () => {
       let best = null;
       for (const v of live) if (v.ratio >= MIN && (!best || v.area > best.area)) best = v;
-      const keep = cur && live.includes(cur) && cur.ratio >= MIN && (cur.ratio >= 0.9 || cur.area * 1.15 >= (best ? best.area : 0));
+      // v6j (tl-landing-ship-2 QA note): the holder keeps its turn while it stays >= MIN in view; the turn passes only at its loop's
+      // end (rotate) or when it leaves, so a scroll cannot take a turn back from a card it was just handed to
+      const keep = cur && live.includes(cur) && cur.ratio >= MIN;
       const handoff = next && live.includes(next) && next.ratio >= MIN ? next : null;
       next = null;
       const win = handoff || (keep ? cur : best);
