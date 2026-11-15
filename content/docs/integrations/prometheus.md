@@ -9,16 +9,12 @@ Kuberik reads Prometheus alerts as health checks. An alert that fires after a de
 
 To chart and alert on Kuberik's own deploy state in Prometheus, see [Monitor Rollouts](/docs/operate/monitoring/).
 
-{{< callout type="important" >}}
-The `prometheus-alert` class comes from prometheus-controller, which has no release yet. Build it from its main branch as shown below.
-{{< /callout >}}
-
 ## What you need
 
 | Requirement | Why |
 |---|---|
 | Kuberik installed | prometheus-controller ships no CRD. It reads and writes the [`HealthCheck`](/docs/gates/health-checks/) resources that rollout-controller defines |
-| Go, Docker and a registry you can push to | There is no published image to pull, so you build one |
+| Go, Docker and a registry you can push to | prometheus-controller, which serves the `prometheus-alert` class, has no release yet, so you build its image from main |
 | A Prometheus server the controller can reach over HTTP | The controller calls its `/api/v1/query_range` and `/api/v1/rules` APIs |
 | Alerting rules loaded in that Prometheus | The controller reads the `ALERTS` series Prometheus records for its rules. Alertmanager is not involved |
 
