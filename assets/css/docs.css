@@ -437,6 +437,15 @@ html.dark .kd-tone-neutral{background:oklch(1 0 0/.05)!important}
   .hextra-search-wrapper .hextra-search-results{max-height:calc(100vh - 160px)!important;max-height:calc(100dvh - 160px)!important}
 }
 .hextra-search-no-result-next{display:block;margin-top:8px;font-size:13px}
-.hextra-search-no-result-next a{color:var(--ink-muted);text-decoration:underline;text-underline-offset:2px}
-.hextra-search-no-result-next a:hover{color:var(--ink)}
+.hextra-search-results .hextra-search-no-result-next a{display:inline;min-height:0;padding:0;border-radius:0;background:transparent;font:inherit;color:var(--ink-muted);text-decoration:underline;text-underline-offset:2px}
+.hextra-search-results .hextra-search-no-result-next a:hover{background:transparent;color:var(--ink)}
 .kd-404-search .hextra-search-results{left:0;right:auto}
+
+/* R7-DES-4: search dropdown on the kit inks (hextra's slate gray palette is replaced); search-specific block.
+   Match highlight is the link ink, 5.4:1 on white (mint-ink in dark); excerpt is 14/20 on the 4px rhythm. */
+.hextra-search-results li{color:var(--ink)!important}
+.hextra-search-results .hextra-search-title{color:var(--ink)}
+.hextra-search-results .hextra-search-prefix{color:var(--ink-subtle)!important;border-color:var(--line)!important}
+.hextra-search-results .hextra-search-excerpt{color:var(--ink-muted)!important;margin-top:4px;font-size:14px;line-height:20px}
+.hextra-search-results .hextra-search-match{color:var(--mint-ink)!important}
+.hextra-search-results .hextra-search-no-result{color:var(--ink-subtle)!important}
