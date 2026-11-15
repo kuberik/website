@@ -30,11 +30,11 @@ An app's Progress tab shows how far each build has gone; a rollout's Gates tab s
 2. When two or more releases are in flight, pick one in the release list, beside the drawing or above it on a narrow screen. The drawing shows every environment as a column, its regions grouped by **Wave**, and each place's state: deployed, deploying, checking, held (with the rule that holds it), waiting for approval, failed, or **Not reached**.
 3. Select a place in the drawing to open that rollout. When the app waits or failed, the banner above also has **Open rollout**.
 
-![The Progress drawing of hello-world-app: development and staging are on 3ea2311, production eu-west is held by Business Hours Only in wave 1, and us-east and ap-south are not reached](/images/docs/operate/dashboard-progress.png)
+![The Progress drawing of hello-world-app for build 3ea2311: dev and staging are deployed, prod eu-west in wave 1 is held by Business Hours Only, and us-east in wave 1 and ap-south in wave 2 are not reached](/images/docs/operate/dashboard-progress.png)
 
 4. On the rollout, select the **Gates** tab. **Gated by** lists every gate, the environment before this one and the services this one depends on (its count is gates only), **Downstream** the rollouts that deploy after it. Below it, **Held builds**, **Waiting on** and **Depends on this** list held builds, dependencies and dependents. **All dependencies ›** opens the whole dependency network.
 
-![The Gated by column of hello-world-app in production eu-west: a closed Business Hours Only schedule and two approvals that need approval hold the rollout, each with a Skip once button](/images/docs/operate/dashboard-gated-by.png)
+![The Gates card of hello-world-app in prod eu-west: a closed Business Hours Only schedule and two approvals that need approval hold the rollout, each with a Skip once button, and ap-south and us-east wait downstream](/images/docs/operate/dashboard-gated-by.png)
 
 ## Follow a change
 

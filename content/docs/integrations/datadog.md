@@ -142,8 +142,6 @@ The controller writes Datadog's state into the HealthCheck status:
 
 The Rollout starts the bake once every selected HealthCheck is `Healthy`, and fails the deploy if any of them turns `Unhealthy` after the deploy started. While a check is `Unhealthy`, the Rollout also holds new automatic deploys and reports `DeploymentBlocked` with reason `UnhealthyHealthChecks`. See [Verify with Health Checks](/docs/gates/health-checks/) for the full rules.
 
-![DatadogMonitors as health checks on the rollout page, with the APM service linked next to them](/screenshots/dashboard/overview-prod.png)
-
 ## Troubleshoot
 
 | Symptom | Cause | Fix |

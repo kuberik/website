@@ -10,7 +10,7 @@ Export every [Rollout](/docs/concepts/rollouts/)'s latest deploy, bake state and
 
 The dashboard reads the same fields: its Activity page is the deploy feed across every cluster, and each rollout page shows the bake and health-check state these metrics export.
 
-![The Activity page: no failed deploys, 99 deploys in seven days, the median time to production and a chart of deploys per day](/images/docs/operate/monitoring-activity.png)
+![The Activity page: no failed deploys, 99 deploys in seven days, a median of 2 minutes to prod and a chart of deploys per day](/images/docs/operate/monitoring-activity.png)
 
 ## Export Rollout status with kube-state-metrics
 
