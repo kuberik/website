@@ -213,7 +213,7 @@ kubectl apply -f flux.yaml
 
 ### Publish a release
 
-Add the workflow for your mode from [Publish Releases from CI](/docs/releases/publish/) to `acme/hello-world` and push a commit to `main`. CI pushes a `main-<sha>-<timestamp>` tag, the `ReleaseSource` lists it within a minute, and the Rollout deploys it.
+Add the workflow for your mode from [Publish Releases from CI](/docs/releases/publish/) to `acme/hello-world` and push a commit to `main`. The workflow builds the image from the repository root, so the repository needs a `Dockerfile` there. CI pushes a `main-<sha>-<timestamp>` tag, the `ReleaseSource` lists it within a minute, and the Rollout deploys it.
 
 {{% /steps %}}
 
