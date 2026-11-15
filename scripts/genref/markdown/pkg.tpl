@@ -19,8 +19,6 @@
 
 ### Definitions
 
-This section contains definitions for objects used in the {{ .Title }} API.
-
     {{ range .VisibleTypes }}
       {{- if and .Referenced (not .IsExported) -}}
 {{ template "type" . }}
@@ -35,8 +33,6 @@ This section contains definitions for objects used in the {{ .Title }} API.
     {{- end }}
 
 ### Definitions
-
-This section contains definitions for objects used in the {{ .Title }} API.
 
     {{ range .VisibleTypes }}
       {{- if and .Referenced .References -}}

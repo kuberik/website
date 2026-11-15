@@ -66,7 +66,9 @@ done
 # Fields whose json tag carries options print the whole tag as the field name
 # ("metadata,omitempty,omitzero"); keep only the name.
 for f in ${BUILD_TEMP_OUT}/*.md; do
-    perl -pi -e 's/(<tr><td><code>)([A-Za-z0-9_]+),[^<]*(<\/code>)/$1$2$3/' "$f"
+    perl -pi -e 's/(<tr[^>]*><td><code>)([A-Za-z0-9_]+),[^<]*(<\/code>)/$1$2$3/' "$f"
+    # per-field anchors: <tr id="Type-field,omitempty"> -> id="type-field" (lowercase, no tag options)
+    perl -pi -e 's/<tr id="([^",]+)(?:,[^"]*)?"/"<tr id=\"" . lc($1) . "\""/e' "$f"
 done
 
 # Label each API group with its release state. For each module the pinned
@@ -101,4 +103,4 @@ label_groups () {
 }
 label_groups
 
-cat ${API_REF_SCRIPT_DIR}/index-header.md ${BUILD_TEMP_OUT}/* > ${API_REFERENCE_DIR}/api.md
+cat ${API_REF_SCRIPT_DIR}/index-header.md ${BUILD_TEMP_OUT}/rollout-controller.v1alpha1.md ${BUILD_TEMP_OUT}/environment-controller.v1alpha1.md ${BUILD_TEMP_OUT}/openkruise-controller.v1alpha1.md ${BUILD_TEMP_OUT}/release-controller.v1alpha1.md > ${API_REFERENCE_DIR}/api.md
