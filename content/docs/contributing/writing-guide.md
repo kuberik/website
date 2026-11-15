@@ -64,7 +64,7 @@ metadata:
 spec:
   releaseSourceRef:
     name: hello-world
-  bakeTime: 10m  # health must hold this long
+  bakeTime: 10m  # healthy this long
 ```
 
 YAML examples are complete objects a reader can apply: `apiVersion`, `kind`, `metadata.name`, `metadata.namespace` and every required field, with no `...`. They must validate against the CRDs on main. The script reads the CRDs from `origin/main` of local clones of rollout-controller, environment-controller, release-controller, openkruise-controller and datadog-controller, so clone them side by side, install pyyaml and jsonschema, and pass their parent directory with `--repos`:
@@ -74,7 +74,7 @@ pip install pyyaml jsonschema
 python3 scripts/validate-yaml.py --repos <directory-with-the-clones>
 ```
 
-Keep comments short and lower case, at most one per four lines; longer explanations go in the prose. Write secrets as placeholders such as `<your-token>`.
+Keep comments short and lower case, at most one per four lines and at most four words on a long line, so they do not clip on a phone; longer explanations go in the prose. Write secrets as placeholders such as `<your-token>`.
 
 ## Use callouts sparingly
 
@@ -129,7 +129,7 @@ hugo -d public
 python3 scripts/linkcheck.py public
 ```
 
-Open the page at phone and desktop widths, in light and dark mode. Word budgets: guide 1,000, concept 1,200, integration 1,400, tutorial 1,600.
+Open the page at phone and desktop widths, in light and dark mode. Word budgets: guide 1,000, concept 1,200, integration 1,400, tutorial 1,600, and the Troubleshoot page 2,000, because readers jump to one symptom there.
 
 ## Next steps
 

@@ -9,16 +9,12 @@ Kuberik reads Prometheus alerts as health checks. An alert that fires after a de
 
 To chart and alert on Kuberik's own deploy state in Prometheus, see [Monitor Rollouts](/docs/operate/monitoring/).
 
-{{< callout type="important" >}}
-The `prometheus-alert` class comes from prometheus-controller, which has no release yet. Build it from its main branch as shown below.
-{{< /callout >}}
-
 ## What you need
 
 | Requirement | Why |
 |---|---|
 | Kuberik installed | prometheus-controller ships no CRD. It reads and writes the [`HealthCheck`](/docs/gates/health-checks/) resources that rollout-controller defines |
-| Go, Docker and a registry you can push to | There is no published image to pull, so you build one |
+| Go, Docker and a registry you can push to | prometheus-controller, which serves the `prometheus-alert` class, has no release yet, so you build its image from main |
 | A Prometheus server the controller can reach over HTTP | The controller calls its `/api/v1/query_range` and `/api/v1/rules` APIs |
 | Alerting rules loaded in that Prometheus | The controller reads the `ALERTS` series Prometheus records for its rules. Alertmanager is not involved |
 
@@ -50,7 +46,7 @@ metadata:
   name: hello-world-alerts
   namespace: hello-world
   labels:
-    app: hello-world  # the Rollout selects on this
+    app: hello-world  # the Rollout selects this
   annotations:
     healthcheck.kuberik.com/prometheus-url: "http://prometheus.monitoring:9090"
     healthcheck.kuberik.com/prometheus-alert-labels: "alertname=HighErrorRate,service=hello-world"
@@ -85,7 +81,7 @@ metadata:
   namespace: hello-world
 type: Opaque
 stringData:
-  token: <your-token>  # or username and password for basic auth
+  token: <your-token>  # or username and password
 ```
 
 With a `token` key, the controller sends `Authorization: Bearer <token>`. Without one, it uses `username` and `password` as basic auth. The controller watches the Secret, so a rotated token takes effect on the next poll.
@@ -127,7 +123,7 @@ metadata:
 spec:
   releaseSourceRef:
     name: hello-world
-  bakeTime: 10m  # the alerts must stay quiet this long
+  bakeTime: 10m  # quiet this long
   healthCheckSelector:
     selector:
       matchLabels:

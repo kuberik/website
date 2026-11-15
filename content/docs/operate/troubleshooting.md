@@ -13,16 +13,17 @@ The banner at the top of a rollout's **Overview** names what holds it. The words
 
 | The dashboard shows | Condition on the Rollout | Go to |
 |---|---|---|
-| **Deployment failed**, with **Retry** and **Roll back** | `Ready=False`, `BakeTimeFailed` | [The deployment failed](#the-deployment-failed) |
-| The **stuck** chip, "Stuck — deploying for 2h" | `bakeStatus` `Deploying` | [A deploy is stuck in Deploying](#a-deploy-is-stuck-in-deploying) |
-| **Recovery mode** | `BakeFailureDisabled=True` | [A HealthCheck failed but the deploy did not](#a-healthcheck-failed-but-the-deploy-did-not) |
-| **Rolled back** | `spec.wantedVersion` set to an earlier build | [Roll back to the previous build](#roll-back-to-the-previous-build) |
-| **Held**, "Health checks are unhealthy." | `DeploymentBlocked=True`, `UnhealthyHealthChecks` | [Blocked by an unhealthy HealthCheck](#blocked-by-an-unhealthy-healthcheck) |
-| **production is waiting on an approval**, **Waiting for approval**, **Needs your approval** | `GatesPassing=False`, `NoAllowedVersions` | [Blocked by an approval](#blocked-by-an-approval-or-another-rule) |
+| **Deployment failed** banner<br>the **Retry** and **Roll back** buttons | `Ready=False`, `BakeTimeFailed` | [The deployment failed](#the-deployment-failed) |
+| The **stuck** chip<br>"Stuck — deploying for 2h" | `bakeStatus` `Deploying` | [A deploy is stuck in Deploying](#a-deploy-is-stuck-in-deploying) |
+| **Recovery mode**, while a deploy runs | `BakeFailureDisabled=True` | [A HealthCheck failed but the deploy did not](#a-healthcheck-failed-but-the-deploy-did-not) |
+| **Rolled back** | `status.history[0]` is older than the build before it (a pin or a force-deploy) | [Roll back to the previous build](#roll-back-to-the-previous-build) |
+| **Held** banner<br>"HealthCheck '…' in namespace '…' is not healthy" | `DeploymentBlocked=True`, `UnhealthyHealthChecks` | [Blocked by an unhealthy HealthCheck](#blocked-by-an-unhealthy-healthcheck) |
+| **production is waiting on an approval**<br>**Waiting for approval**<br>**Needs your approval** | `GatesPassing=False`, `NoAllowedVersions` | [Blocked by an approval](#blocked-by-an-approval-or-another-rule) |
 | **production is waiting for payments ^1.67.0** | `GatesPassing=False`, `NoAllowedVersions` | [Blocked by a service dependency](#blocked-by-a-service-dependency) |
-| **production is waiting on promotion order**, **Lockstep is set on … only** | `GatesPassing=False`, `NoAllowedVersions` | [Promote Across Environments](/docs/releases/promote/#troubleshoot) |
-| **Automatic deploys are paused**, **production is held** | `GatesPassing=False`, `SomeGatesBlocking` | [Blocked by a closed schedule](#blocked-by-a-closed-schedule-or-a-failing-gate) |
-| **production is pinned to 1.4.1**, **Clear pin** | `DeploymentBlocked` reason `ManualDeployment` | [Blocked by a pin](#blocked-by-a-pin-or-a-pending-deploy-by-hand) |
+| **production is waiting on promotion order** | `GatesPassing=False`, `NoAllowedVersions` | [Promote Across Environments](/docs/releases/promote/#troubleshoot) |
+| **Lockstep is set on … only** | `LockstepConsistent=False` on the Environment; holds nothing | [Promote Across Environments](/docs/releases/promote/#troubleshoot) |
+| **Automatic deploys are paused**<br>**production is held** | `GatesPassing=False`, `SomeGatesBlocking` | [Blocked by a closed schedule](#blocked-by-a-closed-schedule-or-a-failing-gate) |
+| **production is pinned to 1.4.1**<br>the **Clear pin** button | `DeploymentBlocked` reason `ManualDeployment` | [Blocked by a pin](#blocked-by-a-pin-or-a-pending-deploy-by-hand) |
 | **No release source** | `ReleasesUpdated=False`, `ReleaseSourceRequired` | [No release source](#no-release-source) |
 | **No releases yet** | `Ready=False`, `NoReleases` | [No releases yet](#no-releases-yet) |
 
@@ -97,7 +98,7 @@ kubectl annotate rollout hello-world -n hello-world rollout.kuberik.com/bypass-g
 kubectl get rollout hello-world -n hello-world -o jsonpath='{range .status.candidates[*]}{.tag}{"\t"}{.blockedBy}{"\n"}{end}'
 ```
 
-An `approval-gate-…` lets a release through once a [`RolloutApproval`](/docs/gates/approvals/) names it. Apply one to approve 1.4.1.
+An `approval-gate-…` lets a release through once a [`RolloutApproval`](/docs/gates/approvals/) names it {{< needs "Next release" >}}. Apply one to approve 1.4.1.
 
 ```bash {filename="Terminal"}
 kubectl apply -f - <<EOF
@@ -112,6 +113,8 @@ spec:
   version: "1.4.1"
 EOF
 ```
+
+rollout-controller v0.11.0 has no `RolloutApproval`. There, add the build to the gate's `allowedVersions`, as in [Use a hand-written gate on v0.11.0](/docs/gates/approvals/#use-a-hand-written-gate-on-v0110).
 
 ### Blocked by a service dependency
 
@@ -131,7 +134,7 @@ kubectl get healthchecks -n hello-world
 
 ### Blocked by a pin or a pending deploy by hand
 
-`DeploymentBlocked` has reason `ManualDeployment`. A deploy by hand is pending or pinned: `spec.wantedVersion` is set, or a `rollout.kuberik.com/force-deploy` annotation names a tag that has not deployed yet. New releases wait. Remove whichever is set, or select **Clear pin** in the dashboard.
+`DeploymentBlocked` has reason `ManualDeployment`. A deploy by hand is pending or pinned: `spec.wantedVersion` is set, or a `rollout.kuberik.com/force-deploy` annotation names a tag that has not deployed yet. New releases wait. Remove whichever is set: the **Clear pin** button in the dashboard removes a pin, and the annotate command below removes a force-deploy.
 
 ```bash {filename="Terminal"}
 kubectl get rollout hello-world -n hello-world -o jsonpath='{.spec.wantedVersion}{"\t"}{.metadata.annotations.rollout\.kuberik\.com/force-deploy}{"\n"}'
@@ -153,7 +156,7 @@ kubectl annotate rollout hello-world -n hello-world rollout.kuberik.com/force-de
 
 ### A `bypass-gates` annotation has no effect
 
-A bypass for a build that is not newer than the deployed one is ignored (log: "Gate bypass requested for version not in candidates"). With `bypass-gates-only`, unnamed gates still hold the build, and the Event `BypassGatesUnknown` names gates the Rollout does not have. A bypass never skips an `Unhealthy` HealthCheck or a failed bake.
+A bypass for a build that is not newer than the deployed one is ignored (log: "Gate bypass requested for version not in candidates"). With `bypass-gates-only` {{< needs "Next release" >}}, unnamed gates still hold the build, and the Event `BypassGatesUnknown` names gates the Rollout does not have. A bypass never skips an `Unhealthy` HealthCheck or a failed bake.
 
 ```bash {filename="Terminal"}
 kubectl get rollout hello-world -n hello-world -o jsonpath='{.status.gates[*].name}'
@@ -203,11 +206,16 @@ kubectl get rollout hello-world -n hello-world -o jsonpath='{.status.history[0].
 
 ### Roll back to the previous build
 
-Kuberik never rolls back on its own. **Roll back** on the dashboard's failure banner deploys the build before the failed one and pins the Rollout to it; with kubectl, set `spec.wantedVersion` to that build.
+Kuberik never starts a rollback on its own. **Roll back** on the dashboard's failure banner deploys the build before the failed one and pins the Rollout to it; with kubectl, print that build's tag.
 
 ```bash {filename="Terminal"}
 kubectl get rollout hello-world -n hello-world -o jsonpath='{.status.history[1].version.tag}{"\n"}'
-kubectl patch rollout hello-world -n hello-world --type merge -p '{"spec":{"wantedVersion":"1.4.0"}}'
+```
+
+Then set `spec.wantedVersion` to the tag it printed.
+
+```bash {filename="Terminal"}
+kubectl patch rollout hello-world -n hello-world --type merge -p '{"spec":{"wantedVersion":"<previous-tag>"}}'
 ```
 
 The pin deploys past gates and the failed deploy, and the dashboard shows **Rolled back**. New releases wait until you clear the pin, as in [Blocked by a pin](#blocked-by-a-pin-or-a-pending-deploy-by-hand).
@@ -236,7 +244,7 @@ The next deploy runs with `BakeFailureDisabled=True`, so health check errors do 
 
 ### A HealthCheck failed but the deploy did not
 
-The dashboard shows **Recovery mode**, and `BakeFailureDisabled` is True until the next deploy. This deploy followed a bake that failed or did not finish (`PreviousBakeFailed`), or was made by hand while a HealthCheck was `Unhealthy` (`DeployedWithUnhealthyHealthChecks`).
+While the deploy runs, the dashboard shows **Recovery mode**; `BakeFailureDisabled` stays True until the next deploy starts. This deploy followed a bake that failed or did not finish (`PreviousBakeFailed`), or was made by hand while a HealthCheck was `Unhealthy` (`DeployedWithUnhealthyHealthChecks`).
 
 ```bash {filename="Terminal"}
 kubectl get rollout hello-world -n hello-world -o jsonpath='{.status.conditions[?(@.type=="BakeFailureDisabled")]}'
@@ -262,10 +270,11 @@ These pages have their own Troubleshoot section.
 
 ## Check the result
 
-Run the conditions command again. A Rollout that deploys automatically shows `GatesPassing=True` and `DeploymentBlocked=False`, and after the bake `Ready=True` with reason `BakeTimePassed`.
+Print the conditions again. A Rollout that deploys automatically shows `GatesPassing=True` and `DeploymentBlocked=False`, and after the bake `Ready=True` with reason `BakeTimePassed`.
 
 ```bash {filename="Terminal"}
-kubectl get rollout hello-world -n hello-world
+kubectl get rollout hello-world -n hello-world \
+  -o jsonpath='{range .status.conditions[*]}{.type}{"\t"}{.status}{"\t"}{.reason}{"\n"}{end}'
 ```
 
 ## Next steps

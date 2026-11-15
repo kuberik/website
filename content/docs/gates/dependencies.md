@@ -8,7 +8,7 @@ aliases: ["/docs/guides/service-dependencies/"]
 
 Hold a service until the service it depends on has shipped the version it needs, in every environment, without hand-sequencing deploys.
 
-Works with rollout-controller v0.10.0 or later and Rollouts that take their releases from a [ReleaseSource](/docs/releases/publish/), which reads the contract annotations from the images.
+Needs a rollout-controller release after v0.11.0 and Rollouts that take their releases from a [ReleaseSource](/docs/releases/publish/), which reads the contract annotations from the images.
 
 A [`RolloutDependency`](/docs/reference/api/#rolloutdependency) connects a consumer [Rollout](/docs/concepts/rollouts/) to a provider Rollout. Each consumer release says which provider version it was built against, and the controller admits it only once the provider has successfully deployed a release that satisfies that constraint.
 
@@ -58,6 +58,12 @@ A provider without `bakeTime` records its bake as succeeded the moment the deplo
 
 Gates never hold a Rollout's first deploy: a brand-new consumer deploys the newest release the dependency admits, or the newest release if it admits none.
 
+## Know the limits
+
+- The consumer must be in the same namespace as the `RolloutDependency`, because a `RolloutGate` can only reference a Rollout in its own namespace. The provider may live elsewhere via `spec.providerRef.namespace`.
+- The provider's `org.opencontainers.image.version` must be a semantic version. A git SHA there cannot be ordered against a constraint.
+- One `RolloutDependency` covers one contract. A consumer that requires two services gets two objects.
+
 ## Check the result
 
 `kubectl get` shows the version the provider serves and whether any consumer release waits on it.
@@ -86,12 +92,6 @@ The dashboard shows the same on the rollout's **Gates** tab: what the consumer w
 ![The rollout's Gates tab: the gate graph, what the rollout waits on, and the version it needs against the version running](/images/docs/rollout-dependencies.png)
 
 Once the provider bakes, the consumer follows a few seconds later, unprompted.
-
-## Know the limits
-
-- The consumer must be in the same namespace as the `RolloutDependency`, because a `RolloutGate` can only reference a Rollout in its own namespace. The provider may live elsewhere via `spec.providerRef.namespace`.
-- The provider's `org.opencontainers.image.version` must be a semantic version. A git SHA there cannot be ordered against a constraint.
-- One `RolloutDependency` covers one contract. A consumer that requires two services gets two objects.
 
 ## Next steps
 

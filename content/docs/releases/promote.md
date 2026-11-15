@@ -23,7 +23,7 @@ metadata:
 spec:
   rolloutRef:
     name: hello-world
-  name: hello-world        # the same name in every cluster
+  name: hello-world        # same in every cluster
   environment: staging
   backend:
     type: github
@@ -78,7 +78,7 @@ spec:
   name: hello-world
   environment: production
   site: us-east-1
-  wave: 2                  # starts after every wave-1 site baked the release
+  wave: 2                  # after wave 1 bakes
   backend:
     type: github
     project: acme/hello-world
@@ -126,7 +126,8 @@ kubectl get environment hello-world-production -n hello-world \
 | `WaveReady=False`, reason `WaitingForCandidate` | The revision staging deployed has no release tag in the production Rollout's ReleaseSource. | Check that both clusters read the same releases. |
 | `WaveReady=False`, reason `InvalidTopology` or `UnknownTier` | Two names of one tier are in use (`staging` and `preprod`), the tier is not known, or the waves have a gap. | Use one tier name, and number waves from 1 without gaps. |
 | `WaveReady=False`, reason `Pinned` | `spec.wantedVersion` on the Rollout differs from the build the wave selected. | Remove the pin from the Rollout. |
-| `WaveReady=False`, reason `LockstepWaiting`; `LockstepConsistent=False`, reason `LockstepMismatch` | A lockstep wave waits until every site baked the release, or the sites disagree on `lockstep`. | Wait, or set the same `lockstep` on every site. |
+| `WaveReady=False`, reason `LockstepWaiting` | A lockstep wave waits until every site has baked the selected release. The message names the site. | Wait for that site's bake. |
+| `LockstepConsistent=False`, reason `LockstepMismatch` | A site's `lockstep` differs from the wave-1 leader's. This only informs: it holds nothing. | Set the same `lockstep` on every site. |
 | `WaveReady=False`, reason `CandidatesUnresolved` | The [ReleaseSlice](/docs/reference/api/#releaseslice) CRD is not served, so revisions cannot be mapped to tags. | Install the release-controller. |
 | `WaveReady=False`, reason `DuplicateSite` | Another Environment already owns this site of the tier. | Give each cluster its own `site`, or take the site over (below). |
 | Production deploys releases staging never ran | No staging site is registered for this `name`, so production has no upstream. | Check that both Environments use the same `name` and `backend.project`. |

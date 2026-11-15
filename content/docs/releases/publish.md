@@ -50,7 +50,7 @@ jobs:
         id: meta
         uses: docker/metadata-action@v5
         env:
-          DOCKER_METADATA_ANNOTATIONS_LEVELS: index  # annotate the index Kuberik reads
+          DOCKER_METADATA_ANNOTATIONS_LEVELS: index  # Kuberik reads the index
         with:
           images: ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}
           tags: |
@@ -85,7 +85,16 @@ spec:
       extract: '$ts'
     policy:
       numerical:
-        order: asc  # the highest timestamp is the newest release
+        order: asc  # highest timestamp wins
+```
+
+For a private registry, point `spec.oci.secretRef` at a `kubernetes.io/dockerconfigjson` Secret in the ReleaseSource's namespace.
+
+```bash {filename="Terminal"}
+kubectl create secret docker-registry ghcr-pull -n hello-world \
+  --docker-server=ghcr.io --docker-username=<your-user> --docker-password=<your-token>
+kubectl patch releasesource hello-world -n hello-world --type merge \
+  -p '{"spec":{"oci":{"secretRef":{"name":"ghcr-pull"}}}}'
 ```
 
 ## Tag releases by version
@@ -128,7 +137,7 @@ jobs:
         id: meta
         uses: docker/metadata-action@v5
         env:
-          DOCKER_METADATA_ANNOTATIONS_LEVELS: index  # annotate the index Kuberik reads
+          DOCKER_METADATA_ANNOTATIONS_LEVELS: index  # Kuberik reads the index
         with:
           images: ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}
           tags: |
@@ -208,7 +217,7 @@ jobs:
           VERSION: ${{ steps.v.outputs.version }}
         run: |
           set -euo pipefail
-          image="${IMAGE_NAME,,}"  # ghcr.io needs a lowercase path
+          image="${IMAGE_NAME,,}"  # ghcr.io needs lowercase
           for env in development staging production; do
             out="$(mktemp -d)"
             kustomize build "deploy/${env}" -o "$out"
@@ -236,7 +245,7 @@ spec:
       extract: '$ts'
     policy:
       numerical:
-        order: asc  # the highest timestamp is the newest release
+        order: asc  # highest timestamp wins
 ```
 
 The Flux `OCIRepository` that Kuberik drives points at the same artifact; see [Deploy Your First App](/docs/getting-started/).

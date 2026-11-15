@@ -133,7 +133,7 @@ metadata:
   name: hello-world
   namespace: hello-world
   labels:
-    app: hello-world  # match this in the Rollout's healthCheckSelector
+    app: hello-world  # the Rollout selects this
   annotations:
     healthcheck.kuberik.com/kustomization: "hello-world"
 spec:
