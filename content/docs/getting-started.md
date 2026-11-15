@@ -128,7 +128,7 @@ Create the Flux objects the Rollout drives. The annotation names the Rollout tha
 
 {{< tabs >}}
   {{< tab name="Image tag" >}}
-  Flux reads the manifests from git. Kuberik writes the selected tag into `postBuild.substitute` on the annotated Kustomization.
+  Here [Flux](/docs/integrations/fluxcd/) reads the manifests from a `GitRepository`; an `OCIRepository` or `Bucket` works the same. Kuberik writes the selected tag into `postBuild.substitute` on the annotated Kustomization.
 
   ```yaml {filename="flux.yaml"}
   apiVersion: source.toolkit.fluxcd.io/v1
@@ -299,7 +299,7 @@ VERSION                   BAKE        MESSAGE
 main-3f9c2ab-1794583200   Succeeded   Automatic deployment
 ```
 
-If the history stays empty, see [No releases yet](/docs/operate/troubleshooting/#no-releases-yet). If the deploy never leaves `Deploying`, see [A deploy is stuck in Deploying](/docs/operate/troubleshooting/#a-deploy-is-stuck-in-deploying) and [Troubleshoot Flux](/docs/integrations/fluxcd/#troubleshoot).
+If the history stays empty, see [No releases yet](/docs/operate/troubleshooting/#no-releases-yet). If the deploy never leaves `Deploying`, see [A deploy is stuck in Deploying](/docs/operate/troubleshooting/#a-deploy-is-stuck-in-deploying) and [Troubleshoot Flux](/docs/integrations/fluxcd/#troubleshoot). If BAKE reads `Failed`, see [The deployment failed](/docs/operate/troubleshooting/#the-deployment-failed).
 
 The dashboard shows each rollout with its running build, the pipeline it moved through, and its health checks. It is off by default; [Expose the Dashboard](/docs/installation/helm/#expose-the-dashboard) turns it on, and [Use the Dashboard](/docs/operate/dashboard/) shows how to read it.
 
