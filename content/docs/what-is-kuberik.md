@@ -25,6 +25,18 @@ A failed bake stops automatic deploys of that Rollout. They resume when someone 
 
 ![The dashboard home: what is deploying right now, what a rule is holding, and your merged changes with how far each one got](/screenshots/dashboard/home.png)
 
+## Works with
+
+Kuberik deploys through Flux. The other systems are optional and each adds one thing.
+
+| System | Status | What Kuberik does with it |
+|---|---|---|
+| [Flux](/docs/integrations/fluxcd/) 2.6 or later | Required | Applies each version through a Kustomization or an OCIRepository |
+| Argo CD | Not supported | Nothing yet: Kuberik reads and writes Flux objects only |
+| [GitHub](/docs/integrations/github/) | Optional | Records deployments per environment; dashboard sign-in and pull requests |
+| [Datadog](/docs/integrations/datadog/), [Prometheus](/docs/integrations/prometheus/) | Optional | Monitors and alerts become HealthChecks |
+| OpenKruise | Optional | Canary steps inside one deploy ([Roll Out with a Canary](/docs/releases/canary/)) |
+
 ## What stays with you
 
 Your CI builds the artifact and decides when a release exists by pushing its tag. Flux stays your GitOps tool: it fetches sources and applies manifests, and Kuberik only changes which version Flux applies. Kuberik does not build images, run CI, or replace Flux.
