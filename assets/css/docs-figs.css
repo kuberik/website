@@ -11,7 +11,9 @@
   --df-key:#009689;
   --df-wire:var(--ink-subtle);--df-held:oklch(.69 .16 48);--df-pass:#00a63e;
   --df-group:oklch(.8 .014 222);
-  --kd-chip-yellow-bg:#fefce8;--kd-chip-yellow-line:#ffdf20;--kd-chip-yellow-ink:#a65f00;
+  /* InProgress = the dashboard's `checking` chip (rollout-dashboard frontend/src/styles/language.css:217-220,
+     Chip.svelte:661 CHECKING): a yellow-green that never meets amber, which is held/stuck only */
+  --kd-chip-yellow-bg:oklch(.975 .08 112);--kd-chip-yellow-line:oklch(.88 .09 100);--kd-chip-yellow-ink:oklch(.51 .1 95);
   --kd-chip-prod-bg:#fdf4ff;--kd-chip-prod-line:#f4a8ff;--kd-chip-prod-ink:#a800b7;
   margin:32px 0 0;container:df/inline-size}
 html.dark .df{
@@ -22,7 +24,7 @@ html.dark .df{
   --df-key:#3ad9c6;
   --df-held:oklch(.72 .16 50);--df-pass:#05df72;
   --df-group:oklch(1 0 0/.16);
-  --kd-chip-yellow-bg:#432004;--kd-chip-yellow-line:#894b00;--kd-chip-yellow-ink:#fff085;
+  --kd-chip-yellow-bg:oklch(.352 .07 102);--kd-chip-yellow-line:oklch(.52 .11 102);--kd-chip-yellow-ink:oklch(.87 .12 98);
   --kd-chip-prod-bg:#4b004f;--kd-chip-prod-line:#8a0194;--kd-chip-prod-ink:#f6cfff}
 .df-card{padding:24px;border:1px solid var(--line);border-radius:12px;background:var(--df-bg);overflow:hidden}
 .df-cap,.kd-content .df-cap{margin-top:12px;text-align:left;font:400 14px/20px var(--sans);color:var(--ink-muted)}
