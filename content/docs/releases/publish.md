@@ -165,7 +165,7 @@ spec:
 
 ## Publish rendered manifests
 
-When Kuberik moves rendered manifests instead of an image tag, render each environment's overlay in CI and push it as an OCI artifact with the Flux CLI. `flux push artifact` sets the `source` and `revision` annotations from `--source` and `--revision`. This workflow pushes one artifact per environment, all with the same `main-<sha>-<timestamp>` tag.
+When Kuberik moves rendered manifests instead of an image tag, build the image, render each environment's overlay in CI, and push the result as an OCI artifact with the Flux CLI. This workflow builds the image from the `Dockerfile` at the repository root, pins its tag in every overlay under `deploy/`, and pushes one artifact per overlay, named after its directory. The image and every artifact carry the same `main-<sha>-<timestamp>` tag.
 
 ```yaml {filename=".github/workflows/manifests-release.yaml"}
 name: Manifests Release
@@ -177,7 +177,6 @@ on:
 
 env:
   REGISTRY: ghcr.io
-  IMAGE_NAME: ${{ github.repository }}
 
 jobs:
   build:
@@ -189,12 +188,17 @@ jobs:
       - name: Checkout
         uses: actions/checkout@v4
 
-      - name: Resolve version
+      - name: Resolve image and version
         id: v
-        run: echo "version=main-${GITHUB_SHA::7}-$(git log -1 --format=%ct)" >> "$GITHUB_OUTPUT"
+        run: |
+          echo "image=${REGISTRY}/${GITHUB_REPOSITORY,,}" >> "$GITHUB_OUTPUT"  # ghcr.io needs lowercase
+          echo "version=main-${GITHUB_SHA::7}-$(git log -1 --format=%ct)" >> "$GITHUB_OUTPUT"
 
       - name: Install the Flux CLI
         uses: fluxcd/flux2/action@main
+
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v3
 
       - name: Log in to the container registry
         uses: docker/login-action@v3
@@ -203,22 +207,33 @@ jobs:
           username: ${{ github.actor }}
           password: ${{ secrets.GITHUB_TOKEN }}
 
+      - name: Build and push the image
+        uses: docker/build-push-action@v6
+        with:
+          context: .
+          push: true
+          tags: ${{ steps.v.outputs.image }}:${{ steps.v.outputs.version }}
+
       - name: Render and push manifests
         env:
+          IMAGE: ${{ steps.v.outputs.image }}
           VERSION: ${{ steps.v.outputs.version }}
         run: |
           set -euo pipefail
-          image="${IMAGE_NAME,,}"  # ghcr.io needs lowercase
-          for env in development staging production; do
+          for dir in deploy/*/; do
+            env="$(basename "$dir")"
+            (cd "$dir" && kustomize edit set image "${IMAGE}:${VERSION}")
             out="$(mktemp -d)"
-            kustomize build "deploy/${env}" -o "$out"
+            kustomize build "$dir" -o "$out"
             flux push artifact \
-              "oci://${REGISTRY}/${image}/${env}/manifests:${VERSION}" \
+              "oci://${IMAGE}/${env}/manifests:${VERSION}" \
               --path "$out" \
               --source="${{ github.event.repository.html_url }}" \
               --revision="${{ github.sha }}"
           done
 ```
+
+Each overlay is a directory with a `kustomization.yaml` whose Deployment names the image `ghcr.io/acme/hello-world` without a tag; `kustomize edit set image` adds the build's tag before the render. With `deploy/development`, `deploy/staging` and `deploy/production`, the workflow pushes three artifacts; with only `deploy/production`, it pushes one. `flux push artifact` sets the `source` and `revision` annotations from `--source` and `--revision`.
 
 Each environment's `ReleaseSource` scans its own artifact with the same timestamp policy as an image. This one is for production:
 
