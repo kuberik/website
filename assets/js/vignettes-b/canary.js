@@ -30,7 +30,12 @@ VG.def('canary', {
     const { el, w } = VG;
     const LOOP = 6.2;
     // v6j: the next release (see the header)
-    const NX = 5.10, WR = 5.36, PP = 5.50, W2 = 5.80;
+    // r9 S1 (b24): the seam in the headline's order. Wave 2 goes back to waiting FIRST (W2 5.10, done by 5.30); then ONE beat
+    // (T0 5.36) turns wave 1 over to the next release: everything of the old release leaves in 70 ms (the chip, baked, 100 %,
+    // passed, the bake bar) and the new state arrives in the next 80 ms (the next version, deploying, 0 %, the test waiting).
+    // v6k bumped the version at 5.10, so 3.2.0 read 'baked, 100 %, passed' for 260 ms while wave 2 still deployed till 5.80.
+    const T0 = 5.36, NX = T0, WR = T0, PP = T0 + 0.07, W2 = 5.10;
+    const out = (t) => w(t, T0, T0 + 0.07, 'in'), inn = (t) => w(t, T0 + 0.07, T0 + 0.15, 'out');
     const RV = (n) => `3.${1 + n}.0`;
     const back = (t) => w(t, WR, WR + 0.15); // wave 1 back to deploying
     const [W, H] = ph ? [326, 440] : [630, 820];
@@ -92,7 +97,7 @@ VG.def('canary', {
       KB.text(sp.g, x, y, v, 'num');
     });
     // v6j: the next release starts at 0 % (a fifth value, so 100 % -> 0 % is one change, never a count down)
-    swap(cx0, B + (ph ? 46 : 62), ['0%', '10%', '50%', '100%', '0%'], tt((t) => w(t, 0.3, 0.5) + w(t, 1.55, 1.75) + w(t, 1.95, 2.15) + w(t, PP, PP + 0.2)), { w: 100 });
+    swap(cx0, B + (ph ? 46 : 62), ['0%', '10%', '50%', '100%', '0%'], tt((t) => w(t, 0.3, 0.5) + w(t, 1.55, 1.75) + w(t, 1.95, 2.15) + w(t, T0, T0 + 0.14, 'lin')), { w: 100 });
     KB.text(body.g, cx0, B + (ph ? 68 : 84), 'traffic', 'meta');
     const PW = ph ? 30 : 58, PH = ph ? 22 : 34, PG = ph ? 6 : 8, px0 = C.x + C.w - (ph ? 16 : 20) - (5 * PW + 4 * PG), py0 = B + (ph ? 18 : 22);
     // v6f (b-r5 fix 8): the first step (pod 1, 0 -> 10 %) starts at 0.3, 150 ms after the card's fade-in ends (was 0.65):
@@ -118,15 +123,15 @@ VG.def('canary', {
     KB.text(body.g, cx0 + 22, TY + 4.5, 'Canary test', 'label');
     const rx = C.x + C.w - (ph ? 16 : 20);
     KB.text(S.sprite({ x: rx - 80, y: TY - 10, w: 80, h: 20, track: tt((t) => ({ o: run(t) * (1 - pass(t)) })) }).g, rx, TY + 4.5, 'running', 'meta', 'end');
-    KB.text(S.sprite({ x: rx - 80, y: TY - 10, w: 80, h: 20, track: (t) => ({ o: pass(t) * (1 - w(t, WR, WR + 0.15, 'in')) }) }).g, rx, TY + 4.5, 'passed', 'meta', 'end');
+    KB.text(S.sprite({ x: rx - 80, y: TY - 10, w: 80, h: 20, track: (t) => ({ o: pass(t) * (1 - out(t)) }) }).g, rx, TY + 4.5, 'passed', 'meta', 'end');
     // deployed -> bake (the fill is the claim, 700 ms) -> baked
     const KY = B + (ph ? 124 : 170);
     const dep = (t) => w(t, 2.35, 2.55), bake = (t) => w(t, 2.45, 3.15, 'lin'), baked = (t) => w(t, 3.15, 3.35);
     el('path', { d: `M${cx0} ${KY}H${rx}`, class: 't-rail nsl', 'stroke-width': 1 }, body.g);
     const kb = { x: cx0 - 2, y: KY - 3, w: rx - cx0 + 4, h: 6 };
     // v6j: the bar clears (200 ms) as wave 1 starts the next release; its reveal empties once it is out
-    const bq = S.sprite({ x: 0, y: 0, w: W, h: H, track: (t) => ({ o: 1 - w(t, WR, WR + 0.2, 'in') }) });
-    const fill = KB.reveal(S, kb, (t) => (t >= WR + 0.2 ? 0 : bake(t)), { parent: bq });
+    const bq = S.sprite({ x: 0, y: 0, w: W, h: H, track: (t) => ({ o: 1 - out(t) }) });
+    const fill = KB.reveal(S, kb, (t) => (t >= T0 + 0.07 ? 0 : bake(t)), { parent: bq });
     for (const [cls, o] of [['t-prog', (t) => 1 - baked(t)], ['t-teal', baked]]) {
       const sp = S.sprite({ ...kb, parent: fill, track: tt((t) => ({ o: o(t) })) });
       el('path', { d: `M${cx0} ${KY}H${rx}`, class: cls, 'stroke-width': 2, 'stroke-linecap': 'round' }, sp.g);
@@ -157,7 +162,7 @@ VG.def('canary', {
     const sx = C.x + C.w - 40;
     [['deploying', 'meta', (t) => 1 - dep(t)], ['baking', 'meta', (t) => dep(t) * (1 - baked(t))], ['baked', 'teal', baked]].forEach(([s, k, o]) => {
       // v6j: baked -> deploying as wave 1 starts the next release
-      const sp = S.sprite({ x: sx - 80, y: C.y + 58, w: 80, h: 20, track: (t) => ({ o: t >= WR ? (s === 'deploying' ? back(t) : s === 'baked' ? 1 - back(t) : 0) : o(t) }) });
+      const sp = S.sprite({ x: sx - 80, y: C.y + 58, w: 80, h: 20, track: (t) => ({ o: t >= WR ? (s === 'deploying' ? inn(t) : s === 'baked' ? 1 - out(t) : 0) : o(t) }) });
       const n = KB.text(sp.g, sx, C.y + 72.5, s, 'meta', 'end'); if (k === 'teal') n.setAttribute('class', 'teal-ink');
     });
     // v6g (climax audit): the baked beat. The bar closes teal and, on the same beat, the wave 1 card's edge lights teal
