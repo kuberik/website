@@ -6,13 +6,13 @@
 @media(min-width:1024px){.kdh > .hextra-sidebar-container{display:none}}
 
 /* ---------- hero: the landing's mint stage, laid out like the install band ---------- */
-.kdh-hero{margin-top:16px}
+.kdh-hero{margin-top:16px;background:var(--st-hero)} /* the landing hero's stage colour (hero.css .stage-hero, install.css #install) */
 .kdh-hero-in{display:grid;grid-template-columns:minmax(0,1fr);gap:32px;align-items:center;padding-block:56px 48px}
 .kdh-copy{display:flex;flex-direction:column;align-items:flex-start;min-width:0}
 .kdh-eyebrow{display:inline-flex;align-items:center;gap:8px;height:28px;padding:0 12px;border-radius:999px;background:color-mix(in oklab,var(--page) 70%,transparent);border:1px solid var(--line);font:500 13px/20px var(--sans);color:var(--mint-ink)}
 .kdh-eyebrow b{width:6px;height:6px;border-radius:50%;background:var(--mint)}
 .kdh-copy h1{margin:20px 0 0;font:600 var(--t-statement-s)/var(--t-statement-l) var(--sans);letter-spacing:-.03em;color:var(--ink);text-wrap:balance}
-.kdh-lead{margin:16px 0 0;max-width:46ch;font:400 var(--t-lead-s)/var(--t-lead-l) var(--sans);color:var(--ink-muted);text-wrap:pretty}
+.kdh-lead{margin:16px 0 0;max-width:46ch;font:400 16px/26px var(--sans);color:var(--ink-muted);text-wrap:pretty}
 .kdh-ctas{display:flex;flex-wrap:wrap;gap:12px;margin-top:28px}
 .kdh-ctas .btn svg{width:14px;height:14px}
 .kdh-art{min-width:0}
@@ -21,6 +21,7 @@
 @media(min-width:1024px){
   .kdh-hero-in{grid-template-columns:repeat(12,minmax(0,1fr));column-gap:24px;padding-block:72px 64px}
   .kdh-copy{grid-column:1/6}
+  .kdh-lead{font-size:20px;line-height:30px} /* the landing hero lead (hero.css .sub) */
   .kdh-art{grid-column:6/-1;justify-self:end;width:100%;max-width:680px}
 }
 @media(min-width:1920px){.kdh-art{max-width:780px}}
