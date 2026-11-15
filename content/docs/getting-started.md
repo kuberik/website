@@ -248,7 +248,7 @@ Create the Flux objects the Rollout drives. The annotation names the Rollout tha
             image: ghcr.io/acme/hello-world  # CI pins the build's tag
   ```
 
-  Until the first release, the OCIRepository has no tag to pull and reads `Ready` `False`. This clears when Kuberik writes the first tag.
+  Until the first release, the OCIRepository pulls `latest`, which CI never pushes, so it reads `Ready` `False`. This clears when Kuberik writes the first tag.
   {{< /tab >}}
 {{< /tabs >}}
 
@@ -266,7 +266,7 @@ Add the workflow for your mode to `acme/hello-world` and push a commit to `main`
   {{< /tab >}}
 
   {{< tab name="Rendered manifests" >}}
-  Use the workflow in [Publish rendered manifests](/docs/releases/publish/#publish-rendered-manifests). It pushes the image, then renders every overlay under `deploy/` with that image's tag and pushes it as an artifact with the same tag. Here that is `deploy/production` alone, so it pushes `ghcr.io/acme/hello-world/production/manifests`.
+  Use the workflow in [Publish rendered manifests](/docs/releases/publish/#publish-rendered-manifests). It pushes the image, then renders every overlay under `deploy/` with that image's tag and pushes each as an artifact with the same tag. Here that is `deploy/production` alone, so it pushes `ghcr.io/acme/hello-world/production/manifests`.
   {{< /tab >}}
 {{< /tabs >}}
 

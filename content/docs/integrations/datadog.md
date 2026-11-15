@@ -17,7 +17,15 @@ Kuberik reads Datadog monitors and incidents as health checks. A monitor that al
 
 ## Give the controller credentials
 
-The controller reads one set of credentials for the whole cluster, from a Secret named `datadog-credentials` in the `kuberik-system` namespace. Install it with the Helm chart's `integrations.datadog.enabled`, or on its own:
+The controller reads one set of credentials for the whole cluster, from a Secret named `datadog-credentials` in the `kuberik-system` namespace. With the [Helm chart](/docs/installation/helm/#turn-on-integration-controllers), turn the controller on in your values:
+
+```yaml {filename="values.yaml"}
+integrations:
+  datadog:
+    enabled: true
+```
+
+Without the chart, apply the controller on its own. Its `install.yaml` has no Namespace object, so `kuberik-system` must already exist:
 
 ```bash {filename="Terminal"}
 kubectl apply -f https://github.com/kuberik/datadog-controller/releases/latest/download/install.yaml
