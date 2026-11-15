@@ -37,7 +37,7 @@ kubectl events -n hello-world --for rollout/hello-world
 
 ### Read the controller logs
 
-The controllers' logs hold the rest, such as "Retry annotation ignored". The Helm chart runs them in `kuberik-system`; add `--since=1h` to limit the output.
+The controllers' logs hold the rest, such as "Retry annotation ignored". The Helm chart runs them in `kuberik-system`.
 
 ```bash {filename="Terminal"}
 kubectl logs -n kuberik-system deployment/rollout-controller
@@ -51,7 +51,7 @@ The integrations log as `datadog-controller-controller-manager` and `openkruise-
 
 ### No release source
 
-`ReleasesUpdated` is False with reason `ReleaseSourceRequired`: the Rollout has no `spec.releaseSourceRef`, so it reads no releases. Point it at the app's ReleaseSource.
+`ReleasesUpdated` is False with reason `ReleaseSourceRequired`: the Rollout has no `spec.releaseSourceRef`. Point it at the app's ReleaseSource.
 
 ```bash {filename="Terminal"}
 kubectl patch rollout hello-world -n hello-world --type merge \
@@ -76,7 +76,7 @@ kubectl get releasesource -n hello-world
 
 ### No releases yet
 
-`Ready` is False with reason `NoReleases`. The ReleaseSource admitted no tag: the image has no tags yet, or `spec.oci.filterTags` and `spec.oci.policy` match none of them. Compare the tags in the registry with the filter, then correct the ReleaseSource.
+`Ready` is False with reason `NoReleases`. The ReleaseSource admitted no tag: the image has no tags yet, or `spec.oci.filterTags` and `spec.oci.policy` match none of them. Compare the registry's tags with the filter and fix the ReleaseSource.
 
 ```bash {filename="Terminal"}
 kubectl get releasesource hello-world -n hello-world -o jsonpath='{.status.count}{"\n"}{.spec.oci}{"\n"}'
@@ -174,7 +174,7 @@ kubectl get rollout hello-world -n hello-world -o jsonpath='{.status.gates[*].na
 
 ### Promotion stalls and the log reads "API rate limit exceeded"
 
-The environment-controller calls GitHub with each Environment's token on every Rollout change and every `spec.requeueInterval` (default 1 minute). Once the token's hourly limit is spent, reconciles fail before the gate updates, so the gate keeps its last `allowedVersions`.
+The environment-controller calls GitHub with each Environment's token on every Rollout change and every `spec.requeueInterval` (default 1 minute). Once the token's hourly limit is spent, reconciles fail before the Environment's status and gate update. Staging shows the release baked, yet production still reads **production is waiting on promotion order** (`GatesPassing=False`, `NoAllowedVersions`): the gate keeps its last `allowedVersions`, the Environment its last `WaveReady`. Only the log names the error.
 
 ```bash {filename="Terminal"}
 kubectl logs -n kuberik-system deployment/environment-controller-manager --since=1h | grep "rate limit"
@@ -189,7 +189,7 @@ kubectl patch environment hello-world-production -n hello-world --type merge -p 
 
 ### The last deploy failed
 
-A failed deploy stops automatic deploys until someone acts. See [The deployment failed](#the-deployment-failed).
+A failed deploy stops automatic deploys until someone acts: see [The deployment failed](#the-deployment-failed).
 
 ## A deploy is stuck in Deploying
 
@@ -211,11 +211,9 @@ With `wait: true`, Kuberik reads the Kustomization's `Ready` condition, which ne
 kubectl patch kustomization hello-world -n hello-world --type merge -p '{"spec":{"wait":false}}'
 ```
 
-See [Flux](/docs/integrations/fluxcd/) for the HealthCheck setup.
-
 ### The deploy never fails
 
-Set `deployTimeout` so a deploy whose health checks never turn healthy fails instead of waiting.
+Set `deployTimeout` so a deploy that never turns healthy fails.
 
 ```bash {filename="Terminal"}
 kubectl patch rollout hello-world -n hello-world --type merge -p '{"spec":{"deployTimeout":"15m"}}'
@@ -276,8 +274,6 @@ kubectl get rollout hello-world -n hello-world -o jsonpath='{.status.conditions[
 ```
 
 ## Troubleshoot other parts
-
-These pages have their own Troubleshoot section.
 
 | Area | Page |
 |---|---|
