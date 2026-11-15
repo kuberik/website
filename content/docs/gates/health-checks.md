@@ -140,7 +140,7 @@ InProgress: Bake started, monitoring for errors.
 
 A failed deploy lists the checks that failed it in `status.history[0].failedHealthChecks`. The dashboard shows the same checks on the rollout page:
 
-![The Health checks card of hello-world in production: 3/3 healthy, the Flux Deployment check and two alerts, High Error Rate Alert and App Down Alert, all passing](/images/docs/gates/health-checks.png)
+![The Health checks card: 3/3 healthy, the Flux Deployment check and two alerts, High Error Rate Alert and App Down Alert, all passing](/images/docs/gates/health-checks.png)
 
 ## Troubleshoot
 

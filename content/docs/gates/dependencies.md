@@ -89,7 +89,7 @@ kubectl get rolloutdependency checkout-needs-payments -n hello-world -o jsonpath
 
 The dashboard shows the same on the rollout's **Gates** tab: what the consumer waits on, the version it needs against the version running, and the contract across every environment. The home page and the Environments page name the provider on every held card.
 
-![The Gates card of checkout-api in staging: staging is waiting for payments-svc 3.0.0, and 1 of 4 gates holds: the payments-svc dependency, which runs 2.4.1 where checkout-api needs ^3.0.0. The dev promotion, the identity-svc dependency, Business hours and a Release approval by wyatt pass. The checkout-api staging node runs 4.43.0-43 with 4.45.0-45 and 4.44.0-44 held there, and prod eu-central waits downstream until staging deploys 4.45.0-45](/images/docs/rollout-dependencies.png "The provider still runs 2.4.1, so checkout-api holds its newer builds in staging until payments-svc ships 3.0.0.")
+![The Gates card of checkout-api in staging: staging is waiting for payments-svc 3.0.0. The dev promotion passes, and of 4 gates only the payments-svc dependency holds: it runs 2.4.1 where checkout-api needs ^3.0.0, while the identity-svc dependency, Business hours and a Release approval by wyatt pass. The checkout-api staging node runs 4.43.0-43 with 4.45.0-45 and 4.44.0-44 held there, and prod eu-central waits downstream until staging deploys 4.45.0-45](/images/docs/rollout-dependencies.png "The provider still runs 2.4.1, so checkout-api holds its newer builds in staging until payments-svc ships 3.0.0.")
 
 Once the provider bakes, the consumer follows a few seconds later, unprompted.
 
