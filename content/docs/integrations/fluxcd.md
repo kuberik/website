@@ -192,7 +192,7 @@ Without the key, substitution renders the `${APP_VERSION:=1.0.0}` default, so su
 flux suspend kustomization hello-world -n hello-world
 ```
 
-Remove `APP_VERSION` from the Kustomization in Git and wait until the parent has applied that (the first command above prints nothing). Put the deployed tag back, then resume; the Rollout keeps the key from its next deploy on.
+Remove `APP_VERSION` from the Kustomization in Git and wait until the parent has applied that (the first `jsonpath` command under the symptom prints nothing). Put the deployed tag back, then resume; the Rollout keeps the key from its next deploy on.
 
 ```bash {filename="Terminal"}
 kubectl -n hello-world patch kustomization hello-world --type merge --field-manager=rollout-controller \

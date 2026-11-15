@@ -10,7 +10,7 @@ Production deploys only releases staging has deployed and baked, with no pipelin
 
 {{< fig id="promote-waves" caption="A release reaches production wave 1 only after staging baked it, and wave 2 only after every wave-1 site baked it." >}}
 
-Works with the environment-controller, a GitHub token Secret in each app namespace (see [GitHub](/docs/integrations/github/)), and Rollouts that take their releases from a [ReleaseSource](/docs/releases/publish/). On one cluster, give each tier its own namespace (`hello-world-staging`, `hello-world-production`) with its own Rollout, Environment and `github-token` Secret.
+Works with the environment-controller, a GitHub token Secret in each app namespace (see [GitHub](/docs/integrations/github/)), and Rollouts that take their releases from a [ReleaseSource](/docs/releases/publish/). On one cluster, give each tier its own namespace (`hello-world-staging`, `hello-world-production`) with its own Rollout, ReleaseSource, Environment and `github-token` Secret, and use those namespaces below.
 
 ## Create the staging Environment
 
@@ -64,7 +64,7 @@ spec:
 kubectl apply -f production.yaml
 ```
 
-When staging finishes the bake of `1.4.0`, the production gate adds `1.4.0` to its `allowedVersions` and the production Rollout deploys it as soon as its other gates allow. The order comes from the tier names alone.
+When staging bakes `1.4.0`, the production gate adds it to `allowedVersions`, and production deploys it once its other gates allow. The order comes from the tier names alone.
 
 A brand-new Rollout is the exception: gates never hold its first deploy, and the Environment's gate allows every release until it has read staging. To start production on a release staging baked, create its Rollout with `spec.wantedVersion` set to that release, and remove the pin after the first deploy.
 
@@ -106,24 +106,24 @@ WaveReady=True Ready: site may deploy the allowed versions
 LockstepConsistent=True Consistent: all members agree on lockstep
 ```
 
-Then list the releases the gate allows, newest first:
+List the releases the gate allows, newest first:
 
 ```bash {filename="Terminal"}
 kubectl get rolloutgate -n hello-world \
   -o jsonpath='{range .items[*]}{.metadata.name}: {.spec.allowedVersions}{"\n"}{end}'
 ```
 
-The gate whose name starts with `ghd-` belongs to the Environment. The repository's **Environments** page in GitHub lists every deploy and its bake result. The dashboard shows the same order on the app page.
+The gate whose name starts with `ghd-` belongs to the Environment. GitHub's **Environments** page lists every deploy and its bake result. The dashboard shows the same order on the app page.
 
 ![The Builds card of invoice-worker: staging and production both run 2.2.0-30 and hold the newer 2.3.0-31](/images/docs/releases/promote-builds.png)
 
 ## Troubleshoot
 
-Each Environment explains what holds it in the `WaveReady` and `LockstepConsistent` conditions printed in [Check the result](#check-the-result).
+The conditions printed in [Check the result](#check-the-result) name what holds each Environment.
 
 | Symptom | Cause | Fix |
 |---|---|---|
-| `WaveReady=False`, reason `WaitingFor` | An earlier tier or wave has not baked the release, or its bake failed; the message names the site. | Wait for the bake, or fix the failure in staging. |
+| `WaveReady=False`, reason `WaitingFor` | An earlier tier or wave has not baked the release, or its bake failed; the message names the site. | Wait for the bake, or fix staging's failure. |
 | `WaveReady=False`, reason `WaitingForCandidate` | The revision staging deployed has no release tag in the production Rollout's ReleaseSource. | Check that both clusters read the same releases. |
 | `WaveReady=False`, reason `InvalidTopology` or `UnknownTier` | Two names of one tier are in use (`staging` and `preprod`), the tier is not known, or the waves have a gap. | Use one tier name, and number waves from 1 without gaps. |
 | `WaveReady=False`, reason `Pinned` | `spec.wantedVersion` on the Rollout differs from the build the wave selected. | Remove the pin. |
@@ -131,8 +131,8 @@ Each Environment explains what holds it in the `WaveReady` and `LockstepConsiste
 | `LockstepConsistent=False`, reason `LockstepMismatch` | A site's `lockstep` differs from the wave-1 leader's; it holds nothing. | Set the same `lockstep` on every site. |
 | `WaveReady=False`, reason `CandidatesUnresolved` | The [ReleaseSlice](/docs/reference/api/#releaseslice) CRD is not served, so revisions cannot be mapped to tags. | Install the release-controller. |
 | `WaveReady=False`, reason `DuplicateSite` | Another Environment owns this site of the tier. | Give each cluster its own `site`, or take the site over (below). |
-| Staging baked the release, but production still waits (`WaveReady=False`, `WaitingFor`) | The GitHub token's rate limit is spent; the environment-controller logs `API rate limit exceeded`. | Wait for the reset, or [reconcile less often](/docs/operate/troubleshooting/#promotion-stalls-and-the-log-reads-api-rate-limit-exceeded). |
-| Production deploys releases staging never ran | No staging site is registered for this `name`, so production has no upstream. | Check that both Environments use the same `name` and `backend.project`. |
+| Staging baked, but production still waits (`WaitingFor`) | The GitHub token's rate limit is spent; the environment-controller logs `API rate limit exceeded`. | Wait for the reset, or [reconcile less often](/docs/operate/troubleshooting/#promotion-stalls-and-the-log-reads-api-rate-limit-exceeded). |
+| Production deploys releases staging never ran | No staging site is registered for this `name`, so production has no upstream; or the Rollout is new, and gates never hold a first deploy. | Use the same `name` and `backend.project` in both; pin a new Rollout's first release (above). |
 
 {{< callout type="warning" >}}
 Taking a site over deregisters the Environment that owns it, in another cluster. Do it only when that owner is gone or replaced.
