@@ -271,7 +271,7 @@ kubectl get releasesource -n hello-world hello-world -o jsonpath='{.status.newes
 {"created":"2026-11-13T15:20:00Z","revision":"3f9c2ab0d1e84b6f9a7c5e2d4b1a8f6c3e9d0b7a","tag":"main-3f9c2ab-1794583200"}
 ```
 
-On the dashboard's **Apps** page, the app's card names the newest build. Publishing only makes it a release: here a deployment window still holds it, so staging and production stay one build behind.
+On the dashboard's **Apps** page, the app's card names the newest build. Publishing only makes it a release: here a deployment window still holds it.
 
 ![The billing-edge card on the Apps page: the newest build, 5.8.0-62, held by the Business hours deploy window, with staging and production both held](/images/docs/releases/publish-newest.png)
 

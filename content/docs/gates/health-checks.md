@@ -138,7 +138,9 @@ hello-world   Healthy   Kustomization and all managed resources are healthy
 InProgress: Bake started, monitoring for errors.
 ```
 
-A failed deploy lists the checks that failed it in `status.history[0].failedHealthChecks`. The dashboard shows the same checks on the rollout page:
+A failed deploy lists the checks that failed it in `status.history[0].failedHealthChecks`.
+
+The rollout page's Health checks card lists every check the Rollout selects and its state:
 
 ![The Health checks card: 3/3 healthy, the Flux Deployment check and two alerts, High Error Rate Alert and App Down Alert, all passing](/images/docs/gates/health-checks.png)
 

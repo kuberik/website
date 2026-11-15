@@ -30,6 +30,10 @@ html.dark .kd-shot-plate{border-color:var(--card-border);background:var(--card-f
 html.dark .kd-content .kd-shot img,html.dark .kd-shot img{border-color:oklch(1 0 0/.14);box-shadow:0 0 0 6px oklch(1 0 0/.04),0 16px 36px -16px oklch(0 0 0/.7)}
 /* the release-post captures carry their own bezel: no second frame */
 .kd-shot.is-framed img,html.dark .kd-shot.is-framed img{border:0;border-radius:0;background:none;box-shadow:none}
+/* R9-DES-4: from 1024 to 1365 the reading column is 616-664 wide (the TOC arrives at 1280), so a 24px-padded plate drew the
+   630 shots at 0.90-0.98. 14px sides, and a plate that bleeds into the 40px gutters only as far as it must (max 23px at 1280),
+   keep a 662 plate: 630 + 1px frame draws 1:1. 1366+ and < 1024 unchanged. */
+@media(min-width:1024px) and (max-width:1365px){.kd-shot-plate{padding:24px 14px;margin-inline:min(0px,calc((100% - 662px) / 2))}}
 @media(max-width:640px){.kd-shot-plate{padding:12px}.kd-content .kd-shot,.kd-shot{margin:16px 0 24px}}
 
 /* ---------- right TOC hierarchy (R2-DES-10; markup: layouts/_partials/toc.html) ----------
