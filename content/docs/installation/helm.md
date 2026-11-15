@@ -158,7 +158,7 @@ Deleting the CRDs deletes every `Rollout`, `RolloutGate`, `HealthCheck`, `Releas
 kubectl -n kuberik-system get deployments
 ```
 
-The `rollout-controller` and `release-controller-controller-manager` Deployments are ready, plus `rollout-dashboard` and one Deployment per integration you turned on.
+The `rollout-controller` and `release-controller` Deployments are ready, plus `rollout-dashboard` and one Deployment per integration you turned on.
 
 ## Troubleshoot {#troubleshooting}
 
