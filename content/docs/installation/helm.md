@@ -171,6 +171,7 @@ The `rollout-controller` Deployment is ready, plus `release-controller`, `rollou
 | `dashboard.gateway.auth is true but auth.enabled is false` | The route asks for sign-in that is not installed | Set `auth.enabled: true` with the OIDC values, or `dashboard.gateway.auth: false` |
 | Sign-in redirects in a loop | The redirect URI or cookie domain does not match the host | Register `https://<canonicalHost>/oauth2/callback`; make `auth.cookieDomain` a parent of the host |
 | Prometheus does not scrape the controller | The ServiceMonitor is in `kuberik-system` | Set `metrics.serviceMonitor.namespace` to the Prometheus Operator's namespace |
+| No ServiceMonitor exists | The Prometheus Operator CRDs were not in the cluster when the chart was installed | Run `helm upgrade` after installing the Prometheus Operator |
 
 ## Next steps
 
