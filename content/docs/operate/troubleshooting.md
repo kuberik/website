@@ -243,7 +243,7 @@ Then set `spec.wantedVersion` to the tag it printed.
 kubectl patch rollout hello-world -n hello-world --type merge -p '{"spec":{"wantedVersion":"<previous-tag>"}}'
 ```
 
-The pin deploys past gates and the failed deploy, and the dashboard shows **Rolled back**. New releases wait until you clear the pin, as in [Blocked by a pin](#blocked-by-a-pin-or-a-pending-deploy-by-hand). Do not roll back with `force-deploy`: once the earlier build's bake succeeds, the Rollout deploys the newest release the gates allow, the failed one included.
+The pin deploys past gates and a failed bake, and the dashboard shows **Rolled back**. New releases wait until you clear the pin, as in [Blocked by a pin](#blocked-by-a-pin-or-a-pending-deploy-by-hand). Do not roll back with `force-deploy`: once the earlier build's bake succeeds, the Rollout deploys the newest release the gates allow, the failed one included.
 
 ### Retry the same build
 
