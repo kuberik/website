@@ -211,6 +211,44 @@ Create the Flux objects the Rollout drives. The annotation names the Rollout tha
       name: hello-world
     targetNamespace: hello-world
   ```
+
+  CI renders that artifact from the production overlay in `acme/hello-world` and builds the image from the `Dockerfile` beside it:
+
+  ```text {filename="acme/hello-world"}
+  Dockerfile
+  deploy/
+    production/
+      kustomization.yaml
+      deployment.yaml
+  ```
+
+  ```yaml {filename="deploy/production/kustomization.yaml"}
+  apiVersion: kustomize.config.k8s.io/v1beta1
+  kind: Kustomization
+  resources:
+    - deployment.yaml
+  ```
+
+  ```yaml {filename="deploy/production/deployment.yaml"}
+  apiVersion: apps/v1
+  kind: Deployment
+  metadata:
+    name: hello-world
+  spec:
+    selector:
+      matchLabels:
+        app: hello-world
+    template:
+      metadata:
+        labels:
+          app: hello-world
+      spec:
+        containers:
+          - name: app
+            image: ghcr.io/acme/hello-world  # CI pins the build's tag
+  ```
+
+  Until the first release, the OCIRepository has no tag to pull and reads `Ready` `False`. This clears when Kuberik writes the first tag.
   {{< /tab >}}
 {{< /tabs >}}
 
@@ -220,7 +258,19 @@ kubectl apply -f flux.yaml
 
 ### Publish a release
 
-Add the workflow for your mode from [Publish Releases from CI](/docs/releases/publish/) to `acme/hello-world` and push a commit to `main`. The workflow builds the image from the repository root, so the repository needs a `Dockerfile` there. CI pushes a `main-<sha>-<timestamp>` tag, the `ReleaseSource` lists it within a minute, and the Rollout deploys it.
+Add the workflow for your mode to `acme/hello-world` and push a commit to `main`. Both workflows build the image from the `Dockerfile` at the repository root.
+
+{{< tabs >}}
+  {{< tab name="Image tag" >}}
+  Use the workflow in [Tag every build on main](/docs/releases/publish/#tag-every-build-on-main). It pushes the image with a `main-<sha>-<timestamp>` tag.
+  {{< /tab >}}
+
+  {{< tab name="Rendered manifests" >}}
+  Use the workflow in [Publish rendered manifests](/docs/releases/publish/#publish-rendered-manifests). It pushes the image, then renders every overlay under `deploy/` with that image's tag and pushes it as an artifact with the same tag. Here that is `deploy/production` alone, so it pushes `ghcr.io/acme/hello-world/production/manifests`.
+  {{< /tab >}}
+{{< /tabs >}}
+
+The `ReleaseSource` lists the new tag within a minute, and the Rollout deploys it.
 
 {{% /steps %}}
 
