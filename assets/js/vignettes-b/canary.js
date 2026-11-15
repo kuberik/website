@@ -1,4 +1,9 @@
-/* CANARY AND WAVES v6j (b16): the loop never empties; the next release starts turning the pods over (BRIEF-V6J.md).
+/* CANARY AND WAVES v6k (b20, S4): at 1440 the scene fills its tall canvas. vb 630x560 -> 630x730 (the canvas beside Health +
+   GitOps is ~0.75-0.82 wide:tall; 630x560 letterboxed into it left ~195 px above and below the object). 730 is the tallest vb
+   that fits every layout without growing the row: site 1920 draws the vg capped at 724 wide -> 839 tall in an 842 inner canvas.
+   The object grows in scene units, not by scale (text stays the size of the other cards'): wave 1 card 440x248 -> 540x290,
+   pods 46x26 -> 58x34, wave slots 200 -> 250 wide, the fork 56 -> 88, the wave 2 -> 3 wires 48 -> 80. 390 (ph) unchanged.
+   Was CANARY AND WAVES v6j (b16): the loop never empties; the next release starts turning the pods over (BRIEF-V6J.md).
    After the rest hold the header's release changes to the next one (5.10: 3.1.0 -> 3.2.0, a plain value change in the chip);
    wave 1 starts it (5.36: baked -> deploying, the test back to waiting, the bake bar clears; 5.50: 100 % -> 0 % and the ten
    pods, now the current release, turn back to the resting pod in a 25 ms stagger); wave 2 goes back to waiting for it (5.80:
@@ -15,7 +20,7 @@
    wave 2 slots leave before their regions spring in; page shadow; one dark surface system; resolved hold 1.4 s.
    Loop 6.2 s, rest 4.6. */
 VG.def('canary', {
-  loop: 6.2, rest: 4.6, vb: (ph) => (ph ? [326, 440] : [630, 560]),
+  loop: 6.2, rest: 4.6, vb: (ph) => (ph ? [326, 440] : [630, 730]),
   label: 'payments-svc 3.1.0 canary in prod us-east-1: traffic 10, 50, 100 percent, test passed, baked; then wave 2 regions start deploying',
   build(svg, id, ph) {
     const { el, w } = VG;
@@ -24,16 +29,16 @@ VG.def('canary', {
     const NX = 5.10, WR = 5.36, PP = 5.50, W2 = 5.80;
     const RV = (n) => `3.${1 + n}.0`;
     const back = (t) => w(t, WR, WR + 0.15); // wave 1 back to deploying
-    const [W, H] = ph ? [326, 440] : [630, 560];
+    const [W, H] = ph ? [326, 440] : [630, 730];
     const S = KB.stage(svg, W, H, LOOP);
     KB.defs(svg, id);
     const base = S.base;
     const tt = (fn) => fn; // v6j: no exit; every track hands its end state to t 0 itself
     // v6e: the card is whole from the first frame (no fan-open, no collapse: copy audit, Railway Block 3); wave 2 and 3 sit below it
-    const C = ph ? { x: 12, y: 12, w: 302 } : { x: 95, y: 28, w: 440 };
-    const HC = 88, HE = ph ? 228 : 248;
-    const y2 = C.y + HE + (ph ? 40 : 56), y3 = y2 + 76 + (ph ? 36 : 48), h3 = ph ? 40 : 76;
-    const slot = (y, h) => (ph ? [{ x: 12, y, w: 145, h }, { x: 169, y, w: 145, h }] : [{ x: 95, y, w: 200, h }, { x: 335, y, w: 200, h }]);
+    const C = ph ? { x: 12, y: 12, w: 302 } : { x: 45, y: 60, w: 540 };
+    const HC = 88, HE = ph ? 228 : 290;
+    const y2 = C.y + HE + (ph ? 40 : 88), y3 = y2 + 76 + (ph ? 36 : 80), h3 = ph ? 40 : 76;
+    const slot = (y, h) => (ph ? [{ x: 12, y, w: 145, h }, { x: 169, y, w: 145, h }] : [{ x: 45, y, w: 250, h }, { x: 335, y, w: 250, h }]);
     const E2 = slot(y2, 76).map((e, i) => ({ ...e, n: ['eu-west-1', 'us-east-2'][i] }));
     const E3 = slot(y3, h3).map((e, i) => ({ ...e, n: ['eu-central-1', 'ap-south-1'][i] }));
     // ---- the places not reached yet: dashed slots; wave 2's leave just before their regions spring in
@@ -83,9 +88,9 @@ VG.def('canary', {
       KB.text(sp.g, x, y, v, 'num');
     });
     // v6j: the next release starts at 0 % (a fifth value, so 100 % -> 0 % is one change, never a count down)
-    swap(cx0, B + (ph ? 46 : 50), ['0%', '10%', '50%', '100%', '0%'], tt((t) => w(t, 0.3, 0.5) + w(t, 1.55, 1.75) + w(t, 1.95, 2.15) + w(t, PP, PP + 0.2)), { w: 100 });
-    KB.text(body.g, cx0, B + (ph ? 68 : 72), 'traffic', 'meta');
-    const PW = ph ? 30 : 46, PH = ph ? 22 : 26, PG = ph ? 6 : 8, px0 = C.x + C.w - (ph ? 16 : 20) - (5 * PW + 4 * PG), py0 = B + (ph ? 18 : 22);
+    swap(cx0, B + (ph ? 46 : 62), ['0%', '10%', '50%', '100%', '0%'], tt((t) => w(t, 0.3, 0.5) + w(t, 1.55, 1.75) + w(t, 1.95, 2.15) + w(t, PP, PP + 0.2)), { w: 100 });
+    KB.text(body.g, cx0, B + (ph ? 68 : 84), 'traffic', 'meta');
+    const PW = ph ? 30 : 58, PH = ph ? 22 : 34, PG = ph ? 6 : 8, px0 = C.x + C.w - (ph ? 16 : 20) - (5 * PW + 4 * PG), py0 = B + (ph ? 18 : 22);
     // v6f (b-r5 fix 8): the first step (pod 1, 0 -> 10 %) starts at 0.3, 150 ms after the card's fade-in ends (was 0.65):
     // the loop seam no longer holds ~1.1 s of nothing (exit ends 5.7, the card is back at 0.15 and moves at 0.3)
     // the order pods turn over: 1 (10 %), then 4 (50 %), then 5 (100 %): column-major from the left
@@ -103,7 +108,7 @@ VG.def('canary', {
       }
     }
     // the canary test, between 10 % and 50 %
-    const TY = B + (ph ? 100 : 112);
+    const TY = B + (ph ? 100 : 138);
     const run = (t) => w(t, 0.9, 1.05), pass = (t) => w(t, 1.3, 1.5);
     KB.mark(S, cx0 + 6, TY, ['wait', 'prog', 'rest'], (t) => (t >= WR ? { wait: back(t), prog: 0, rest: 1 - back(t) } : { wait: 1 - run(t), prog: run(t) * (1 - pass(t)), rest: pass(t) }), {});
     KB.text(body.g, cx0 + 22, TY + 4.5, 'Canary test', 'label');
@@ -111,7 +116,7 @@ VG.def('canary', {
     KB.text(S.sprite({ x: rx - 80, y: TY - 10, w: 80, h: 20, track: tt((t) => ({ o: run(t) * (1 - pass(t)) })) }).g, rx, TY + 4.5, 'running', 'meta', 'end');
     KB.text(S.sprite({ x: rx - 80, y: TY - 10, w: 80, h: 20, track: (t) => ({ o: pass(t) * (1 - w(t, WR, WR + 0.15, 'in')) }) }).g, rx, TY + 4.5, 'passed', 'meta', 'end');
     // deployed -> bake (the fill is the claim, 700 ms) -> baked
-    const KY = B + (ph ? 124 : 138);
+    const KY = B + (ph ? 124 : 170);
     const dep = (t) => w(t, 2.35, 2.55), bake = (t) => w(t, 2.45, 3.15, 'lin'), baked = (t) => w(t, 3.15, 3.35);
     el('path', { d: `M${cx0} ${KY}H${rx}`, class: 't-rail nsl', 'stroke-width': 1 }, body.g);
     const kb = { x: cx0 - 2, y: KY - 3, w: rx - cx0 + 4, h: 6 };

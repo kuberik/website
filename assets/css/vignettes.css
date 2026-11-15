@@ -151,7 +151,7 @@ html.dark .fx-mint .vg .kb{--b-card:oklch(.355 .035 192);--b-quiet:oklch(.37 .03
 /* v6c: the baking wash in dark. Any yellow blended at low alpha over the teal card lands on olive (v6b .25 did); so the wash
    is a solved, opaque warm-gold tint (the dark analogue of light's pale yellow: same family as the baking chip, hue nudged
    warm so the teal surround does not pull it green). Reads gold beside the card, never olive or held orange (hue 50). */
-html.dark .vg .kb .band-prog{fill:oklch(.39 .058 87);opacity:1}
+html.dark .vg .kb .band-prog{fill:oklch(.37 .035 192);opacity:1}
 
 /* v6f (review b-r5 fix 6): dark only. Canary's wave 2 'deploying' mark sits on the page card, where the act tint disc measured
    1.07:1. There the disc takes the act hue itself (3.88:1 on --b-card) and the turning arc goes white (3.30:1 on the disc). */
