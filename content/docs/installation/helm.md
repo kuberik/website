@@ -8,7 +8,7 @@ weight: 10
 
 Install Kuberik from its Helm chart: one release installs the rollout-controller, the release-controller {{< needs "Next release" >}}, the integration controllers you turn on, and the dashboard.
 
-Before you start, you need Helm 3 and Flux 2.7 or later in the cluster ([install Flux](https://fluxcd.io/flux/installation/)): Kuberik picks the version and [Flux](/docs/integrations/fluxcd/) applies it. The rollout-controller the chart installs does not start without Flux's `ImagePolicy` CRD (`image.toolkit.fluxcd.io/v1`), and a default `flux install` leaves out the image-reflector-controller that serves it. Add it:
+Before you start, you need Helm 3 and Flux 2.7 or later in the cluster ([install Flux](https://fluxcd.io/flux/installation/)): Kuberik picks the version and [Flux](/docs/integrations/fluxcd/) applies it. The released rollout-controller the chart installs needs Flux's ImagePolicy v1 API (`image.toolkit.fluxcd.io/v1`), which Flux 2.7 serves with the image-reflector-controller; a default `flux install` leaves that controller out. Add it:
 
 ```bash {filename="Terminal"}
 flux install --components-extra=image-reflector-controller
@@ -82,7 +82,7 @@ auth:
     namespace: envoy-gateway-system
 ```
 
-A Secret keeps the client secret out of the rendered manifest and the cookie secret stable across upgrades; `auth.oidc.clientSecret` sets it inline instead. The chart's defaults answer `/api/` requests with 401 instead of a sign-in redirect, and serve the dashboard's static files (`^/_app/`, favicon, icons, manifest) without sign-in, so a stale session does not break polling or the page bundle {{< needs "Next release" >}}. The API itself still needs a signed-in user. [Set Up Dashboard Sign-in](/docs/installation/dashboard-auth/) covers the OIDC client and the kube-apiserver flags.
+A Secret keeps the client secret out of the rendered manifest and the cookie secret stable across upgrades; `auth.oidc.clientSecret` sets it inline instead. The chart's defaults answer `/api/` requests with 401 instead of a sign-in redirect, and serve the dashboard's static files (`^/_app/`, favicon, icons, manifest) without sign-in {{< needs "Next release" >}}, so a stale session does not break polling or the page bundle. The API itself still needs a signed-in user. [Set Up Dashboard Sign-in](/docs/installation/dashboard-auth/) covers the OIDC client and the kube-apiserver flags.
 
 ## Connect several clusters
 
@@ -156,7 +156,7 @@ Deleting the CRDs deletes every `Rollout`, `RolloutGate`, `HealthCheck`, `Releas
 kubectl -n kuberik-system get deployments
 ```
 
-The `rollout-controller` Deployment is ready, plus `release-controller` {{< needs "Next release" >}}, `rollout-dashboard` and one Deployment per integration you turned on.
+The `rollout-controller` Deployment is ready, plus `release-controller` {{< needs "Next release" >}}, `rollout-dashboard` if you turned the dashboard on, and one Deployment per integration you turned on.
 
 ## Troubleshoot {#troubleshooting}
 
