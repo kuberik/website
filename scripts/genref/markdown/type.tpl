@@ -20,7 +20,7 @@
 {{- end }}
 
 {{ if .GetComment -}}
-{{ .GetComment }}
+{{ .GetComment | html }}
 {{ end }}
 {{ if .GetMembers -}}
 <table>

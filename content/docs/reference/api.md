@@ -545,7 +545,7 @@ ClusterApprovalPolicyStatus defines the observed state of ClusterApprovalPolicy.
 <br/>
 <code>[]string</code>
 </td>
-<td>Rollouts lists the matched Rollouts, sorted, as <namespace>/<name>.</td>
+<td>Rollouts lists the matched Rollouts, sorted, as &lt;namespace&gt;/&lt;name&gt;.</td>
 </tr>
 <tr id="clusterapprovalpolicystatus-conditions"><td><code>conditions</code>
       
@@ -966,7 +966,7 @@ Count (value), State (no number; label only).</td>
 <br/>
 <a href="#healthcheckobservationdirection"><code>HealthCheckObservationDirection</code></a>
 </td>
-<td>Direction, for Threshold: Above is bad when value > limit; Below is bad when value < limit.</td>
+<td>Direction, for Threshold: Above is bad when value &gt; limit; Below is bad when value &lt; limit.</td>
 </tr>
 <tr id="healthcheckobservation-unit"><td><code>unit</code>
       
@@ -1357,7 +1357,7 @@ against releaseCandidates[].tag. It may name a version that does not exist yet.<
 
 RolloutDependencySpec defines the desired state of RolloutDependency.<br/><br/>A RolloutDependency gates a consumer Rollout on the deployed contract version
 of a provider Rollout. Each release candidate of the consumer declares what it
-requires of the contract via a "com.kuberik.rollout.requires.<contract>" OCI
+requires of the contract via a "com.kuberik.rollout.requires.&lt;contract&gt;" OCI
 annotation. A candidate is admitted only once the provider has successfully
 deployed a release whose own contract version
 (org.opencontainers.image.version) satisfies that constraint. The result is a
@@ -1392,7 +1392,7 @@ lookup.</td>
 <code>string</code>
 </td>
 <td>Contract is the contract name matched against the consumer's
-"com.kuberik.rollout.requires.<contract>" annotations.
+"com.kuberik.rollout.requires.&lt;contract&gt;" annotations.
 Defaults to the name of the provider Rollout.</td>
 </tr>
 </tbody>
@@ -2123,7 +2123,7 @@ VersionInfo represents detailed information about a version.
 <code>map[string]string</code>
 </td>
 <td>Requires maps a contract name to what this release requires of that
-contract, extracted from "com.kuberik.rollout.requires.<contract>" OCI
+contract, extracted from "com.kuberik.rollout.requires.&lt;contract&gt;" OCI
 annotations. Values are version constraints as defined by
 github.com/Masterminds/semver, applied verbatim — note that a bare version
 is an exact match there, not a floor.
@@ -2997,7 +2997,7 @@ When the canaryRevision changes, it indicates a new rollout and the old job shou
 
 ReleaseSlice holds a bounded chunk of a ReleaseSource catalogue. Like
 EndpointSlice it has no spec/status. Labelled kuberik.com/release-source,
-owned (controller=true) by its ReleaseSource, named <source>-<5-digit index>.
+owned (controller=true) by its ReleaseSource, named &lt;source&gt;-&lt;5-digit index&gt;.
 
 <table>
 <thead><tr><th width="30%">Field</th><th>Description</th></tr></thead>
@@ -3025,7 +3025,7 @@ owned (controller=true) by its ReleaseSource, named <source>-<5-digit index>.
 </td>
 <td>Sealed slices take no new releases. Once true stays true.
 Always serialised (no omitempty) and defaulted to false so the
-transition rule also sees true -> false from clients that drop zero values.</td>
+transition rule also sees true -&gt; false from clients that drop zero values.</td>
 </tr>
 <tr id="releaseslice-oldestcreated"><td><code>oldestCreated</code>
       
@@ -3386,7 +3386,7 @@ backfilled releases get min-1.. going down. Never renumbered.</td>
 <br/>
 <code>map[string]string</code>
 </td>
-<td>Requires: keys <= 64, values <= 256 (same as VersionInfo.Requires).</td>
+<td>Requires: keys &lt;= 64, values &lt;= 256 (same as VersionInfo.Requires).</td>
 </tr>
 <tr id="release-metadataunresolved"><td><code>metadataUnresolved</code>
       
