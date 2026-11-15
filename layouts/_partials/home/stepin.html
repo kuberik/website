@@ -1,8 +1,7 @@
 {{- /* STEP IN (landing v6j; LANDING-REVIEW.md, NEW-SECTION-SPEC.md). Role: day-2 operation, the answer to "hands-off, and
        when it goes wrong?". No existing landing region plays it: the feature cards each show the controller acting alone;
        this is the one place a person acts. Anatomy borrowed from the feature card (name in hue ink, title, body, docs link,
-       tinted dotted canvas) and from the spec band's head; the actions are a definition list (name, kubectl handle, one
-       sentence), the dashboard rail card's dl. The canvas holds the Step in vignette (take B v6j, assets/js/vignettes-b/stepin.js;
+       tinted dotted canvas) and from the spec band's head; The canvas holds the Step in vignette (take B v6j, assets/js/vignettes-b/stepin.js;
        its host and rest posters are GENERATED into landing-vignettes/stepin.html by posters.mjs). Copy: data/landing.yaml stepin. */ -}}
 {{- $s := site.Data.landing.stepin -}}
 <section class="sec si" id="step-in" aria-labelledby="stepin-h">
@@ -19,14 +18,6 @@
       <div class="si-canvas reveal" aria-hidden="true">
         {{ partial "landing-vignettes/stepin.html" . }}
       </div>
-      <dl class="si-acts reveal">
-        {{- range $s.actions }}
-        <div class="si-act">
-          <dt>{{ if .href }}<a class="si-act-name" href="{{ .href }}">{{ .name }}</a>{{ else }}<span class="si-act-name">{{ .name }}</span>{{ end }}<code class="si-handle">{{ .handle }}</code></dt>
-          <dd>{{ .body }}</dd>
-        </div>
-        {{- end }}
-      </dl>
     </div>
   </div>
 </section>

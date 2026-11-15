@@ -63,31 +63,13 @@ features:
       body: "A ReleaseSource watches your OCI registry, orders the tags by version and records each release's digest and the git commit it was built from."
       link: { text: "Publish releases", href: "/docs/releases/publish/" }
 
-# STEP IN (landing v6j, LANDING-REVIEW.md): day-2 operation. "Hands-off" invites the question "and when it goes wrong?";
-# this answers it. Every action is a dashboard button on main AND a field or annotation (rollout-controller main):
-# rollback pins (rollouts/[..]/+page.svelte "A rollback started in this product ALWAYS pins"; spec.wantedVersion),
-# Retry (FailurePanel.svelte; rollout.kuberik.com/retry), Skip once (RolloutNeighbourhood.svelte; gate_bypass.go
-# rollout.kuberik.com/bypass-gates, cleared after the next deploy), Approve (ApproveButton.svelte; RolloutApproval).
-# Approve is last on purpose: approvals never lead (owner).
+# STEP IN (landing v6j/v6k, LANDING-REVIEW.md): day-2 operation. "Hands-off" invites the question "and when it goes wrong?";
+# this answers it with the one person-driven story the vignette enacts: a failed release, rolled back from the history,
+# which pins (rollouts/[..]/+page.svelte "A rollback started in this product ALWAYS pins"; spec.wantedVersion).
+# v6k: the actions list (Roll back / Retry / Skip once / Approve + handles) left the landing (owner: "not sure we need
+# these on the landing"); the docs page lists them.
 stepin:
   name: "Day two"
   title: "Step in when a release needs you."
-  body: "Kuberik runs promotion on its own, and every rollout page still has the buttons for the moment it shouldn't. Each one sets a field or an annotation on the Rollout, so the same step works from kubectl."
-  link: { text: "Operate a Rollout with kubectl", href: "/docs/operate/manual-actions/" }
-  actions:
-    - name: "Roll back"
-      body: "Pick an earlier build from the history. The rollback pins it, so nothing newer deploys until you clear the pin."
-      handle: "spec.wantedVersion"
-      href: "/docs/operate/manual-actions/#roll-back-to-the-previous-version"
-    - name: "Retry"
-      body: "Deploy and bake a failed build again once the cause is fixed, without waiting for a new one."
-      handle: "rollout.kuberik.com/retry"
-      href: "/docs/operate/manual-actions/#retry-a-failed-bake"
-    - name: "Skip once"
-      body: "Let one build past a gate, say a deploy window during an incident. The skip clears itself after that deploy."
-      handle: "rollout.kuberik.com/bypass-gates"
-      href: "/docs/operate/manual-actions/#let-one-build-past-the-gates"
-    - name: "Approve"
-      body: "Where a gate asks for a person, approve the build from the page that shows what it is waiting on."
-      handle: "RolloutApproval"
-      href: "/docs/gates/approvals/"
+  body: "When a release fails, roll it back from the rollout's history; Kuberik keeps that build pinned until you clear the pin."
+  link: { text: "Operate a rollout", href: "/docs/operate/manual-actions/" }
