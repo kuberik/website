@@ -32,7 +32,7 @@ theme = 'hextra'
   [[params.docsSidebar.groups]]
     name = "Get started"
     icon = "rocket"     # docs/icon.html name; group.html gives it to the eyebrow, Next cards and the docs home card
-    pages = ["/docs/what-is-kuberik/", "/docs/getting-started/", "/docs/installation/"]
+    pages = ["/docs/what-is-kuberik/", "/docs/installation/", "/docs/getting-started/"]
 
   [params.sidebar]
     autoCollapseState = false
