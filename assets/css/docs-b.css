@@ -39,3 +39,13 @@ html.dark .kd-content .kd-shot img,html.dark .kd-shot img{border-color:oklch(1 0
 /* The TOC column stretches to the article's height so its sticky inner block (docs.css top:64px) stays in view while
    reading; the shell's flex row aligns items to the start, which left the TOC 381 px tall and scrolling away. */
 .kd-shell .hextra-toc{align-self:stretch}
+/* ---------- phone drawer (R2-DES-15) ----------
+   The search sits in a fill band (page fill, hairline under it, like the docs header's band) so the list scrolls
+   out under a clean edge instead of under the input. Group labels take the row's 12 px inset, so "SHIP RELEASES"
+   and "Publish Releases" share one left edge. */
+@media(max-width:767px){
+  .hextra-sidebar-container > div:first-child{position:relative;z-index:1;padding:16px var(--gut) 12px;background:var(--page);border-bottom:1px solid var(--line)}
+  .hextra-sidebar-container > .hextra-scrollbar{padding-top:20px}
+  .kd-group-label{padding:0 12px}
+}
+
