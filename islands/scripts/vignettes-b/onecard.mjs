@@ -37,19 +37,18 @@ for (const [vw, vh] of [[1440, 900], [390, 844], [1440, 1500]]) {
       if (OUT) await p.screenshot({ path: `${OUT}/onecard-${vw}x${vh}-y${y}.png` });
       // The second mover must be the finishing card, and it must stand on its rest frame within one loop.
       for (const f of fin) {
-        // QA3-1: poll every 50 ms through the wait and record that the finishing card actually STANDS on rest (state 'rest',
-        // not running, within 0.01 s of its rest frame) at some sample; 'play' alone no longer counts (it may have won the turn
-        // back without ever landing). Was: one sample after the wait, where 'play' passed as on rest.
-        const deadline = Date.now() + Math.ceil((f.L - f.lt + 0.6) * 1000); let sawRest = false, r;
-        do {
-          await p.waitForTimeout(50);
-          r = await p.evaluate((id) => { const h = document.querySelector(`[data-vg="${id}"]`);
-            const an = h.getAnimations({ subtree: true }).filter((a) => a.effect && a.effect.target !== h.firstElementChild);
+        // QA3-1: record that the finishing card actually STANDS on rest: a MutationObserver on its data-vg-state samples
+        // every state change in the page (state, running, offset from the rest frame), so a short rest between 'finish' and
+        // winning the turn back ('play') is seen even when it lasts one frame. 'play' alone no longer counts as on rest.
+        await p.evaluate((id) => { const h = document.querySelector(`[data-vg="${id}"]`); const log = (window.__ocLog = []);
+          const snap = (recs = []) => { const sts = [...recs.slice(1).map((m) => m.oldValue), h.dataset.vgState || 'rest']; const an = h.getAnimations({ subtree: true }).filter((a) => a.effect && a.effect.target !== h.firstElementChild);
             const L = window.__vgLoops()[id], rest = window.__vgRest(id), ct = an.length ? an[0].currentTime / 1000 : 0;
-            return { st: h.dataset.vgState || 'rest', run: an.some((a) => a.playState === 'running'), lt: ((ct - rest) % L + L) % L, L }; }, f.id);
-          if (r.st === 'rest' && !r.run && Math.min(r.lt, r.L - r.lt) <= 0.01) sawRest = true;
-        } while (Date.now() < deadline && !(sawRest && r.st !== 'finish'));
-        const onRest = sawRest;
+            log.push({ st: h.dataset.vgState || 'rest', sts, run: an.some((a) => a.playState === 'running' && a.playbackRate !== 0), lt: ((ct - rest) % L + L) % L, L }); };
+          window.__ocObs?.disconnect(); window.__ocObs = new MutationObserver(snap); window.__ocObs.observe(h, { attributes: true, attributeOldValue: true, attributeFilter: ['data-vg-state'] }); snap(); }, f.id);
+        await p.waitForTimeout(Math.ceil((f.L - f.lt + 0.6) * 1000));
+        const seen = await p.evaluate(() => { window.__ocObs.disconnect(); return window.__ocLog; });
+        const r = seen[seen.length - 1];
+        const onRest = seen.some((x) => x.sts.includes('rest') && Math.min(x.lt, x.L - x.lt) <= 0.02);   // a rest set and left in one task is seen through oldValue
         console.log(`    ${f.id} within ${(f.L - f.lt + 0.6).toFixed(1)} s: now ${r.st}${r.run ? '*' : ''} lt ${r.lt.toFixed(2)} -> ${onRest ? 'stood on rest' : 'NEVER ON REST'}`);
         if (!onRest) bad.push(`${f.id}@${y} finish did not reach rest`);
         if (OUT) await p.screenshot({ path: `${OUT}/onecard-${vw}x${vh}-y${y}-after.png` });
