@@ -58,15 +58,3 @@ a.kdh-card-head:hover .kdh-card-title{color:var(--mint-ink)}
 /* ---------- reference row: sidebar group label over two pager-style cards ---------- */
 .kdh-ref{margin-top:48px}
 .kdh-ref-label{margin:0 0 12px;font:600 12px/16px var(--sans);letter-spacing:.06em;text-transform:uppercase;color:var(--ink-subtle)}
-/* ---------- version line (R5-DES-6; layouts/_partials/docs-version-line.html) ---------- */
-.kdh-version{margin:0 0 40px;max-width:640px}
-.kdh-version-lead{margin:0 0 12px;font:400 var(--t-lead-s)/var(--t-lead-l) var(--sans);color:var(--ink-muted)}
-.kdh-rels{display:grid;grid-template-columns:minmax(0,1fr);margin:0;padding:0}
-.kdh-rels > div{display:flex;align-items:center;justify-content:space-between;gap:16px;min-height:32px;border-top:1px solid var(--line)}
-.kdh-rels dt{font:400 14px/20px var(--sans);color:var(--ink-muted)}
-.kdh-rels dd{margin:0}
-.kdh-rels code{padding:1px 6px;border:1px solid var(--line);border-radius:6px;background:var(--page-alt);color:var(--ink);font:500 13px/1 var(--mono)}
-html.dark .kdh-rels code{background:oklch(1 0 0/.05);border-color:oklch(1 0 0/.1)}
-.kdh-version-note b{font-weight:inherit;white-space:nowrap}
-.kdh-version-note{margin:12px 0 0;font:400 14px/20px var(--sans);color:var(--ink-subtle)}
-@media(min-width:641px){.kdh-version{max-width:720px}.kdh-rels{grid-template-columns:repeat(2,minmax(0,1fr));column-gap:32px}}

@@ -1,0 +1,29 @@
+{{- /* BLOG LIST (R7, owner: "blog could use a touch up"). Role: the index of posts. Reference: the docs section index
+     (docs/section-list.html: page head = h1 + lead, then the shared link-card grid, 2-up, an odd last card spans both
+     tracks), on the same docs shell without the sidebar (kd-wash > kd-shell > kd-article > kd-main, kd-is-index width).
+     One card per post = docs/link-card.html variant "card": eyebrow = the date, title, description = the post's first
+     sentence (never clipped), tile = the post kind (Release, Announcement) so the icon carries information, unlike a
+     section index. Nothing new is drawn; blog.css only hides the docs sidebar from 768 (kept for the phone drawer, as
+     the docs home does) and sets the post meta of the single page. */ -}}
+{{ define "main" }}
+{{- $pages := partial "utils/sort-pages" (dict "page" . "by" site.Params.blog.list.sortBy "order" site.Params.blog.list.sortOrder) -}}
+{{- $paginator := .Paginate $pages (site.Params.blog.list.pagerSize | default 10) -}}
+<div class="kd-wash"><div class="kd-shell kd-is-index kb-shell">
+  {{ partial "sidebar.html" (dict "context" .) }}
+  <article class="kd-article" id="kd-article">
+    <main class="kd-main">
+      <div class="content kd-content">
+        <h1>{{ .Title }}</h1>
+        {{ .Content }}
+        <ul class="kd-lc-grid kd-lc-grid-index">
+          {{- range $paginator.Pages }}
+          {{- $kind := index (.Params.tags | default (slice "")) 0 }}
+          <li>{{ partial "docs/link-card.html" (dict "variant" "card" "url" .RelPermalink "title" .Title "desc" (partial "blog/summary.html" .) "icon" (partial "blog/kind-icon.html" $kind) "tone" (cond (eq $kind "Release") "mint" "lagoon") "eyebrow" (.Date | time.Format ":date_long")) }}</li>
+          {{- end }}
+        </ul>
+      </div>
+      {{- if gt $paginator.TotalPages 1 }}{{ partial "components/blog-pager.html" $paginator }}{{ end }}
+    </main>
+  </article>
+</div></div>
+{{ end }}

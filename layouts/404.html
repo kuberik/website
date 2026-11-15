@@ -13,7 +13,7 @@
   <ul class="kd-lc-grid kd-lc-grid-index kd-lc-grid-404">
     {{- range site.Data.footer.docs }}
     {{- $d := "" }}{{ $g := dict "icon" "page" "tone" "neutral" }}{{ with site.GetPage (strings.TrimSuffix "/" .href) }}{{ $d = .Description }}{{ $g = partial "docs/group.html" . }}{{ end }}
-    <li>{{ partial "docs/link-card.html" (dict "variant" "card" "url" .href "title" .name "desc" $d "icon" $g.icon "tone" $g.tone) }}</li>
+    <li>{{ partial "docs/link-card.html" (dict "variant" "card" "url" .href "title" .name "desc" $d "icon" (.icon | default $g.icon) "tone" $g.tone) }}</li>
     {{- end }}
   </ul>
 </section>

@@ -9,6 +9,11 @@
 {{- $homeCss := slice (resources.Get "css/thesis.css") (resources.Get "css/docs-home.css") | resources.Concat "css/docs-home-all.css" | minify | fingerprint }}
 <link rel="stylesheet" href="{{ $homeCss.RelPermalink }}" integrity="{{ $homeCss.Data.Integrity }}">
 {{- end }}
+{{- /* the blog (layouts/blog/*) draws the docs shell and cards; blog.css adds its post meta line only */ -}}
+{{- if eq .Section "blog" }}
+{{- $blogCss := resources.Get "css/blog.css" | minify | fingerprint }}
+<link rel="stylesheet" href="{{ $blogCss.RelPermalink }}" integrity="{{ $blogCss.Data.Integrity }}">
+{{- end }}
 
 {{/* Link previews: image dimensions + author. The theme emits og:image from
      `images` front matter but not its size; scrapers such as LinkedIn treat a
