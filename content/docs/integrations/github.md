@@ -62,7 +62,7 @@ Every deployment is created on the release's commit, which the release controlle
 
 The dashboard can show what a deploy ships: the commits and diffstat in the Change Version dialog, and on the **Changes** page every merged pull request, where it stands per service and environment, and the check runs on its merge commit. Each person signs in through a GitHub App and sees only the repositories they can already read.
 
-![The Change Version dialog with the commits the build ships, read through the signed-in user's GitHub access](/screenshots/dashboard/change-version.png)
+![The Change version dialog deploying 4.44.0-44 of checkout-api to staging: the running build 4.43.0-43 above the held 4.44.0-44, Commits to deploy with two commits, their authors and shas, the Pin build switch, an optional note and Deploy](/images/docs/integrations/github-change-version.png "The commit list is read from GitHub with the signed-in person's access.")
 
 {{% steps %}}
 
@@ -121,7 +121,7 @@ The dashboard header now offers **Connect GitHub**. Sign in once; the commit lis
 
 {{% /steps %}}
 
-![The Changes page: every merged change, how far it got, and a card per repository](/screenshots/dashboard/changes.png)
+![The Changes page for the signed-in user: Your changes with a chip per repository, In flight, three pull requests grouped under the environment each has reached, and Landed, with four changes](/images/docs/integrations/github-changes.png)
 
 ## How it works
 
