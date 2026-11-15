@@ -11,7 +11,7 @@ Kuberik reads Datadog monitors and incidents as health checks. A monitor that al
 
 | Requirement | Why |
 |---|---|
-| datadog-controller v0.2.0 or later | Turns monitors and incidents into [`HealthCheck`](/docs/gates/health-checks/) status. Earlier versions support only `DatadogMonitor` resources |
+| datadog-controller | Turns monitors and incidents into [`HealthCheck`](/docs/gates/health-checks/) status |
 | A Datadog API key and application key | For the `datadog` and `datadog-incidents` classes. The application key needs `monitors_read`, plus `incident_read` for incidents and `timeseries_query` for the values the dashboard draws |
 | The [Datadog Operator](https://docs.datadoghq.com/containers/datadog_operator/) (optional) | Only for `DatadogMonitor` resources |
 
@@ -20,7 +20,7 @@ Kuberik reads Datadog monitors and incidents as health checks. A monitor that al
 The controller reads one set of credentials for the whole cluster, from a Secret named `datadog-credentials` in the `kuberik-system` namespace (the Helm chart creates the namespace). Install the controller, create the Secret, and restart the controller so it reads the Secret:
 
 ```bash {filename="Terminal"}
-kubectl apply -f https://github.com/kuberik/datadog-controller/releases/download/v0.2.0/install.yaml
+kubectl apply -f https://github.com/kuberik/datadog-controller/releases/latest/download/install.yaml
 kubectl -n kuberik-system create secret generic datadog-credentials \
   --from-literal=api-key=<your-api-key> \
   --from-literal=app-key=<your-app-key> \
@@ -28,7 +28,7 @@ kubectl -n kuberik-system create secret generic datadog-credentials \
 kubectl -n kuberik-system rollout restart deployment datadog-controller-controller-manager
 ```
 
-The controller maps the keys to `DD_API_KEY`, `DD_APP_KEY` and `DD_SITE`. Leave out `site` if your account is on `datadoghq.com`. The Helm chart's `integrations.datadog` reads the same Secret (`existingSecret`, default `datadog-credentials`), but it still installs datadog-controller v0.1.0, so use the install manifest above for now. Without credentials, every `datadog` and `datadog-incidents` HealthCheck stays `Pending` with the message `datadog API credentials are not configured: set DD_API_KEY and DD_APP_KEY`.
+The controller maps the keys to `DD_API_KEY`, `DD_APP_KEY` and `DD_SITE`. Leave out `site` if your account is on `datadoghq.com`. With the Helm chart, `integrations.datadog` reads the same Secret (`existingSecret`, default `datadog-credentials`). Without credentials, every `datadog` and `datadog-incidents` HealthCheck stays `Pending` with the message `datadog API credentials are not configured: set DD_API_KEY and DD_APP_KEY`.
 
 ## Fail a deploy on alerting monitors
 

@@ -134,7 +134,7 @@ spec:
 
 ## Check the result
 
-`kubectl get` shows whether each schedule is active now and how many Rollouts it selects. `ACTIVE` reads `true` while a rule matches and `false` otherwise. {{< needs "Next release" >}} On rollout-controller v0.11.0, a closed schedule shows a blank `ACTIVE` cell.
+`kubectl get` shows whether each schedule is active now and how many Rollouts it selects. `ACTIVE` reads `true` while a rule matches and `false` otherwise.
 
 ```bash {filename="Terminal"}
 kubectl get rolloutschedule -n hello-world

@@ -46,10 +46,6 @@ spec:
   rolloutSelector: {}  # every Rollout there
 ```
 
-{{< callout type="important" >}}
-`ApprovalPolicy`, `ClusterApprovalPolicy` and `RolloutApproval` need a rollout-controller release after v0.11.0, and the kuberik Helm chart does not install them yet.
-{{< /callout >}}
-
 ## Approve a build
 
 In the [dashboard](/docs/operate/dashboard/), open the rollout's **Gates** tab and select **Approve** on the approval gate that reads **Needs you**. The dashboard creates the `RolloutApproval` as you, so your own Kubernetes permissions apply. It approves only current release candidates.
@@ -112,27 +108,6 @@ Two admission policies come with the controller and need Kubernetes 1.30 or late
 Gates never hold a Rollout's first deploy, so a brand-new Rollout does not wait for an approval. The approval gate still chooses the version: the first deploy takes the newest approved release, or the newest release when none is approved. This is intended, so the Rollout always reaches a running version.
 
 A deploy by hand also skips the gate. Pinning a version with `spec.wantedVersion`, or **Change version** in the dashboard, deploys the build without an approval. `rollout.kuberik.com/bypass-gates` lets one build past every gate, and that deploy records no approval. [Operate a Rollout with kubectl](/docs/operate/manual-actions/) covers all three.
-
-## Use a hand-written gate on v0.11.0
-
-rollout-controller v0.11.0 has no approval kinds. There, write a `RolloutGate` that allows nothing and add each approved version to its list. Newer controllers still honour such a gate, and `hack/migrate-approval-gates.sh` in the rollout-controller repository turns its versions into `RolloutApproval` objects when you upgrade.
-
-```yaml {filename="gate.yaml"}
-apiVersion: kuberik.com/v1alpha1
-kind: RolloutGate
-metadata:
-  name: production-approval
-  namespace: hello-world
-spec:
-  rolloutRef:
-    name: hello-world
-  allowedVersions: []  # holds every build
-```
-
-```bash {filename="Terminal"}
-kubectl -n hello-world patch rolloutgate production-approval --type=json \
-  -p='[{"op": "add", "path": "/spec/allowedVersions/-", "value": "1.4.0"}]'
-```
 
 ## Check the result
 

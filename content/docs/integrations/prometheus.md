@@ -14,7 +14,7 @@ To chart and alert on Kuberik's own deploy state in Prometheus, see [Monitor Rol
 | Requirement | Why |
 |---|---|
 | Kuberik installed | prometheus-controller ships no CRD. It reads and writes the [`HealthCheck`](/docs/gates/health-checks/) resources that rollout-controller defines |
-| Go, Docker and a registry you can push to | prometheus-controller, which serves the `prometheus-alert` class, has no release yet, so you build its image from main |
+| Go, Docker and a registry you can push to | prometheus-controller, which serves the `prometheus-alert` class, publishes no image, so you build one |
 | A Prometheus server the controller can reach over HTTP | The controller calls its `/api/v1/query_range` and `/api/v1/rules` APIs |
 | Alerting rules loaded in that Prometheus | The controller reads the `ALERTS` series Prometheus records for its rules. Alertmanager is not involved |
 
@@ -99,7 +99,7 @@ The controller writes one of these into the HealthCheck status. The message list
 
 The message names your selector, not the labels of the series that fired. To see which series fired, run the `ALERTS` query in Prometheus.
 
-The controller also writes one entry to `status.observations`, which rollout-dashboard newer than v0.9.3-rc.0 draws as the check's figure. While the alert is pending or firing, the entry shows the alert's value against its limit. Declare the limit, because the Prometheus API does not expose it:
+The controller also writes one entry to `status.observations`, which the dashboard draws as the check's figure. While the alert is pending or firing, the entry shows the alert's value against its limit. Declare the limit, because the Prometheus API does not expose it:
 
 | Annotation | Value |
 |---|---|

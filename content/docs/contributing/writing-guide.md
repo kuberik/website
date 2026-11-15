@@ -19,7 +19,7 @@ Use the controller's own terms: if the code says `BakeFailed`, write "the bake f
 - Write in the second person, imperative and present tense: "Apply this Rollout."
 - Leave out "please", "simply", "just", "easily", "we recommend", "powerful" and "seamless".
 - Write no slogans, no mirrored "X. Y." pairs and no questions as headings.
-- Say "released" only when a tag exists. Mark a feature that is on main but in no tag with the `needs` chip, `{{</* needs "Next release" */>}}`, at the end of its table row or sentence. When a whole page or section needs a newer release, say so once in an `important` callout instead.
+- Write as if everything on main is released. Pages carry no version notes: no availability chips, no minimum controller version for a feature, no released-versus-main split. Install pages give one install command and one minimum. Facts for release day go to the release notes, not onto a page; blog release posts keep their own version numbers.
 - Spell out environment names in full: development, staging, production.
 - Capitalise a resource kind when you mean the resource (`Rollout`, `HealthCheck`) and write it in lower case when you mean the idea ("a rollout of 1.4.0").
 - Use the shared example names: app and namespace `hello-world`, org `acme`, registry `ghcr.io/acme/...`.
@@ -34,7 +34,7 @@ Every page declares `type_` in its front matter (Hugo reserves `type`). The type
 | `guide` | One task the reader already knows they need | Lead, task sections with verb headings, `## Check the result`, optional `## Troubleshoot`, `## Next steps` |
 | `concept` | How a thing works | Lead, a figure for flows, noun headings that each answer one question, `## Related` |
 | `integration` | One external system | Lead, `## What you need`, setup sections, `## How it works`, `## Troubleshoot`, `## Next steps` |
-| `reference` | Look-up tables | Lead, then tables only, one heading per resource, a `needs` chip on each row that is in no release yet |
+| `reference` | Look-up tables | Lead, then tables only, one heading per resource |
 | `index` | Section landing pages | One lead sentence. The section cards render automatically |
 
 The lead is the first paragraph: at most two sentences and 45 words, stating the outcome. Guide and tutorial titles are verbs ("Require a Manual Approval"), concept and reference titles are nouns ("Rollouts"), integration titles are the product ("Flux"). Page titles use Title Case and headings use sentence case. Use H2 for sections and H3 only under an H2. Add a `linkTitle` only when the title is longer than 28 characters, and make it a shortening of the title's own words: it is the sidebar label, while cards and the page head show the title.
@@ -43,10 +43,10 @@ Front matter looks like this:
 
 ```yaml {filename="content/docs/gates/dependencies.md"}
 title: "Wait for Service Dependencies"
-linkTitle: "Service Dependencies"
 description: "Hold a service until the service it needs has shipped a compatible version."
 type_: guide
 weight: 40
+aliases: ["/docs/guides/service-dependencies/"]
 ```
 
 The one-sentence `description` appears on cards, in search and in link previews.
@@ -84,7 +84,7 @@ A page has at most two callouts, never two in a row, never first on the page, an
 |---|---|
 | `info` | A fact the reader needs so they are not surprised |
 | `warning` | An action that loses data, blocks deploys or bypasses a safety check |
-| `important` | A version requirement for a whole page or section; mark a single row or sentence with the `needs` chip |
+| `important` | A hard requirement the reader must meet before a step, never a product version caveat |
 
 Prerequisites are never a callout.
 
@@ -98,12 +98,12 @@ Figures are generated. Add a wide drawing (632 units) and a narrow one (318 unit
 
 Colours come from the theme, so dark mode needs no second drawing. Do not add mermaid. A figure says one thing in at most seven nodes, and every label is a real resource, field or state name.
 
-Take screenshots from the dashboard in the light theme at 1x, cropped to the region that matters, with alt text that says what the reader should see.
+Take every dashboard screenshot in light and dark from the same state, in the dashboard's mock mode, at 1x and cropped flush to the card or dialog. Save `<name>.png` (desktop light) and `<name>.dark.png`, plus `<name>.phone.png` and `<name>.phone.dark.png` when the phone layout differs; the image render hook shows the one that matches the reader's theme and screen. Never edit text in a capture, and write alt text that says what is shown.
 
 The image's title, the quoted text after the path, becomes the caption under it, and the alt text stays the screen-reader description. Leave the title out for no caption:
 
-```markdown {filename="content/docs/gates/dependencies.md"}
-![The rollout's Gates tab: the gate graph, what the rollout waits on, and the version it needs against the version running](/images/docs/rollout-dependencies.png "The consumer waits until the provider ships the version it needs.")
+```markdown {filename="content/docs/example.md"}
+![The Gates tab of a held rollout, with one closed schedule](/images/docs/example-gates.png "A closed schedule holds the build until it opens.")
 ```
 
 ## Link between pages
