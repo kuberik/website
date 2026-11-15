@@ -421,3 +421,7 @@ html.dark .kd-tone-neutral{background:oklch(1 0 0/.05)!important}
 @media(max-width:767px){
   .hextra-search-wrapper .hextra-search-results{max-height:calc(100vh - 160px)!important;max-height:calc(100dvh - 160px)!important}
 }
+.hextra-search-no-result-next{display:block;margin-top:8px;font-size:13px}
+.hextra-search-no-result-next a{color:var(--ink-muted);text-decoration:underline;text-underline-offset:2px}
+.hextra-search-no-result-next a:hover{color:var(--ink)}
+.kd-404-search .hextra-search-results{left:0;right:auto}

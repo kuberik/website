@@ -43,17 +43,21 @@ document.addEventListener("DOMContentLoaded", function () {
     setShortcutElementsOpacity(opacity);
   }
 
-  // Get the search wrapper, input, and results elements.
-  function getActiveSearchElement() {
-    const inputs = Array.from(document.querySelectorAll('.hextra-search-wrapper')).filter(el => el.clientHeight > 0);
-    if (inputs.length === 1) {
-      return {
-        wrapper: inputs[0],
-        inputElement: inputs[0].querySelector('.hextra-search-input'),
-        resultsElement: inputs[0].querySelector('.hextra-search-results')
-      };
+  // The search box in use (R6-C-1). Pages can hold two (the 404 has the
+  // header's and its own), so resolve it from the event target or the focused
+  // element first, and only then fall back to the first visible one.
+  function getActiveSearchElement(from) {
+    const own = (el) => (el && el.closest ? el.closest('.hextra-search-wrapper') : null);
+    let wrapper = own(from) || own(document.activeElement);
+    if (!wrapper) {
+      wrapper = Array.from(document.querySelectorAll('.hextra-search-wrapper')).find(el => el.clientHeight > 0);
     }
-    return undefined;
+    if (!wrapper) return {};
+    return {
+      wrapper,
+      inputElement: wrapper.querySelector('.hextra-search-input'),
+      resultsElement: wrapper.querySelector('.hextra-search-results')
+    };
   }
 
   const INPUTS = ['input', 'select', 'button', 'textarea']
@@ -86,15 +90,18 @@ document.addEventListener("DOMContentLoaded", function () {
 
   // Dismiss the search results when clicking outside the search box.
   document.addEventListener('mousedown', function (e) {
-    const { inputElement, resultsElement } = getActiveSearchElement();
-    if (!inputElement || !resultsElement) return;
-    if (
-      e.target !== inputElement &&
-      e.target !== resultsElement &&
-      !resultsElement.contains(e.target)
-    ) {
-      setShortcutElementsOpacity(100);
-      hideSearchResults();
+    for (const wrapper of document.querySelectorAll('.hextra-search-wrapper')) {
+      const inputElement = wrapper.querySelector('.hextra-search-input');
+      const resultsElement = wrapper.querySelector('.hextra-search-results');
+      if (!inputElement || !resultsElement) continue;
+      if (
+        e.target !== inputElement &&
+        e.target !== resultsElement &&
+        !resultsElement.contains(e.target)
+      ) {
+        setShortcutElementsOpacity(100);
+        hideSearchResults(resultsElement);
+      }
     }
   });
 
@@ -133,22 +140,22 @@ document.addEventListener("DOMContentLoaded", function () {
 
   // Finish the search by hiding the results and clearing the input.
   function finishSearch() {
-    const { inputElement } = getActiveSearchElement();
+    const { inputElement, resultsElement } = getActiveSearchElement();
     if (!inputElement) return;
-    hideSearchResults();
+    hideSearchResults(resultsElement);
     inputElement.value = '';
     inputElement.blur();
   }
 
-  function hideSearchResults() {
-    const { resultsElement } = getActiveSearchElement();
+  function hideSearchResults(resultsElement) {
+    if (!resultsElement) resultsElement = getActiveSearchElement().resultsElement;
     if (!resultsElement) return;
     resultsElement.classList.add('hx:hidden');
   }
 
   // Handle keyboard events.
   function handleKeyDown(e) {
-    const { inputElement } = getActiveSearchElement();
+    const { inputElement, resultsElement } = getActiveSearchElement(e.target);
     if (!inputElement) return;
 
     const resultsLength = getResultsLength();
@@ -171,7 +178,7 @@ document.addEventListener("DOMContentLoaded", function () {
         finishSearch();
       case 'Escape':
         e.preventDefault();
-        hideSearchResults();
+        hideSearchResults(resultsElement);
         // Clear the input when pressing escape
         inputElement.value = '';
         inputElement.dispatchEvent(new Event('input'));
@@ -189,31 +196,61 @@ document.addEventListener("DOMContentLoaded", function () {
     }
   }
 
-  // kuberik: our own ranking instead of FlexSearch's (R5-IA-1..4).
+  // kuberik: our own ranking instead of FlexSearch's (R5-IA-1..4, R6-IA-3..6).
   // Why: FlexSearch scored every paragraph alike, so a blog post, an
   // API-reference type description or a body sentence beat the page the
   // reader meant. Here a title match beats a body match, a page title beats
-  // a section title, generated reference pages carry no body weight, and on
-  // /docs/ pages the blog is out of scope.
+  // a section title, generated reference pages carry no body weight, a
+  // camelCase field name goes to its table row, words are stemmed, and a
+  // typo falls back to the nearest word in the docs. On /docs/ pages the blog
+  // is out of scope.
   const WORD = /[0-9a-zÀ-ſ]+/g;
-  // Operators write "rollback", "roll back" and "rolled back" for one thing.
-  function norm(s) {
-    return ('' + s).toLowerCase().replace(/\broll(?:s|ed|ing)?[\s-]?back(?:s)?\b/g, 'rollback');
+  const IRREGULAR = { held: 'hold', built: 'build', ran: 'run', sent: 'send', kept: 'keep', left: 'leave', rolled: 'roll' };
+  // Light stemmer: pinned -> pin, blocked -> block, approving -> approv,
+  // approve -> approv, clusters -> cluster. Only needs to be consistent.
+  function stem(w) {
+    if (IRREGULAR[w]) return IRREGULAR[w];
+    if (w.length > 4 && w.endsWith('ies')) return w.slice(0, -3) + 'y';
+    if (w.length > 4 && w.endsWith('ied')) return w.slice(0, -3) + 'y';
+    if (w.length > 5 && w.endsWith('ing')) w = w.slice(0, -3);
+    else if (w.length > 4 && w.endsWith('ed')) w = w.slice(0, -2);
+    else if (w.length > 3 && w.endsWith('s') && !w.endsWith('ss') && !w.endsWith('us')) w = w.slice(0, -1);
+    if (w.length > 3 && w[w.length - 1] === w[w.length - 2] && !/[lsz]/.test(w[w.length - 1])) w = w.slice(0, -1);
+    if (w.length > 4 && w.endsWith('e')) w = w.slice(0, -1);
+    return w;
   }
-  function words(s) { return norm(s).match(WORD) || []; }
-  // Words an operator uses for the same task. Each group is symmetric.
-  // One-way: a query word expands to the words an operator may mean by it.
-  // A synonym hit scores below a literal one (see hit()).
-  const SYN = {
-    unblock: ['unblock', 'unblocked', 'blocked', 'blocks', 'blocking', 'resume'],
-    blocked: ['blocked', 'blocks', 'blocking', 'unblock'],
-    approve: ['approve', 'approval', 'approvals', 'approved', 'approving', 'approver', 'approvers'],
-    approval: ['approval', 'approvals', 'approve', 'approved', 'approver', 'approvers'],
-    install: ['install', 'installing', 'installation', 'installed'],
-    upgrade: ['upgrade', 'upgrading', 'upgraded'],
-    stuck: ['stuck', 'stalled', 'hung'],
-    pin: ['pin', 'pinned', 'pinning'],
-  };
+  // Operators write "rollback", "roll back" and "rolled back" for one thing;
+  // HealthCheck is "health check".
+  function norm(s) {
+    return ('' + s).replace(/([a-z0-9])([A-Z])/g, '$1 $2').toLowerCase()
+      .replace(/\broll(?:s|ed|ing)?[\s-]?back(?:s)?\b/g, 'rollback');
+  }
+  // Index side: the camelCase word whole and in parts (bakeTime, bake, time).
+  function words(s) {
+    s = '' + s;
+    const out = [];
+    for (const tok of s.match(/[0-9A-Za-zÀ-ſ]+/g) || []) {
+      if (/[a-z0-9][A-Z]/.test(tok)) out.push(stem(tok.toLowerCase()));
+    }
+    for (const w of norm(s).match(WORD) || []) out.push(stem(w));
+    return out;
+  }
+  // Query side: parts only, so "HealthCheck" is the two words "health check".
+  function queryTerms(q) { return (norm(q).match(WORD) || []).map(stem); }
+
+  // One-way: a query word expands to the words an operator may mean by it
+  // (stems). A synonym hit scores below a literal one (see hit()).
+  const SYN = {};
+  for (const [k, vs] of Object.entries({
+    unblock: ['unblock', 'block', 'resume'],
+    block: ['block', 'unblock'],
+    approv: ['approv', 'approval', 'approver'],
+    approval: ['approval', 'approv', 'approver'],
+    install: ['install', 'installation'],
+    upgrad: ['upgrad'],
+    stuck: ['stuck', 'stall', 'hung'],
+    multi: ['multi', 'several', 'multiple', 'many'],
+  })) SYN[stem(k)] = vs.map(stem);
   function variants(t) { return SYN[t] || [t]; }
   // 2 literal word, 1 literal prefix (typing "dep"), 0.7 synonym word, 0.4 synonym prefix.
   function hit(ws, t) {
@@ -227,18 +264,33 @@ document.addEventListener("DOMContentLoaded", function () {
     }
     return best;
   }
+  // R6-IA-6: titles keep no tags; excerpts are plain text and are escaped on display.
   const strip = (x) => ('' + x).replace(/<[^>]*>/g, '').replace(/&amp;/g, '&').replace(/&lt;/g, '<').replace(/&gt;/g, '>').replace(/&quot;/g, '"').replace(/&#39;/g, "'");
   function count(hay, needle) {
     let n = 0, i = -1;
     while (n < 10 && (i = hay.indexOf(needle, i + 1)) !== -1) n++;
     return n;
   }
+  function editsWithinOne(a, b) {
+    if (a === b) return true;
+    const la = a.length, lb = b.length;
+    if (Math.abs(la - lb) > 1) return false;
+    let i = 0;
+    while (i < la && i < lb && a[i] === b[i]) i++;
+    if (la === lb) {
+      if (a.slice(i + 1) === b.slice(i + 1)) return true; // substitution
+      return a[i] === b[i + 1] && a[i + 1] === b[i] && a.slice(i + 2) === b.slice(i + 2); // swap
+    }
+    return la > lb ? a.slice(i + 1) === b.slice(i) : a.slice(i) === b.slice(i + 1);
+  }
 
   async function preloadIndex() {
     const resp = await fetch(searchDataURL);
     const data = await resp.json();
     const sections = [];
-    const crumbs = {};
+    const fields = [];
+    const vocab = new Map();
+    const seen = (ws) => { for (const w of ws) vocab.set(w, (vocab.get(w) || 0) + 1); };
     for (const route in data) {
       const urlParts = route.split('/').filter(x => x != "" && !x.startsWith('#'));
       let crumb = '';
@@ -252,9 +304,9 @@ document.addEventListener("DOMContentLoaded", function () {
         crumb += title;
         if (i < urlParts.length - 1) crumb += ' > ';
       }
-      crumbs[route] = crumb;
       const pageTitle = strip(data[route].title);
       const generated = route.startsWith('/docs/reference/');
+      for (const f of data[route].fields || []) fields.push({ route, crumb, ...f });
       let order = 0;
       for (const heading in data[route].data) {
         const [hash, text] = heading.split('#');
@@ -264,23 +316,29 @@ document.addEventListener("DOMContentLoaded", function () {
         const title = strip(text || pageTitle);
         const content = data[route].data[heading] || '';
         const paragraphs = content.split('\n').filter(Boolean);
-        sections.push({
+        const sec = {
           route, url, title, crumb, pageTitle,
           isPage: !hash,
           order: order++,
           generated,
-          display: strip(paragraphs[0] || ''),
+          display: paragraphs[0] || '',
           tw: words(title),
           pw: words(pageTitle),
           cw: words(crumb),
           bw: new Set(words(content)),
           body: norm(content),
-        });
+        };
+        seen(sec.tw); seen(sec.bw);
+        sections.push(sec);
       }
     }
+    const titleOf = new Map(sections.map(x => [x.url, x.title]));
+    for (const f of fields) f.type = titleOf.get(f.route + '#' + f.type) || f.type;
+    window.kdFields = fields;
+    window.kdVocab = vocab;
     window.kdSections = sections;
     // The search box may have been used while the index loaded.
-    const { inputElement } = getActiveSearchElement() || {};
+    const { inputElement } = getActiveSearchElement();
     if (inputElement && inputElement.value) inputElement.dispatchEvent(new Event('keyup'));
   }
 
@@ -321,24 +379,24 @@ document.addEventListener("DOMContentLoaded", function () {
     return score;
   }
 
-  function search(e) {
-    const query = e.target.value;
-    if (!query) {
-      hideSearchResults();
-      return;
-    }
+  // The nearest word in the docs within one edit, for each term nothing matches.
+  function correct(terms) {
+    const vocab = window.kdVocab;
+    let changed = false;
+    const out = terms.map(t => {
+      if (vocab.has(t) || SYN[t] || t.length < 4) return t;
+      let best = null, bestN = 0;
+      for (const [w, n] of vocab) {
+        if (n > bestN && editsWithinOne(t, w)) { best = w; bestN = n; }
+      }
+      if (best) { changed = true; return best; }
+      return t;
+    });
+    return changed ? out : null;
+  }
 
-    const { resultsElement } = getActiveSearchElement();
-    while (resultsElement.firstChild) {
-      resultsElement.removeChild(resultsElement.firstChild);
-    }
-    resultsElement.classList.remove('hx:hidden');
-    if (!window.kdSections) return;
-
-    const terms = words(query);
+  function rank(terms, ident) {
     const phrase = terms.join(' ');
-    const ident = /[a-z][A-Z]/.test(query);
-    if (!terms.length) { displayResults([], query); return; }
     const inDocs = location.pathname.startsWith('/docs/');
     const inBlog = location.pathname.startsWith('/blog/');
     const pages = new Map();
@@ -357,8 +415,44 @@ document.addEventListener("DOMContentLoaded", function () {
       p.items.push({ s, sc });
       p.best = Math.max(p.best, sc);
     }
-    const ranked = [...pages.values()].sort((a, b) => b.best - a.best || a.order - b.order).slice(0, 12);
+    return [...pages.values()].sort((a, b) => b.best - a.best || a.order - b.order).slice(0, 12);
+  }
+
+  function search(e) {
+    const query = e.target.value;
+    const { resultsElement } = getActiveSearchElement(e.target);
+    if (!resultsElement) return;
+    if (!query) {
+      hideSearchResults(resultsElement);
+      return;
+    }
+    while (resultsElement.firstChild) {
+      resultsElement.removeChild(resultsElement.firstChild);
+    }
+    resultsElement.classList.remove('hx:hidden');
+    if (!window.kdSections) return;
+
+    let terms = queryTerms(query);
+    if (!terms.length) { displayResults([], [], resultsElement); return; }
+    const ident = /[a-z][A-Z]/.test(query);
+    let ranked = rank(terms, ident);
+    if (!ranked.length) {
+      const fixed = correct(terms);
+      if (fixed) { terms = fixed; ranked = rank(terms, ident); }
+    }
     const results = [];
+    // R6-IA-3: an exact camelCase field name goes to its table row, with the
+    // field's own description as the snippet.
+    const q1 = query.trim().toLowerCase();
+    const hits = /^[A-Za-z]+$/.test(query.trim()) ? window.kdFields.filter(f => /[a-z][A-Z]/.test(f.name) && f.name === query.trim()) : [];
+    hits.slice(0, 3).forEach((f, j) => {
+      results.push({
+        id: `f_${j}`,
+        route: `${f.route}#${f.id}`,
+        prefix: j === 0 ? f.crumb : undefined,
+        children: { title: `${f.type}.${f.name}`, content: f.desc },
+      });
+    });
     ranked.forEach((p, i) => {
       p.items.sort((a, b) => b.sc - a.sc || a.s.order - b.s.order);
       p.items.filter((it, j) => j === 0 || it.sc >= p.best * 0.5).slice(0, 4).forEach((it, j) => {
@@ -370,43 +464,37 @@ document.addEventListener("DOMContentLoaded", function () {
         });
       });
     });
-    displayResults(results, query);
+    displayResults(results, terms, resultsElement);
   }
 
   /**
    * Displays the search results on the page.
-   *
-   * @param {Array} results - The array of search results.
-   * @param {string} query - The search query.
    */
-  function displayResults(results, query) {
-    const { resultsElement } = getActiveSearchElement();
+  function displayResults(results, query, resultsElement) {
     if (!resultsElement) return;
 
     if (!results.length) {
-      resultsElement.innerHTML = `<span class="hextra-search-no-result">{{ $noResultsFound | safeHTML }}</span>`;
+      // A typo is not a dead end: say where to go next (R6-IA-5).
+      resultsElement.innerHTML = `<span class="hextra-search-no-result">{{ $noResultsFound | safeHTML }}<span class="hextra-search-no-result-next">Try <a href="/docs/operate/troubleshooting/">Troubleshoot</a> or the <a href="/docs/">docs home</a>.</span></span>`;
+      resultsElement.dataset.count = 0;
       return;
     }
 
-    // Highlight the query words (and their synonyms) in plain text, then escape.
-    const esc = (x) => x.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
-    const alts = [];
-    for (const t of words(query)) {
-      for (const v of variants(t)) {
-        const e = v.replace(/[-\\^$*+?.()|[\]{}]/g, '\\$&');
-        alts.push(v === 'rollback' ? 'roll(?:s|ed|ing)?[\\s-]?back' : e);
-      }
-    }
-    const hlRe = alts.length ? new RegExp('(?<![0-9a-z\\u00C0-\\u017F])(?:' + alts.join('|') + ')', 'gi') : null;
-    function highlightMatches(text, query) {
-      text = strip(text);
-      if (!hlRe) return esc(text);
+    // Highlight the query words (stems and synonyms) in plain text, then escape.
+    const esc = (x) => ('' + x).replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
+    const qTerms = query;
+    const TOKEN = /roll(?:s|ed|ing)?[\s-]?back(?:s)?|[0-9A-Za-zÀ-ſ]+/gi;
+    function highlightMatches(text) {
+      text = '' + text;
       let out = '', last = 0, m;
-      hlRe.lastIndex = 0;
-      while ((m = hlRe.exec(text))) {
-        if (!m[0]) { hlRe.lastIndex++; continue; }
-        out += esc(text.slice(last, m.index)) + '<span class="hextra-search-match">' + esc(m[0]) + '</span>';
-        last = m.index + m[0].length;
+      TOKEN.lastIndex = 0;
+      while ((m = TOKEN.exec(text))) {
+        const raw = m[0];
+        const w = /^roll(?:s|ed|ing)?[\s-]?back/i.test(raw) ? 'rollback' : stem(raw.toLowerCase());
+        if (qTerms.some(t => hit([w], t) > 0)) {
+          out += esc(text.slice(last, m.index)) + '<span class="hextra-search-match">' + esc(raw) + '</span>';
+          last = m.index + raw.length;
+        }
       }
       return out + esc(text.slice(last));
     }
@@ -439,9 +527,9 @@ document.addEventListener("DOMContentLoaded", function () {
         let li = createElement(`
         <li>
           <a data-index="${i}" href="${result.route}" class=${i === 0 ? "hextra-search-active" : ""}>
-            <div class="hextra-search-title">`+ highlightMatches(result.children.title, query) + `</div>` +
+            <div class="hextra-search-title">`+ highlightMatches(result.children.title) + `</div>` +
         (result.children.content ?
-            `<div class="hextra-search-excerpt">` + highlightMatches(result.children.content, query) + `</div>` : '') + `
+            `<div class="hextra-search-excerpt">` + highlightMatches(result.children.content) + `</div>` : '') + `
           </a>
         </li>`);
       li.addEventListener('mousemove', handleMouseMove);
