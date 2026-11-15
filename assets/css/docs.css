@@ -177,13 +177,17 @@ html.dark .kd-wash::before{opacity:.5}
 .kd-content blockquote{padding-left:16px;border-left:2px solid var(--line);color:var(--ink-muted);font-style:normal}
 
 /* links */
-.kd-content a:not(.hextra-card):not(.kd-eyebrow):not(.subheading-anchor):not(.kd-pager-card):not(.kd-lc){color:var(--kd-link);text-decoration:underline;text-decoration-thickness:1px;text-underline-offset:3px;text-decoration-color:var(--kd-link-line);transition:text-decoration-color .15s}
-.kd-content a:not(.hextra-card):not(.kd-eyebrow):not(.subheading-anchor):not(.kd-pager-card):not(.kd-lc):hover{text-decoration-color:currentColor}
+.kd-content a:not(.hextra-card):not(.kd-eyebrow):not(.subheading-anchor):not(.kd-pager-card):not(.kd-lc):not(.kd-tocm-a){color:var(--kd-link);text-decoration:underline;text-decoration-thickness:1px;text-underline-offset:3px;text-decoration-color:var(--kd-link-line);transition:text-decoration-color .15s}
+.kd-content a:not(.hextra-card):not(.kd-eyebrow):not(.subheading-anchor):not(.kd-pager-card):not(.kd-lc):not(.kd-tocm-a):hover{text-decoration-color:currentColor}
 
 /* inline code: the landing's title-body code chip */
 .kd-content :where(code):not(:where(.hextra-code-block code,pre code)){padding:1px 6px;border:1px solid var(--line);border-radius:6px;background:var(--page-alt);color:var(--ink);font:500 13px/1 var(--mono);white-space:normal;overflow-wrap:break-word;-webkit-box-decoration-break:clone;box-decoration-break:clone}
 html.dark .kd-content :where(code):not(:where(.hextra-code-block code,pre code)){background:oklch(1 0 0/.05);border-color:oklch(1 0 0/.1)}
 .kd-content a code{color:inherit}
+/* R5-DES-7: code in a heading is ~.85em of the heading, chip padding scaled with it */
+.kd-content :is(h1,h2,h3,h4) code:not(pre code){font-size:.85em;padding:.06em .42em;border-radius:.4em}
+/* R5-DES-9: one kbd, the header search's chip at body size: Page Mono 12/20, 1px line, radius 4, page-alt */
+html .kd-content kbd{display:inline-block;margin:0 1px;padding:0 6px;border:1px solid var(--line);border-radius:4px;background:var(--page-alt);box-shadow:none;color:var(--ink-muted);font:500 12px/20px var(--mono);vertical-align:baseline;white-space:nowrap}
 
 .kd-nb{white-space:nowrap}
 /* ---------- code window ---------- */
@@ -208,7 +212,14 @@ html.dark .kd-content :where(code):not(:where(.hextra-code-block code,pre code))
 .hextra-code-block pre code{font:inherit!important;background:transparent!important;color:inherit;padding:0;border:0}
 /* syntax: the landing spec window's language (keys mint, strings lagoon, the rest the code ink) */
 html:root .hextra-code-block .chroma{background:transparent!important;color:var(--kd-code-ink)}
-html:root .hextra-code-block .chroma :is(.nt,.k,.kd,.kn,.kr,.kt,.kp,.nb,.bp,.nf,.fm,.nn,.nc,.ne,.nl,.ni,.nd){color:var(--kd-code-key);font-weight:500}
+html:root .hextra-code-block .chroma :is(.k,.kd,.kn,.kr,.kt,.kp,.nb,.bp,.nf,.fm,.nn,.nc,.ne,.nl,.ni,.nd){color:var(--kd-code-key);font-weight:500}
+/* R5-DES-3: YAML/JSON keys are the landing's grey key ink at regular weight (only keywords and kind values are mint) */
+html:root .hextra-code-block .chroma :is(.nt){color:var(--kd-code-ink);font-weight:400}
+/* a terminal window (bash/sh/console) is the landing .term: label band-muted, command band-ink, builtins and
+   functions in command ink, not mint (the landing's only mint there is the prompt) */
+.hextra-code-block:has(code:is([data-lang=bash],[data-lang=sh],[data-lang=shell],[data-lang=console],[data-lang=zsh])){--kd-code-ink:var(--band-ink)}
+.hextra-code-block:has(code:is([data-lang=bash],[data-lang=sh],[data-lang=shell],[data-lang=console],[data-lang=zsh])) .kd-code-head{color:var(--band-muted)}
+html:root .hextra-code-block:has(code:is([data-lang=bash],[data-lang=sh],[data-lang=shell],[data-lang=console],[data-lang=zsh])) .chroma :is(.nb,.bp,.nf,.fm,.nv,.vc,.vg,.vi,.nl,.k,.kd){color:var(--band-ink);font-weight:400}
 html:root .hextra-code-block .chroma :is(.kc){color:var(--kd-code-val)}
 html:root .hextra-code-block .chroma :is(.s,.s1,.s2,.sb,.sc,.sd,.se,.sh,.si,.sx,.sr,.ss,.dl,.l,.ld,.m,.mi,.mf,.mh,.mo,.il,.na,.no){color:var(--kd-code-val)}
 html:root .hextra-code-block .chroma :is(.nv,.vc,.vg,.vi){color:var(--kd-code-key)}
@@ -321,7 +332,7 @@ html.dark .kd-content table:not(.kd-table table) th{background:color-mix(in okla
   .kd-content .kd-table:not(.kd-spec)[data-stack] td:first-child{margin-bottom:6px;font-weight:500}
   .kd-content .kd-table:not(.kd-spec)[data-stack] td + td{margin-top:6px}
   .kd-content .kd-table:not(.kd-spec)[data-stack] td + td::before{content:attr(data-label);display:block;font:500 12px/18px var(--sans);color:var(--ink-subtle)}
-  .kd-content .kd-table[data-stack] td:first-child code{white-space:normal;overflow-wrap:normal}
+  .kd-content .kd-table[data-stack] td:first-child code{white-space:normal;overflow-wrap:anywhere}
   .kd-content .kd-table[data-stack] td:empty{display:none}
   .kd-content .kd-table[data-stack][data-cols="2"] td + td::before{display:none}
 }
