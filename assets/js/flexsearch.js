@@ -235,6 +235,21 @@ document.addEventListener("DOMContentLoaded", function () {
     for (const w of norm(s).match(WORD) || []) out.push(stem(w));
     return out;
   }
+  // R13-IA-4b: a title's whole words vs the parts of its camelCase tokens
+  // ("GitHub" is the word github and the parts git, hub). A whole-word hit
+  // (a title word, a keyword) outranks a part hit, so "hub" finds the hub page
+  // before GitHub. tw holds the whole words, tp only the parts.
+  function titleWords(s) {
+    const whole = [], parts = [];
+    const rest = ('' + s).replace(/[0-9A-Za-zÀ-ſ]+/g, (tok) => {
+      if (!/[a-z0-9][A-Z]/.test(tok)) return tok;
+      whole.push(stem(tok.toLowerCase()));
+      for (const w of norm(tok).match(WORD) || []) parts.push(stem(w));
+      return ' ';
+    });
+    for (const w of norm(rest).match(WORD) || []) whole.push(stem(w));
+    return { whole, parts };
+  }
   // Query side: parts only, so "HealthCheck" is the two words "health check".
   function queryTerms(q) { return (norm(q).match(WORD) || []).map(stem); }
 
@@ -336,7 +351,8 @@ document.addEventListener("DOMContentLoaded", function () {
           order: order++,
           generated,
           display: paragraphs[0] || '',
-          tw: words(title + ' ' + kwText),
+          tw: titleWords(title + ' ' + kwText).whole,
+          tp: titleWords(title).parts,
           kwPhrase: norm(kwText),
           pw: words(pageTitle),
           cw: words(crumb),
@@ -371,7 +387,18 @@ document.addEventListener("DOMContentLoaded", function () {
     // field name (camelCase query), where the definition is what is wanted.
     const gen = s.generated && !ident;
     for (const t of terms) {
-      const th = hit(s.tw, t);
+      let th = hit(s.tw, t);
+      // A part of a compound title word ("hub" in GitHub) scores as a prefix
+      // hit, but is no title match: no whole-title or page-entry bonus. Only for a one-word
+      // query that is not itself a camelCase name: a kind name, or a phrase, keeps
+      // the part hit at full title weight.
+      let partOnly = false;
+      const tph = hit(s.tp, t);
+      if (tph > th) {
+        th = tph;
+        partOnly = terms.length === 1 && !ident;
+        if (partOnly) th = Math.min(th, 1);
+      }
       const ph = s.isPage ? 0 : hit(s.pw, t);
       let bh = 0;
       if (!th && !ph) {
@@ -384,7 +411,7 @@ document.addEventListener("DOMContentLoaded", function () {
         if (hit(s.cw, t)) { score += 0.5; continue; }
         return 0; // every word must be somewhere
       }
-      if (th) { score += th >= 2 ? 10 : th >= 1 ? 6 : th >= 0.7 ? 7 * 0.7 + 2 : 3; if (th >= 1) titleHits++; }
+      if (th) { score += th >= 2 ? 10 : th >= 1 ? 6 : th >= 0.7 ? 7 * 0.7 + 2 : 3; if (th >= 1 && !partOnly) titleHits++; }
       else if (ph) score += ph >= 1 ? 2 : 1;
       else {
         // Body hit: more mentions rank higher, so ties are not index order.
