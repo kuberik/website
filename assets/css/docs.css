@@ -177,8 +177,8 @@ html.dark .kd-wash::before{opacity:.5}
 .kd-content blockquote{padding-left:16px;border-left:2px solid var(--line);color:var(--ink-muted);font-style:normal}
 
 /* links */
-.kd-content a:not(.hextra-card):not(.kd-eyebrow):not(.subheading-anchor):not(.kd-pager-card):not(.kd-next-card):not(.kd-index-row){color:var(--kd-link);text-decoration:underline;text-decoration-thickness:1px;text-underline-offset:3px;text-decoration-color:var(--kd-link-line);transition:text-decoration-color .15s}
-.kd-content a:not(.hextra-card):not(.kd-eyebrow):not(.subheading-anchor):not(.kd-pager-card):not(.kd-next-card):not(.kd-index-row):hover{text-decoration-color:currentColor}
+.kd-content a:not(.hextra-card):not(.kd-eyebrow):not(.subheading-anchor):not(.kd-pager-card):not(.kd-lc){color:var(--kd-link);text-decoration:underline;text-decoration-thickness:1px;text-underline-offset:3px;text-decoration-color:var(--kd-link-line);transition:text-decoration-color .15s}
+.kd-content a:not(.hextra-card):not(.kd-eyebrow):not(.subheading-anchor):not(.kd-pager-card):not(.kd-lc):hover{text-decoration-color:currentColor}
 
 /* inline code: the landing's title-body code chip */
 .kd-content :where(code):not(:where(.hextra-code-block code,pre code)){padding:1px 6px;border:1px solid var(--line);border-radius:6px;background:var(--page-alt);color:var(--ink);font:500 .84em/1 var(--mono);white-space:normal;overflow-wrap:break-word;-webkit-box-decoration-break:clone;box-decoration-break:clone}
@@ -390,41 +390,7 @@ html.dark .kd-tone-neutral{background:oklch(1 0 0/.05)!important}
 /* index head: the group's home-card tile where other pages carry the eyebrow (docs/page.html) */
 .kd-index-tile{display:flex;align-items:center;justify-content:center;width:40px;height:40px;margin:0 0 16px;border-radius:10px}
 .kd-index-tile .kd-icon{width:20px;height:20px}
-/* index list: the home card expanded (layouts/_partials/docs/section-list.html) */
-.kd-content ul.kd-index-list{margin:32px 0 0;padding:4px var(--card-pad,24px);list-style:none;border:1px solid var(--card-border);border-radius:12px;background:var(--card-fill);box-shadow:var(--card-shadow)}
-.kd-content ul.kd-index-list > li{margin:0;padding:0;border-top:1px solid var(--line)}
-.kd-content ul.kd-index-list > li:first-child{border-top:0}
-.kd-index-row{position:relative;display:grid;grid-template-columns:minmax(0,1fr);gap:4px;padding:16px 32px 16px 0;text-decoration:none!important}
-.kd-index-row::after{content:'';position:absolute;right:0;top:50%;margin-top:-7px;width:14px;height:14px;background:var(--ink-subtle);transition:transform .15s,background-color .15s;-webkit-mask:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 16 16'%3E%3Cpath d='M3 8h10M9 4l4 4-4 4' fill='none' stroke='black' stroke-width='1.5' stroke-linecap='round' stroke-linejoin='round'/%3E%3C/svg%3E") center/14px no-repeat;mask:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 16 16'%3E%3Cpath d='M3 8h10M9 4l4 4-4 4' fill='none' stroke='black' stroke-width='1.5' stroke-linecap='round' stroke-linejoin='round'/%3E%3C/svg%3E") center/14px no-repeat}
-.kd-index-title{font:600 16px/24px var(--sans);letter-spacing:-.01em;color:var(--ink);transition:color .15s}
-.kd-index-desc{font:400 15px/22px var(--sans);color:var(--ink-muted);text-wrap:pretty}
-.kd-index-row:hover .kd-index-title{color:var(--mint-ink)}
-.kd-index-row:hover::after{background:var(--mint-ink);transform:translateX(2px)}
-@media(min-width:1024px){.kd-index-row{grid-template-columns:280px minmax(0,1fr);gap:24px;align-items:baseline;padding:18px 40px 18px 0}}
-@media(max-width:640px){.kd-content ul.kd-index-list{padding:0 16px;margin-top:24px}.kd-index-row{padding:14px 28px 14px 0}.kd-index-title{font-size:15px;line-height:22px}.kd-index-desc{font-size:14px;line-height:20px}}
 
-/* ---------- next steps / related: {{< next >}} (layouts/_shortcodes/next.html), the one component for both headings.
-   The pager card's shell (radius 12, card border/fill, mint border + arrow nudge on hover) with the docs home card's
-   icon tile at 28px; group name (the eyebrow role, lagoon 12/16) over the target's title over its description. ---------- */
-.kd-content ul.kd-next{display:grid;grid-template-columns:repeat(auto-fill,minmax(200px,1fr));gap:12px;margin:20px 0 0;padding:0;list-style:none}
-.kd-content ul.kd-next > li{margin:0;padding:0}
-.kd-content ul.kd-next > li::before{display:none}
-.kd-next-card{position:relative;display:flex;flex-direction:column;gap:12px;height:100%;padding:14px 16px 16px;border:1px solid var(--card-border);border-radius:12px;background:var(--card-fill);box-shadow:var(--card-shadow);text-decoration:none!important;transition:border-color .15s,transform .15s}
-.kd-next-card:hover{border-color:color-mix(in oklab,var(--mint) 55%,var(--line));transform:translateY(-1px)}
-.kd-next-tile{display:inline-flex;align-items:center;justify-content:center;width:28px;height:28px;border-radius:8px;background:var(--canvas-mint);color:var(--mint-ink)}
-.kd-next-tile .kd-icon{width:16px;height:16px}
-.kd-next-card::after{content:'';position:absolute;right:16px;top:21px;width:14px;height:14px;background:var(--ink-subtle);transition:transform .15s,background-color .15s;-webkit-mask:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 16 16'%3E%3Cpath d='M3 8h10M9 4l4 4-4 4' fill='none' stroke='black' stroke-width='1.5' stroke-linecap='round' stroke-linejoin='round'/%3E%3C/svg%3E") center/14px no-repeat;mask:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 16 16'%3E%3Cpath d='M3 8h10M9 4l4 4-4 4' fill='none' stroke='black' stroke-width='1.5' stroke-linecap='round' stroke-linejoin='round'/%3E%3C/svg%3E") center/14px no-repeat}
-.kd-next-card:hover::after{background:var(--mint-ink);transform:translateX(2px)}
-.kd-next-text{display:flex;flex-direction:column;gap:2px;min-width:0}
-.kd-next-group{font:500 12px/16px var(--sans);color:var(--kd-eyebrow)}
-.kd-next-title{font:600 15px/22px var(--sans);letter-spacing:-.01em;color:var(--ink)}
-.kd-next-desc{margin-top:2px;font:400 14px/20px var(--sans);color:var(--ink-muted)}
-@media(max-width:640px){
-  .kd-content ul.kd-next{grid-template-columns:minmax(0,1fr);gap:8px}
-  .kd-next-card{flex-direction:row;align-items:flex-start;gap:12px;padding:12px 40px 14px 14px}
-  .kd-next-tile{flex:none;margin-top:2px}
-  .kd-next-card::after{top:50%;margin-top:-7px}
-}
 
 /* ---------- phones ---------- */
 @media(max-width:640px){

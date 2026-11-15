@@ -1,0 +1,55 @@
+/* THE docs link-card (layouts/_partials/docs/link-card.html): variant "row" (home journey cards) and variant "card"
+   (home Reference, section index, Next steps / Related). Borrowed from the landing v6 feature card (features.css .fx-card):
+   --card-r radius, --card-border/-fill/-shadow, name/title/body type roles, link arrow. R3-DES-3/6/11, R3-A-4. */
+.kd-content ul.kd-lc-grid,.kdh ul.kd-lc-grid{display:grid;grid-template-columns:minmax(0,1fr);gap:12px;margin:0;padding:0;list-style:none}
+.kd-content ul.kd-lc-grid > li{margin:0;padding:0}
+.kd-content ul.kd-lc-grid > li::before{display:none}
+.kd-content ul.kd-lc-grid-next,.kd-content ul.kd-lc-grid-index{margin-top:20px}
+.kd-content ul.kd-lc-grid-index{margin-top:32px}
+@media(min-width:641px){
+  .kd-lc-grid-index,.kd-lc-grid-ref{grid-template-columns:repeat(2,minmax(0,1fr))!important}
+  .kd-lc-grid-next{grid-template-columns:repeat(auto-fill,minmax(200px,1fr))!important}
+}
+.kd-lc{position:relative;text-decoration:none!important;color:var(--ink)}
+.kd-lc::after{content:'';position:absolute;width:14px;height:14px;background:var(--ink-subtle);transition:transform .15s,background-color .15s,opacity .15s;-webkit-mask:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 16 16'%3E%3Cpath d='M3 8h10M9 4l4 4-4 4' fill='none' stroke='black' stroke-width='1.5' stroke-linecap='round' stroke-linejoin='round'/%3E%3C/svg%3E") center/14px no-repeat;mask:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 16 16'%3E%3Cpath d='M3 8h10M9 4l4 4-4 4' fill='none' stroke='black' stroke-width='1.5' stroke-linecap='round' stroke-linejoin='round'/%3E%3C/svg%3E") center/14px no-repeat}
+.kd-lc:hover::after{background:var(--mint-ink);transform:translateX(2px)}
+.kd-lc-title{font:600 15px/22px var(--sans);letter-spacing:-.01em;color:var(--ink);transition:color .15s}
+.kd-lc:hover .kd-lc-title{color:var(--mint-ink)}
+/* row: compact list row, 44px target, arrow at rest on touch */
+.kd-lc-row{display:flex;align-items:center;min-height:44px;padding:10px 28px 10px 0}
+.kd-lc-row .kd-lc-title{font-weight:500;font-size:14px;line-height:20px;letter-spacing:0}
+.kd-lc-row::after{right:0;top:50%;margin-top:-7px;opacity:0}
+.kd-lc-row:hover::after{opacity:1}
+@media(hover:none){.kd-lc-row::after{opacity:1}}
+/* card: tile + eyebrow + title + description (2 lines) */
+.kd-lc-card{display:flex;align-items:flex-start;gap:12px;height:100%;padding:14px 40px 16px 16px;border:1px solid var(--card-border);border-radius:var(--card-r);background:var(--card-fill);box-shadow:var(--card-shadow);transition:border-color .15s,transform .15s}
+.kd-lc-card:hover{border-color:color-mix(in oklab,var(--mint) 55%,var(--line))}
+.kd-lc-card::after{right:16px;top:19px}
+.kd-lc-tile{flex:none;display:inline-flex;align-items:center;justify-content:center;width:28px;height:28px;margin-top:2px;border-radius:8px}
+.kd-lc-tile .kd-icon{width:16px;height:16px}
+.kd-lc-text{display:flex;flex-direction:column;gap:2px;min-width:0}
+.kd-lc-eyebrow{font:500 12px/16px var(--sans);color:var(--kd-eyebrow)}
+.kd-lc-desc{margin-top:2px;font:400 14px/20px var(--sans);color:var(--ink-muted);display:-webkit-box;-webkit-box-orient:vertical;-webkit-line-clamp:2;line-clamp:2;overflow:hidden;text-wrap:pretty}
+@media(min-width:2400px){.kd-lc-title{font-size:16px;line-height:24px}.kd-lc-desc{font-size:15px;line-height:22px}}
+
+/* ---------- phones: "On this page" disclosure + back to top (R3-DES-2; the TOC rail is xl-only) ---------- */
+.kd-tocm{margin:16px 0 0;border:1px solid var(--card-border);border-radius:8px;background:var(--card-fill)}
+.kd-tocm > summary{display:flex;align-items:center;justify-content:space-between;gap:12px;min-height:44px;padding:0 14px;font:600 14px/20px var(--sans);color:var(--ink);cursor:pointer;list-style:none}
+.kd-tocm > summary::-webkit-details-marker{display:none}
+.kd-tocm > summary::after{content:'';width:8px;height:8px;border:solid var(--ink-subtle);border-width:0 1.5px 1.5px 0;transform:rotate(45deg);margin-top:-3px;transition:transform .15s}
+.kd-tocm[open] > summary::after{transform:rotate(225deg);margin-top:3px}
+.kd-content .kd-tocm ol{margin:0;padding:4px 14px 8px;list-style:none;border-top:1px solid var(--line)}
+.kd-content .kd-tocm li{margin:0;padding:0}
+.kd-content .kd-tocm li::before{display:none}
+.kd-content .kd-tocm a{display:block;padding:9px 0;font:400 14px/20px var(--sans);color:var(--ink-muted);text-decoration:none}
+.kd-content .kd-tocm a:hover{color:var(--mint-ink)}
+.kd-top{position:fixed;right:16px;bottom:16px;z-index:30;display:none;align-items:center;justify-content:center;width:44px;height:44px;border:1px solid var(--card-border);border-radius:999px;background:var(--card-fill);box-shadow:var(--card-shadow);color:var(--ink);cursor:pointer}
+.kd-top svg{width:18px;height:18px}
+.kd-top.is-on{display:inline-flex}
+@media(min-width:1280px){.kd-tocm,.kd-top{display:none!important}}
+@media(prefers-reduced-motion:reduce){.kd-lc,.kd-lc::after{transition:none}}
+.kd-content .kd-tocm > summary{justify-content:space-between;text-align:left}
+.kd-content .kd-tocm > summary::before{display:none!important}
+.kd-content .kd-tocm > summary{padding:0 14px!important;font:600 14px/20px var(--sans)!important;color:var(--ink)!important;gap:12px}
+.kd-content .kd-tocm[open] > summary{border-bottom:0}
+.kd-content .kd-tocm > ol{padding-inline:14px}

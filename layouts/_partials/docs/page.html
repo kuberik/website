@@ -15,12 +15,22 @@
         {{- if $isIndex }}<span class="kd-index-tile kd-tone-{{ $g.tone }}" aria-hidden="true">{{ partial "docs/icon.html" $g.icon }}</span>
         {{- else if $g.name }}{{ if $g.url }}<a class="kd-eyebrow" href="{{ $g.url }}">{{ $g.name }}</a>{{ else }}<span class="kd-eyebrow">{{ $g.name }}</span>{{ end }}{{ end }}
         {{ if .Title }}<h1>{{ .Title }}</h1>{{ end }}
+        {{- /* phones and tablets: the TOC rail is xl-only, so a page with 3+ sections gets an "On this page" disclosure under
+             the title (R3-DES-2; styles docs-cards.css .kd-tocm) and a floating back-to-top button */ -}}
+        {{- $heads := slice }}{{ range .Fragments.Headings }}{{ range .Headings }}{{ if .Title }}{{ $heads = $heads | append . }}{{ end }}{{ end }}{{ end -}}
+        {{- if and (not $isIndex) (ne .Params.toc false) (ge (len $heads) 3) }}
+        <details class="kd-tocm"><summary>{{ T "onThisPage" | default "On this page" }}</summary>
+          <ol>{{ range $heads }}<li><a href="#{{ .ID }}">{{ .Title | plainify | htmlUnescape }}</a></li>{{ end }}</ol>
+        </details>
+        <button type="button" class="kd-top" id="kd-top" aria-label="Back to top"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="m6 15 6-6 6 6"/></svg></button>
+        <script>(function(){var b=document.getElementById('kd-top');if(!b)return;b.addEventListener('click',function(){scrollTo({top:0,behavior:'smooth'})});addEventListener('scroll',function(){b.classList.toggle('is-on',scrollY>900)},{passive:true})})()</script>
+        {{- end }}
         {{- $c := string .Content -}}
         {{- /* STYLE 9: "Next steps" and "Related" are drawn only by {{< next >}}, whose cards are read from the target pages */}}
         {{- if and (findRE `<h2>(Next steps|Related)<` $c 1) (not (findRE `class="kd-next"` $c 1)) }}{{ warnf "%s: ## Next steps / ## Related without {{< next >}} (STYLE 9)" .File.Path }}{{ end }}
         {{ $c | safeHTML }}
         {{- /* index pages list their children as cards unless the page already has a card block */}}
-        {{- if and $isIndex .IsSection (not (findRE `hextra-cards|kd-section-cards` .Content 1)) }}{{ partial "docs/section-list.html" . }}{{ end }}
+        {{- if and $isIndex .IsSection (not (findRE `hextra-cards|kd-lc-grid` .Content 1)) }}{{ partial "docs/section-list.html" . }}{{ end }}
       </div>
       {{ partial "components/pager.html" . }}
       {{- if findRE `class="kd-table` $c 1 }}{{ partial "docs/table-edges.html" . }}{{ end }}

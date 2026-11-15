@@ -54,23 +54,8 @@ a.kdh-card-head:hover .kdh-card-title{color:var(--mint-ink)}
 .kdh-card-body{margin:12px 0 0;font:400 var(--t-card-body-s)/var(--t-card-body-l) var(--sans);color:var(--ink-muted);text-wrap:pretty}
 .kdh-links{margin:16px 0 0;padding:0;list-style:none;margin-top:auto;padding-top:16px}
 .kdh-links li{border-top:1px solid var(--line)}
-.kdh-links a{display:flex;align-items:center;justify-content:space-between;gap:12px;min-height:44px;padding:10px 0;font:500 14px/20px var(--sans);color:var(--ink);text-decoration:none}
-.kdh-links a::after{content:'';flex:none;width:14px;height:14px;background:var(--ink-subtle);opacity:0;transition:opacity .15s,transform .15s;-webkit-mask:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 16 16'%3E%3Cpath d='M3 8h10M9 4l4 4-4 4' fill='none' stroke='black' stroke-width='1.5' stroke-linecap='round' stroke-linejoin='round'/%3E%3C/svg%3E") center/14px no-repeat;mask:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 16 16'%3E%3Cpath d='M3 8h10M9 4l4 4-4 4' fill='none' stroke='black' stroke-width='1.5' stroke-linecap='round' stroke-linejoin='round'/%3E%3C/svg%3E") center/14px no-repeat}
-.kdh-links a:hover{color:var(--mint-ink)}
-.kdh-links a:hover::after{opacity:1;background:var(--mint-ink);transform:translateX(2px)}
-@media(hover:none){.kdh-links a::after{opacity:1}}
 
 /* ---------- reference row: sidebar group label over two pager-style cards ---------- */
 .kdh-ref{margin-top:48px}
 .kdh-ref-label{margin:0 0 12px;font:600 12px/16px var(--sans);letter-spacing:.06em;text-transform:uppercase;color:var(--ink-subtle)}
-.kdh-ref-row{display:grid;grid-template-columns:minmax(0,1fr);gap:12px;margin:0;padding:0;list-style:none}
-@media(min-width:641px){.kdh-ref-row{grid-template-columns:repeat(2,minmax(0,1fr))}}
-.kdh-ref-card{display:flex;align-items:center;gap:14px;height:100%;padding:14px 16px;border:1px solid var(--card-border);border-radius:var(--card-r);background:var(--card-fill);color:var(--ink);text-decoration:none;transition:border-color .15s}
-.kdh-ref-card .kdh-tile{--tile:var(--page-alt);--tile-ink:var(--ink-muted)}
-html.dark .kdh-ref-card .kdh-tile{--tile:oklch(1 0 0/.05)}
-.kdh-ref-card:hover{border-color:color-mix(in oklab,var(--mint) 55%,var(--line))}
-.kdh-ref-card:hover .kdh-card-go{color:var(--mint-ink);transform:translateX(2px)}
-.kdh-ref-text{display:flex;flex-direction:column;gap:2px;min-width:0}
-.kdh-ref-title{font:600 15px/22px var(--sans);letter-spacing:-.01em}
-.kdh-ref-desc{font:400 14px/20px var(--sans);color:var(--ink-muted)}
-@media(min-width:2400px){.kdh-ref-title{font-size:16px;line-height:24px}.kdh-ref-desc,.kdh-links a{font-size:15px;line-height:22px}}
+.kdh-version{padding-top:20px}
