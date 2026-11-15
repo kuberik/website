@@ -29,36 +29,36 @@ features:
     - id: gates
       hue: lagoon
       name: "Gates"
-      title: "A build moves when every gate passes."
-      body: "Schedules, the services it needs and the environment before it, plus an approval where you want one. Then it goes on its own."
+      title: "A build waits until every gate passes."
+      body: "A deploy window, the environment before it and the version of a service it depends on each hold the build. When the last gate passes, it deploys on its own. An approval can be one of the gates."
       link: { text: "How gates work", href: "/docs/concepts/rollouts/#gating-process" }
     - id: canary
       hue: mint
       name: "Canary and waves"
-      title: "Each region waits for the one before it to bake."
-      body: "OpenKruise moves traffic in steps, with a test where you ask for one. Wave 2 waits until wave 1 has baked."
+      title: "Wave 2 starts when the canary in wave 1 has baked."
+      body: "OpenKruise shifts traffic in steps and runs a test at the step you pick. Once every region in wave 1 has baked the release, the regions in wave 2 start together."
       link: { text: "Run a canary", href: "/docs/guides/canary-rollouts/" }
     - id: health
       hue: mint
       name: "Health checks"
       title: "A release has to stay healthy for the whole bake."
-      body: "Your Flux Kustomization and Datadog monitors stay healthy for the whole bake, or the release fails."
+      body: "Kuberik watches your Flux Kustomization and Datadog monitors from the deploy to the end of the bake time. If one of them fails, so does the release, and it goes no further."
       link: { text: "Add health checks", href: "/docs/guides/health-checks/" }
     - id: gitops
       hue: lagoon
       name: "GitOps"
       title: "Flux stays in charge of your cluster."
-      body: "Kuberik never applies manifests. It sets one version in your Flux objects, and Flux does the rest."
+      body: "Kuberik never applies manifests. It writes the new version into your Kustomization's substitutions, and Flux rolls out the Deployment and everything else that uses it."
       link: { text: "Connect Flux", href: "/docs/integrations/fluxcd/" }
     - id: dashboard
       hue: lagoon
       name: "Dashboard"
-      title: "Every cluster in one place."
-      body: "Apps and environments from every cluster, on one hub. Paste a pull request link to see how far it got."
+      title: "Find where a pull request is running."
+      body: "Paste its link into the dashboard search. The change opens with the environments that already run it, the one it is deploying to now and the ones still to come, across all your clusters."
       link: { text: "Expose the dashboard", href: "/docs/installation/helm/#expose-the-dashboard" }
     - id: releases
       hue: mint
       name: "Releases"
-      title: "Every version, and where it came from."
-      body: "A ReleaseSource reads your OCI tags, orders them by version and keeps each digest and git revision."
+      title: "Every new tag becomes a release you can trace."
+      body: "A ReleaseSource watches your OCI registry, orders the tags by version and records each release's digest and the git commit it was built from."
       link: { text: "Publish releases", href: "/docs/guides/publishing-releases/" }
