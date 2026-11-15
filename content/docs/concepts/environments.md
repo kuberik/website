@@ -5,13 +5,13 @@ type_: concept
 weight: 30
 ---
 
-An [Environment](/docs/reference/api/#environment) puts a [Rollout](/docs/concepts/rollouts/) into a tier, such as staging or production, and lets it deploy only the releases the earlier tier has already deployed and baked. Clusters coordinate through GitHub deployments, so they never connect to each other.
+An [Environment](/docs/reference/api/#environment) puts a [Rollout](/docs/concepts/rollouts/) into a tier, such as staging or production, and lets it deploy only releases the earlier tier has baked. Clusters coordinate through GitHub deployments, so they never connect to each other.
 
 {{< fig id="env-tiers-github" caption="Two clusters never connect: the staging Environment reports to GitHub, and the production Environment lets through only what baked upstream." >}}
 
 ## The Environment resource
 
-Each cluster that runs the app has one Environment next to its Rollout. This one places the `hello-world` Rollout in production:
+Each cluster that runs the app has one Environment next to its Rollout. This one places `hello-world` in production:
 
 ```yaml {filename="environment.yaml"}
 apiVersion: environments.kuberik.com/v1alpha1
@@ -33,7 +33,7 @@ spec:
 | Field | What it does |
 |---|---|
 | `rolloutRef` | The Rollout in the same namespace that this Environment gates and reports. |
-| `name` | The app's name in GitHub. Every Environment of one app uses the same `name`; Kuberik adds a `kuberik/` prefix. |
+| `name` | The app's name in GitHub. Every Environment of one app uses the same `name`. |
 | `environment` | The tier. It decides which environment this one waits for. |
 | `backend` | The GitHub repository (`owner/repo`) and the Secret that holds the token. `github` is the only backend. |
 | `site`, `wave`, `lockstep` | Optional. Split one environment across clusters, see [Sites and waves](#sites-and-waves). |
@@ -49,13 +49,13 @@ Tiers have a fixed order. `spec.environment` must be one of these names, and nam
 | 3 | `staging`, `stage`, `preprod` |
 | 4 | `prod`, `production` |
 
-An Environment waits for its upstream: the nearest earlier tier that has a registered site in GitHub for the same `name`. Tiers nobody uses are skipped, and the first tier has no upstream. The upstream is read from GitHub, so it can run in another cluster or cloud.
+An Environment waits for its upstream: the nearest earlier tier that has a registered site in GitHub for the same `name`. Tiers nobody uses are skipped, and the first tier has no upstream.
 
-Use one name per tier. If an app registers both `staging` and `preprod`, every Environment that sees both stops with `InvalidTopology`. To split a tier into stages, use sites and waves.
+Use one name per tier. If an app registers both `staging` and `preprod`, every Environment that sees both stops with `InvalidTopology`. To split a tier, use [sites and waves](#sites-and-waves).
 
 ## How a release is admitted
 
-The controller creates a [RolloutGate](/docs/concepts/gates/) named `ghd-<random>` for the Rollout, owned by the Environment, and keeps its `allowedVersions` up to date:
+The controller creates a [RolloutGate](/docs/concepts/gates/) `ghd-<random>` on the Rollout, owned by the Environment, and keeps its `allowedVersions` up to date:
 
 - With no upstream, the gate does not restrict versions.
 - With an upstream, the gate allows the releases that every registered site of the upstream's last wave baked successfully.
@@ -68,24 +68,24 @@ GitHub records Git revisions, and the gate lists release tags. The controller ma
 A pin on the Rollout (`spec.wantedVersion`) is a manual deploy that skips the gate. On a wave leader, the pinned release becomes the wave's pick and the followers deploy it. On a follower, a pin that differs from the wave's pick makes the Environment report `Pinned`. Deleting the Environment deletes its gate, which leaves the Rollout ungated: pin the Rollout first if it must not move.
 
 {{< callout type="warning" >}}
-A pin bypasses the upstream's bake. Pinning staging to a release development never baked, or failed, deploys it to staging at once, and once staging's bake succeeds the production gate allows it.
+Pinning staging to a release development never baked, or failed, deploys it to staging at once, and once staging's bake succeeds the production gate allows it.
 {{< /callout >}}
 
 ## Sites and waves
 
 One environment can run in several clusters. Each cluster's Environment is a site, named by `spec.site` (for example `eu-west-1`). Without `spec.site`, the controller uses its default site: the `site` key of the `kuberik-cluster-info` ConfigMap in the controller's namespace, else `default`.
 
-Sites roll out in waves. `spec.wave` defaults to 1, and wave N starts a release only after every site of wave N-1 baked it. Number waves from 1 without gaps: a missing wave closes the gates of every site in that environment and sets `WaveReady=False`, reason `InvalidTopology`.
+Sites roll out in waves. `spec.wave` defaults to 1, and wave N starts a release only after every site of wave N-1 baked it. Number waves from 1 without gaps: a missing wave closes the gates of every site in that environment and sets reason `InvalidTopology`.
 
-In each wave the registered site whose name sorts first is the leader: it picks the release, and the other sites (followers) deploy exactly that pick. A leader keeps the role until every site of the wave has baked its pick, so a late site does not take over. The next tier waits for the last wave.
+In each wave the registered site whose name sorts first is the leader: it picks the release, and the other sites (followers) deploy exactly that pick. A leader keeps the role until every site of the wave baked its pick, so a late site cannot take over. The next tier waits for the last wave.
 
-With `lockstep: true`, the wave-1 leader picks no new release until every wave of the environment has baked the current one. Set it the same on every site of the environment: the wave-1 leader's value governs, and a site that differs puts `LockstepConsistent=False`, reason `LockstepMismatch`, on every Environment of the tier, with the differing sites named in the message.
+With `lockstep: true`, the wave-1 leader picks no new release until every wave of the environment has baked the current one. Set it the same on every site of the environment: the wave-1 leader's value governs, and a site that differs raises `LockstepMismatch` on every Environment of the tier, naming the differing sites.
 
 Only one Environment, across all clusters, can own a site of a tier for one `name`. A second one posts nothing, closes its gate and reports `DuplicateSite`.
 
 ## How Environments use GitHub
 
-For every entry in the Rollout's history the controller creates a GitHub deployment on the release's commit, in the GitHub environment `kuberik/<name>/<environment>`, and updates its status as the bake goes on:
+For every entry in the Rollout's history the controller creates a GitHub deployment on the release's commit, in the GitHub environment `kuberik/<name>/<environment>`, and updates its status with the bake:
 
 | Bake | GitHub status |
 |---|---|
@@ -94,13 +94,13 @@ For every entry in the Rollout's history the controller creates a GitHub deploym
 | Failed | `failure` |
 | Cancelled | `inactive` |
 
-The deployment payload carries the site, wave and owner, which is how the other clusters see this one. The dashboard's Environments page shows where each release stands.
+The deployment payload carries the site, wave and owner, which the other clusters read. The dashboard's Environments page shows where each release stands.
 
 ![The Production environment on the Environments page: 38 places across 16 apps, 3 waiting and 2 checking; us-east-2 is checking, four regions wait for us-east-2, and seven builds are arriving](/images/docs/concepts/environments.png)
 
 ## Conditions
 
-The controller reports the gate decision as conditions on the Environment, with the same facts in structured form under `status.wave`:
+The Environment reports the gate decision as conditions, and in structured form under `status.wave`:
 
 | Condition | Reason | Meaning |
 |---|---|---|
