@@ -203,11 +203,16 @@ kubectl get rollout hello-world -n hello-world -o jsonpath='{.status.history[0].
 
 ### Roll back to the previous build
 
-Kuberik never rolls back on its own. **Roll back** on the dashboard's failure banner deploys the build before the failed one and pins the Rollout to it; with kubectl, set `spec.wantedVersion` to that build.
+Kuberik never starts a rollback on its own. **Roll back** on the dashboard's failure banner deploys the build before the failed one and pins the Rollout to it; with kubectl, print that build's tag.
 
 ```bash {filename="Terminal"}
 kubectl get rollout hello-world -n hello-world -o jsonpath='{.status.history[1].version.tag}{"\n"}'
-kubectl patch rollout hello-world -n hello-world --type merge -p '{"spec":{"wantedVersion":"1.4.0"}}'
+```
+
+Then set `spec.wantedVersion` to the tag it printed.
+
+```bash {filename="Terminal"}
+kubectl patch rollout hello-world -n hello-world --type merge -p '{"spec":{"wantedVersion":"<previous-tag>"}}'
 ```
 
 The pin deploys past gates and the failed deploy, and the dashboard shows **Rolled back**. New releases wait until you clear the pin, as in [Blocked by a pin](#blocked-by-a-pin-or-a-pending-deploy-by-hand).

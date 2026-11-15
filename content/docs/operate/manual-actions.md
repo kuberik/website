@@ -43,11 +43,16 @@ In the dashboard, **Change version** with **Pin build** turned on sets the pin, 
 
 ## Roll back to the previous version
 
-Kuberik never rolls back on its own. To go back, pin the build deployed before the current one: `status.history[0]` is the current deploy, `status.history[1]` the one before it.
+Kuberik never starts a rollback on its own. To go back, pin the build deployed before the current one: `status.history[0]` is the current deploy, `status.history[1]` the one before it. Print its tag.
 
 ```bash {filename="Terminal"}
 kubectl -n hello-world get rollout hello-world -o jsonpath='{.status.history[1].version.tag}{"\n"}'
-kubectl -n hello-world patch rollout hello-world --type=merge -p '{"spec":{"wantedVersion":"v1.2.2"}}'
+```
+
+Then pin the tag it printed.
+
+```bash {filename="Terminal"}
+kubectl -n hello-world patch rollout hello-world --type=merge -p '{"spec":{"wantedVersion":"<previous-tag>"}}'
 ```
 
 **Roll back** on the dashboard's **Deployment failed** banner writes the same pin. Clear it as in [Pin a version](#pin-a-version) once a fixed release is out.
