@@ -32,7 +32,7 @@ journeys:
   - title: "Operate"
     url: "/docs/operate/"
     icon: operate
-    outcome: "Pin, unblock and watch rollouts day to day."
+    outcome: "Pin, unblock, roll back and watch rollouts day to day."
   - title: "Integrations"
     url: "/docs/integrations/"
     icon: plug

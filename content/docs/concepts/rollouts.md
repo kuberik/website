@@ -85,7 +85,7 @@ A Rollout with no `bakeTime`, `deployTimeout` or `healthCheckSelector` marks eac
 
 Kuberik does not roll back. When a bake fails, the failed build keeps running, the Rollout sets `Ready=False`, and no newer build deploys automatically until a person pins a version, deploys a build by hand, sets `rollout.kuberik.com/unblock-failed`, or retries the bake. [Operate with kubectl](/docs/operate/manual-actions/) shows each of these.
 
-![Part of the Change version dialog deploying the held build 4.45.0-45 of checkout-api to production: the rule it would override, After staging, the four commits to deploy, the Pin build switch, a required reason, the typed confirmation and Deploy to prod](/images/docs/dashboard/change-version.png)
+![Part of the Change version dialog deploying the held build 4.45.0-45 of checkout-api to production: the rule it would override, After staging, the four commits to deploy, the Pin build switch, a required reason, the typed confirmation and the Deploy button](/images/docs/dashboard/change-version.png)
 
 When a deploy starts, the Rollout sets the `BakeFailureDisabled` condition for it. The condition is `True`, and health-check errors and `deployTimeout` do not fail that deploy, in two cases:
 

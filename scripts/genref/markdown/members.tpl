@@ -19,7 +19,7 @@
    {{- if .IsInline -}}
 (Members of <code>{{ .FieldName }}</code> are embedded into this type.)
    {{ end -}}
-   {{- .GetComment -}}
+   {{- .GetComment | html -}}
 </td>
 </tr>
     {{- end }}

@@ -71,6 +71,15 @@ for f in ${BUILD_TEMP_OUT}/*.md; do
     perl -pi -e 's/<tr id="([^",]+)(?:,[^"]*)?"/"<tr id=\"" . lc($1) . "\""/e' "$f"
 done
 
+# The templates pipe every Go doc comment through `html`, so placeholders such
+# as <namespace>/<name> or com.kuberik.rollout.requires.<contract> render as
+# text instead of being parsed (and dropped) as HTML tags. `html` also escapes
+# quotes and the <br/> that genref puts between comment paragraphs: restore
+# those, so only < > & stay escaped.
+for f in ${BUILD_TEMP_OUT}/*.md; do
+    perl -pi -e 's/&lt;br\/&gt;/<br\/>/g; s/&#34;/"/g; s/&#39;/\x27/g' "$f"
+done
+
 # The docs are written as if everything on main is released (STYLE §1), so the
 # groups carry no release-state label, and deprecation notes that promise
 # removal "in the next release" read "in a later version".

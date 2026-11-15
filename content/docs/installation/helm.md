@@ -92,6 +92,8 @@ dashboard:
   hubUrl: https://dashboard.production.example.com   # leave empty on the hub
 ```
 
+The `environmentUrl` comes from the environment integration: on each cluster, the environment-controller publishes the host of the dashboard's Ingress or HTTPRoute from [Expose the dashboard](#expose-the-dashboard), not `dashboard.url`. So every cluster needs `integrations.environment.enabled` and an exposed dashboard.
+
 The chart writes these values to the `kuberik-cluster-info` ConfigMap. `insecureSkipTLSVerify: true` skips TLS checks on hub-to-spoke calls; set it only for self-signed development clusters.
 
 ## Use the production values

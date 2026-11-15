@@ -43,7 +43,7 @@ spec:
       ENVIRONMENT: production  # Kuberik adds APP_VERSION
 ```
 
-A rollout in this mode changes exactly one thing: the image tag. Config changes reach the cluster through a separate path, whenever the Kustomization next reconciles git. That keeps each rollout narrow, and it means deploying an older build by hand restores the image, not the configuration that shipped with it.
+A rollout in this mode changes exactly one thing: the image tag. Config changes reach the cluster through a separate path, whenever the Kustomization next reconciles git. That keeps each rollout narrow, and it means pinning an older build restores the image, not the configuration that shipped with it.
 
 Reach for this when your deployments are a single service whose changes are almost always "new build of the same code", and when you want the smallest possible setup.
 

@@ -7,7 +7,7 @@
 {{ range .packages }}
 
 ## {{ .Title }}
-{{ .GetComment }}
+{{ .GetComment | html }}
   {{ if ne .GroupName "" -}}
 
     {{/* For package with a group name, list all type definitions in it. */}}

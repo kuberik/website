@@ -14,7 +14,7 @@ Write a docs page that reads like the rest of the Kuberik docs. Every page is ch
 
 ## Write in the product's voice
 
-Use the controller's own terms: if the code says `BakeFailed`, write "the bake failed".
+Use the controller's own terms: if the code says `BakeTimeFailed`, write "the bake failed".
 
 - Write in the second person, imperative and present tense: "Apply this Rollout."
 - Leave out "please", "simply", "just", "easily", "we recommend", "powerful" and "seamless".
