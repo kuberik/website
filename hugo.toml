@@ -48,6 +48,9 @@ theme = 'hextra'
 
 [markup]
   [markup.goldmark]
+    [markup.goldmark.parser]
+      # a standalone image renders as a <figure> (layouts/_markup/render-image.html), so no <p> around it
+      wrapStandAloneImageWithinParagraph = false
     [markup.goldmark.renderer]
       unsafe = true
   [markup.highlight]

@@ -1,0 +1,25 @@
+/* docs-b.css: shell lane B (round 2 design, tl-docs-4). Concatenated after docs-figs.css in
+   layouts/_partials/custom/head-end.html. Every rule names the landing or docs region it borrows from. */
+
+/* ---------- screenshot figures (R2-DES-5, R2-DES-17; markup: layouts/_markup/render-image.html) ----------
+   ROLE. A dashboard screenshot is a figure, so it sits on the kit figure's plate (docs-figs.css .df-card: page-alt
+   fill, 1px line, radius 12, 24 padding, column-wide) with the kit caption (.df-cap) under it.
+   PLACEMENT. Most captures are 381 px crops of one dashboard card at 1x. They sit centred on the column-wide plate,
+   the way the landing's showcase windows sit centred on their canvas (home showcase) and the way a kit figure's
+   narrow drawing centres in its plate (.df-narrow). Left-aligned would leave a 300 px hole on the right of a 680
+   column; stretching a 1x crop to 632 would blur it. Wider captures (dialogs, 2x full pages) fill the plate.
+   The shot itself is the dashboard card it was cut from: radius 8 (the dashboard card radius), 1px line, the
+   docs code window's light shadow, so it reads as an object placed on the plate.
+   DARK. Captures are light theme (STYLE 6). In dark the plate is the raised card fill with a hairline, and the shot
+   gets a soft dark halo and a 1px dim ring: the light card is matted inside a mid-tone frame instead of sitting
+   as a raw white slab on the near-black page. No filter on the image. */
+.kd-content .kd-shot,.kd-shot{margin:32px 0 0;padding:0}
+.kd-shot-plate{display:flex;justify-content:center;padding:24px;border:1px solid var(--line);border-radius:12px;background:var(--page-alt)}
+.kd-content .kd-shot img,.kd-shot img{display:block;width:auto;max-width:100%;height:auto;margin:0;border:1px solid var(--line);border-radius:8px;background:var(--page);box-shadow:0 1px 2px oklch(.195 .014 222/.06),0 10px 24px -14px oklch(.195 .014 222/.28)}
+.kd-shot .df-cap{margin-top:12px}
+html.dark .kd-shot-plate{border-color:var(--card-border);background:var(--card-fill)}
+html.dark .kd-content .kd-shot img,html.dark .kd-shot img{border-color:oklch(1 0 0/.14);box-shadow:0 0 0 6px oklch(1 0 0/.04),0 16px 36px -16px oklch(0 0 0/.7)}
+/* the release-post captures carry their own bezel: no second frame */
+.kd-shot.is-framed img,html.dark .kd-shot.is-framed img{border:0;border-radius:0;background:none;box-shadow:none}
+@media(max-width:640px){.kd-shot-plate{padding:12px}.kd-content .kd-shot,.kd-shot{margin-top:24px}}
+
