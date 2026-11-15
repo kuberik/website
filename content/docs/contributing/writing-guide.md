@@ -34,16 +34,16 @@ Every page declares `type_` in its front matter (Hugo reserves `type`). The type
 | `reference` | Look-up tables | Lead, then tables only, one heading per resource |
 | `index` | Section landing pages | One lead sentence. The section cards render automatically |
 
-The lead is the first paragraph: at most two sentences and 45 words, stating the outcome. Guide and tutorial titles are verbs ("Require a Manual Approval"), concept and reference titles are nouns ("Rollouts"), integration titles are the product ("Flux"). Page titles use Title Case and headings use sentence case. Use H2 for sections and H3 only under an H2. Add a `linkTitle` when the title is longer than 28 characters.
+The lead is the first paragraph: at most two sentences and 45 words, stating the outcome. Guide and tutorial titles are verbs ("Require a Manual Approval"), concept and reference titles are nouns ("Rollouts"), integration titles are the product ("Flux"). Page titles use Title Case and headings use sentence case. Use H2 for sections and H3 only under an H2. Add a `linkTitle` only when the title is longer than 28 characters, and make it a shortening of the title's own words: it is the sidebar label, while cards and the page head show the title.
 
 Front matter looks like this:
 
-```yaml {filename="content/docs/gates/approvals.md"}
-title: "Require a Manual Approval"
-linkTitle: "Manual Approvals"
-description: "Hold a deploy until a person approves it in the dashboard or with kubectl."
+```yaml {filename="content/docs/gates/dependencies.md"}
+title: "Wait for Service Dependencies"
+linkTitle: "Service Dependencies"
+description: "Hold a service until the service it needs has shipped a compatible version."
 type_: guide
-weight: 20
+weight: 40
 ```
 
 The one-sentence `description` appears on cards, in search and in link previews.

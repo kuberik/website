@@ -1,6 +1,5 @@
 ---
 title: "Deploy Your First App"
-linkTitle: "Deploy Your First App"
 description: "Deploy an app with a Rollout, a ReleaseSource and Flux, then watch Kuberik ship a new release."
 type_: tutorial
 weight: -10
@@ -247,8 +246,4 @@ The dashboard shows the same rollout: the running build, the pipeline it moved t
 
 ## Next steps
 
-{{< cards >}}
-  {{< card title="Publish Releases from CI" link="/docs/releases/publish/" icon="upload" subtitle="Tag every build so Kuberik picks it up" >}}
-  {{< card title="Require a Manual Approval" link="/docs/gates/approvals/" icon="shield-check" subtitle="Hold production deploys for a person" >}}
-  {{< card title="Propagation Modes" link="/docs/concepts/propagation/" icon="switch-horizontal" subtitle="Image tag or rendered manifests" >}}
-{{< /cards >}}
+{{< next "/docs/releases/publish/" "/docs/gates/approvals/" "/docs/concepts/propagation/" >}}

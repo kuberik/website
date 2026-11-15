@@ -226,6 +226,4 @@ kubectl get rollout hello-world -n hello-world
 
 ## Next steps
 
-- [Gates](/docs/concepts/gates/): what holds a deploy and when gates are skipped
-- [Operate a Rollout by Hand](/docs/operate/manual-actions/): pin, deploy now, bypass, retry
-- [Annotations](/docs/reference/annotations/): every annotation used above
+{{< next "/docs/concepts/gates/" "/docs/operate/manual-actions/" "/docs/reference/annotations/" >}}

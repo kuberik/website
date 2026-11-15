@@ -1,6 +1,5 @@
 ---
 title: "Set Up Dashboard Sign-in"
-linkTitle: "Dashboard Sign-in"
 description: "Put the dashboard behind your OIDC provider with one oauth2-proxy and an Envoy Gateway SecurityPolicy."
 type_: guide
 weight: 2

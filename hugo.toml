@@ -31,6 +31,7 @@ theme = 'hextra'
   # Front matter `sidebar: {group: "..."}` on a page does the same; this list covers pages that must not be edited.
   [[params.docsSidebar.groups]]
     name = "Get started"
+    icon = "rocket"     # docs/icon.html name; group.html gives it to the eyebrow, Next cards and the docs home card
     pages = ["/docs/what-is-kuberik/", "/docs/getting-started/", "/docs/installation/"]
 
   [params.sidebar]

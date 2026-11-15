@@ -212,5 +212,4 @@ kuberik_rollout_bake_status{bake_status="Succeeded",customresource_group="kuberi
 
 ## Next steps
 
-- [Verify with Health Checks](/docs/gates/health-checks/): decide what makes a bake fail
-- [Datadog](/docs/integrations/datadog/): fail a deploy when a Datadog monitor alerts
+{{< next "/docs/gates/health-checks/" "/docs/integrations/datadog/" >}}

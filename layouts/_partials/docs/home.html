@@ -42,7 +42,10 @@
     <ul class="kdh-grid">
       {{- range $i, $j := .Params.journeys }}
       <li class="kdh-card {{ if modBool $i 2 }}kdh-mint{{ else }}kdh-lagoon{{ end }}">
-        {{- $head := printf `<span class="kdh-tile">%s</span><span class="kdh-card-title">%s</span>` (partial "docs/icon.html" $j.icon) $j.title -}}
+        {{- /* icon: the group's (docs/group.html: section front matter, or hugo.toml for Get started), so the home card,
+             the section index head and the Next steps cards share it; the journey's own icon is only the fallback */ -}}
+        {{- $icon := $j.icon }}{{ with $j.url }}{{ with site.GetPage . }}{{ $icon = (partial "docs/group.html" .).icon | default $icon }}{{ end }}{{ end -}}
+        {{- $head := printf `<span class="kdh-tile">%s</span><span class="kdh-card-title">%s</span>` (partial "docs/icon.html" $icon) $j.title -}}
         {{- with $j.url }}<a class="kdh-card-head" href="{{ . }}">{{ $head | safeHTML }}<span class="kdh-card-go">{{ $arrow }}</span></a>{{ else }}<div class="kdh-card-head">{{ $head | safeHTML }}</div>{{ end }}
         <p class="kdh-card-body">{{ $j.outcome }}</p>
         <ul class="kdh-links">

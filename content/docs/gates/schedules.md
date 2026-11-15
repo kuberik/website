@@ -1,6 +1,5 @@
 ---
 title: "Set Deployment Windows"
-linkTitle: "Deployment Windows"
 description: "Allow or deny deploys by time of day, day of week or date range."
 type_: guide
 weight: 30
@@ -152,6 +151,4 @@ While the window is closed, the dashboard holds the rollout and names the schedu
 
 ## Next steps
 
-- [Require a Manual Approval](/docs/gates/approvals/): hold a deploy until a person approves it
-- [Wait for Service Dependencies](/docs/gates/dependencies/): hold a service until another one has shipped
-- [Annotations](/docs/reference/annotations/): every annotation Kuberik reads
+{{< next "/docs/gates/approvals/" "/docs/gates/dependencies/" "/docs/reference/annotations/" >}}

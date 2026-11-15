@@ -177,8 +177,8 @@ html.dark .kd-wash::before{opacity:.5}
 .kd-content blockquote{padding-left:16px;border-left:2px solid var(--line);color:var(--ink-muted);font-style:normal}
 
 /* links */
-.kd-content a:not(.hextra-card):not(.kd-eyebrow):not(.subheading-anchor):not(.kd-pager-card):not(.kd-next-card){color:var(--kd-link);text-decoration:underline;text-decoration-thickness:1px;text-underline-offset:3px;text-decoration-color:var(--kd-link-line);transition:text-decoration-color .15s}
-.kd-content a:not(.hextra-card):not(.kd-eyebrow):not(.subheading-anchor):not(.kd-pager-card):not(.kd-next-card):hover{text-decoration-color:currentColor}
+.kd-content a:not(.hextra-card):not(.kd-eyebrow):not(.subheading-anchor):not(.kd-pager-card):not(.kd-next-card):not(.kd-index-row){color:var(--kd-link);text-decoration:underline;text-decoration-thickness:1px;text-underline-offset:3px;text-decoration-color:var(--kd-link-line);transition:text-decoration-color .15s}
+.kd-content a:not(.hextra-card):not(.kd-eyebrow):not(.subheading-anchor):not(.kd-pager-card):not(.kd-next-card):not(.kd-index-row):hover{text-decoration-color:currentColor}
 
 /* inline code: the landing's title-body code chip */
 .kd-content :where(code):not(:where(.hextra-code-block code,pre code)){padding:1px 6px;border:1px solid var(--line);border-radius:6px;background:var(--page-alt);color:var(--ink);font:500 .84em/1 var(--mono);white-space:normal;overflow-wrap:break-word;-webkit-box-decoration-break:clone;box-decoration-break:clone}
@@ -231,8 +231,14 @@ html.dark .kd-content :where(code):not(:where(.hextra-code-block code,pre code))
 .kd-callout-body :where(ul,ol){margin-top:6px}
 .kd-callout-body .hextra-code-block{margin-top:12px}
 .kd-callout-default{background:var(--kd-tip-bg);border-color:var(--kd-tip-line)}.kd-callout-default .kd-callout-icon{color:var(--kd-tip-ink)}
-.kd-callout-warning,.kd-callout-important{background:var(--kd-warn-bg);border-color:var(--kd-warn-line)}
-.kd-callout-warning .kd-callout-icon,.kd-callout-important .kd-callout-icon{color:var(--kd-warn-ink)}
+.kd-callout-warning{background:var(--kd-warn-bg);border-color:var(--kd-warn-line)}
+.kd-callout-warning .kd-callout-icon{color:var(--kd-warn-ink)}
+/* availability note (`important`, R2-DES-7): quiet, no fill, hairline, lagoon release glyph; one family with .kd-needs */
+.kd-callout-important{padding:10px 14px;gap:10px;background:transparent;border-color:var(--line);font-size:14px;line-height:22px}
+.kd-callout-important .kd-callout-icon{height:22px;color:var(--kd-eyebrow)}
+.kd-callout-important .kd-callout-icon .kd-icon{width:16px;height:16px}
+.kd-needs{display:inline-flex;align-items:center;gap:4px;height:20px;padding:0 6px;border:1px solid color-mix(in oklab,var(--kd-eyebrow) 40%,transparent);border-radius:4px;background:transparent;color:var(--kd-eyebrow);font:600 11px/16px var(--sans);letter-spacing:.06em;text-transform:uppercase;white-space:nowrap;vertical-align:1px}
+.kd-needs .kd-icon{width:12px;height:12px;flex:none}
 .kd-callout-error{background:var(--kd-err-bg);border-color:var(--kd-err-line)}.kd-callout-error .kd-callout-icon{color:var(--kd-err-ink)}
 
 /* ---------- chip (badge) ---------- */
@@ -243,17 +249,84 @@ html.dark .kd-content :where(code):not(:where(.hextra-code-block code,pre code))
 .kd-chip-blue{border-color:var(--kd-chip-blue-line);background:var(--kd-chip-blue-bg);color:var(--kd-chip-blue-ink)}
 .kd-chip-violet{border-color:var(--kd-chip-violet-line);background:var(--kd-chip-violet-bg);color:var(--kd-chip-violet-ink)}
 
-/* ---------- table: card shell ---------- */
-.kd-content table{display:block;width:100%;max-width:100%;margin:24px 0 0;overflow-x:auto;border:1px solid var(--line);border-radius:12px;border-collapse:separate;border-spacing:0;font:400 14px/22px var(--sans);scrollbar-width:thin}
-.kd-content table thead,.kd-content table tbody{width:100%}
-.kd-content table tr{background:transparent!important;border:0!important}
-.kd-content table :is(th,td){padding:10px 16px;border:0!important;border-bottom:1px solid var(--line)!important;text-align:left;vertical-align:top;min-width:120px;background:transparent}
-.kd-content table th{background:var(--page-alt);font:600 13px/20px var(--sans);color:var(--ink-subtle);white-space:nowrap}
-html.dark .kd-content table th{background:oklch(1 0 0/.03)}
-.kd-content table tbody tr:last-child td{border-bottom:0!important}
-.kd-content table td:first-child{color:var(--ink);font-weight:500}
-.kd-content table td{color:var(--ink-muted)}
-@media(min-width:768px){.kd-content table{display:table;overflow:hidden}.kd-content table :is(th,td){min-width:0}}
+/* ---------- table: card shell (layouts/_markup/render-table.html, R2-DES-1) ----------
+   .kd-table is the frame (radius 12, 1px line, clip) and never moves; .kd-table-scroll scrolls sideways inside it
+   when the columns cannot fit, so the page never scrolls. The key column never wraps (whole code tokens, >= 140)
+   and is pinned while the rest scrolls; prose cells wrap. Edge fades (.kd-more-l/-r, set by the hook's script)
+   and a thin always-visible scrollbar say there is more. */
+.kd-table{position:relative;margin:24px 0 0;border:1px solid var(--line);border-radius:12px;overflow:hidden;background:var(--page)}
+.kd-table-scroll{overflow-x:auto;overscroll-behavior-x:contain;scrollbar-width:thin;scrollbar-color:color-mix(in oklab,var(--ink-subtle) 45%,transparent) transparent}
+.kd-table-scroll:focus-visible{outline:2px solid var(--mint);outline-offset:-2px;border-radius:12px}
+.kd-table-scroll::-webkit-scrollbar{height:6px}
+.kd-table-scroll::-webkit-scrollbar-thumb{background:color-mix(in oklab,var(--ink-subtle) 45%,transparent);border-radius:3px}
+.kd-table::before,.kd-table::after{content:'';position:absolute;top:0;bottom:0;width:32px;pointer-events:none;opacity:0;transition:opacity .15s;z-index:2}
+.kd-table::after{right:0;background:linear-gradient(to left,var(--page),transparent)}
+.kd-table::before{left:var(--kd-key-w,0px);background:linear-gradient(to right,color-mix(in oklab,var(--ink) 10%,transparent),transparent);width:12px}
+.kd-table.kd-more-r::after,.kd-table.kd-more-l::before{opacity:1}
+.kd-content .kd-table table{display:table;width:100%;min-width:100%;margin:0;border:0;border-radius:0;border-collapse:separate;border-spacing:0;font:400 14px/22px var(--sans);overflow:visible}
+.kd-content .kd-table tr{background:transparent!important;border:0!important}
+.kd-content .kd-table :is(th,td){padding:10px 16px;border:0!important;border-bottom:1px solid var(--line)!important;text-align:left;vertical-align:top;min-width:96px;background:var(--page)}
+.kd-content .kd-table th{background:var(--page-alt);font:600 13px/20px var(--sans);color:var(--ink-subtle);white-space:nowrap}
+html.dark .kd-content .kd-table th{background:color-mix(in oklab,var(--page) 97%,white)}
+.kd-content .kd-table tbody tr:last-child td{border-bottom:0!important}
+.kd-content .kd-table td{color:var(--ink-muted)}
+/* raw HTML tables (the generated API reference): the same card, scrolling as a whole on phones */
+.kd-content table:not(.kd-table table){display:block;width:100%;margin:24px 0 0;overflow-x:auto;border:1px solid var(--line);border-radius:12px;border-collapse:separate;border-spacing:0;font:400 14px/22px var(--sans);scrollbar-width:thin}
+.kd-content table:not(.kd-table table) :is(th,td){padding:10px 16px;border:0!important;border-bottom:1px solid var(--line)!important;text-align:left;vertical-align:top;background:transparent}
+.kd-content table:not(.kd-table table) th{background:var(--page-alt);font:600 13px/20px var(--sans);color:var(--ink-subtle);white-space:nowrap}
+html.dark .kd-content table:not(.kd-table table) th{background:color-mix(in oklab,var(--page) 97%,white)}
+.kd-content table:not(.kd-table table) tr{background:transparent!important;border:0!important}
+.kd-content table:not(.kd-table table) tbody tr:last-child td{border-bottom:0!important}
+.kd-content table:not(.kd-table table) td{color:var(--ink-muted)}
+.kd-content table:not(.kd-table table) td:first-child{min-width:140px;color:var(--ink);font-weight:500}
+.kd-content table:not(.kd-table table) td:first-child code{white-space:nowrap}
+@media(min-width:768px){.kd-content table:not(.kd-table table){display:table;overflow:hidden}}
+@media(max-width:640px){
+  .kd-content table:not(.kd-table table) thead{position:absolute;width:1px;height:1px;overflow:hidden;clip-path:inset(50%)}
+  .kd-content table:not(.kd-table table) :is(tbody,tr,td){display:block}
+  .kd-content table:not(.kd-table table) tr{padding:12px 12px 14px;border-bottom:1px solid var(--line)!important}
+  .kd-content table:not(.kd-table table) tbody tr:last-child{border-bottom:0!important}
+  .kd-content table:not(.kd-table table) td{padding:0!important;border:0!important;min-width:0}
+  .kd-content table:not(.kd-table table) td + td{margin-top:6px}
+}
+/* key column: never wraps, pinned */
+.kd-content .kd-table :is(th,td):first-child{min-width:140px;white-space:nowrap}
+.kd-content .kd-table[data-key=prose] :is(th,td):first-child{white-space:normal;width:30%;max-width:240px}
+.kd-content .kd-table.kd-pin :is(th,td):first-child{position:sticky;left:0;z-index:1}
+.kd-content .kd-table td:first-child{color:var(--ink);font-weight:500}
+.kd-content .kd-table td:first-child code{white-space:nowrap}
+/* code in other cells (and in sentence keys): wraps at spaces only, never inside a token; a long token widens its column and the card scrolls */
+.kd-content .kd-table td:not(:first-child) code,.kd-content .kd-table[data-key=prose] td:first-child code{white-space:normal;overflow-wrap:normal;word-break:normal}
+/* prose column: the last column of a 3+ column table is the explanation; give it a reading width */
+.kd-content .kd-table:is([data-cols="3"],[data-cols="4"],[data-cols="5"],[data-cols="6"]) :is(th,td):last-child{min-width:220px}
+.kd-content .kd-table td:first-child p{margin:0}
+/* spec rows: 5+ columns at every width, 3+ columns on phones (render-table.html). Key line, labelled meta line, prose. */
+.kd-content .kd-spec thead{position:absolute;width:1px;height:1px;overflow:hidden;clip-path:inset(50%)}
+.kd-content .kd-spec :is(table,tbody){display:block}
+.kd-content .kd-spec tr{display:flex;flex-wrap:wrap;align-items:baseline;column-gap:20px;row-gap:4px;padding:14px 18px 16px;border-bottom:1px solid var(--line)!important}
+.kd-content .kd-spec tbody tr:last-child{border-bottom:0!important}
+.kd-content .kd-spec td{display:block;padding:0!important;min-width:0!important;border:0!important;background:transparent;font:400 13px/20px var(--sans)}
+.kd-content .kd-spec td:first-child{flex:1 0 100%;position:static;white-space:normal;margin-bottom:4px;font:500 14px/22px var(--sans)}
+.kd-content .kd-spec td:first-child code{white-space:nowrap;font-size:13px}
+.kd-content .kd-spec td:not(:first-child):not(:last-child)::before{content:attr(data-label);margin-right:6px;font:500 12px/20px var(--sans);color:var(--ink-subtle)}
+.kd-content .kd-spec td:not(:first-child):not(:last-child) code{font-size:.92em}
+.kd-content .kd-spec td:last-child{flex:1 0 100%;min-width:0!important;margin-top:4px;font:400 14px/22px var(--sans);color:var(--ink-muted)}
+@media(max-width:640px){
+  .kd-content .kd-spec tr{padding:12px 12px 14px;column-gap:14px}
+  .kd-content .kd-spec td:first-child code{font-size:12px;padding-inline:5px}
+  .kd-content .kd-table:not(.kd-spec)[data-stack] thead{position:absolute;width:1px;height:1px;overflow:hidden;clip-path:inset(50%)}
+  .kd-content .kd-table:not(.kd-spec)[data-stack] :is(table,tbody,tr,td){display:block}
+  .kd-content .kd-table:not(.kd-spec)[data-stack] tr{padding:12px 12px 14px;border-bottom:1px solid var(--line)!important}
+  .kd-content .kd-table:not(.kd-spec)[data-stack] tbody tr:last-child{border-bottom:0!important}
+  .kd-content .kd-table:not(.kd-spec)[data-stack] td{position:static;padding:0!important;min-width:0!important;max-width:none;width:auto;border:0!important;background:transparent;white-space:normal;font:400 14px/22px var(--sans)}
+  .kd-content .kd-table:not(.kd-spec)[data-stack] td:first-child{margin-bottom:6px;font-weight:500}
+  .kd-content .kd-table:not(.kd-spec)[data-stack] td + td{margin-top:6px}
+  .kd-content .kd-table:not(.kd-spec)[data-stack] td + td::before{content:attr(data-label);display:block;font:500 12px/18px var(--sans);color:var(--ink-subtle)}
+  .kd-content .kd-table[data-stack] td:first-child code{white-space:normal;overflow-wrap:normal}
+  .kd-content .kd-table[data-stack][data-cols="2"] td + td::before{display:none}
+}
+@media(min-width:768px){.kd-content .kd-table :is(th,td){min-width:80px;padding:10px 14px}.kd-content .kd-table:is([data-cols="3"],[data-cols="4"]) :is(th,td):last-child{min-width:200px}}
+@media(max-width:640px){.kd-content .kd-table :is(th,td){padding:10px 12px}.kd-content .kd-table:is([data-cols="3"],[data-cols="4"],[data-cols="5"],[data-cols="6"]) :is(th,td):last-child{min-width:200px}}
 
 /* ---------- steps: the progress rail ---------- */
 .hextra-steps{margin:32px 0 48px 12px!important;padding-left:28px!important;border-left:1px solid var(--line)!important;counter-reset:step}
@@ -309,25 +382,49 @@ html.dark .kd-content table th{background:oklch(1 0 0/.03)}
 .kd-is-index .hextra-toc{display:none}
 .kd-is-index .kd-main{max-width:calc(var(--kd-read) + var(--kd-toc) + var(--kd-gap))}
 @media(min-width:1280px){.kd-is-index .kd-section-cards .hextra-cards{grid-template-columns:repeat(3,minmax(0,1fr))!important}}
+/* group tile tones: the docs home card canvases (docs-home.css .kdh-card / .kdh-mint / .kdh-ref-card) */
+.kd-tone-mint{background:var(--canvas-mint)!important;color:var(--mint-ink)!important}
+.kd-tone-lagoon{background:var(--canvas-lagoon)!important;color:var(--kd-eyebrow)!important}
+.kd-tone-neutral{background:var(--page-alt)!important;color:var(--ink-muted)!important}
+html.dark .kd-tone-neutral{background:oklch(1 0 0/.05)!important}
+/* index head: the group's home-card tile where other pages carry the eyebrow (docs/page.html) */
+.kd-index-tile{display:flex;align-items:center;justify-content:center;width:40px;height:40px;margin:0 0 16px;border-radius:10px}
+.kd-index-tile .kd-icon{width:20px;height:20px}
+/* index list: the home card expanded (layouts/_partials/docs/section-list.html) */
+.kd-content ul.kd-index-list{margin:32px 0 0;padding:4px var(--card-pad,24px);list-style:none;border:1px solid var(--card-border);border-radius:12px;background:var(--card-fill);box-shadow:var(--card-shadow)}
+.kd-content ul.kd-index-list > li{margin:0;padding:0;border-top:1px solid var(--line)}
+.kd-content ul.kd-index-list > li:first-child{border-top:0}
+.kd-index-row{position:relative;display:grid;grid-template-columns:minmax(0,1fr);gap:4px;padding:16px 32px 16px 0;text-decoration:none!important}
+.kd-index-row::after{content:'';position:absolute;right:0;top:50%;margin-top:-7px;width:14px;height:14px;background:var(--ink-subtle);transition:transform .15s,background-color .15s;-webkit-mask:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 16 16'%3E%3Cpath d='M3 8h10M9 4l4 4-4 4' fill='none' stroke='black' stroke-width='1.5' stroke-linecap='round' stroke-linejoin='round'/%3E%3C/svg%3E") center/14px no-repeat;mask:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 16 16'%3E%3Cpath d='M3 8h10M9 4l4 4-4 4' fill='none' stroke='black' stroke-width='1.5' stroke-linecap='round' stroke-linejoin='round'/%3E%3C/svg%3E") center/14px no-repeat}
+.kd-index-title{font:600 16px/24px var(--sans);letter-spacing:-.01em;color:var(--ink);transition:color .15s}
+.kd-index-desc{font:400 15px/22px var(--sans);color:var(--ink-muted);text-wrap:pretty}
+.kd-index-row:hover .kd-index-title{color:var(--mint-ink)}
+.kd-index-row:hover::after{background:var(--mint-ink);transform:translateX(2px)}
+@media(min-width:1024px){.kd-index-row{grid-template-columns:280px minmax(0,1fr);gap:24px;align-items:baseline;padding:18px 40px 18px 0}}
+@media(max-width:640px){.kd-content ul.kd-index-list{padding:0 16px;margin-top:24px}.kd-index-row{padding:14px 28px 14px 0}.kd-index-title{font-size:15px;line-height:22px}.kd-index-desc{font-size:14px;line-height:20px}}
 
-/* ---------- next steps / related: compact link cards (docs/page.html list transform, {{< next >}} shortcode).
-   The pager card's shell (radius 12, card border/fill, mint border on hover) with the title over a one-line outcome
-   and an arrow; hextra card blocks under the same headings are drawn the same way, so one role has one look. ---------- */
-.kd-content ul.kd-next{display:grid;grid-template-columns:repeat(auto-fill,minmax(240px,1fr));gap:12px;margin:20px 0 0;padding:0;list-style:none}
-.kd-content ul.kd-next > li{margin:0}
-.kd-next-card{position:relative;display:flex;flex-direction:column;gap:2px;height:100%;padding:12px 40px 14px 16px;border:1px solid var(--card-border);border-radius:12px;background:var(--card-fill);text-decoration:none!important;transition:border-color .15s}
-.kd-next-card::after{content:'';position:absolute;right:16px;top:16px;width:14px;height:14px;background:var(--ink-subtle);transition:transform .15s,background-color .15s;-webkit-mask:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 16 16'%3E%3Cpath d='M3 8h10M9 4l4 4-4 4' fill='none' stroke='black' stroke-width='1.5' stroke-linecap='round' stroke-linejoin='round'/%3E%3C/svg%3E") center/14px no-repeat;mask:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 16 16'%3E%3Cpath d='M3 8h10M9 4l4 4-4 4' fill='none' stroke='black' stroke-width='1.5' stroke-linecap='round' stroke-linejoin='round'/%3E%3C/svg%3E") center/14px no-repeat}
-.kd-next-card:hover{border-color:color-mix(in oklab,var(--mint) 55%,var(--line))}
+/* ---------- next steps / related: {{< next >}} (layouts/_shortcodes/next.html), the one component for both headings.
+   The pager card's shell (radius 12, card border/fill, mint border + arrow nudge on hover) with the docs home card's
+   icon tile at 28px; group name (the eyebrow role, lagoon 12/16) over the target's title over its description. ---------- */
+.kd-content ul.kd-next{display:grid;grid-template-columns:repeat(auto-fill,minmax(200px,1fr));gap:12px;margin:20px 0 0;padding:0;list-style:none}
+.kd-content ul.kd-next > li{margin:0;padding:0}
+.kd-content ul.kd-next > li::before{display:none}
+.kd-next-card{position:relative;display:flex;flex-direction:column;gap:12px;height:100%;padding:14px 16px 16px;border:1px solid var(--card-border);border-radius:12px;background:var(--card-fill);box-shadow:var(--card-shadow);text-decoration:none!important;transition:border-color .15s,transform .15s}
+.kd-next-card:hover{border-color:color-mix(in oklab,var(--mint) 55%,var(--line));transform:translateY(-1px)}
+.kd-next-tile{display:inline-flex;align-items:center;justify-content:center;width:28px;height:28px;border-radius:8px;background:var(--canvas-mint);color:var(--mint-ink)}
+.kd-next-tile .kd-icon{width:16px;height:16px}
+.kd-next-card::after{content:'';position:absolute;right:16px;top:21px;width:14px;height:14px;background:var(--ink-subtle);transition:transform .15s,background-color .15s;-webkit-mask:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 16 16'%3E%3Cpath d='M3 8h10M9 4l4 4-4 4' fill='none' stroke='black' stroke-width='1.5' stroke-linecap='round' stroke-linejoin='round'/%3E%3C/svg%3E") center/14px no-repeat;mask:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 16 16'%3E%3Cpath d='M3 8h10M9 4l4 4-4 4' fill='none' stroke='black' stroke-width='1.5' stroke-linecap='round' stroke-linejoin='round'/%3E%3C/svg%3E") center/14px no-repeat}
 .kd-next-card:hover::after{background:var(--mint-ink);transform:translateX(2px)}
+.kd-next-text{display:flex;flex-direction:column;gap:2px;min-width:0}
+.kd-next-group{font:500 12px/16px var(--sans);color:var(--kd-eyebrow)}
 .kd-next-title{font:600 15px/22px var(--sans);letter-spacing:-.01em;color:var(--ink)}
-.kd-next-title code{font-size:.84em}
-.kd-next-desc{font:400 14px/20px var(--sans);color:var(--ink-muted)}
-.kd-next-desc:empty{display:none}
-.kd-next-desc::first-letter{text-transform:uppercase}
-.kd-content h2:has(> span[id^="next-steps"],> span[id^="related"]) + .hextra-cards{grid-template-columns:repeat(auto-fill,minmax(240px,1fr))!important;gap:12px!important;margin-top:20px}
-.kd-content h2:has(> span[id^="next-steps"],> span[id^="related"]) + .hextra-cards a.hextra-card{padding:12px 16px 14px;box-shadow:none!important}
-.kd-content h2:has(> span[id^="next-steps"],> span[id^="related"]) + .hextra-cards .hextra-card-icon svg{width:28px;height:28px;padding:6px}
-.kd-content h2:has(> span[id^="next-steps"],> span[id^="related"]) + .hextra-cards .hextra-card-subtitle{padding-left:40px!important;padding-top:2px!important}
+.kd-next-desc{margin-top:2px;font:400 14px/20px var(--sans);color:var(--ink-muted)}
+@media(max-width:640px){
+  .kd-content ul.kd-next{grid-template-columns:minmax(0,1fr);gap:8px}
+  .kd-next-card{flex-direction:row;align-items:flex-start;gap:12px;padding:12px 40px 14px 14px}
+  .kd-next-tile{flex:none;margin-top:2px}
+  .kd-next-card::after{top:50%;margin-top:-7px}
+}
 
 /* ---------- phones ---------- */
 @media(max-width:640px){
@@ -339,6 +436,6 @@ html.dark .kd-content table th{background:oklch(1 0 0/.03)}
 }
 @media(min-width:2400px){
   .kd-content{font-size:17px;line-height:30px}
-  .kd-content table{font-size:15px}
+  .kd-content .kd-table table{font-size:15px}
   .kd-code-body pre,.hextra-code-block pre{font-size:14px!important;line-height:24px!important}
 }

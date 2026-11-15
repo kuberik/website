@@ -83,6 +83,4 @@ None of these skips the bake. It still waits for the health checks to turn `Heal
 
 ## Related
 
-- [Rollouts](/docs/concepts/rollouts/): how a release is chosen, deployed and baked
-- [Gate Deploys](/docs/gates/): one guide per kind of gate
-- [Troubleshoot](/docs/operate/troubleshooting/): what to check when a gate holds a release you expected to deploy
+{{< next "/docs/concepts/rollouts/" "/docs/gates/" "/docs/operate/troubleshooting/" >}}

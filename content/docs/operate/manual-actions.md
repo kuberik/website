@@ -134,6 +134,4 @@ A deploy that follows a failed or cancelled bake, or a hand deploy that starts w
 
 ## Next steps
 
-- [Rollouts](/docs/concepts/rollouts/): gating, the bake and the failed-bake hold
-- [Require a Manual Approval](/docs/gates/approvals/): gates that wait for a person
-- [Annotations](/docs/reference/annotations/#rollout-action-annotations): every annotation on this page
+{{< next "/docs/concepts/rollouts/" "/docs/gates/approvals/" "/docs/reference/annotations/#rollout-action-annotations" >}}

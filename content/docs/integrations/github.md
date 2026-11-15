@@ -147,7 +147,4 @@ kubectl logs -n kuberik-system deployment/environment-controller-manager
 
 ## Next steps
 
-{{< cards >}}
-  {{< card title="Promote Across Environments" link="/docs/releases/promote/" icon="switch-horizontal" subtitle="Deploy to production only after staging shipped the release." >}}
-  {{< card title="Environments" link="/docs/concepts/environments/" icon="server" subtitle="How tiers, sites and waves decide what may deploy." >}}
-{{< /cards >}}
+{{< next "/docs/releases/promote/" "/docs/concepts/environments/" >}}
