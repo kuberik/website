@@ -63,9 +63,10 @@
 .kd-content .kd-tocm-sub > summary::before{display:none!important}
 .kd-content .kd-tocm-sub[open] > summary{border-bottom:0}
 .kd-content .kd-tocm-sub > summary::-webkit-details-marker{display:none}
-.kd-content .kd-tocm-sub > summary a{flex:1;min-width:0}
-.kd-content .kd-tocm-sub > summary::after{content:'';width:7px;height:7px;border:solid var(--ink-subtle);border-width:0 1.5px 1.5px 0;transform:rotate(45deg);margin-top:-3px;transition:transform .15s}
-.kd-content .kd-tocm-sub[open] > summary::after{transform:rotate(225deg);margin-top:3px}
+.kd-content .kd-tocm-sub > summary a{flex:0 1 auto;min-width:0}
+/* R6-DES-11: the chevron is a 44px toggle cell (the rest of the row toggles too); only the label navigates */
+.kd-content .kd-tocm-sub > summary::after{content:'';flex:none;width:44px;height:44px;margin:-3px -14px -3px 0;background:var(--ink-subtle);-webkit-mask:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='black' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='m7 10 5 5 5-5'/%3E%3C/svg%3E") center/16px no-repeat;mask:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='black' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='m7 10 5 5 5-5'/%3E%3C/svg%3E") center/16px no-repeat;border:0;transform:none;transition:transform .15s}
+.kd-content .kd-tocm-sub[open] > summary::after{transform:rotate(180deg);margin-top:-3px}
 .kd-top{position:fixed;right:16px;bottom:16px;z-index:30;display:none;align-items:center;justify-content:center;width:44px;height:44px;border:1px solid var(--card-border);border-radius:999px;background:var(--card-fill);box-shadow:var(--card-shadow);color:var(--ink);cursor:pointer}
 .kd-top svg{width:18px;height:18px}
 .kd-top.is-on{display:inline-flex}

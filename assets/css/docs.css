@@ -98,6 +98,12 @@ html.dark .kd-wash::before{opacity:.5}
 
 /* sidebar */
 .kd-shell .hextra-sidebar-container{order:1;background:var(--page)}
+/* one breakpoint (R6-DES-1): hextra's own `@media (max-width:48rem)` rule (position:fixed, bottom:0, padding-top, z-index) is
+   inclusive, so at exactly 768px it fights its `md:sticky` (>= 768); the drawer is < 768 and the desktop sidebar >= 768, so the
+   desktop block resets every property that hextra rule sets */
+@media(min-width:768px){
+  .kd-shell .hextra-sidebar-container{position:sticky;bottom:auto;z-index:auto;padding-top:0;overscroll-behavior:auto}
+}
 @media(min-width:768px){
   .kd-shell .hextra-sidebar-container{width:var(--kd-side);flex:none;top:64px;background:transparent}
   .kd-shell .hextra-sidebar-container > .hextra-scrollbar{padding:32px 8px 32px 0;margin-left:-10px;height:calc(100vh - 64px)}
@@ -169,6 +175,8 @@ html.dark .kd-wash::before{opacity:.5}
 .kd-content :is(h2,h3,h4) + p{margin-top:8px}
 .kd-content :is(h2,h3,h4) span[id]{margin-top:-96px}
 .kd-content .subheading-anchor::after{color:var(--line)}
+/* R6-A-4: the permalink is a zero-width box after the last word, so it never wraps to a line of its own under a heading that fills the measure */
+.kd-content :is(h1,h2,h3,h4) .subheading-anchor{display:inline-block;width:0;overflow:visible;white-space:nowrap;vertical-align:baseline}
 .kd-content li{margin:6px 0 0}
 .kd-content :where(ul,ol){padding-left:22px}
 .kd-content ul > li::marker{color:var(--ink-subtle)}
@@ -203,6 +211,8 @@ html .kd-content kbd{display:inline-block;margin:0 1px;padding:0 6px;border:1px 
 .kd-copy:hover{background:oklch(1 0 0/.08)!important;color:var(--band-ink)!important}
 .kd-copy:focus-visible{outline:2px solid oklch(.85 .11 182);outline-offset:0}
 .kd-copy-icon{display:inline-flex;width:15px;height:15px}
+/* R6-C-6: on phones the copy button is its icon alone (still 44px wide to tap), so a long filename keeps its room */
+@media(max-width:640px){.kd-copy .kd-copy-l,.kd-copy .kd-copy-done{display:none!important}.kd-copy{width:44px;padding:0;justify-content:center}.kd-copy-wrap{right:4px}.kd-code-name{white-space:normal;overflow:visible;align-items:center}.kd-code-name > span,.kd-code-name > a{overflow:visible;text-overflow:clip;font-size:12px;line-height:16px;overflow-wrap:anywhere}}
 .kd-copy-icon svg{width:15px;height:15px}
 .kd-copy .hextra-success-icon,.kd-copy .kd-copy-done{display:none}
 .kd-copy.copied .hextra-success-icon,.kd-copy.copied .kd-copy-done{display:inline-flex}
@@ -221,7 +231,12 @@ html:root .hextra-code-block .chroma :is(.nt){color:var(--kd-code-ink);font-weig
 .hextra-code-block:has(code:is([data-lang=bash],[data-lang=sh],[data-lang=shell],[data-lang=console],[data-lang=zsh])) .kd-code-head{color:var(--band-muted)}
 html:root .hextra-code-block:has(code:is([data-lang=bash],[data-lang=sh],[data-lang=shell],[data-lang=console],[data-lang=zsh])) .chroma :is(.nb,.bp,.nf,.fm,.nv,.vc,.vg,.vi,.nl,.k,.kd){color:var(--band-ink);font-weight:400}
 html:root .hextra-code-block .chroma :is(.kc){color:var(--kd-code-val)}
-html:root .hextra-code-block .chroma :is(.s,.s1,.s2,.sb,.sc,.sd,.se,.sh,.si,.sx,.sr,.ss,.dl,.l,.ld,.m,.mi,.mf,.mh,.mo,.il,.na,.no){color:var(--kd-code-val)}
+/* R6-DES-6: scalars follow the landing window: plain strings (and YAML quoted strings) stay the key grey, lagoon is for numbers, durations and booleans */
+html:root .hextra-code-block .chroma :is(.m,.mi,.mf,.mh,.mo,.il,.na,.no){color:var(--kd-code-val)}
+html:root .hextra-code-block .chroma :is(.l,.ld){color:var(--kd-code-ink)}
+html:root .hextra-code-block .chroma :is(.s,.s1,.s2,.sb,.sc,.sd,.se,.sh,.si,.sx,.sr,.ss,.dl){color:var(--kd-code-val)}
+html:root .hextra-code-block .chroma code[data-lang=yaml] :is(.s,.s1,.s2,.sd){color:var(--kd-code-ink)}
+html:root .hextra-code-block .chroma .kd-kind{color:var(--kd-code-key);font-weight:500}
 html:root .hextra-code-block .chroma :is(.nv,.vc,.vg,.vi){color:var(--kd-code-key)}
 html:root .hextra-code-block .chroma :is(.c,.c1,.cm,.cs,.ch,.cp,.cpf){color:var(--kd-code-dim);font-style:normal}
 html:root .hextra-code-block .chroma :is(.o,.ow,.p,.err,.w,.x,.cl){color:var(--kd-code-ink);font-weight:400}
@@ -408,7 +423,7 @@ html.dark .kd-tone-neutral{background:oklch(1 0 0/.05)!important}
   .kd-content h2{margin-top:40px;font-size:22px;line-height:30px}
   .kd-content h1 + p{font-size:17px;line-height:26px}
   .kd-code-body pre,.hextra-code-block pre{font-size:12px!important;line-height:20px!important;padding:14px 16px!important}
-  .kd-code-head{padding-right:96px}
+  .kd-code-head{padding-right:56px}
   .kd-code-lang{display:none}
   .kd-callout{padding:12px 14px;gap:10px}
 }
