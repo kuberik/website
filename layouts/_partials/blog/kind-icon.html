@@ -1,0 +1,3 @@
+{{- /* Icon name (docs/icon.html) for a post's first tag: the tile is how the list tells a release from an announcement. */ -}}
+{{- $i := "page" }}{{ if eq . "Release" }}{{ $i = "releases" }}{{ else if eq . "Announcement" }}{{ $i = "rocket" }}{{ end -}}
+{{- return $i -}}

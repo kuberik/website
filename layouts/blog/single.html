@@ -1,0 +1,46 @@
+{{- /* BLOG POST (R7). Role: one post on the docs article shell: kd-article / kd-main at the 680 reading width, the docs
+     type scale, code windows, figures (render-image hook), callouts, tables, the phone "On this page" disclosure and the
+     TOC rail from 1280, the shared header, footer and pager. Reference: docs/page.html, which this mirrors (eyebrow,
+     h1, lead = first paragraph, then the page-specific line, then the rest); it differs in three places only: the
+     eyebrow is a link back to /blog/, the lead is followed by the post meta line (date, authors, tags; blog.css .kb-meta)
+     and there is no sidebar from 768 (kept for the phone drawer). The "On this page" block is a copy of docs/page.html's
+     (the shell lane owns that file): fold both when it moves to a partial. */ -}}
+{{ define "main" }}
+{{- $c := string .Content -}}
+<div class="kd-wash"><div class="kd-shell kb-shell">
+  {{ partial "sidebar.html" (dict "context" .) }}
+  {{ partial "toc.html" . }}
+  <article class="kd-article" id="kd-article">
+    <main class="kd-main">
+      <div class="content kd-content">
+        <a class="kd-eyebrow" href="{{ site.Home.RelPermalink }}blog/">Blog</a>
+        <h1>{{ .Title }}</h1>
+        {{- $lead := "" }}{{ with findRE `(?s)\A\s*<p>.*?</p>` $c 1 }}{{ $lead = index . 0 }}{{ end -}}
+        {{- $rest := strings.TrimPrefix $lead $c -}}
+        {{ $lead | safeHTML }}
+        <div class="kb-meta">
+          <span>{{ .Date | time.Format ":date_long" }}</span>
+          {{- with .Params.authors }}{{ range . }}
+          {{- if reflect.IsMap . }}<a class="kb-author"{{ with .link }} href="{{ . }}" target="_blank" rel="noopener"{{ end }}>{{ with .image }}<img src="{{ . | safeURL }}" alt="" width="20" height="20" loading="lazy">{{ end }}{{ .name }}</a>{{ else }}<span>{{ . }}</span>{{ end }}
+          {{- end }}{{ end }}
+          {{- range .Params.tags }}<span class="kb-tag">{{ . }}</span>{{ end }}
+        </div>
+        {{- $l2 := slice }}{{ range .Fragments.Headings }}{{ range .Headings }}{{ if .Title }}{{ $l2 = $l2 | append . }}{{ else }}{{ range .Headings }}{{ if .Title }}{{ $l2 = $l2 | append . }}{{ end }}{{ end }}{{ end }}{{ end }}{{ end -}}
+        {{- $n := len $l2 }}{{ range $l2 }}{{ range .Headings }}{{ if .Title }}{{ $n = add $n 1 }}{{ end }}{{ end }}{{ end -}}
+        {{- if and (ne .Params.toc false) (ge $n 3) }}
+        <details class="kd-tocm"><summary>{{ T "onThisPage" | default "On this page" }}</summary>
+          <ol>{{ range $l2 }}
+            <li><a class="kd-tocm-a" href="#{{ .ID }}">{{ .Title | plainify | htmlUnescape }}</a></li>
+          {{- end }}</ol>
+        </details>
+        <button type="button" class="kd-top" id="kd-top" aria-label="Back to top"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="m6 15 6-6 6 6"/></svg></button>
+        <script>(function(){var b=document.getElementById('kd-top');if(!b)return;b.addEventListener('click',function(){scrollTo({top:0,behavior:'smooth'})});addEventListener('scroll',function(){b.classList.toggle('is-on',scrollY>900)},{passive:true})})()</script>
+        {{- end }}
+        {{ $rest | safeHTML }}
+      </div>
+      {{- .Store.Set "reversePagination" (.Params.reversePagination | default true) -}}
+      {{ partial "components/pager.html" . }}
+    </main>
+  </article>
+</div></div>
+{{ end }}
