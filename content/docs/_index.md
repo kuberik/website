@@ -19,8 +19,8 @@ journeys:
     outcome: "Install the controller and deploy an app with Flux."
     links:
       - { url: "/docs/what-is-kuberik/", title: "What Is Kuberik" }
-      - { url: "/docs/getting-started/", title: "Deploy Your First App" }
       - { url: "/docs/installation/helm/", title: "Install with Helm" }
+      - { url: "/docs/getting-started/", title: "Deploy Your First App" }
   - title: "Concepts"
     url: "/docs/concepts/"
     icon: book
