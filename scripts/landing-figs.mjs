@@ -344,6 +344,41 @@ function staircase(name, k, { room }) {
 staircase('staircase-done', 'st', { room: 116 });
 staircase('staircase-done-compact', 'stc', { room: 240 }); // at 350 px wide (390) the chips get ~126 px; needs the wrapper at 100% (lane D, install.css)
 
+// ---- docs home: release -> gates -> environments (docs shell lane, 2026-11-14) -----------------------
+// The docs front door's one drawing: Fig 3's gate plate set in front of the install staircase, so the whole
+// path reads left to right. The newest release waits on the gate plate, three passed gate tiles send the Gates
+// wire into development, and the staircase climbs to a lit production. Static: no keyframes (the docs page is read, not watched), so it adds nothing to thesis.css.
+// Written to layouts/_partials/docs-figs/ (STYLE s6), drawn with the same primitives on the same lattice.
+function docsHome(name, { room }) {
+	begin(); let b = '';
+	const env = [0, 1, 2].map((i) => ({ py: -i * W, z: i * RISE, tier: ['dev', 'staging', 'prod'][i], label: ['development', 'staging', 'production'][i] }));
+	for (let i = 2; i >= 0; i--) {
+		const e = env[i];
+		b += plate({ px: 0, py: e.py, z: e.z, t: T + e.z, cls: i === 2 ? 'is-healthy' : '', ring: i !== 2 });
+		if (i === 2) b += ring({ px: CX, py: e.py + CX, z: e.z, r: 2.5 * U, cls: 'fig-ring-rest' });
+	}
+	for (let i = 2; i >= 0; i--) b += cube({ px: CX, py: env[i].py + CX, z: env[i].z });
+	// the gate plate: one gap in front of development, Fig 3's tiles and wires shifted by one plate + gap
+	const GY = W + GW;
+	b += plate({ px: 0, py: GY, tiles: false, ring: false, cls: 'fig-gateplate' });
+	const cols = [2 * U, 5 * U, 8 * U], ports = [3 * U, 5 * U, 7 * U];
+	cols.forEach((x) => { b += rect2({ x: x - U, y: GY + 3 * U, z: 0, w: 2 * U, h: 2 * U, rx: 4, cls: 'fig-gtile is-pass' }); });
+	cols.forEach((x, i) => { b += wire({ x1: x, y1: GY + 3 * U, x2: ports[i], y2: W, ty: W + GW / 2, cls: 'is-pass' }); });
+	// the newest release waits on the gate plate, in front of the tiles it has to pass
+	b += cube({ px: CX, py: GY + 8 * U });
+	const anchors = [...env.map((e) => P(0, e.py + W - R, e.z)), P(0, GY + W - R, 0)];
+	grow(BB[0] - room, BB[1]);
+	const { vb, html } = svg(name, b, { shelf: false, pad: 4 });
+	const chip = (i, cls, label) => { const [x, y] = anchors[i]; return `<span class="fig-chip ${cls}" style="--x:${f((x - vb[0]) / vb[2] * 100)}%;--y:${f((y - vb[1]) / vb[3] * 100)}%">${label}</span>`; };
+	const chips = env.map((e, i) => chip(i, `fig-chip-${e.tier}`, e.label)).join('') + chip(3, 'fig-chip-gate', 'gates');
+	const dir = join(ROOT, 'layouts', '_partials', 'docs-figs');
+	mkdirSync(dir, { recursive: true });
+	writeFileSync(join(dir, `${name}.html`), HEAD + `<div class="stair stair-docs" style="aspect-ratio:${vb[2]}/${vb[3]}">${html}${chips}</div>` + '\n');
+	console.log('wrote docs-figs/' + name);
+}
+docsHome('docs-home', { room: 104 });
+docsHome('docs-home-compact', { room: 200 });
+
 // ---- the stylesheet half ---------------------------------------------------------------------------
 // One marked block at the end of assets/css/thesis.css: the hand-written fig tokens and rules
 // (landing-figs.rules.css), then the keyframes above.

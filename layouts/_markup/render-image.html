@@ -1,0 +1,41 @@
+{{- /* Markdown images render as screenshot figures (R2-DES-5, R2-DES-17).
+     ROLE. A dashboard screenshot is a figure: it sits on the same plate as the kit figures ({{< fig >}},
+     docs-figs.css .df-card: page-alt fill, 1px line, radius 12) and its caption, when the image has a title
+     (![alt](src "Caption.")), uses the kit caption (.df-cap, 14/20 ink-muted). The alt text stays the screen-reader
+     description; the title is the one visible sentence.
+     SIZE. width/height come from the file itself (imageConfig on static/, or the resource under assets/ or the page
+     bundle), so a lazy image reserves its box before it loads: the inline width (capped by max-width:100% in docs-b.css) plus aspect-ratio give the unloaded <img> its final box (a bare width attribute lost to width:auto in the flex plate and left a 2x2 box). Files 1600 px and wider are 2x captures (the
+     2880x1800 dashboard shots), so their attributes are halved to CSS pixels.
+     STYLE. docs-b.css (.kd-shot). Overrides hextra's render-image.html, which emits a bare <img>. The standalone image is
+     not wrapped in a <p> (markup.goldmark.parser.wrapStandAloneImageWithinParagraph = false), so the <figure> is
+     valid HTML; an image inside a sentence (.IsBlock false) stays an inline <img> with its size. */ -}}
+{{- $alt := .PlainText -}}
+{{- $dest := .Destination -}}
+{{- $url := urls.Parse $dest -}}
+{{- $w := 0 -}}{{- $h := 0 -}}
+{{- if not $url.Scheme -}}
+  {{- with or (.PageInner.Resources.Get $url.Path) (resources.Get $url.Path) -}}
+    {{- $dest = .RelPermalink -}}
+    {{- if eq .ResourceType "image" -}}{{- $w = .Width -}}{{- $h = .Height -}}{{- end -}}
+  {{- else -}}
+    {{- $file := path.Join "static" $url.Path -}}
+    {{- if and (hasPrefix $url.Path "/") (fileExists $file) -}}
+      {{- with imageConfig $file -}}{{- $w = .Width -}}{{- $h = .Height -}}{{- end -}}
+      {{- $dest = relURL (strings.TrimPrefix "/" $dest) -}}
+    {{- end -}}
+  {{- end -}}
+{{- end -}}
+{{- if ge $w 1600 -}}{{- $w = div $w 2 -}}{{- $h = div $h 2 -}}{{- end -}}
+{{- $size := "" -}}
+{{- if $w -}}{{- $size = printf ` width="%d" height="%d" style="width:%dpx;aspect-ratio:%d/%d"` $w $h $w $w $h -}}{{- end -}}
+{{- $attrs := "" -}}
+{{- range $k, $v := .Attributes -}}{{- if $v -}}{{- $attrs = printf "%s %s=%q" $attrs $k ($v | transform.HTMLEscape) -}}{{- end -}}{{- end -}}
+{{- $img := printf `<img src="%s" alt="%s"%s%s loading="lazy" decoding="async">` ($dest | safeURL) ($alt | transform.HTMLEscape) $size $attrs -}}
+{{- if .IsBlock -}}
+<figure class="kd-shot{{ if and $w (lt $w 480) }} is-crop{{ end }}{{ if hasPrefix $url.Path "/screenshots/" }} is-framed{{ end }}">
+  <div class="kd-shot-plate">{{ $img | safeHTML }}</div>
+  {{- with .Title }}<figcaption class="df-cap">{{ . | markdownify }}</figcaption>{{ end }}
+</figure>
+{{- else -}}
+{{ $img | safeHTML }}
+{{- end -}}

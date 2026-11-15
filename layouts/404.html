@@ -1,0 +1,24 @@
+{{- /* 404 (R3-IA-13): the site header (docs nav + search) and footer around a short message and the docs sections.
+     Role: get a lost reader back into the docs. Reference: the docs-home reference row (docs-home.css .kdh-ref-card)
+     in spirit; a 404 is a rare page, so it reuses base.css buttons (.btn-line) for the section links rather than a new card.
+     Sections come from data/footer.yaml, the same list as the footer's Docs column. */ -}}
+{{ define "main" }}
+<section class="cont kd-404" aria-labelledby="kd-404-h">
+  <p class="kd-404-code">404</p>
+  <h1 id="kd-404-h">This page could not be found.</h1>
+  <p class="kd-404-lead">It may have moved when the docs were reorganised. Search the docs, or start from a section.</p>
+  <div class="kd-404-search">{{ partial "search.html" (dict "params" (dict)) }}</div>
+  <nav class="kd-404-links" aria-label="Docs sections">
+    {{- range site.Data.footer.docs }}<a class="btn btn-line" href="{{ .href }}">{{ .name }}</a>{{ end -}}
+  </nav>
+</section>
+<style>
+.kd-404{padding:96px 0 120px}
+.kd-404-code{margin:0 0 12px;font-family:var(--mono,ui-monospace,monospace);font-size:14px;color:var(--ink-subtle)}
+.kd-404 h1{margin:0 0 12px;font-size:32px;line-height:1.2;color:var(--ink)}
+.kd-404-lead{margin:0 0 28px;max-width:60ch;color:var(--ink-muted);font-size:16px;line-height:1.6}
+.kd-404-search .hextra-search-wrapper{width:min(360px,100%)}
+.kd-404-links{display:flex;flex-wrap:wrap;gap:8px;margin-top:28px}
+@media(max-width:640px){.kd-404{padding:56px 0 72px}.kd-404 h1{font-size:26px}}
+</style>
+{{ end }}

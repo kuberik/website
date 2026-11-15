@@ -1,0 +1,24 @@
+{{- /* The docs pages in sidebar order, flattened (layouts/_partials/sidebar.html builds the same tree: pseudo-groups
+     from front matter sidebar.group or params.docsSidebar.groups, then sections, each section page before its pages).
+     Returns a slice of pages; sidebar.exclude pages are left out. Used by the pager so Previous/Next walk the sidebar. */ -}}
+{{- $root := site.GetPage "/docs" -}}
+{{- $cfg := dict -}}
+{{- range site.Params.docsSidebar.groups }}{{ $name := .name }}{{ range .pages }}{{ $cfg = merge $cfg (dict . $name) }}{{ end }}{{ end -}}
+{{- $items := where (union $root.RegularPages $root.Sections) "Params.sidebar.exclude" "!=" true -}}
+{{- $groupOf := dict -}}
+{{- range $items }}{{ $u := .RelPermalink }}{{ with .Params.sidebar.group | default (index $cfg $u) }}{{ $groupOf = merge $groupOf (dict $u .) }}{{ end }}{{ end -}}
+{{- $out := slice -}}
+{{- $done := dict -}}
+{{- range $items.ByWeight -}}
+  {{- $g := index $groupOf .RelPermalink | default "" -}}
+  {{- $batch := slice . -}}
+  {{- if $g -}}
+    {{- if index $done $g }}{{ $batch = slice }}{{ else -}}
+      {{- $done = merge $done (dict $g true) -}}
+      {{- $m := slice }}{{ range $items }}{{ if eq (index $groupOf .RelPermalink | default "") $g }}{{ $m = $m | append . }}{{ end }}{{ end -}}
+      {{- $batch = sort $m "Weight" -}}
+    {{- end -}}
+  {{- end -}}
+  {{- range $batch }}{{ $out = $out | append (partial "docs/nav-order-walk.html" .) }}{{ end -}}
+{{- end -}}
+{{- return $out -}}

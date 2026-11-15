@@ -1,0 +1,12 @@
+{{- /* Badge = the product chip (landing fig-chip shape: 20 tall, radius 4, 11/16 600 uppercase). Colour by meaning
+     (docs.css .kd-chip-*): green healthy/allowed, red failed/denied, amber waiting/held (yellow, orange, amber),
+     blue deploying, violet staging (purple, indigo), gray neutral. Same parameters as hextra's badge. */ -}}
+{{- $color := .color | default .type | default "" -}}
+{{- $mapping := dict "default" "gray" "tip" "green" "info" "blue" "warning" "amber" "error" "red" "important" "violet" "yellow" "amber" "orange" "amber" "purple" "violet" "indigo" "violet" -}}
+{{- $color = index $mapping $color | default $color | default "gray" -}}
+{{- if not (in (slice "gray" "green" "red" "amber" "blue" "violet") $color) }}{{ $color = "gray" }}{{ end -}}
+<span class="kd-chip kd-chip-{{ $color }} {{ .class | default "" }}">
+  {{- with .icon -}}{{- partial "utils/icon" (dict "name" . "attributes" "height=12") -}}{{- end -}}
+  {{- .content -}}
+</span>
+{{- /* Strip trailing newline. */ -}}

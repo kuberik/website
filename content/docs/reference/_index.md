@@ -1,13 +1,11 @@
 ---
 title: "Reference"
-weight: 6
+description: "Every resource field and annotation Kuberik reads or writes."
+type_: index
+icon: braces   # docs/icon.html; the docs home card, this page head and Next cards use it
+weight: 70
 sidebar:
   open: false
 ---
 
-API reference for Kuberik Custom Resource Definitions.
-
-{{< cards >}}
-  {{< card title="API Reference" link="/docs/reference/api/" icon="code" >}}
-  {{< card title="Annotations" link="/docs/reference/annotations/" icon="tag" >}}
-{{< /cards >}}
+Look up every field of Kuberik's custom resources and every annotation it reads or writes.

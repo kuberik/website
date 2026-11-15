@@ -1,7 +1,14 @@
-{{/* Load Montserrat for the navbar brand title — matches the landing + dashboard. */}}
-<link rel="preconnect" href="https://fonts.googleapis.com">
-<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Montserrat:wght@300;400;500&display=swap">
+{{- /* Docs and blog pages share the landing's design files (landing v6): tokens.css (palette, type scale, Inter and
+     JetBrains Mono), base.css (nav, buttons, pills, .cont) and footer.css, imported as-is, then docs.css for the docs
+     roles (DIRECTION in .work/docs/visual). hextra's own CSS is in @layer, so these unlayered rules win. */ -}}
+{{- $docsCss := slice (resources.Get "css/tokens.css") (resources.Get "css/base.css") (resources.Get "css/footer.css") (resources.Get "css/docs.css") (resources.Get "css/docs-figs.css") (resources.Get "css/docs-b.css") (resources.Get "css/docs-cards.css") | resources.Concat "css/docs-all.css" | minify | fingerprint -}}
+<link rel="preload" href="{{ "islands/fonts/inter-latin-opsz.woff2" | relURL }}" as="font" type="font/woff2" crossorigin>
+<link rel="stylesheet" href="{{ $docsCss.RelPermalink }}" integrity="{{ $docsCss.Data.Integrity }}">
+{{- /* the docs home (layout: docs-home) also draws the kit figure (thesis.css fig rules) and its own regions */ -}}
+{{- if eq .Layout "docs-home" }}
+{{- $homeCss := slice (resources.Get "css/thesis.css") (resources.Get "css/docs-home.css") | resources.Concat "css/docs-home-all.css" | minify | fingerprint }}
+<link rel="stylesheet" href="{{ $homeCss.RelPermalink }}" integrity="{{ $homeCss.Data.Integrity }}">
+{{- end }}
 
 {{/* Link previews: image dimensions + author. The theme emits og:image from
      `images` front matter but not its size; scrapers such as LinkedIn treat a

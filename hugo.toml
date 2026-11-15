@@ -4,7 +4,7 @@ title = 'kuberik'
 theme = 'hextra'
 
 [params]
-  rollout_controller_version = "v0.9.2"
+  rollout_controller_version = "v0.11.0"
   rollout_dashboard_version = "v0.9.1"
   openkruise_controller_version = "v0.4.0"
   latest_release = "v0.9.0"
@@ -27,6 +27,13 @@ theme = 'hextra'
     displayCopyright = true
     displayPoweredBy = false
 
+  # Docs sidebar pseudo-groups (layouts/_partials/sidebar.html): pages that are not one folder but one reader job.
+  # Front matter `sidebar: {group: "..."}` on a page does the same; this list covers pages that must not be edited.
+  [[params.docsSidebar.groups]]
+    name = "Get started"
+    icon = "rocket"     # docs/icon.html name; group.html gives it to the eyebrow, Next cards and the docs home card
+    pages = ["/docs/what-is-kuberik/", "/docs/getting-started/", "/docs/installation/"]
+
   [params.sidebar]
     autoCollapseState = false
     collapsible = false
@@ -42,9 +49,14 @@ theme = 'hextra'
 
 [markup]
   [markup.goldmark]
+    [markup.goldmark.parser]
+      # a standalone image renders as a <figure> (layouts/_markup/render-image.html), so no <p> around it
+      wrapStandAloneImageWithinParagraph = false
     [markup.goldmark.renderer]
       unsafe = true
   [markup.highlight]
+    # classes, not inline styles: docs.css colours code with the landing's code-window tokens
+    noClasses = false
     style = 'github-dark'
 
 [menu]

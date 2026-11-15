@@ -1,276 +1,157 @@
 ---
-title: "Datadog Integration"
-weight: 3
+title: "Datadog"
+description: "Fail a deploy when a Datadog monitor alerts, and hold deploys while a Datadog incident is open."
+type_: integration
+weight: 30
 ---
 
-Use Datadog monitors as health check sources for your rollouts.
+Kuberik reads Datadog monitors and incidents as health checks. A monitor that alerts after a deploy fails that deploy, and an open incident holds new deploys until it is resolved.
 
-## Overview
+## What you need
 
-Kuberik can verify deployments by checking **DatadogMonitor** resource status:
+| Requirement | Why |
+|---|---|
+| datadog-controller v0.2.0 or later | Turns monitors and incidents into [`HealthCheck`](/docs/gates/health-checks/) status. Earlier versions support only `DatadogMonitor` resources |
+| A Datadog API key and application key | For the `datadog` and `datadog-incidents` classes. The application key needs `monitors_read`, plus `incident_read` for incidents and `timeseries_query` for the values the dashboard draws |
+| The [Datadog Operator](https://docs.datadoghq.com/containers/datadog_operator/) (optional) | Only for `DatadogMonitor` resources |
 
-```mermaid
-flowchart LR
-    %% Styles
-    classDef datadog fill:#632CA6,stroke:#fff,stroke-width:2px,color:#fff
-    classDef kuberik fill:#4B4BE8,stroke:#fff,stroke-width:2px,color:#fff
-    classDef crd fill:#2D7E9D,stroke:#fff,stroke-width:2px,color:#fff
-    classDef boundary fill:#F3F4F6,stroke:#D1D5DB,stroke-width:1px,color:#374151,stroke-dasharray: 5 5
+## Give the controller credentials
 
-    subgraph Datadog
-        MON[Monitor Status]:::datadog
-    end
+The controller reads one set of credentials for the whole cluster, from a Secret named `datadog-credentials` in the `kuberik-system` namespace (the Helm chart creates the namespace). Install the controller, create the Secret, and restart the controller so it reads the Secret:
 
-    subgraph Cluster
-        direction TB
-        DDM[DatadogMonitor CRD]:::crd
-
-        subgraph Kuberik
-            HC[HealthCheck]:::kuberik
-            RO[Rollout]:::kuberik
-        end
-    end
-
-    MON --> DDM
-    DDM --> HC
-    HC --> RO
-
-    class Kuberik boundary
+```bash {filename="Terminal"}
+kubectl apply -f https://github.com/kuberik/datadog-controller/releases/download/v0.2.0/install.yaml
+kubectl -n kuberik-system create secret generic datadog-credentials \
+  --from-literal=api-key=<your-api-key> \
+  --from-literal=app-key=<your-app-key> \
+  --from-literal=site=datadoghq.eu
+kubectl -n kuberik-system rollout restart deployment datadog-controller-controller-manager
 ```
 
-If a Datadog monitor is alerting during bake time, the rollout is marked failed.
+The controller maps the keys to `DD_API_KEY`, `DD_APP_KEY` and `DD_SITE`. Leave out `site` if your account is on `datadoghq.com`. The Helm chart's `integrations.datadog` reads the same Secret (`existingSecret`, default `datadog-credentials`), but it still installs datadog-controller v0.1.0, so use the install manifest above for now. Without credentials, every `datadog` and `datadog-incidents` HealthCheck stays `Pending` with the message `datadog API credentials are not configured: set DD_API_KEY and DD_APP_KEY`.
 
----
+## Fail a deploy on alerting monitors
 
+A `datadog` HealthCheck selects monitors by tag, by ID, or both, and turns `Unhealthy` while any selected monitor alerts. Tag the monitors that should gate deploys, for example with `service:hello-world` and `deploy-gate:true`:
 
+```yaml {filename="healthcheck-monitors.yaml"}
+apiVersion: kuberik.com/v1alpha1
+kind: HealthCheck
+metadata:
+  name: hello-world-monitors
+  namespace: hello-world
+  labels:
+    app: hello-world  # the Rollout selects on this
+  annotations:
+    healthcheck.kuberik.com/datadog-monitor-tags: "service:hello-world,deploy-gate:true"
+    healthcheck.kuberik.com/datadog-group-tags: "env:production"
+spec:
+  class: datadog
+```
 
-## Setup
+| Annotation | Value |
+|---|---|
+| `healthcheck.kuberik.com/datadog-monitor-tags` | Comma-separated tags. A monitor is selected when it carries all of them |
+| `healthcheck.kuberik.com/datadog-monitor-ids` | Comma-separated monitor IDs, such as `"123456,234567"` |
+| `healthcheck.kuberik.com/datadog-group-tags` | Optional. Narrows a multi-group monitor to the groups that match, such as the `env:production` group of a monitor grouped by `env` |
+| `healthcheck.kuberik.com/requeue-interval` | Optional. How often to poll Datadog. Default `60s`; values under `10s` are ignored |
 
-### Create DatadogMonitor
+Set at least one of `datadog-monitor-tags` and `datadog-monitor-ids`. Selecting by tag means a new monitor joins the gate when you tag it, and no monitor ever blocks a deploy by being missing: if no monitor carries the tags, the HealthCheck is `Healthy` and its message says nothing was evaluated.
 
-Define a monitor that checks your application health:
+## Hold deploys during an incident
 
-```yaml {filename="datadog-monitor.yaml"}
+A `datadog-incidents` HealthCheck is `Unhealthy` while any active or stable Datadog incident matches a search query. It does not depend on any monitor.
+
+```yaml {filename="healthcheck-incidents.yaml"}
+apiVersion: kuberik.com/v1alpha1
+kind: HealthCheck
+metadata:
+  name: hello-world-incidents
+  namespace: hello-world
+  labels:
+    app: hello-world
+  annotations:
+    healthcheck.kuberik.com/datadog-incident-query: "services:hello-world AND severity:(SEV-1 OR SEV-2)"
+spec:
+  class: datadog-incidents
+```
+
+The controller sends `state:(active OR stable) AND <your query>` to Datadog's incident search. Join facets with `AND`, and put parentheses only around one facet's values.
+
+## Use DatadogMonitor resources
+
+If you manage monitors with the Datadog Operator, annotate a `DatadogMonitor` with `kuberik.com/health-check: "true"`. The controller creates a HealthCheck named `datadog-check-<monitor name>` in the same namespace, with class `datadog-monitor-crd` and a copy of the monitor's labels.
+
+```yaml {filename="datadogmonitor.yaml"}
 apiVersion: datadoghq.com/v1alpha1
 kind: DatadogMonitor
 metadata:
-  name: my-app-error-rate
-  namespace: default
-  annotations:
-    # Enable as Kuberik health check
-    kuberik.com/health-check: "true"
+  name: hello-world-error-rate
+  namespace: hello-world
   labels:
-    # Used by Rollout to select this check
-    app: my-app
+    app: hello-world  # copied to the generated HealthCheck
+  annotations:
+    kuberik.com/health-check: "true"
 spec:
-  name: "My App Error Rate"
+  name: "hello-world error rate"
   type: metric alert
-  query: "avg(last_5m):sum:my_app.errors{env:production} > 10"
-  message: "Error rate too high"
-  tags:
-    - "env:production"
-    - "team:platform"
+  query: "sum(last_5m):sum:hello_world.errors{env:production}.as_count() > 10"
+  message: "hello-world returns errors after a deploy"
 ```
 
-Apply it:
-```bash
-kubectl apply -f datadog-monitor.yaml
-```
+Removing the annotation deletes the generated HealthCheck. This path needs no Datadog credentials, because the Datadog Operator syncs the monitor state into the resource. The controller checks for the `DatadogMonitor` CRD once, at startup: if you install the Operator after the controller, restart the controller.
 
-### Connect to Rollout
+## Select the checks from the Rollout
 
-Configure your Rollout to select Datadog monitors:
+The [`Rollout`](/docs/concepts/rollouts/) picks up every HealthCheck whose labels match `healthCheckSelector`, in its own namespace unless you add a `namespaceSelector`:
 
 ```yaml {filename="rollout.yaml"}
 apiVersion: kuberik.com/v1alpha1
 kind: Rollout
 metadata:
-  name: my-app
+  name: hello-world
+  namespace: hello-world
 spec:
   releaseSourceRef:
-    name: my-app
-  versionHistoryLimit: 5
-  bakeTime: 10m
-
-  # Select monitors with matching labels
+    name: hello-world
+  bakeTime: 10m  # the checks must stay clear this long
   healthCheckSelector:
     selector:
       matchLabels:
-        app: my-app
+        app: hello-world
 ```
 
----
+Check that the HealthChecks report a status:
 
-## How It Works
-
-During bake time:
-
-1. Kuberik finds DatadogMonitors with `kuberik.com/health-check: "true"`
-2. Filters by `healthCheckSelector` labels
-3. Checks each monitor's status
-4. If any monitor is in `Alert` state → rollout fails
-5. If all monitors are `OK` → rollout proceeds
-
-![DatadogMonitors as health checks on the rollout page, with the APM service linked next to them](/screenshots/dashboard/overview-prod.png)
-
----
-
-## Monitor Types
-
-Kuberik supports all Datadog monitor types:
-
-| Type | Use Case |
-|------|----------|
-| `metric alert` | Error rates, latency thresholds |
-| `service check` | Service availability |
-| `event alert` | Error log patterns |
-| `process alert` | Process health |
-
-### Example: Latency Monitor
-
-```yaml {filename="error-rate-monitor.yaml"}
-spec:
-  name: "P99 Latency"
-  type: metric alert
-  query: "avg(last_5m):percentile(my_app.request.latency{env:production}, 0.99) > 500"
-  message: "P99 latency exceeds 500ms"
+```bash {filename="Terminal"}
+kubectl -n hello-world get healthchecks -o custom-columns=NAME:.metadata.name,CLASS:.spec.class,STATUS:.status.status,MESSAGE:.status.message
 ```
 
-### Example: Error Rate Monitor
+## How it works
 
-```yaml
-spec:
-  name: "Error Rate"
-  type: metric alert
-  query: "sum(last_5m):sum:my_app.errors{env:production} / sum:my_app.requests{env:production} > 0.01"
-  message: "Error rate exceeds 1%"
-```
+{{< fig id="datadog-health-paths" caption="datadog-controller turns monitors and incidents into HealthChecks; the Rollout reads only the HealthChecks." >}}
 
----
+The controller writes Datadog's state into the HealthCheck status:
 
-## Check Datadog Without the Operator
+| Datadog state | `datadog` class | `datadog-monitor-crd` class |
+|---|---|---|
+| `OK` | `Healthy` | `Healthy` |
+| `Alert` | `Unhealthy` | `Unhealthy` |
+| `Warn`, `No Data`, `Skipped`, `Ignored` | `Healthy` | `Pending` |
+| API error or unknown monitor ID | `Pending` | Not applicable |
 
-Skip the Datadog Operator and `DatadogMonitor` CRD entirely. The `datadog-api` class polls the Datadog API directly for an existing monitor's status.
+The Rollout starts the bake once every selected HealthCheck is `Healthy`, and fails the deploy if any of them turns `Unhealthy` after the deploy started. While a check is `Unhealthy`, the Rollout also holds new automatic deploys and reports `DeploymentBlocked` with reason `UnhealthyHealthChecks`. See [Verify with Health Checks](/docs/gates/health-checks/) for the full rules.
 
-Create a secret with your Datadog credentials:
+## Troubleshoot
 
-```bash
-kubectl create secret generic datadog-credentials \
-  --from-literal=api-key=YOUR_API_KEY \
-  --from-literal=app-key=YOUR_APP_KEY
-```
+| Symptom | Cause | Fix |
+|---|---|---|
+| No `datadog-check-*` HealthCheck appears, and the controller log says `DatadogMonitor CRD not installed` | The Datadog Operator was installed after the controller started | Run `kubectl -n kuberik-system rollout restart deployment datadog-controller-controller-manager` |
+| HealthCheck `Pending`: `datadog API credentials are not configured` | No `datadog-credentials` Secret in the controller's namespace | Create the Secret, then restart the controller so it reads the new environment |
+| HealthCheck `Healthy`: `No Datadog monitors carry tags [...]` | No monitor has every listed tag | Tag the monitors in Datadog, or fix the annotation |
+| HealthCheck `Pending`: `get monitor <id>: ...` | The monitor ID does not exist, or the application key lacks `monitors_read` | Check the ID and the key's scopes |
+| No `datadog-check-*` HealthCheck appears | The `DatadogMonitor` has no `kuberik.com/health-check: "true"` annotation | Add the annotation with the value in quotes |
 
-Create the HealthCheck, pointing at the monitor by ID:
+## Next steps
 
-```yaml {filename="healthcheck-datadog-api.yaml"}
-apiVersion: kuberik.com/v1alpha1
-kind: HealthCheck
-metadata:
-  name: my-app-error-rate
-  namespace: production
-  annotations:
-    healthcheck.kuberik.com/datadog-monitor-id: "12345678"
-    healthcheck.kuberik.com/datadog-credentials-secret: "datadog-credentials"
-    # healthcheck.kuberik.com/datadog-site: "datadoghq.eu"
-    # healthcheck.kuberik.com/requeue-interval: "60s"
-spec:
-  class: datadog-api
-```
-
-```bash
-kubectl apply -f healthcheck-datadog-api.yaml
-```
-
-`OK` maps to `Healthy`, `Alert` maps to `Unhealthy`, and `Warn`/`NoData`/`Skipped`/`Ignored` map to `Pending`.
-
-Supported `datadog-site` values: `datadoghq.com` (default), `datadoghq.eu`, `us3.datadoghq.com`, `us5.datadoghq.com`, `ap1.datadoghq.com`.
-
----
-
-## Block Rollouts During Incidents
-
-The `datadog-incidents` class goes unhealthy while any open Datadog incident matches a set of labels - independent of any specific monitor. Use it to block rollouts during an active incident.
-
-```yaml {filename="healthcheck-datadog-incidents.yaml"}
-apiVersion: kuberik.com/v1alpha1
-kind: HealthCheck
-metadata:
-  name: payments-incidents-check
-  namespace: production
-  annotations:
-    healthcheck.kuberik.com/datadog-incident-labels: "team:payments,env:prod"
-    healthcheck.kuberik.com/datadog-credentials-secret: "datadog-credentials"
-spec:
-  class: datadog-incidents
-```
-
-```bash
-kubectl apply -f healthcheck-datadog-incidents.yaml
-```
-
-The controller searches for non-resolved incidents (`-state:resolved`) matching every given label. Any match flips the HealthCheck to `Unhealthy`.
-
----
-
-## Best Practices
-
-### Use Bake-Specific Monitors
-
-Create monitors specifically for deployment verification:
-
-```yaml
-metadata:
-  name: my-app-deploy-check
-  annotations:
-    kuberik.com/health-check: "true"
-spec:
-  query: "avg(last_2m):avg:my_app.startup.success{version:${version}} < 0.99"
-```
-
-### Appropriate Thresholds
-
-- Set thresholds that catch real issues
-- Avoid flaky monitors that alert randomly
-- Use `last_5m` or longer for stability
-
-### Separate Labels
-
-Use distinct labels for deployment checks vs. alerting:
-
-```yaml
-labels:
-  app: my-app
-  purpose: deployment-gate  # Only select these for rollouts
-```
-
----
-
-## Troubleshooting
-
-### Monitor not being checked
-
-1. Verify annotation is present:
-   ```bash
-   kubectl get datadogmonitor my-app-monitor -o yaml
-   ```
-
-2. Check labels match Rollout selector:
-   ```bash
-   kubectl describe rollout my-app
-   ```
-
-### False positives
-
-If monitors are too sensitive:
-- Increase evaluation window (`last_5m` → `last_10m`)
-- Adjust thresholds
-- Add `no data` handling
-
----
-
-## Next Steps
-
-{{< cards >}}
-  {{< card title="Health Checks" link="/docs/guides/health-checks/" icon="shield-check" subtitle="All health check options" >}}
-  {{< card title="API Reference" link="/docs/reference/api/" icon="code" subtitle="Full schema details" >}}
-{{< /cards >}}
+{{< next "/docs/gates/health-checks/" "/docs/reference/annotations/" >}}

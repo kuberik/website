@@ -1,28 +1,37 @@
 ---
-title: "Getting Started"
-weight: 2
+title: "Deploy Your First App"
+description: "Deploy an app with a Rollout, a ReleaseSource and Flux, then watch Kuberik ship a new release."
+type_: tutorial
+weight: -10
 sidebar:
   open: true
 tabs:
   sync: true
 ---
 
-Deploy your first application with Kuberik. This guide assumes you have a cluster with [FluxCD](https://fluxcd.io) and [Kuberik](/docs/installation/helm/) installed (the Helm chart includes the release-controller that serves `ReleaseSource`).
+Deploy `hello-world` with Kuberik. At the end, every build your CI publishes is picked up by a [`ReleaseSource`](/docs/releases/publish/) and deployed by a [`Rollout`](/docs/concepts/rollouts/) through Flux.
 
-Kuberik propagates one of two things through your environments:
+Before you start, you need:
 
-| Mode | What Kuberik moves | Where your manifests come from |
-|------|--------------------|--------------------------------|
-| **Image tag** | The application image tag, written into a Flux `Kustomization` as a substitution variable | A `GitRepository` |
-| **Rendered manifests** | The tag on a Flux `OCIRepository` holding the manifests CI already rendered | An `OCIRepository`, one artifact per environment |
+- A cluster with [Flux](https://fluxcd.io) 2.6 or later.
+- [Kuberik](/docs/installation/helm/) from the chart release after 0.7.0 {{< needs "Next release" >}}. This tutorial uses `ReleaseSource` and `spec.releaseSourceRef`, which chart 0.7.0 and its rollout-controller v0.9.2 do not have.
+- A GitHub repository, here `acme/hello-world`, whose CI can push to `ghcr.io/acme/hello-world`.
 
-Pick a mode in the tabs below and it carries through the guide. Both modes use the same `Rollout`, the same gates, and the same health checks. See [Propagation Modes](/docs/concepts/propagation/) for how to choose.
+Pick Image tag or Rendered manifests in the tabs below; [Propagation Modes](/docs/concepts/propagation/) explains the difference.
 
 {{% steps %}}
 
+### Create the namespace
+
+Kuberik looks up the `ReleaseSource`, `Kustomization` and `OCIRepository` in the Rollout's own namespace, so everything on this page goes into one namespace.
+
+```bash {filename="Terminal"}
+kubectl create namespace hello-world
+```
+
 ### Create a ReleaseSource
 
-Tell Kuberik which artifact to scan for new versions. A `ReleaseSource` lists the tags of an OCI repository, orders them by a policy, and keeps the result as the catalogue of releases your Rollout reads. Your CI publishes these artifacts with `main-<sha>-<timestamp>` tags — see [Publishing Releases](/docs/guides/publishing-releases/) for the workflows.
+A `ReleaseSource` lists the tags of an OCI repository, orders them by a policy, and keeps the result as the catalogue of releases your Rollout reads. CI tags each build `main-<sha>-<timestamp>`, and the policy orders by the timestamp.
 
 {{< tabs >}}
   {{< tab name="Image tag" >}}
@@ -32,172 +41,217 @@ Tell Kuberik which artifact to scan for new versions. A `ReleaseSource` lists th
   apiVersion: kuberik.com/v1alpha1
   kind: ReleaseSource
   metadata:
-    name: hello-world-app
+    name: hello-world
     namespace: hello-world
   spec:
     oci:
-      image: ghcr.io/kuberik/hello-world/app
+      image: ghcr.io/acme/hello-world
       filterTags:
-        pattern: '^main-[a-f0-9]+-(?P<ts>[0-9]+)'
+        pattern: '^main-[a-f0-9]+-(?P<ts>[0-9]+)$'
         extract: '$ts'
       policy:
         numerical:
-          order: asc # the highest timestamp is the newest release
+          order: asc  # the highest timestamp is the newest release
   ```
   {{< /tab >}}
 
   {{< tab name="Rendered manifests" >}}
-  Scan the manifest artifact CI pushes for this environment. A ReleaseSource reads tags from an OCI artifact the same way it reads them from a container image, so the setup is identical apart from the repository path.
+  Scan the manifest artifact CI pushes for the production environment. The setup is the same as for an image apart from the repository path.
 
   ```yaml {filename="releasesource.yaml"}
   apiVersion: kuberik.com/v1alpha1
   kind: ReleaseSource
   metadata:
-    name: hello-world-app
+    name: hello-world
     namespace: hello-world
   spec:
     oci:
-      image: ghcr.io/kuberik/hello-world/prod/manifests
+      image: ghcr.io/acme/hello-world/production/manifests
       filterTags:
-        pattern: '^main-[a-f0-9]+-(?P<ts>[0-9]+)'
+        pattern: '^main-[a-f0-9]+-(?P<ts>[0-9]+)$'
         extract: '$ts'
       policy:
         numerical:
-          order: asc # the highest timestamp is the newest release
+          order: asc  # the highest timestamp is the newest release
   ```
   {{< /tab >}}
 {{< /tabs >}}
 
-Private registry? Add `secretRef` under `oci` with the name of an image pull secret in the same namespace. Releases are kept for 7 days and at least 30 are retained; tune this with `spec.retention`.
-
-```bash
+```bash {filename="Terminal"}
 kubectl apply -f releasesource.yaml
-kubectl get releasesource -n hello-world
 ```
+
+Its `READY` column reads `False` until CI has pushed the first tag; that is expected at this point. For a private registry, add `secretRef` under `oci` with the name of an image pull secret in the same namespace. Releases are kept for 7 days, and at least 30 are always kept; change this with `spec.retention`.
 
 ### Create the Rollout
 
-Define how Kuberik should manage versions. This resource is the same in both modes.
+The `Rollout` reads releases from the `ReleaseSource` and decides which one to deploy. The [`HealthCheck`](/docs/gates/health-checks/) follows the Flux Kustomization you create in the next step, and the Rollout selects it, so a deploy succeeds only after Flux has applied it and it stayed healthy for the bake time. Both resources are identical in the two modes.
 
 ```yaml {filename="rollout.yaml"}
 apiVersion: kuberik.com/v1alpha1
+kind: HealthCheck
+metadata:
+  name: hello-world
+  namespace: hello-world
+  labels:
+    app: hello-world
+  annotations:
+    healthcheck.kuberik.com/kustomization: "hello-world"
+spec:
+  class: kustomization
+---
+apiVersion: kuberik.com/v1alpha1
 kind: Rollout
 metadata:
-  name: hello-world-app
+  name: hello-world
   namespace: hello-world
 spec:
   releaseSourceRef:
-    name: hello-world-app
+    name: hello-world
+  bakeTime: 5m  # healthy this long before the deploy succeeds
+  healthCheckSelector:
+    selector:
+      matchLabels:
+        app: hello-world
 ```
 
-```bash
+Without a health check, the bake starts as soon as Kuberik writes the tag, so the deploy succeeds `bakeTime` later whether or not Flux applied anything. See [Verify with Health Checks](/docs/gates/health-checks/) for the other checks.
+
+```bash {filename="Terminal"}
 kubectl apply -f rollout.yaml
 ```
 
-{{< callout type="warning" >}}
-Kuberik resolves the `ReleaseSource` and the resources it drives in the Rollout's own namespace. Keep the `Rollout`, `ReleaseSource`, `Kustomization`, and `OCIRepository` together in one namespace.
-{{< /callout >}}
+### Connect Flux
 
-### Deploy with Kuberik
-
-Point Flux at the source Kuberik will drive.
+Create the Flux objects the Rollout drives. The annotation names the Rollout that owns them.
 
 {{< tabs >}}
   {{< tab name="Image tag" >}}
-  Kuberik writes the selected version into `postBuild.substitute` on the annotated Kustomization. The manifests themselves stay in git.
+  Flux reads the manifests from git. Kuberik writes the selected tag into `postBuild.substitute` on the annotated Kustomization.
 
-  ```yaml {filename="kustomization.yaml"}
+  ```yaml {filename="flux.yaml"}
+  apiVersion: source.toolkit.fluxcd.io/v1
+  kind: GitRepository
+  metadata:
+    name: hello-world
+    namespace: hello-world
+  spec:
+    interval: 1m
+    url: https://github.com/acme/hello-world
+    ref:
+      branch: main
+  ---
   apiVersion: kustomize.toolkit.fluxcd.io/v1
   kind: Kustomization
   metadata:
-    name: hello-world-app
+    name: hello-world
     namespace: hello-world
     annotations:
-      rollout.kuberik.com/substitute.HELLO_WORLD_VERSION.from: "hello-world-app"
+      rollout.kuberik.com/substitute.APP_VERSION.from: "hello-world"
   spec:
-    interval: 10m0s
-    path: ./deployments/prod
+    interval: 10m
+    path: ./deploy/production
+    prune: true
     sourceRef:
       kind: GitRepository
       name: hello-world
     targetNamespace: hello-world
   ```
 
-  ```bash
-  kubectl apply -f kustomization.yaml
-  ```
+  The Deployment in `deploy/production` of `acme/hello-world` reads the substitution variable:
 
-  Your Deployment in `./deployments/prod` reads the substitution variable:
-
-  ```yaml {filename="deployment.yaml"}
+  ```yaml {filename="deploy/production/deployment.yaml"}
   apiVersion: apps/v1
   kind: Deployment
   metadata:
     name: hello-world
   spec:
+    selector:
+      matchLabels:
+        app: hello-world
     template:
+      metadata:
+        labels:
+          app: hello-world
       spec:
         containers:
           - name: app
-            image: ghcr.io/kuberik/hello-world/app:${HELLO_WORLD_VERSION}
+            image: ghcr.io/acme/hello-world:${APP_VERSION}
   ```
+
+  Until the first release, Kuberik has no tag to write, so Flux applies the image with a literal `${APP_VERSION}`: the Kustomization reads `Ready` while the pod sits in `InvalidImageName`. This clears when the first release is deployed.
   {{< /tab >}}
 
   {{< tab name="Rendered manifests" >}}
-  Kuberik moves `spec.ref.tag` on the annotated OCIRepository. The Kustomization reconciles the artifact at that tag, so no substitution variable and no build tooling are needed in the cluster.
+  Kuberik moves `spec.ref.tag` on the annotated OCIRepository. The Kustomization applies the artifact at that tag, so the cluster needs no substitution variable and no build tooling.
 
-  ```yaml {filename="kustomization.yaml"}
+  ```yaml {filename="flux.yaml"}
   apiVersion: source.toolkit.fluxcd.io/v1
   kind: OCIRepository
   metadata:
-    name: hello-world-app
+    name: hello-world
     namespace: hello-world
     annotations:
-      rollout.kuberik.com/rollout: "hello-world-app"
+      rollout.kuberik.com/rollout: "hello-world"
   spec:
-    interval: 60s
-    url: oci://ghcr.io/kuberik/hello-world/prod/manifests
+    interval: 1m
+    url: oci://ghcr.io/acme/hello-world/production/manifests
   ---
   apiVersion: kustomize.toolkit.fluxcd.io/v1
   kind: Kustomization
   metadata:
-    name: hello-world-app
+    name: hello-world
     namespace: hello-world
   spec:
-    interval: 10m0s
+    interval: 10m
     prune: true
     sourceRef:
       kind: OCIRepository
-      name: hello-world-app
+      name: hello-world
     targetNamespace: hello-world
   ```
-
-  ```bash
-  kubectl apply -f kustomization.yaml
-  ```
-
-  Your CI renders the manifests for this environment and pushes them to this path. See [Publishing Releases](/docs/guides/publishing-releases/).
   {{< /tab >}}
 {{< /tabs >}}
 
-### Verify the Rollout
-
-Check that Kuberik detected the new version and created a release.
-
-![The rollout in the dashboard: the running build, the deployment pipeline, health checks and the resources it manages](/screenshots/dashboard/overview.png)
-
-```bash
-kubectl describe rollout -n hello-world hello-world-app
+```bash {filename="Terminal"}
+kubectl apply -f flux.yaml
 ```
+
+### Publish a release
+
+Add the workflow for your mode from [Publish Releases from CI](/docs/releases/publish/) to `acme/hello-world` and push a commit to `main`. The workflow builds the image from the repository root, so the repository needs a `Dockerfile` there. CI pushes a `main-<sha>-<timestamp>` tag, the `ReleaseSource` lists it within a minute, and the Rollout deploys it.
 
 {{% /steps %}}
 
----
+## Check the result
 
-## Next Steps
+The `ReleaseSource` shows the newest tag it found and how many releases are in its catalogue.
 
-{{< cards >}}
-  {{< card title="Propagation Modes" link="/docs/concepts/propagation/" icon="switch-horizontal" subtitle="Image tag vs rendered manifests" >}}
-  {{< card title="Manual Approvals" link="/docs/guides/manual-approvals/" icon="shield-check" subtitle="Add production gates" >}}
-  {{< card title="Core Concepts" link="/docs/concepts/architecture/" icon="book-open" subtitle="How it works" >}}
-{{< /cards >}}
+```bash {filename="Terminal"}
+kubectl get releasesource -n hello-world hello-world
+```
+
+```text {filename="Output"}
+NAME          NEWEST                    COUNT   READY   AGE
+hello-world   main-3f9c2ab-1794583200   1       True    2m
+```
+
+The Rollout records each deploy in `status.history`, newest first. `Deploying` means Kuberik wrote the tag and waits for the health check to report healthy; `InProgress` means bake time is running; `Succeeded` means the check stayed healthy for the whole bake time. Gates never hold a Rollout's first deploy: it deploys the newest release the gates allow, or the newest release if they allow none. From the second deploy on, gates hold releases they do not allow.
+
+```bash {filename="Terminal"}
+kubectl get rollout -n hello-world hello-world \
+  -o custom-columns='VERSION:.status.history[0].version.tag,BAKE:.status.history[0].bakeStatus,MESSAGE:.status.history[0].message'
+```
+
+```text {filename="Output"}
+VERSION                   BAKE        MESSAGE
+main-3f9c2ab-1794583200   Succeeded   Automatic deployment
+```
+
+The dashboard shows each rollout with its running build, the pipeline it moved through, and its health checks. It is off by default; [Expose the Dashboard](/docs/installation/helm/#expose-the-dashboard) turns it on, and [Use the Dashboard](/docs/operate/dashboard/) shows how to read it.
+
+![A production rollout with the shape this tutorial builds: a two-step pipeline, Started then Check, no newer build waiting, and one Flux Deployment health check passing](/images/docs/getting-started/rollout-pipeline.png)
+
+## Next steps
+
+{{< next "/docs/releases/publish/" "/docs/gates/approvals/" "/docs/concepts/propagation/" >}}

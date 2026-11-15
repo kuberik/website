@@ -1,0 +1,76 @@
+{{- /* DOCS HOME (/docs/, docs shell lane; IA.md "Docs home"). Styles: assets/css/docs-home.css (+ thesis.css for the
+     kit figure), loaded on this page only by custom/head-end.html. Content and links: front matter of content/docs/_index.md.
+     Regions and the reference each one borrows from:
+       hero      = the landing's mint stage (base.css .stage .stage-mint, blooms) laid out like the install band
+                   (copy 5/12 beside the drawing 7/12, home/install.html); eyebrow = the hero pill (hero.css .eyebrow);
+                   buttons = base.css .btn-ink / .btn-line. The drawing is the kit (docs-figs/docs-home.html, generated
+                   by scripts/landing-figs.mjs from the same primitives as the landing staircase and Fig 3 gates).
+       journeys  = NEW BY DESIGN: one card per reader job. Role: route a reader to a section and straight to its first
+                   pages. No landing object does that: the feature card (features.css .fx-card) sells one capability
+                   over a product canvas. It borrows the feature card's shell (radius 12, --card-border/-fill/-shadow),
+                   its name/title/body type roles and its link-arrow, and the docs card's 32px icon tile (docs.css
+                   .hextra-card), alternating the mint and lagoon canvases as the feature canvases do.
+       reference = the shared link-card (docs/link-card.html, variant "card") in a row under a sidebar group label; the
+                   journey rows are its variant "row" (R3-DES-3).
+     The sidebar is rendered for the phone drawer only (the header's menu pill opens it); from 768 the page is the
+     landing's full .cont width, so 2560 shows a three-column grid, never a lone column. */ -}}
+{{- $h := .Params.hero -}}
+{{- $arrow := `<svg viewBox="0 0 16 16" width="14" height="14" fill="none" stroke="currentColor" stroke-width="1.5" aria-hidden="true"><path d="M3 8h10M9 4l4 4-4 4" stroke-linecap="round" stroke-linejoin="round"/></svg>` | safeHTML -}}
+<div class="kdh">
+  {{ partial "sidebar.html" (dict "context" .) }}
+  <section class="stage stage-mint kdh-hero" aria-labelledby="kdh-h1">
+    <div class="bloom b1"></div><div class="bloom b2"></div>
+    <div class="cont kdh-hero-in">
+      <div class="kdh-copy">
+        <span class="kdh-eyebrow"><b></b>{{ $h.eyebrow }}</span>
+        <h1 id="kdh-h1">{{ .Title }}</h1>
+        <p class="kdh-lead">{{ $h.lead }}</p>
+        <div class="kdh-ctas">
+          <a class="btn btn-ink" href="{{ $h.primary.url }}">{{ $h.primary.title }}{{ $arrow }}</a>
+          <a class="btn btn-line" href="{{ $h.secondary.url }}">{{ $h.secondary.title }}</a>
+        </div>
+      </div>
+      <div class="kdh-art" aria-hidden="true">
+        <div class="kdh-art-wide">{{ partial "docs-figs/docs-home.html" . }}</div>
+        <div class="kdh-art-compact">{{ partial "docs-figs/docs-home-compact.html" . }}</div>
+      </div>
+    </div>
+  </section>
+
+  <section class="cont kdh-body" aria-labelledby="kdh-sections">
+    {{ partial "docs-version-line.html" . }}
+    <h2 class="sr" id="kdh-sections">Sections</h2>
+    <ul class="kdh-grid">
+      {{- range $i, $j := .Params.journeys }}
+      <li class="kdh-card {{ if modBool $i 2 }}kdh-mint{{ else }}kdh-lagoon{{ end }}">
+        {{- /* icon: the group's (docs/group.html: section front matter, or hugo.toml for Get started), so the home card,
+             the section index head and the Next steps cards share it; the journey's own icon is only the fallback */ -}}
+        {{- $icon := $j.icon }}{{ with $j.url }}{{ with site.GetPage . }}{{ $icon = (partial "docs/group.html" .).icon | default $icon }}{{ end }}{{ end -}}
+        {{- $head := printf `<span class="kdh-tile">%s</span><span class="kdh-card-title">%s</span>` (partial "docs/icon.html" $icon) $j.title -}}
+        {{- with $j.url }}<a class="kdh-card-head" href="{{ . }}">{{ $head | safeHTML }}<span class="kdh-card-go">{{ $arrow }}</span></a>{{ else }}<div class="kdh-card-head">{{ $head | safeHTML }}</div>{{ end }}
+        <p class="kdh-card-body">{{ $j.outcome }}</p>
+        {{- /* every page of the section, sidebar order (R3-DES-4): a section card lists its children, the "Get started"
+             pseudo-group lists the pages hugo.toml params.docsSidebar.groups gives it */ -}}
+        {{- $pages := slice -}}
+        {{- range site.Params.docsSidebar.groups }}{{ if eq (lower .name) (lower $j.title) }}{{ range .pages }}{{ with site.GetPage . }}{{ $pages = $pages | append . }}{{ end }}{{ end }}{{ end }}{{ end -}}
+        {{- if not $pages }}{{ with $j.url }}{{ with site.GetPage . }}{{ if .IsSection }}{{ $pages = (where (union .RegularPages .Sections) "Params.sidebar.exclude" "!=" true).ByWeight }}{{ end }}{{ end }}{{ end }}{{ end }}
+        <ul class="kdh-links">
+          {{- range $pages }}
+          <li>{{ partial "docs/link-card.html" (dict "variant" "row" "url" .RelPermalink "title" .LinkTitle) }}</li>
+          {{- end }}
+        </ul>
+      </li>
+      {{- end }}
+    </ul>
+
+    <div class="kdh-ref">
+      <p class="kdh-ref-label">Reference</p>
+      <ul class="kd-lc-grid kd-lc-grid-ref">
+        {{- range .Params.reference }}
+        {{- $d := .description }}{{ $t := "" }}{{ with site.GetPage .url }}{{ with .Description }}{{ $d = . }}{{ end }}{{ $t = .LinkTitle }}{{ end }}
+        <li>{{ partial "docs/link-card.html" (dict "variant" "card" "url" .url "title" ($t | default .title) "desc" $d "icon" .icon "tone" "neutral") }}</li>
+        {{- end }}
+      </ul>
+    </div>
+  </section>
+</div>

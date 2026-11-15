@@ -6,18 +6,8 @@
 
 {{ range .packages }}
 
-# {{ .Title }}
+## {{ .Title }}
 {{ .GetComment }}
-
-**Resource Types:**
-
-  {{- if ne .GroupName "" -}}
-    {{- range .VisibleTypes -}}
-      {{- if .IsExported }}
-- [{{ .DisplayName }}]({{ .Link }})
-      {{- end -}}
-    {{- end -}}
-  {{ end -}}
   {{ if ne .GroupName "" -}}
 
     {{/* For package with a group name, list all type definitions in it. */}}
@@ -27,9 +17,7 @@
       {{- end -}}
     {{ end }}
 
-## Definitions
-
-This section contains definitions for objects used in the {{ .Title }} API.
+### Definitions
 
     {{ range .VisibleTypes }}
       {{- if and .Referenced (not .IsExported) -}}
@@ -39,10 +27,18 @@ This section contains definitions for objects used in the {{ .Title }} API.
   {{ else }}
     {{/* For package w/o group name, list only types referenced. */}}
     {{- range .VisibleTypes -}}
-      {{- if .Referenced -}}
+      {{- if and .Referenced (not .References) -}}
 {{ template "type" . }}
       {{- end -}}
     {{- end }}
+
+### Definitions
+
+    {{ range .VisibleTypes }}
+      {{- if and .Referenced .References -}}
+{{ template "type" . }}
+      {{- end -}}
+    {{ end }}
   {{- end }}
 {{- end }}
 {{- end }}

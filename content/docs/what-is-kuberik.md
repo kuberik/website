@@ -1,59 +1,46 @@
 ---
-title: "What is Kuberik"
-weight: 3
+title: "What Is Kuberik"
+description: "What Kuberik does after your CI publishes a release, and what it leaves to you."
+type_: concept
+weight: -20
 ---
 
-Kuberik is a Kubernetes-native delivery orchestrator. It takes over **after** your CI publishes a new version — a container image or rendered manifests — and handles everything that happens next: safe rollout, verification, and promotion.
+Kuberik deploys the versions your CI publishes to Kubernetes: it picks up each new release, holds it until its gates allow it, deploys it through Flux and verifies it during bake time.
 
-## You Release, Kuberik Delivers
+{{< fig id="release-stages" caption="One release, from a new tag in your registry to a record in the Rollout history." >}}
 
-| | Owner | Example |
+## What Kuberik does with a release
+
+A release is a tagged artifact in a registry: the application image, or the rendered manifests for one environment pushed as an OCI artifact. From the moment the tag exists, Kuberik takes it through five stages; a person acts only where a gate asks for an approval. See [Propagation Modes](/docs/concepts/propagation/) for how the two kinds of artifact compare.
+
+| Stage | What happens | Resources |
 |---|---|---|
-| **When to release** | You (developer/CI) | Push a git tag, merge to main |
-| **How to deliver** | Kuberik | Rollout, verify health, promote across environments |
+| Detect | A [`ReleaseSource`](/docs/releases/publish/) lists the new tag and adds it to its catalogue of releases. | `ReleaseSource` |
+| Gate | The [`Rollout`](/docs/concepts/rollouts/) makes the release a candidate and checks it against every gate: deployment windows, approvals, service dependencies. Gates never hold a Rollout's first deploy or a deploy you start by hand. | `Rollout`, [`RolloutGate`](/docs/concepts/gates/) |
+| Deploy | Kuberik writes the tag into a Kustomization substitution, or moves the tag on an OCIRepository, and Flux applies it. | `Kustomization`, `OCIRepository` |
+| Verify | Health checks must report healthy, then stay healthy for the bake time. | [`HealthCheck`](/docs/gates/health-checks/) |
+| Record | The deploy is recorded in the Rollout's history as `Succeeded` or `Failed`, or `Cancelled` when a deploy you start by hand replaced it before it finished. | `Rollout` |
 
-Your CI pipeline publishes a tagged artifact: the application image itself, or the rendered manifests for an environment pushed as an OCI artifact. Kuberik detects the new tag and orchestrates the delivery — gating, deploying, verifying, and promoting — without any further input from you. See [Propagation Modes](/docs/concepts/propagation/) for how the two modes compare.
-
-Kuberik does not build images, decide when to release, or replace your GitOps tool. It works alongside FluxCD at the application delivery layer.
-
-## How It Works
-
-{{% steps %}}
-
-### Publish
-
-Your CI publishes a tagged image or manifest artifact to a container registry.
-
-### Detect
-
-A `ReleaseSource` detects the new tag and adds it to the catalogue of releases.
-
-### Gate
-
-Kuberik creates a release candidate and evaluates gates.
-
-### Deploy
-
-Kuberik writes the version into the Kustomization, or moves the OCIRepository tag to the new manifests.
-
-### Verify
-
-Health checks verify the deployment during bake time.
-
-### Complete
-
-The release is marked as succeeded or failed.
-
-{{% /steps %}}
+A failed bake stops automatic deploys of that Rollout. They resume when someone deploys a version by hand, pins one, unblocks the Rollout, or retries the bake and it succeeds.
 
 ![The dashboard home: what is deploying right now, what a rule is holding, and your merged changes with how far each one got](/screenshots/dashboard/home.png)
 
-For a detailed component breakdown, see [Architecture](/docs/concepts/architecture/).
+## Works with
 
-## Next Steps
+Kuberik deploys through Flux. The other systems are optional and each adds one thing.
 
-{{< cards >}}
-  {{< card title="Install Kuberik" link="/docs/installation/" icon="download" subtitle="Set up the controller" >}}
-  {{< card title="Getting Started" link="/docs/getting-started/" icon="academic-cap" subtitle="Deploy your first app" >}}
-  {{< card title="Publishing Releases" link="/docs/guides/publishing-releases/" icon="upload" subtitle="Set up your CI pipeline" >}}
-{{< /cards >}}
+| System | Status | What Kuberik does with it |
+|---|---|---|
+| [Flux](/docs/integrations/fluxcd/) 2.6 or later | Required | Applies each version through a Kustomization or an OCIRepository |
+| Argo CD | Not supported | Nothing yet: Kuberik reads and writes Flux objects only |
+| [GitHub](/docs/integrations/github/) | Optional | Records deployments per environment; dashboard sign-in and pull requests |
+| [Datadog](/docs/integrations/datadog/), [Prometheus](/docs/integrations/prometheus/) | Optional | Monitors and alerts become HealthChecks |
+| OpenKruise | Optional | Canary steps inside one deploy ([Roll Out with a Canary](/docs/releases/canary/)) |
+
+## What stays with you
+
+Your CI builds the artifact and decides when a release exists by pushing its tag. Flux stays your GitOps tool: it fetches sources and applies manifests, and Kuberik only changes which version Flux applies. Kuberik does not build images, run CI, or replace Flux.
+
+## Related
+
+{{< next "/docs/concepts/architecture/" "/docs/getting-started/" "/docs/releases/publish/" >}}

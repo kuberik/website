@@ -1,14 +1,11 @@
 ---
 title: "Integrations"
-weight: 5
+description: "Connect Kuberik to Flux, GitHub, Datadog and Prometheus."
+type_: index
+icon: plug   # docs/icon.html; the docs home card, this page head and Next cards use it
+weight: 60
 sidebar:
   open: true
 ---
 
-Kuberik integrates with the tools you already use.
-
-{{< cards >}}
-  {{< card title="FluxCD" link="fluxcd/" icon="switch-horizontal" subtitle="GitOps deployments" >}}
-  {{< card title="GitHub" link="github/" icon="github" subtitle="Deployment coordination" >}}
-  {{< card title="Datadog" link="datadog/" icon="chart-bar" subtitle="Metrics-based health checks" >}}
-{{< /cards >}}
+Connect Kuberik to Flux, GitHub, Datadog and Prometheus.
