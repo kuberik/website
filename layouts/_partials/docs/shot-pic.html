@@ -1,0 +1,13 @@
+{{- /* One theme's picture of a screenshot figure (see layouts/_markup/render-image.html, VARIANTS). In: dict "theme" (light|dark)
+     "d" (desktop file: url w h) "p" (phone file: ok url w h) "alt" "attrs". */ -}}
+{{- $d := .d -}}{{- $p := .p -}}
+{{- $size := "" -}}
+{{- if $d.w -}}
+  {{- if $p.ok -}}
+    {{- $size = printf ` width="%d" height="%d" style="--w:%dpx;--ar:%d/%d;--pw:%dpx;--par:%d/%d;width:var(--w);aspect-ratio:var(--ar)"` $d.w $d.h $d.w $d.w $d.h $p.w $p.w $p.h -}}
+  {{- else -}}
+    {{- $size = printf ` width="%d" height="%d" style="width:%dpx;aspect-ratio:%d/%d"` $d.w $d.h $d.w $d.w $d.h -}}
+  {{- end -}}
+{{- end -}}
+{{- $src := "" -}}{{- if $p.ok }}{{ $src = printf `<source media="(max-width: 767px)" srcset="%s" width="%d" height="%d">` $p.url $p.w $p.h }}{{ end -}}
+{{- printf `<picture class="kd-pic kd-pic-%s">%s<img src="%s" alt="%s"%s%s loading="lazy" decoding="async"></picture>` .theme $src $d.url (.alt | transform.HTMLEscape) $size .attrs | safeHTML -}}

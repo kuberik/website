@@ -42,6 +42,8 @@
   <div class="hx:px-4 hx:pt-4 hx:md:hidden">{{ partial "search.html" }}</div>
   <div class="hextra-scrollbar hx:overflow-y-auto hx:overflow-x-hidden hx:p-4 hx:grow hx:md:h-[calc(100vh-var(--navbar-height))]">
     <nav class="kd-tree" aria-label="Documentation">
+      {{- /* phones: the way back to the docs home is the first row of the drawer (R7-DES-7), not row 35 */}}
+      <div class="kd-group kd-group-top"><ul class="kd-rows"><li><a class="kd-row" href="/docs/">Docs home</a></li></ul></div>
       {{- $done := dict -}}
       {{- range $items.ByWeight -}}
         {{- $g := index $groupOf .RelPermalink | default "" -}}
@@ -72,7 +74,6 @@
       <div class="kd-group kd-group-site">
         <p class="kd-group-label"><span>Kuberik</span></p>
         <ul class="kd-rows">
-          <li><a class="kd-row" href="/docs/">Docs</a></li>
           <li><a class="kd-row" href="/">kuberik.com</a></li>
           <li><a class="kd-row" href="/blog/">Blog</a></li>
           <li><a class="kd-row" href="https://github.com/kuberik/kuberik" target="_blank" rel="noreferrer">GitHub</a></li>

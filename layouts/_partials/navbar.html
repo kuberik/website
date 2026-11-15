@@ -19,7 +19,8 @@
         <svg class="moon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M21 12.8A9 9 0 1 1 11.2 3a7 7 0 0 0 9.8 9.8z"/></svg>
       </button>
       <a class="btn btn-ink nav-cta" href="{{ $getStarted }}">Get started</a>
-      <button type="button" aria-label="Menu" class="pill icon kd-burger hextra-hamburger-menu">{{ partial "utils/icon.html" (dict "name" "hamburger-menu" "attributes" "height=20") }}</button>
+      {{- /* no docs sidebar on the 404, so no menu button (R7-IA-5) */}}
+      {{ if ne .Kind "404" }}<button type="button" aria-label="Menu" class="pill icon kd-burger hextra-hamburger-menu">{{ partial "utils/icon.html" (dict "name" "hamburger-menu" "attributes" "height=20") }}</button>{{ end }}
     </div>
   </div>
 </header>
