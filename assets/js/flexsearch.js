@@ -265,7 +265,10 @@ document.addEventListener("DOMContentLoaded", function () {
     return best;
   }
   // R6-IA-6: titles keep no tags; excerpts are plain text and are escaped on display.
-  const strip = (x) => ('' + x).replace(/<[^>]*>/g, '').replace(/&amp;/g, '&').replace(/&lt;/g, '<').replace(/&gt;/g, '>').replace(/&quot;/g, '"').replace(/&#39;/g, "'");
+  const decoder = document.createElement('textarea');
+  const decode = (x) => { decoder.innerHTML = x; return decoder.value; };
+  // Headings arrive as HTML (<code>, &ldquo;): drop tags, decode entities.
+  const strip = (x) => decode(('' + x).replace(/<[^>]*>/g, ''));
   function count(hay, needle) {
     let n = 0, i = -1;
     while (n < 10 && (i = hay.indexOf(needle, i + 1)) !== -1) n++;
@@ -342,7 +345,13 @@ document.addEventListener("DOMContentLoaded", function () {
     if (inputElement && inputElement.value) inputElement.dispatchEvent(new Event('keyup'));
   }
 
-  function scoreSection(s, terms, phrase, ident) {
+  // R7-IA-3: the words the dashboard itself shows for a state. A reader who
+  // types one (or the banner, "production is held") wants the table that maps
+  // it to the fix, ahead of the concept pages that explain the state.
+  const STATE_WORDS = /\b(held|pinned|stuck|paused)\b/i; // as typed: "pin" is the task, "pinned" is the state
+  const DASHBOARD_WORDS = '/docs/operate/troubleshooting/#what-the-dashboard-shows';
+
+  function scoreSection(s, terms, phrase, ident, stateQuery) {
     let score = 0;
     let titleHits = 0;
     // Generated reference pages carry no body weight, except for an exact
@@ -375,6 +384,7 @@ document.addEventListener("DOMContentLoaded", function () {
     if (titleHits === terms.length) score += 6;
     // A page's own entry (its title and summary) outranks its sections.
     if (s.isPage && titleHits) score += 8;
+    if (s.url === DASHBOARD_WORDS && stateQuery) score += 26;
     if (gen) score *= 0.5;
     return score;
   }
@@ -395,7 +405,8 @@ document.addEventListener("DOMContentLoaded", function () {
     return changed ? out : null;
   }
 
-  function rank(terms, ident) {
+  function rank(terms, ident, query) {
+    const stateQuery = STATE_WORDS.test(query);
     const phrase = terms.join(' ');
     const inDocs = location.pathname.startsWith('/docs/');
     const inBlog = location.pathname.startsWith('/blog/');
@@ -408,7 +419,7 @@ document.addEventListener("DOMContentLoaded", function () {
         if (inDocs) continue;
         w = inBlog ? 1 : 0.6;
       } else if (inBlog) w = 0.6;
-      const sc = scoreSection(s, terms, phrase, ident) * w;
+      const sc = scoreSection(s, terms, phrase, ident, stateQuery) * w;
       if (sc <= 0) continue;
       let p = pages.get(s.route);
       if (!p) pages.set(s.route, p = { best: 0, items: [], crumb: s.crumb, order: pages.size });
@@ -435,10 +446,10 @@ document.addEventListener("DOMContentLoaded", function () {
     let terms = queryTerms(query);
     if (!terms.length) { displayResults([], [], resultsElement); return; }
     const ident = /[a-z][A-Z]/.test(query);
-    let ranked = rank(terms, ident);
+    let ranked = rank(terms, ident, query);
     if (!ranked.length) {
       const fixed = correct(terms);
-      if (fixed) { terms = fixed; ranked = rank(terms, ident); }
+      if (fixed) { terms = fixed; ranked = rank(terms, ident, query); }
     }
     const results = [];
     // R6-IA-3: an exact camelCase field name goes to its table row, with the
