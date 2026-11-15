@@ -19,7 +19,7 @@ A release is a tagged artifact in a registry: the application image, or the rend
 | Gate | The [`Rollout`](/docs/concepts/rollouts/) makes the release a candidate and checks it against every gate: deployment windows, approvals, service dependencies. Gates never hold a Rollout's first deploy or a deploy you start by hand. | `Rollout`, [`RolloutGate`](/docs/concepts/gates/) |
 | Deploy | Kuberik writes the tag into a Kustomization substitution, or moves the tag on an OCIRepository, and Flux applies it. | `Kustomization`, `OCIRepository` |
 | Verify | Health checks must report healthy, then stay healthy for the bake time. | [`HealthCheck`](/docs/gates/health-checks/) |
-| Record | The deploy is recorded in the Rollout's history as `Succeeded` or `Failed`, or `Cancelled` when a newer deploy replaced it mid-bake. | `Rollout` |
+| Record | The deploy is recorded in the Rollout's history as `Succeeded` or `Failed`, or `Cancelled` when a deploy you start by hand replaced it before it finished. | `Rollout` |
 
 A failed bake stops automatic deploys of that Rollout. They resume when someone deploys a version by hand, pins one, unblocks the Rollout, or retries the bake and it succeeds.
 
