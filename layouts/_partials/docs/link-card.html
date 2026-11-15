@@ -14,12 +14,12 @@
 {{- else -}}
 {{- $eb := .eyebrow | default "" -}}
 {{- if eq (lower $eb) (lower .title) }}{{ $eb = "" }}{{ end -}}
-<a class="kd-lc kd-lc-card" href="{{ .url }}">
+<a class="kd-lc kd-lc-card{{ if not .icon }} kd-lc-notile{{ end }}" href="{{ .url }}">
   {{- with .icon }}<span class="kd-lc-tile kd-tone-{{ $.tone | default "mint" }}" aria-hidden="true">{{ partial "docs/icon.html" . }}</span>{{ end }}
-  <span class="kd-lc-text">
+  <span class="kd-lc-head">
     {{- with $eb }}<span class="kd-lc-eyebrow">{{ . }}</span>{{ end }}
     <span class="kd-lc-title">{{ .title }}</span>
-    {{- with .desc }}<span class="kd-lc-desc">{{ . }}</span>{{ end }}
   </span>
+  {{- with .desc }}<span class="kd-lc-desc">{{ . }}</span>{{ end }}
 </a>
 {{- end -}}

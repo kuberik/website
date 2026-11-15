@@ -6,4 +6,5 @@ docs:
   - { href: "/docs/releases/", name: "Ship releases" }
   - { href: "/docs/gates/", name: "Gate deploys" }
   - { href: "/docs/operate/", name: "Operate" }
+  - { href: "/docs/integrations/", name: "Integrations" }
   - { href: "/docs/reference/api/", name: "API reference" }
