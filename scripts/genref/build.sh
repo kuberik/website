@@ -63,6 +63,12 @@ for f in ${BUILD_TEMP_OUT}/*.md; do
     perl -pi -e 's/(\{#)([^}]+)(\})/$1\L$2\E$3/g; s/(href="#)([^"]*)(")/$1\L$2\E$3/g; s/(\]\(#)([^)]*)(\))/$1\L$2\E$3/g' "$f"
 done
 
+# Fields whose json tag carries options print the whole tag as the field name
+# ("metadata,omitempty,omitzero"); keep only the name.
+for f in ${BUILD_TEMP_OUT}/*.md; do
+    perl -pi -e 's/(<tr><td><code>)([A-Za-z0-9_]+),[^<]*(<\/code>)/$1$2$3/' "$f"
+done
+
 # Label each API group with its release state. For each module the pinned
 # commit (last segment of the go.mod pseudo-version) is looked up in a bare,
 # blobless clone: stable tags that contain it mean "Released in", otherwise the
