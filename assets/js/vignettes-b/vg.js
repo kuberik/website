@@ -219,7 +219,7 @@
       for (const v of live) { if (!(v.ratio >= MIN)) continue; const d = off(v); if (!best || d < bd - 8 || (Math.abs(d - bd) <= 8 && order(v) < order(best))) { best = v; bd = d; } }
       return best;
     };
-    let gesture = 0, gestureTimer = null, wonAt = -1, wonBy = 'elect', preempt = false;
+    let gesture = 0, gestureTimer = null, wonAt = -1, wonBy = 'elect', preempt = false, yRest = scrollY;   // scrollY when the last scroll settled
     const elect = () => {
       const best = centred();
       // v6j (tl-landing-ship-2 QA note): the holder keeps its turn while it stays >= MIN in view; the turn passes only at its loop's
@@ -235,13 +235,15 @@
     // a smooth scroll crosses earlier cards first, and the holder keeps its turn while in view, so the card passed on the way
     // could keep the first turn. When the scroll settles (150 ms quiet), a turn that was WON BY ELECTION during this scroll
     // gesture goes to the most centred card (handed over like a loop's end: the outgoing card finishes its cycle). A turn
-    // handed over by rotate() or won before the gesture is never taken back, so small scrolls do not flip turns.
+    // handed over by rotate() or won before the gesture is taken back only by a deliberate scroll (>= 120 px), so small
+    // scrolls do not flip turns.
     addEventListener('scroll', () => {
       if (!gestureTimer) gesture++;
       clearTimeout(gestureTimer);
       gestureTimer = setTimeout(() => {
         gestureTimer = null;
-        if (!cur || wonBy !== 'elect' || wonAt !== gesture || document.hidden) return;
+        const moved = Math.abs(scrollY - yRest) >= 120; yRest = scrollY;   // a deliberate scroll to another card (Canary -> Health is ~150 px)
+        if (!cur || document.hidden || !(moved || (wonBy === 'elect' && wonAt === gesture))) return;
         const c = centred();
         if (c && c !== cur) { next = c; preempt = true; elect(); preempt = false; }   // mid-loop: the outgoing card finishes
       }, 150);
