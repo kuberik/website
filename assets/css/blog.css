@@ -12,3 +12,6 @@
 .kd-content .kb-meta img{display:block;flex:none;margin:0;max-width:none;border:0;border-radius:50%}
 .kd-content .kb-meta a.kb-author{color:var(--ink-muted)!important;text-decoration:none!important;background-image:none!important;border-bottom:0!important}
 .kd-content .kb-meta a.kb-author:hover{color:var(--mint-ink)!important}
+/* R8-DES-9: a dated list is one column, newest first, every post the same size (size must not read as rank) */
+.kd-lc-grid.kb-list{grid-template-columns:1fr!important}
+.kd-lc-grid.kb-list > li{grid-column:auto!important}

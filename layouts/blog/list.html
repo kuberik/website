@@ -15,7 +15,7 @@
       <div class="content kd-content">
         <h1>{{ .Title }}</h1>
         {{ .Content }}
-        <ul class="kd-lc-grid kd-lc-grid-index">
+        <ul class="kd-lc-grid kd-lc-grid-index kb-list">
           {{- range $paginator.Pages }}
           {{- $kind := index (.Params.tags | default (slice "")) 0 }}
           <li>{{ partial "docs/link-card.html" (dict "variant" "card" "url" .RelPermalink "title" .Title "desc" (partial "blog/summary.html" .) "icon" (partial "blog/kind-icon.html" $kind) "tone" (cond (eq $kind "Release") "mint" "lagoon") "eyebrow" (.Date | time.Format ":date_long")) }}</li>

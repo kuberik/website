@@ -13,24 +13,24 @@
    DARK. Captures are light theme (STYLE 6). In dark the plate is the raised card fill with a hairline, and the shot
    gets a soft dark halo and a 1px dim ring: the light card is matted inside a mid-tone frame instead of sitting
    as a raw white slab on the near-black page. No filter on the image. */
-.kd-content .kd-shot,.kd-shot{margin:32px 0 0;padding:0}
+.kd-content .kd-shot,.kd-shot{margin:24px 0 32px;padding:0}
 .kd-shot-plate{display:flex;justify-content:center;padding:24px;border:1px solid var(--line);border-radius:12px;background:var(--page-alt)}
 .kd-content .kd-shot img,.kd-shot img{display:block;box-sizing:content-box;width:auto;max-width:calc(100% - 2px);height:auto;margin:0;border:1px solid var(--line);border-radius:8px;background:var(--page);box-shadow:0 1px 2px oklch(.195 .014 222/.06),0 10px 24px -14px oklch(.195 .014 222/.28)}
 .kd-shot .df-cap{margin-top:12px}
 /* R7 variants (render-image.html): the light picture shows by default (JS off), the dark one when <html> is dark, or when it
-   has no theme class yet and the system prefers dark. display:none keeps the hidden picture's lazy <img> from loading. */
+   has no theme class yet and the system prefers dark (removed R8-DES-2: JS off = light). display:none keeps the hidden picture's lazy <img> from loading. */
 .kd-pic{display:block;max-width:100%}
 .kd-pic-dark{display:none}
 html.dark .kd-pic-light{display:none}
 html.dark .kd-pic-dark{display:block}
-@media(prefers-color-scheme:dark){html:not(.light):not(.dark) .kd-pic-light{display:none}html:not(.light):not(.dark) .kd-pic-dark{display:block}}
+/* R8-DES-2: no prefers-color-scheme fallback: with JS off the page renders light, so its figures stay light */
 /* a phone capture reaches the <img> through custom properties: the inline desktop size would win otherwise */
 @media(max-width:767px){.kd-shot img[style*="--pw"]{width:var(--pw)!important;aspect-ratio:var(--par)!important}}
 html.dark .kd-shot-plate{border-color:var(--card-border);background:var(--card-fill)}
 html.dark .kd-content .kd-shot img,html.dark .kd-shot img{border-color:oklch(1 0 0/.14);box-shadow:0 0 0 6px oklch(1 0 0/.04),0 16px 36px -16px oklch(0 0 0/.7)}
 /* the release-post captures carry their own bezel: no second frame */
 .kd-shot.is-framed img,html.dark .kd-shot.is-framed img{border:0;border-radius:0;background:none;box-shadow:none}
-@media(max-width:640px){.kd-shot-plate{padding:12px}.kd-content .kd-shot,.kd-shot{margin-top:24px}}
+@media(max-width:640px){.kd-shot-plate{padding:12px}.kd-content .kd-shot,.kd-shot{margin:16px 0 24px}}
 
 /* ---------- right TOC hierarchy (R2-DES-10; markup: layouts/_partials/toc.html) ----------
    H2 rows keep the TOC row (docs.css .hextra-toc a: 13/20, 14 from the rail) in ink-muted; H3 rows nest 12 further in,
