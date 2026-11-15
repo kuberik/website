@@ -172,6 +172,8 @@ Create the Flux objects the Rollout drives. The annotation names the Rollout tha
           - name: app
             image: ghcr.io/acme/hello-world:${APP_VERSION}
   ```
+
+  Until the first release, Kuberik has no tag to write, so Flux applies the image with a literal `${APP_VERSION}`: the Kustomization reads `Ready` while the pod sits in `InvalidImageName`. This clears when the first release is deployed.
   {{< /tab >}}
 
   {{< tab name="Rendered manifests" >}}
