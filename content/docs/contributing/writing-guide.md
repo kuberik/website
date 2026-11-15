@@ -97,6 +97,12 @@ Colours come from the theme, so dark mode needs no second drawing. Do not add me
 
 Take screenshots from the dashboard in the light theme at 1x, cropped to the region that matters, with alt text that says what the reader should see.
 
+The image's title, the quoted text after the path, becomes the caption under it, and the alt text stays the screen-reader description. Leave the title out for no caption:
+
+```markdown {filename="content/docs/gates/dependencies.md"}
+![The rollout's Gates tab: the gate graph, what the rollout waits on, and the version it needs against the version running](/images/docs/rollout-dependencies.png "The consumer waits until the provider ships the version it needs.")
+```
+
 ## Link between pages
 
 Write links as absolute paths with a trailing slash, such as `/docs/concepts/rollouts/`, never `../`. Link the first mention of each resource kind on a page to its concept page, once. The link text is the destination's title or a verb phrase, never "here".
