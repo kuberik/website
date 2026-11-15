@@ -43,6 +43,18 @@
 .kd-content .kd-tocm li::before{display:none}
 .kd-content .kd-tocm a{display:block;padding:9px 0;font:400 14px/20px var(--sans);color:var(--ink-muted);text-decoration:none}
 .kd-content .kd-tocm a:hover{color:var(--mint-ink)}
+/* R5-DES-4: H3s sit indented under their H2; past 20 entries each H2 folds its H3s (nested disclosure) */
+.kd-content .kd-tocm li ol{margin:0;padding:0 0 4px 16px;border:0}
+.kd-content .kd-tocm li ol a{padding:6px 0;color:var(--ink-subtle)}
+.kd-content .kd-tocm-sub{margin:0;border:0!important;border-radius:0!important;background:transparent!important;overflow:visible}
+.kd-content .kd-tocm-sub > :not(summary){padding-inline:0}
+.kd-content .kd-tocm-sub > summary{display:flex;align-items:center;justify-content:space-between;gap:12px;min-height:0;padding:0!important;font:400 14px/20px var(--sans)!important;color:var(--ink-muted)!important;list-style:none;cursor:pointer}
+.kd-content .kd-tocm-sub > summary::before{display:none!important}
+.kd-content .kd-tocm-sub[open] > summary{border-bottom:0}
+.kd-content .kd-tocm-sub > summary::-webkit-details-marker{display:none}
+.kd-content .kd-tocm-sub > summary a{flex:1;min-width:0}
+.kd-content .kd-tocm-sub > summary::after{content:'';width:7px;height:7px;border:solid var(--ink-subtle);border-width:0 1.5px 1.5px 0;transform:rotate(45deg);margin-top:-3px;transition:transform .15s}
+.kd-content .kd-tocm-sub[open] > summary::after{transform:rotate(225deg);margin-top:3px}
 .kd-top{position:fixed;right:16px;bottom:16px;z-index:30;display:none;align-items:center;justify-content:center;width:44px;height:44px;border:1px solid var(--card-border);border-radius:999px;background:var(--card-fill);box-shadow:var(--card-shadow);color:var(--ink);cursor:pointer}
 .kd-top svg{width:18px;height:18px}
 .kd-top.is-on{display:inline-flex}
