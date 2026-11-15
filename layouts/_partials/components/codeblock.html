@@ -31,7 +31,15 @@
   {{- if and $filename (not $isTerm) $lang }}<span class="kd-code-lang">{{ $langLabel }}</span>{{ end -}}
 </div>
 {{- if transform.CanHighlight $lang -}}
-  <div class="kd-code-body">{{- highlight $content $lang $options -}}</div>
+  {{- /* R6-DES-6: the landing window has one mint token, the kind. Chroma tags a plain scalar `.l`, so the value of a top-level
+       `kind:` gets .kd-kind, and numbers and durations (a plain scalar that starts with a digit) are retagged .m (lagoon);
+       every other plain scalar stays the grey key ink. */ -}}
+  {{- $hl := string (highlight $content $lang $options) -}}
+  {{- if in (slice "yaml" "yml") $lang -}}
+    {{- $hl = replaceRE `(<span class="nt">kind</span><span class="p">:</span><span class="w"> </span>)<span class="l">` `${1}<span class="kd-kind">` $hl -}}
+    {{- $hl = replaceRE `<span class="l">(\d)` `<span class="m">${1}` $hl -}}
+  {{- end -}}
+  <div class="kd-code-body">{{ $hl | safeHTML }}</div>
 {{- else -}}
   <div class="kd-code-body"><pre><code>{{ $content }}</code></pre></div>
 {{- end -}}

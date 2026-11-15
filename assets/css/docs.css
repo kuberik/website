@@ -222,7 +222,12 @@ html:root .hextra-code-block .chroma :is(.nt){color:var(--kd-code-ink);font-weig
 .hextra-code-block:has(code:is([data-lang=bash],[data-lang=sh],[data-lang=shell],[data-lang=console],[data-lang=zsh])) .kd-code-head{color:var(--band-muted)}
 html:root .hextra-code-block:has(code:is([data-lang=bash],[data-lang=sh],[data-lang=shell],[data-lang=console],[data-lang=zsh])) .chroma :is(.nb,.bp,.nf,.fm,.nv,.vc,.vg,.vi,.nl,.k,.kd){color:var(--band-ink);font-weight:400}
 html:root .hextra-code-block .chroma :is(.kc){color:var(--kd-code-val)}
-html:root .hextra-code-block .chroma :is(.s,.s1,.s2,.sb,.sc,.sd,.se,.sh,.si,.sx,.sr,.ss,.dl,.l,.ld,.m,.mi,.mf,.mh,.mo,.il,.na,.no){color:var(--kd-code-val)}
+/* R6-DES-6: scalars follow the landing window: plain strings (and YAML quoted strings) stay the key grey, lagoon is for numbers, durations and booleans */
+html:root .hextra-code-block .chroma :is(.m,.mi,.mf,.mh,.mo,.il,.na,.no){color:var(--kd-code-val)}
+html:root .hextra-code-block .chroma :is(.l,.ld){color:var(--kd-code-ink)}
+html:root .hextra-code-block .chroma :is(.s,.s1,.s2,.sb,.sc,.sd,.se,.sh,.si,.sx,.sr,.ss,.dl){color:var(--kd-code-val)}
+html:root .hextra-code-block .chroma code[data-lang=yaml] :is(.s,.s1,.s2,.sd){color:var(--kd-code-ink)}
+html:root .hextra-code-block .chroma .kd-kind{color:var(--kd-code-key);font-weight:500}
 html:root .hextra-code-block .chroma :is(.nv,.vc,.vg,.vi){color:var(--kd-code-key)}
 html:root .hextra-code-block .chroma :is(.c,.c1,.cm,.cs,.ch,.cp,.cpf){color:var(--kd-code-dim);font-style:normal}
 html:root .hextra-code-block .chroma :is(.o,.ow,.p,.err,.w,.x,.cl){color:var(--kd-code-ink);font-weight:400}
