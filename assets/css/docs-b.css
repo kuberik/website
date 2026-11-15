@@ -14,7 +14,7 @@
    gets a soft dark halo and a 1px dim ring: the light card is matted inside a mid-tone frame instead of sitting
    as a raw white slab on the near-black page. No filter on the image. */
 .kd-content .kd-shot,.kd-shot{margin:24px 0 32px;padding:0}
-.kd-shot-plate{display:flex;justify-content:center;padding:24px;border:1px solid var(--line);border-radius:12px;background:var(--page-alt)}
+.kd-shot-plate{display:flex;justify-content:center;padding:24px clamp(14px,calc((100% - 634px) / 2),24px);border:1px solid var(--line);border-radius:12px;background:var(--page-alt)}
 .kd-content .kd-shot img,.kd-shot img{display:block;box-sizing:content-box;width:auto;max-width:calc(100% - 2px);height:auto;margin:0;border:1px solid var(--line);border-radius:8px;background:var(--page);box-shadow:0 1px 2px oklch(.195 .014 222/.06),0 10px 24px -14px oklch(.195 .014 222/.28)}
 .kd-shot .df-cap{margin-top:12px}
 /* R7 variants (render-image.html): the light picture shows by default (JS off), the dark one when <html> is dark, or when it
@@ -29,13 +29,16 @@ html.dark .kd-pic-dark{display:block}
 html.dark .kd-shot-plate{border-color:var(--card-border);background:var(--card-fill)}
 html.dark .kd-content .kd-shot img,html.dark .kd-shot img{border-color:oklch(1 0 0/.14);box-shadow:0 0 0 6px oklch(1 0 0/.04),0 16px 36px -16px oklch(0 0 0/.7)}
 /* the release-post captures carry their own bezel: no second frame */
-.kd-shot.is-framed img,html.dark .kd-shot.is-framed img{border:0;border-radius:0;background:none;box-shadow:none}
+.kd-shot.is-framed img,html.dark .kd-shot.is-framed img{border:0;border-radius:0;background:none;box-shadow:none;max-width:100%}
 /* R9-DES-4: from 1024 to 1365 the reading column is 616-664 wide (the TOC arrives at 1280), so a 24px-padded plate drew the
    630 shots at 0.90-0.98. 14px sides, and a plate that bleeds into the 40px gutters only as far as it must (max 23px at 1280),
    keep a 662 plate: 630 + 1px frame draws 1:1. QA9F-2: the sides grow back to 24 only once the column fits 24 + 632 + 24
-   (the 1366-1450 band drew at 0.997 with a fixed 24). < 1024 unchanged. */
-@media(min-width:1024px){.kd-shot-plate{padding:24px clamp(14px,calc((100% - 634px) / 2),24px);margin-inline:min(0px,calc((100% - 662px) / 2))}}
-@media(max-width:640px){.kd-shot-plate{padding:12px}.kd-content .kd-shot,.kd-shot{margin:16px 0 24px}}
+   (the 1366-1450 band drew at 0.997 with a fixed 24).
+   R9-shots QA M-1: the same clamp on every plate: interior 632 for a 630 desktop file (>= 768) and 326 for a 324 phone file
+   (< 768), so each draws 1:1 with its 1px frame; framed figures have no frame, so they may fill the interior. */
+@media(min-width:1024px){.kd-shot-plate{margin-inline:min(0px,calc((100% - 662px) / 2))}}
+@media(max-width:767px){.kd-shot-plate{padding-inline:clamp(8px,calc((100% - 328px) / 2),24px)}}
+@media(max-width:640px){.kd-shot-plate{padding-block:12px}.kd-content .kd-shot,.kd-shot{margin:16px 0 24px}}
 
 /* ---------- right TOC hierarchy (R2-DES-10; markup: layouts/_partials/toc.html) ----------
    H2 rows keep the TOC row (docs.css .hextra-toc a: 13/20, 14 from the rail) in ink-muted; H3 rows nest 12 further in,
