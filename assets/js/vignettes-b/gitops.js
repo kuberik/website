@@ -16,17 +16,24 @@
    Flux's: the Kustomization's mark turns (reconciling, blue), Flux's wires light (350 ms) and the Deployment, Service and
    HPA reconcile and go Ready (bursts 120 ms apart). Loop 4.8 s, rest 3.4 (resolved hold 1.2 s, empty beat 0.5 s).
    Borrowed proportions: the card / chip / StatusMark / wire kit of Gates and Health; the Flux fan-out is v6c's, unchanged. */
+/* v6j (b17): the loop never empties; each cycle writes the NEXT version. The chip that set into the slot at the end of cycle n
+   IS the chip that leaves at the start of cycle n+1 (both 'build' tone, both read the same label), so the seam is a hand-over
+   of identical pixels. Flux's lit wires go quiet (150 ms ease-in) on the beat Kuberik's wire starts lighting (0.35): the
+   source changed, Flux is out of sync until the hand-off (RD) lights them again. Kuberik's lit layer re-arms while invisible.
+   Versions advance through S.label: 4.45 -> 4.46 at rest of cycle 0, 4.46 -> 4.47 in cycle 1, ... Loop 4.2 s (was 4.8 with
+   a 0.5 s empty beat), rest 3.4 (resolved hold 2.6 -> 4.55). */
 VG.def('gitops', {
-  loop: 4.8, rest: 3.4, vb: (ph) => (ph ? [326, 300] : [430, 280]),
+  loop: 4.2, rest: 3.4, vb: (ph) => (ph ? [326, 300] : [430, 280]),
   label: 'Kuberik sets one value, version 4.46.0-46, in the checkout-api Flux Kustomization; Flux reconciles Deployment, Service and HPA, which go Ready',
   build(svg, id, ph) {
     const { el, w } = VG;
-    const LOOP = 4.8, EXIT = 4.0, EXIT_END = 4.3;
+    const LOOP = 4.2;
     const [W, H] = ph ? [326, 300] : [430, 280];
     const S = KB.stage(svg, W, H, LOOP);
     KB.defs(svg, id);
     const st = S.base;
-    const tt = (fn) => (T) => fn(T >= EXIT_END ? 0 : T);
+    const tt = (fn) => fn;   // v6j: no exit; every track is continuous across the seam or hands over identical pixels
+    const ver = (k) => `4.${45 + k}.0-${45 + k}`;
     // ---- geometry: Kuberik's node left of the Kustomization, on the slot's line
     const C = ph ? { x: 132, y: 16, w: 182, h: 128 } : { x: 150, y: 18, w: 264, h: 136 };
     const px = C.x + (ph ? 16 : 18);
@@ -62,14 +69,16 @@ VG.def('gitops', {
     KB.path(st, dK, 'w-q', chK);
     // v6h: the hand-off beat. Kuberik's wire stays lit until Flux's side goes Ready, and goes quiet on that frame
     const RD = 2.40;
-    const wireOn = S.sprite({ x: wx1 - 6, y: Fy - 8, w: wx2 - wx1 + 12, h: 16, track: tt((t) => ({ o: 1 - w(t, RD, RD + 0.15, 'in') })) });
-    KB.path(KB.reveal(S, { x: wx1 - 1, y: Fy - 6, w: wx2 - wx1 + 2, h: 12 }, tt((t) => w(t, 0.35, 0.65, 'io')), { axis: 'x', parent: wireOn }).g, dK, 'w-lit', chK);
+    // v6j: after the hand-off the lit layer re-arms while invisible (its reveal rewinds at 3.0, the layer returns at 3.1)
+    const wireOn = S.sprite({ x: wx1 - 6, y: Fy - 8, w: wx2 - wx1 + 12, h: 16, track: tt((t) => ({ o: t >= 3.1 ? 1 : 1 - w(t, RD, RD + 0.15, 'in') })) });
+    KB.path(KB.reveal(S, { x: wx1 - 1, y: Fy - 6, w: wx2 - wx1 + 2, h: 12 }, tt((t) => (t >= 3.0 ? 0 : w(t, 0.35, 0.65, 'io'))), { axis: 'x', parent: wireOn }).g, dK, 'w-lit', chK);
     // ---- the one value: the old chip leaves whole, the new one sets into the slot
     const cx = SL.x + 5, cy = SL.y + 5;
     const oldC = S.sprite({ x: cx - 2, y: cy - 2, w: chW + 4, h: 30, track: tt((t) => { const p = w(t, 0.56, 0.71, 'in'); return { o: 1 - p, y: 5 * p }; }) });
-    KB.chip(oldC.g, cx, cy, from, 'n', { mono: true });
+    // v6j: the outgoing chip is the one that set in last cycle (same tone, same label); its text is rewritten at 2.0 (hidden)
+    S.label(oldC, KB.chip(oldC.g, cx, cy, from, 'build', { mono: true }).t, ver, 2.0);
     const newC = S.sprite({ x: cx - 2, y: cy - 2, w: chW + 4, h: 24, track: tt((t) => { const p = w(t, 0.72, 0.97, 'spring'); return { o: w(t, 0.72, 0.84, 'out'), y: -6 * (1 - p), s: 0.94 + 0.06 * p }; }) });
-    KB.chip(newC.g, cx, cy, to, 'build', { mono: true });
+    S.label(newC, KB.chip(newC.g, cx, cy, to, 'build', { mono: true }).t, ver, 0.3);
     // ---- Flux reconciles the Kustomization: its mark turns, then settles Ready
     const ka = (t) => w(t, 1.1, 1.25), kb = (t) => w(t, RD, RD + 0.2);
     KB.mark(S, C.x + C.w - 20, C.y + (ph ? 21 : 24), ['rest', 'act'], tt((t) => ({ rest: 1 - ka(t) + ka(t) * kb(t), act: ka(t) * (1 - kb(t)) })), { loop: LOOP });
@@ -87,7 +96,8 @@ VG.def('gitops', {
       KB.path(st, d, 'w-q', chev);
       // v6h: the packet runs on the quiet wire (Flux applying); the wire lights on the Ready beat (130 ms), the frame Kuberik's
       // wire goes quiet
-      KB.path(S.sprite({ x: 0, y: 0, w: W, h: H, track: tt((t) => ({ o: w(t, RD, RD + 0.13, 'out') })) }).g, d, 'w-lit', chev);
+      // v6j: lit from the last cycle's hand-off; the light leaves (150 ms ease-in) as Kuberik's wire starts lighting (0.35)
+      KB.path(S.sprite({ x: 0, y: 0, w: W, h: H, track: tt((t) => ({ o: 1 - w(t, 0.35, 0.5, 'in') + w(t, RD, RD + 0.13, 'out') })) }).g, d, 'w-lit', chev);
       const lu = KB.lut(svg, d), [qx, qy] = lu.pt(0);
       const pk = S.sprite({ x: qx - 3, y: qy - 3, w: 6, h: 6, track: tt((t) => { const r = run(t); if (r <= 0 || r >= 1) return { o: 0 }; const [x, y] = lu.pt(r * lu.L); return { o: 1, x: x - qx, y: y - qy }; }) });
       el('circle', { cx: qx, cy: qy, r: 2, class: 'pk' }, pk.g);
@@ -101,6 +111,6 @@ VG.def('gitops', {
       KB.mark(S, x + 18, RY + 17, ['rest', 'act'], tt((t) => ({ rest: 1 - a(t) + a(t) * b(t), act: a(t) * (1 - b(t)) })), { loop: LOOP });
     });
     // v6h: no edge light on the Kustomization; the hand-off (RD) is the climax
-    return S.finish(KB.inoutTrack(EXIT, EXIT_END));
+    return S.finish();
   }
 });

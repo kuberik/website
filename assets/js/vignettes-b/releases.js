@@ -16,17 +16,34 @@
    back to the commit (which turns teal); the Release's mark rests. Wires light once and rest lit.
    Borrowed proportions: Gates' node card / prod tile and wire kit, Canary's dashed slot, v6d's provenance rows.
    Loop 4.8 s, rest 3.0 (resolved hold 1.2 s). */
+/* v6j (b17): the loop never empties; each cycle pushes the NEXT tag. The opening is the last cycle's answer: the Release in
+   front, its traces lit, the commit teal, the newest tag on top. 0.10: a new commit lands in git and the old trace lets go
+   (lit wires leave 150 ms ease-in, the commit's teal value leaves up 4 px while the new sha arrives, its dot hands back to the
+   ring, the top tag's teal digest and ink return to a plain row). 0.30: the push: the tag rows step down one (250 ms) and the
+   previous Release steps back into the deck behind the dashed slot (200 ms ease-in: 5 % smaller, 10 px up, 90 %, its values leave) and falls
+   away (1.25-1.45) as the new Release fills in front of it; 0.50 the
+   tag springs into the top row; then v6i unchanged from the travel (0.75) to the commit pop (2.26) and the Release's Ready
+   (2.48). Tags, digests, shas advance through S.label (tag rows are two sets: P before the push, Q from 0.27, handing over
+   identical pixels). The slot's 'Release' caption is gone (the slot is uncovered only 0.5-1.2 s). Loop 4.4 s (was 4.8 with a
+   0.6 s empty beat), rest 3.0 (resolved hold 2.68 -> 4.5). */
 VG.def('releases', {
-  loop: 4.8, rest: 3.0, vb: (ph) => (ph ? [326, 400] : [630, 330]),
+  loop: 4.4, rest: 3.0, vb: (ph) => (ph ? [326, 400] : [630, 330]),
   label: 'A ReleaseSource reads the new OCI tag 4.46.0-46 and records it as a release, tracing its digest back to the registry and its git revision back to the commit',
   build(svg, id, ph) {
     const { el, w } = VG;
-    const LOOP = 4.8, EXIT = 3.9, EXIT_END = 4.2;
+    const LOOP = 4.4;
     const [W, H] = ph ? [326, 400] : [630, 330];
     const S = KB.stage(svg, W, H, LOOP);
     KB.defs(svg, id);
     const st = S.base;
-    const tt = (fn) => (T) => fn(T >= EXIT_END ? 0 : T);
+    const tt = (fn) => fn;   // v6j: no exit
+    // release j (j = 0 is cycle 0's: 4.46.0-46); identity advances, digests/shas are stable per release
+    const hx = (j, n) => { let x = (j * 2654435761 + 97) >>> 0, o = ''; for (let i = 0; i < n; i++) { x = (x * 1103515245 + 12345) >>> 0; o += ((x >>> 16) & 15).toString(16); } return o; };
+    const TAG = (j) => `4.${46 + j}.0-${46 + j}`;
+    const DGK = { 0: '9c1e…7a40', '-1': '3f9a…c214', '-2': '0ad4…19fe', '-3': '51b0…e93c' };
+    const DG = (j) => DGK[j] || `${hx(j, 4)}…${hx(j + 7919, 4)}`;
+    const SHA = (j) => (j === 0 ? 'e2b4f81' : hx(j + 31, 7));
+    const LET = 0.10, S0 = 0.27, PUSH = 0.30;   // the old trace lets go; P -> Q hand-over; the push
     const CW = 80;
     // ---- geometry
     const R = ph ? { x: 12, y: 12, w: 302, h: 112 } : { x: 16, y: 56, w: 224, h: 140 };   // the OCI repository
@@ -36,8 +53,9 @@ VG.def('releases', {
     const Y = ph ? { v: 30, div: 44, dg: 72, rv: 100 } : { v: 34, div: 52, dg: 80, rv: 110 };
     const gy = G.y + (ph ? 42 : 44);                                                        // the commit's baseline
     // ---- timing (one change at a time)
-    const ins = (t) => w(t, 0.25, 0.5, 'io');                // the rows step down one
-    const pop = (t) => w(t, 0.45, 0.67, 'spring');           // the pushed tag springs into the top row
+    const ins = (t) => w(t, PUSH, PUSH + 0.25, 'io');        // the rows step down one
+    const pop = (t) => w(t, 0.50, 0.72, 'spring');           // the pushed tag springs into the top row
+    const let0 = (t) => w(t, LET, LET + 0.13, 'in');         // the old trace lets go
     const mv = (t) => w(t, 0.75, 1.25, 'spring');            // the one travel
     const fill = (t) => w(t, 1.2, 1.35, 'out');              // the slot becomes the Release
     const hand = (t) => w(t, 1.28, 1.41);                     // chip -> title
@@ -49,22 +67,37 @@ VG.def('releases', {
     KB.text(st, R.x + 16, R.y + 22, 'oci://ghcr.io/acme', 'tag');
     KB.text(st, R.x + 16, R.y + 40, 'checkout-api', 'label');
     KB.divider(st, R.x, R.x + R.w, R.y + 52);
-    const rows = [['4.45.0-45', '3f9a…c214'], ['4.44.0-44', '0ad4…19fe'], ['4.43.0-43', '51b0…e93c']];
     const nVis = ph ? 2 : 3;
-    const win = S.sprite({ x: R.x + 1, y: R.y + 53, w: R.w - 2, h: R.h - 54, clip: true, track: () => ({}) });
-    rows.slice(0, nVis).forEach(([v, dg], i) => {
+    const win = S.sprite({ x: R.x + 1, y: R.y + 53, w: R.w - 2, h: R.h - 54, clip: true });
+    // v6j: P = the rows before the push (row 0 is last cycle's new top row: ink + teal digest, returning to plain as the old
+    // trace lets go); Q = the same rows from S0, stepping down one at the push (the last one leaves through the clip)
+    const rowTxt = (g, y, j, ink, tealDg, sp, swapAt, d) => {
+      S.label(sp, KB.text(g, R.x + 16, y, TAG(j), ink ? 'monoInk' : 'mono'), (k) => TAG(k + d), swapAt);
+      const dg = KB.text(g, R.x + R.w - 16, y, DG(j), 'mono', 'end');
+      if (tealDg) dg.setAttribute('class', 'mono teal-ink');
+      S.label(sp, dg, (k) => DG(k + d), swapAt);
+    };
+    for (let i = 0; i < nVis; i++) {
+      const y = R0 + i * RP, box = { x: R.x, y: y - 16, w: R.w, h: 22 };
+      const P = S.sprite({ ...box, parent: win, track: (t) => ({ o: t < S0 + 0.01 ? 1 : 0 }) });
+      if (i === 0) {
+        const a = S.sprite({ ...box, parent: P, track: (t) => ({ o: 1 - let0(t) }) });
+        rowTxt(a.g, y, -1, true, true, P, 2.5, -1);
+        const b = S.sprite({ ...box, parent: P, track: (t) => ({ o: let0(t) }) });
+        rowTxt(b.g, y, -1, false, false, P, 2.5, -1);
+      } else rowTxt(P.g, y, -1 - i, false, false, P, 2.5, -1 - i);
       const last = i === nVis - 1;
-      const sp = S.sprite({ x: R.x, y: R0 + i * RP - 16, w: R.w, h: 22, parent: win, track: tt((t) => ({ y: RP * ins(t), o: last ? 1 - w(t, 0.25, 0.45, 'in') : 1 })) });
-      KB.text(sp.g, R.x + 16, R0 + i * RP, v, 'mono');
-      KB.text(sp.g, R.x + R.w - 16, R0 + i * RP, dg, 'mono', 'end');
-    });
+      const Q = S.sprite({ ...box, parent: win, track: (t) => (t < S0 ? { o: 0 } : { y: RP * ins(t), o: last ? 1 - w(t, PUSH, PUSH + 0.2, 'in') : 1 }) });
+      rowTxt(Q.g, y, -1 - i, false, false, Q, 0.10, -2 - i);
+    }
     // the new top row: left behind by the chip as it sets off; its digest turns teal when the Release's digest traces back to it
     const nr = S.sprite({ x: R.x, y: R0 - 16, w: R.w, h: 22, parent: win, track: tt((t) => ({ o: w(t, 0.8, 0.93, 'out') })) });
-    KB.text(nr.g, R.x + 16, R0, '4.46.0-46', 'monoInk');
+    S.label(nr, KB.text(nr.g, R.x + 16, R0, '4.46.0-46', 'monoInk'), (k) => TAG(k - 1), 0.4);
     const ndg = S.sprite({ x: R.x + R.w - 90, y: R0 - 16, w: 90, h: 22, parent: nr, track: tt((t) => ({ o: 1 - h1(t) })) });
-    KB.text(ndg.g, R.x + R.w - 16, R0, '9c1e…7a40', 'mono', 'end');
+    S.label(nr, KB.text(ndg.g, R.x + R.w - 16, R0, '9c1e…7a40', 'mono', 'end'), (k) => DG(k - 1), 0.4);
     const ndgT = S.sprite({ x: R.x + R.w - 90, y: R0 - 16, w: 90, h: 22, parent: nr, track: tt((t) => ({ o: h1(t) })) });
-    KB.text(ndgT.g, R.x + R.w - 16, R0, '9c1e…7a40', 'mono', 'end').setAttribute('class', 'mono teal-ink');
+    const ndgTt = KB.text(ndgT.g, R.x + R.w - 16, R0, '9c1e…7a40', 'mono', 'end'); ndgTt.setAttribute('class', 'mono teal-ink');
+    S.label(nr, ndgTt, (k) => DG(k - 1), 0.4);
     // ---- the git repository: the commit the image was built from
     KB.card(st, id, { ...G, r: 8 });
     KB.text(st, G.x + 16, G.y + 22, 'github.com/acme', 'tag');
@@ -73,14 +106,17 @@ VG.def('releases', {
     // v6h (b14 fix 6): the commit mark. The hollow ring hands over to a teal dot that pops (vg spring: 0 -> 1.031 -> 1, 240 ms)
     // as the revision's trace reaches the commit (t2 ends 2.32); the value's teal change (h2, 2.28) lands on the same beat
     const POP = 2.26, cpop = (t) => w(t, POP, POP + 0.24, 'spring');
-    const cr0 = S.sprite({ x: cdx - 6, y: gy - 10, w: 12, h: 12, track: tt((t) => ({ o: 1 - w(t, POP, POP + 0.08) })) });
+    // v6j: the old commit's dot hands back to the ring as a new commit lands (LET), and its teal value leaves for the new sha
+    const cr0 = S.sprite({ x: cdx - 6, y: gy - 10, w: 12, h: 12, track: tt((t) => ({ o: let0(t) * (1 - w(t, POP, POP + 0.08)) })) });
     el('circle', { cx: cdx, cy: gy - 4, r: 3, class: 'md-wait nsl', style: 'stroke-dasharray:none;stroke:var(--b-muted)', 'stroke-width': 1.2 }, cr0.g);
-    const cr1 = S.sprite({ x: cdx - 6, y: gy - 10, w: 12, h: 12, track: tt((t) => ({ o: t < POP ? 0 : 1, s: Math.max(0.001, cpop(t)) })) });
+    const cr1 = S.sprite({ x: cdx - 6, y: gy - 10, w: 12, h: 12, track: tt((t) => (t < LET + 0.2 ? { o: 1 - let0(t) } : { o: t < POP ? 0 : 1, s: Math.max(0.001, cpop(t)) })) });
     el('circle', { cx: cdx, cy: gy - 4, r: 3.5, class: 'md-rest' }, cr1.g);
-    const cm0 = S.sprite({ x: ce - 54, y: gy - 14, w: 56, h: 20, track: tt((t) => ({ o: 1 - h2(t) })) });
-    KB.text(cm0.g, ce, gy, 'e2b4f81', 'mono', 'end');
-    const cm1 = S.sprite({ x: ce - 54, y: gy - 14, w: 56, h: 20, track: tt((t) => ({ o: h2(t) })) });
-    KB.text(cm1.g, ce, gy, 'e2b4f81', 'mono', 'end').setAttribute('class', 'mono teal-ink');
+    const cin = (t) => w(t, LET + 0.08, LET + 0.21, 'out');
+    const cm0 = S.sprite({ x: ce - 54, y: gy - 14, w: 56, h: 20, track: tt((t) => ({ o: cin(t) * (1 - h2(t)), y: 4 * (1 - cin(t)) })) });
+    S.label(cm0, KB.text(cm0.g, ce, gy, 'e2b4f81', 'mono', 'end'), SHA, 3.5);
+    const cm1 = S.sprite({ x: ce - 54, y: gy - 14, w: 56, h: 20, track: tt((t) => (t < 1 ? { o: 1 - let0(t), y: -4 * let0(t) } : { o: h2(t) })) });
+    const cm1t = KB.text(cm1.g, ce, gy, 'e2b4f81', 'mono', 'end'); cm1t.setAttribute('class', 'mono teal-ink');
+    S.label(cm1, cm1t, (k) => SHA(k - 1), 1.2);
     // ---- wires (quiet, then each lights once and rests lit)
     // A: ReleaseSource, the repository -> the Release (the tag travels it). D1: the digest's line back to the tag's row.
     // D2: the revision's line back to the commit. 390 stacks the three objects; the wires run vertically between them.
@@ -114,23 +150,52 @@ VG.def('releases', {
       capA = [xa + 14, (y1 + y2) / 2 + 4, 'ReleaseSource', 'start'];
     }
     for (const [d, c] of [A, D1, D2]) KB.path(st, d, 'w-q', c);
+    // v6j: last cycle's traces, lit at the opening; they let go (150 ms ease-in) as the new commit lands
+    const oldLit = S.sprite({ x: 0, y: 0, w: W, h: H, track: (t) => ({ o: 1 - w(t, LET, LET + 0.15, 'in') }) });
+    for (const [d, c] of [A, D1, D2]) KB.path(oldLit.g, d, 'w-lit', c);
     KB.text(st, capA[0], capA[1], capA[2], 'tag', capA[3]);
     KB.path(KB.reveal(S, boxA, tt((t) => Math.min(1, mv(t))), { axis: axA }).g, A[0], 'w-lit', A[1]);
     KB.path(KB.reveal(S, box1, tt(t1), { axis: ax1, from: from1 }).g, D1[0], 'w-lit', D1[1]);
     KB.path(KB.reveal(S, box2, tt(t2), { axis: ax2, from: from2 }).g, D2[0], 'w-lit', D2[1]);
     // ---- the Release: a dashed slot (not reached yet), then the card
     el('rect', { x: D.x + 0.5, y: D.y + 0.5, width: D.w - 1, height: D.h - 1, rx: 11.5, class: 'c-slot nsl', 'stroke-width': 1 }, st);
-    // v6f (b-r5 fix 1): the slot's caption leaves (130 ms ease-in, 0.62-0.75) before the tag sets off, so the chip never lands on it
-    const sl = S.sprite({ x: D.x, y: D.y + Y.v - 16, w: 120, h: 22, track: tt((t) => ({ o: 1 - w(t, 0.62, 0.75, 'in') })) });
-    KB.text(sl.g, D.x + 18, D.y + Y.v - 4, 'Release', 'tag');
+    // v6j: the previous Release (last cycle's card, resolved) is in front at the opening; at the push it steps back into the
+    // deck (200 ms ease-in: 5 % smaller, 10 px up, 55 % opacity) behind the dashed slot; as the new Release fills in front of it
+    // the deck card falls away (200 ms ease-in, 1.25-1.45). Rewritten while hidden (2.5). Same pixels as the card below at
+    // the end of the cycle.
+    const back = (t) => w(t, PUSH, PUSH + 0.2, 'in');
+    const away = (t) => w(t, 1.25, 1.45, 'in');   // the deck card falls away as the new Release fills in front of it
+    const prev = S.sprite({ x: D.x - 24, y: D.y - 16, w: D.w + 48, h: D.h + 48, origin: [D.x + D.w / 2, D.y], track: (t) => ({ o: (1 - 0.1 * back(t)) * (1 - away(t)), s: 1 - 0.05 * back(t), y: -10 * back(t) }) });
+    // its content leaves as it steps back (the deck shows plates, not values: the chip lands on a clean slot)
+    const prevC = S.sprite({ x: D.x, y: D.y, w: D.w, h: D.h, parent: prev, track: (t) => ({ o: 1 - back(t) }) });
+    {
+      const g = prev.g;
+      KB.card(g, id, { ...D, tone: 'fig' });
+      const c = prevC.g;
+      KB.divider(c, D.x, D.x + D.w, D.y + Y.div);
+      const tt0 = KB.text(c, D.x + 18, D.y + Y.v, '4.45.0-45', 'monoInk'); tt0.setAttribute('font-size', 18);
+      S.label(prevC, tt0, (k) => TAG(k - 1), 2.5);
+      KB.text(c, D.x + 18, D.y + Y.dg, 'digest', 'tag');
+      const dv = KB.text(c, D.x + 84, D.y + Y.dg, 'sha256:', 'mono'); if (ph) dv.setAttribute('class', 'mono teal-ink');
+      S.label(prevC, dv, (k) => `sha256:${DG(k - 1)}`, 2.5);
+      KB.text(c, D.x + 18, D.y + Y.rv, 'revision', 'tag');
+      el('circle', { cx: D.x + 89, cy: D.y + Y.rv - 4, r: 3.5, class: 'md-rest' }, c);
+      const rv = KB.text(c, D.x + 98, D.y + Y.rv, '', 'mono'); if (ph) rv.setAttribute('class', 'mono teal-ink');
+      S.label(prevC, rv, (k) => SHA(k - 1), 2.5);
+      KB.markOne(c, D.x + D.w - 24, D.y + Y.v - 6, 'rest');
+    }
+    // the dashed slot stays in front of the deck card while it waits (shown with the step back, covered by the new Release)
+    const slotF = S.sprite({ x: D.x, y: D.y, w: D.w, h: D.h, track: (t) => ({ o: back(t) * (1 - away(t)) }) });
+    el('rect', { x: D.x + 0.5, y: D.y + 0.5, width: D.w - 1, height: D.h - 1, rx: 11.5, class: 'c-slot nsl', 'stroke-width': 1 }, slotF.g);
     const card = S.sprite({ x: D.x - 24, y: D.y - 16, w: D.w + 48, h: D.h + 48, track: tt((t) => ({ o: fill(t) })) });
     KB.card(card.g, id, { ...D, tone: 'fig' });
     KB.divider(card.g, D.x, D.x + D.w, D.y + Y.div);
     const ttl = S.sprite({ x: D.x, y: D.y + Y.v - 20, w: 160, h: 26, track: tt((t) => ({ o: hand(t) })) });
-    KB.text(ttl.g, D.x + 18, D.y + Y.v, '4.46.0-46', 'monoInk').setAttribute('font-size', 18);
+    const ttlT = KB.text(ttl.g, D.x + 18, D.y + Y.v, '4.46.0-46', 'monoInk'); ttlT.setAttribute('font-size', 18);
+    S.label(ttl, ttlT, (k) => TAG(k - 1), 0.7);
     // v6f (b-r5 fix 4, 390 only): the wires meet the Release at its top and bottom edges, away from the rows, so each value
     // turns teal as its trace starts (the same 130 ms change and teal-ink as the source values): the wire's two ends read.
-    const row = (sp, y, k, val, dot, on) => {
+    const row = (sp, y, k, val, dot, on, fn) => {
       const p = sp.g;
       KB.text(p, D.x + 18, y, k, 'tag');
       // v6i (b15 fix 1): the Release's revision mark resolves too. It was a hollow ring for good; now, as the revision's trace
@@ -144,23 +209,24 @@ VG.def('releases', {
         el('circle', { cx: D.x + 89, cy: y - 4, r: 3.5, class: 'md-rest' }, d1.g);
       }
       const vx = D.x + (dot ? 98 : 84);
-      if (!ph) { KB.text(p, vx, y, val, 'mono'); return; }
+      if (!ph) { S.label(sp, KB.text(p, vx, y, val, 'mono'), fn, 0.7); return; }
       const v0 = S.sprite({ x: vx - 2, y: y - 16, w: D.w - (vx - D.x), h: 22, parent: sp, track: tt((t) => ({ o: 1 - on(t) })) });
-      KB.text(v0.g, vx, y, val, 'mono');
+      S.label(sp, KB.text(v0.g, vx, y, val, 'mono'), fn, 0.7);
       const v1 = S.sprite({ x: vx - 2, y: y - 16, w: D.w - (vx - D.x), h: 22, parent: sp, track: tt((t) => ({ o: on(t) })) });
-      KB.text(v1.g, vx, y, val, 'mono').setAttribute('class', 'mono teal-ink');
+      const v1t = KB.text(v1.g, vx, y, val, 'mono'); v1t.setAttribute('class', 'mono teal-ink');
+      S.label(sp, v1t, fn, 0.7);
     };
     const r1 = S.sprite({ x: D.x, y: D.y + Y.dg - 16, w: D.w, h: 22, track: tt((t) => ({ o: a1(t), x: -6 * (1 - a1(t)) })) });
-    row(r1, D.y + Y.dg, 'digest', 'sha256:9c1e…7a40', false, (t) => w(t, 1.52, 1.65));
+    row(r1, D.y + Y.dg, 'digest', 'sha256:9c1e…7a40', false, (t) => w(t, 1.52, 1.65), (k) => `sha256:${DG(k - 1)}`);
     const r2 = S.sprite({ x: D.x, y: D.y + Y.rv - 16, w: D.w, h: 22, track: tt((t) => ({ o: a2(t), x: -6 * (1 - a2(t)) })) });
-    row(r2, D.y + Y.rv, 'revision', 'e2b4f81', true, (t) => w(t, 2.02, 2.15));
+    row(r2, D.y + Y.rv, 'revision', 'e2b4f81', true, (t) => w(t, 2.02, 2.15), (k) => SHA(k - 1));
     const mk = S.sprite({ x: D.x + D.w - 34, y: D.y + Y.v - 16, w: 20, h: 20, track: tt((t) => ({ o: fill(t) })) });
     KB.mark(S, D.x + D.w - 24, D.y + Y.v - 6, ['wait', 'rest'], tt((t) => ({ wait: 1 - ok(t), rest: ok(t) })), { parent: mk });
     // v6h: no edge light on the Release; the commit mark's pop (above) is the climax
     // ---- the pushed tag (the build chip): springs into the top row, travels the ReleaseSource wire, hands over to the title
     const T0 = [R.x + 12, R0 - 14], T1 = [D.x + 14, D.y + Y.v - 16];
-    const tg = S.sprite({ x: T0[0] - 2, y: T0[1] - 2, w: CW + 4, h: 24, origin: [T0[0] + CW / 2, T0[1] + 10], track: tt((t) => ({ o: w(t, 0.45, 0.55, 'out') * (1 - hand(t)), x: (T1[0] - T0[0]) * mv(t), y: (T1[1] - T0[1]) * mv(t), s: 0.9 + 0.1 * pop(t) })) });
-    KB.chip(tg.g, T0[0], T0[1], '4.46.0-46', 'build', { mono: true });
-    return S.finish(KB.inoutTrack(EXIT, EXIT_END));
+    const tg = S.sprite({ x: T0[0] - 2, y: T0[1] - 2, w: CW + 4, h: 24, origin: [T0[0] + CW / 2, T0[1] + 10], track: tt((t) => ({ o: w(t, 0.50, 0.60, 'out') * (1 - hand(t)), x: (T1[0] - T0[0]) * mv(t), y: (T1[1] - T0[1]) * mv(t), s: 0.9 + 0.1 * pop(t) })) });
+    S.label(tg, KB.chip(tg.g, T0[0], T0[1], '4.46.0-46', 'build', { mono: true }).t, (k) => TAG(k - 1), 0.2);
+    return S.finish();
   }
 });
