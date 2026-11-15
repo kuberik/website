@@ -83,7 +83,7 @@ VG.def('canary', {
       KB.card(g.g, id, { ...e, r: 8 });
       KB.text(g.g, e.x + 12, e.y + 27, e.n, 'label');
       KB.chip(g.g, e.x + 12, e.y + 44, 'PROD', 'prod', { caps: true });
-      KB.text(g.g, e.x + 64, e.y + 58.5, 'deploying', 'meta');
+      KB.text(g.g, e.x + 62, e.y + 58.5, 'deploying', 'meta');   // r9 N2: 10 px after the chip, as everywhere
       // v6f (b-r5 fix 6): dark lifts this mark (kb.css .w2): the act tint disc on the page card was 1.07:1
       g.div.classList.add('w2');
       KB.mark(S, e.x + e.w - 20, e.y + 22, ['act'], () => ({ act: 1 }), { parent: g, loop: LOOP });

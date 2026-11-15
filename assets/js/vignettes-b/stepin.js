@@ -61,8 +61,10 @@ VG.def('stepin', {
     const hc = Y + HH / 2;                            // header centre line
     T(st, X + pad, hc + 5, 'checkout-api', ph ? 13 : 15, 600, 'ink');
     // r8 (b22, nit): the header's gaps are 10.5 / 11.5 px at 390 and 1440 (v6k phone 5 / 6), the Pinned chip compact on the phone
-    KB.chip(st, X + pad + (ph ? 96 : 110), hc - (ph ? 9 : 10), 'PROD', 'prod', { caps: true, h: ph ? 18 : 20 });
-    T(st, X + pad + (ph ? 147 : 161), hc + 4.5, 'us-east-1', ph ? 12 : 14, 500, 'muted');
+    // r9 (b24, N1, N2): the PROD chip is the family's 20 tall on the phone too (v6k 18: a 17 px rect beside 19 everywhere
+    // else) and the region sits 10 px after it, as in Gates, Canary and Health (v6k 11)
+    KB.chip(st, X + pad + (ph ? 96 : 110), hc - 10, 'PROD', 'prod', { caps: true });
+    T(st, X + pad + (ph ? 146 : 160), hc + 4.5, 'us-east-1', ph ? 12 : 14, 500, 'muted');
     KB.divider(st, C.x, C.x + C.w, Y + HH);
     KB.divider(st, C.x, C.x + C.w, FD);
 
