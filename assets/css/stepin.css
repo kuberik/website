@@ -13,11 +13,15 @@ html.dark .si-name{color:oklch(.82 .1 182)}
   .si .si-lead .title-body{margin:0}
 }
 /* the canvas: the feature card's tinted dotted ground, standing alone */
-.si-canvas{display:flex;align-items:center;justify-content:center;min-height:320px;padding:32px 24px;border-radius:var(--card-r);border:1px solid var(--card-border);
+.si-canvas{display:flex;align-items:center;justify-content:center;min-height:0;padding:36px 24px;border-radius:var(--card-r);border:1px solid var(--card-border);
   background-color:var(--canvas-mint);background-image:radial-gradient(circle,oklch(.195 .014 222/.08) 1px,transparent 1.2px);background-size:20px 20px;background-position:-9px -9px}
 html.dark .si-canvas{background-image:radial-gradient(circle,oklch(.965 .005 222/.08) 1px,transparent 1.2px)}
+/* v6k (b19, review r7 B1): the scene (800x316, phone 326x254) is the one object; its card fills ~54 % of the canvas at 1440
+   (Health 59 %, GitOps 56 %). The width cap keeps its text <= ~20 px at very wide sizes (1920: 51 %, 2560: 41 % fill). */
+.si-canvas .vg{flex:1 1 auto;max-width:min(100%,calc(600px + 22vw),1080px);margin-inline:auto}
 @media(max-width:640px){
-  .si-canvas{min-height:0;padding:24px}
+  .si-canvas{padding:12px 11px}
+  .si-canvas .vg{max-width:none}
 }
 /* the lead reads at the #features lead size at every width */
 #step-in .title-body{font-size:var(--t-lead-s);line-height:var(--t-lead-l)}

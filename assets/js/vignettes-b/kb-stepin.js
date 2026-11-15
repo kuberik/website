@@ -4,8 +4,7 @@
      glyph M12 6v7M12 18h.01), in the dashboard's danger hue (styles/language.css --k-danger-*; kb-stepin.css --b-fail-*).
      KB.markOneX / KB.markX draw it and delegate every other state to KB.markOne, so they are drop-in for markOne / mark.
    - KB.ICON.thumbtack: the pin glyph (the section placeholder's own path, scaled to the kit's 24 box) for the Pinned chip.
-   - KB.pinChip, KB.button: the two small controls the rollout card needs (neutral chip with a glyph; a secondary button),
-     radius 6 as the section placeholder draws them. */
+   - KB.pinChip (v6k: a held-tone status chip, radius 4, the chip family), KB.button (a secondary button, radius 6). */
 (() => {
   const { el } = VG;
   const f2 = KB.f2;
@@ -24,13 +23,16 @@
     return KB.states(S, { x: cx - 9, y: cy - 9, w: 18, h: 18 }, list, (s, g) => markOneX(g, cx, cy, s), wts,
       { parent, spin: loop ? { state: 'act', deg: (t) => KB.per(t, loop, 360) } : null });
   }
-  /** neutral chip with the thumbtack, right-aligned at xr, centred on cy (22 tall, rx 6) */
+  /** v6k (b19, row S6): Pinned is a STATUS chip of the chip family (KB.chip's shape: 20 tall, radius 4, tinted fill, a
+      1 px line in its own hue, no card fill, no shadow), in the dashboard's held tone (a pin holds automation: the rollout
+      page's pin banner is bg-held-tint / border-held-line / text-held), with the thumbtack glyph. Right-aligned at xr,
+      centred on cy. v6j drew it as a neutral bordered pill on the card fill, the button's shape beside "Clear pin". */
   function pinChip(p, xr, cy, s = 'Pinned') {
-    const g = el('g', { class: 'c-n' }, p);
-    const w = Math.round(s.length * 6.9 + 34), x = xr - w, y = cy - 11;
-    el('rect', { x: x + 0.5, y: y + 0.5, width: w - 1, height: 21, rx: 5.5, 'stroke-width': 1, class: 'nsl' }, g);
-    KB.icon(g, 'thumbtack', x + 15, cy, 12, 'ic');
-    const t = el('text', { x: x + 25, y: cy + 4, 'font-size': 12, 'font-weight': 500, class: 'muted' }, g);
+    const g = el('g', { class: 'c-held si-pin' }, p);
+    const h = 20, w = Math.round(s.length * 6.6 + 30), x = xr - w, y = cy - h / 2;
+    el('rect', { x: x + 0.5, y: y + 0.5, width: w - 1, height: h - 1, rx: 4, 'stroke-width': 1, class: 'nsl' }, g);
+    KB.icon(g, 'thumbtack', x + 13, cy, 12, 'ic si-pin-ic');
+    const t = el('text', { x: x + 22, y: cy + 4, 'font-size': 12, 'font-weight': 500 }, g);
     t.textContent = s;
     return { g, w, x, y };
   }

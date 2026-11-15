@@ -1,4 +1,4 @@
-/* Step in kit extension (b18, v6j), site copy of take-b/v6j/kb-stepin.css with every .kb rule scoped under .vg like vignettes.css. Load after vignettes.css. */
+/* Step in kit extension (b18 v6j, b19 v6k), site copy of take-b/v6k/kb-stepin.css with every .kb rule scoped under .vg like vignettes.css. Load after vignettes.css. */
 /* take B kit extension for STEP IN (b18, v6j). Load after kb.css. Adds only: the fail tokens (the dashboard's danger,
    styles/language.css --k-danger-solid / -fg / -tint / -line, light and dark), the fail mark, the fail band, the rolled-back
    row tint, the secondary button. */
@@ -15,3 +15,12 @@ html.dark .vg .kb{--b-fail:oklch(.66 .19 25);--b-fail-ink:oklch(.78 .13 25);--b-
 .vg .kb .btn2 rect{fill:var(--b-card);stroke:var(--b-card-line)}
 /* Step in's canvas is the section's mint canvas: the dark card takes the same lift the mint feature canvases give it */
 html.dark .si-canvas .vg .kb{--b-card:oklch(.355 .035 192);--b-quiet:oklch(.37 .035 192)}
+/* v6k (b19). S6: the Pinned status chip's glyph takes the chip's held ink (the text gets it from .c-held text). */
+.vg .kb .si-pin .si-pin-ic{stroke:var(--b-held-ink)}
+/* v6k (b19, nit): Step in's bake wash and bar. Light: the kit's pale prog wash (.55, as .band-prog). Dark: the card's neutral
+   lift, no yellow (a low-L yellow over the teal card lands on olive: v6j's oklch(.39 .058 87) did); the bake reads in the
+   2 px bar in the dashboard's baking solid (--b-prog-fill, dark oklch(.84 .15 98)). The failing row's bar takes --b-fail. */
+.vg .kb .si-bake{fill:var(--b-prog-tint);opacity:.55}
+html.dark .vg .kb .si-bake{fill:oklch(1 0 0);opacity:.045}
+.vg .kb .si-bake-bar{fill:var(--b-prog-fill)}
+.vg .kb .si-fail-bar{fill:var(--b-fail)}
