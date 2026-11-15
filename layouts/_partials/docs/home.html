@@ -10,12 +10,12 @@
                    over a product canvas. It borrows the feature card's shell (radius 12, --card-border/-fill/-shadow),
                    its name/title/body type roles and its link-arrow, and the docs card's 32px icon tile (docs.css
                    .hextra-card), alternating the mint and lagoon canvases as the feature canvases do.
-       reference = the docs prev/next card (docs.css .kd-pager-card) in a row under a sidebar group label.
+       reference = the shared link-card (docs/link-card.html, variant "card") in a row under a sidebar group label; the
+                   journey rows are its variant "row" (R3-DES-3).
      The sidebar is rendered for the phone drawer only (the header's menu pill opens it); from 768 the page is the
      landing's full .cont width, so 2560 shows a three-column grid, never a lone column. */ -}}
 {{- $h := .Params.hero -}}
 {{- $arrow := `<svg viewBox="0 0 16 16" width="14" height="14" fill="none" stroke="currentColor" stroke-width="1.5" aria-hidden="true"><path d="M3 8h10M9 4l4 4-4 4" stroke-linecap="round" stroke-linejoin="round"/></svg>` | safeHTML -}}
-{{- define "kdh-title" -}}{{- with site.GetPage .url }}{{ .LinkTitle }}{{ else }}{{ .title }}{{ end -}}{{- end -}}
 <div class="kdh">
   {{ partial "sidebar.html" (dict "context" .) }}
   <section class="stage stage-mint kdh-hero" aria-labelledby="kdh-h1">
@@ -36,6 +36,8 @@
       </div>
     </div>
   </section>
+  {{- /* slot for the docs-home version line (site lane R3-IA-3): docs/home-version.html returns nothing until then */ -}}
+  {{- with partial "docs/home-version.html" . }}{{ with trim . " \n\t" }}<div class="cont kdh-version">{{ . | safeHTML }}</div>{{ end }}{{ end }}
 
   <section class="cont kdh-body" aria-labelledby="kdh-sections">
     <h2 class="sr" id="kdh-sections">Sections</h2>
@@ -48,9 +50,14 @@
         {{- $head := printf `<span class="kdh-tile">%s</span><span class="kdh-card-title">%s</span>` (partial "docs/icon.html" $icon) $j.title -}}
         {{- with $j.url }}<a class="kdh-card-head" href="{{ . }}">{{ $head | safeHTML }}<span class="kdh-card-go">{{ $arrow }}</span></a>{{ else }}<div class="kdh-card-head">{{ $head | safeHTML }}</div>{{ end }}
         <p class="kdh-card-body">{{ $j.outcome }}</p>
+        {{- /* every page of the section, sidebar order (R3-DES-4): a section card lists its children, the "Get started"
+             pseudo-group lists the pages hugo.toml params.docsSidebar.groups gives it */ -}}
+        {{- $pages := slice -}}
+        {{- range site.Params.docsSidebar.groups }}{{ if eq (lower .name) (lower $j.title) }}{{ range .pages }}{{ with site.GetPage . }}{{ $pages = $pages | append . }}{{ end }}{{ end }}{{ end }}{{ end -}}
+        {{- if not $pages }}{{ with $j.url }}{{ with site.GetPage . }}{{ if .IsSection }}{{ $pages = (where (union .RegularPages .Sections) "Params.sidebar.exclude" "!=" true).ByWeight }}{{ end }}{{ end }}{{ end }}{{ end }}
         <ul class="kdh-links">
-          {{- range $j.links }}
-          <li><a href="{{ .url }}">{{ template "kdh-title" . }}</a></li>
+          {{- range $pages }}
+          <li>{{ partial "docs/link-card.html" (dict "variant" "row" "url" .RelPermalink "title" .LinkTitle) }}</li>
           {{- end }}
         </ul>
       </li>
@@ -59,13 +66,10 @@
 
     <div class="kdh-ref">
       <p class="kdh-ref-label">Reference</p>
-      <ul class="kdh-ref-row">
+      <ul class="kd-lc-grid kd-lc-grid-ref">
         {{- range .Params.reference }}
-        <li><a class="kdh-ref-card" href="{{ .url }}">
-          <span class="kdh-tile">{{ partial "docs/icon.html" .icon }}</span>
-          <span class="kdh-ref-text"><span class="kdh-ref-title">{{ template "kdh-title" . }}</span>{{ $d := .description }}{{ with site.GetPage .url }}{{ with .Description }}{{ $d = . }}{{ end }}{{ end }}<span class="kdh-ref-desc">{{ $d }}</span></span>
-          <span class="kdh-card-go">{{ $arrow }}</span>
-        </a></li>
+        {{- $d := .description }}{{ $t := "" }}{{ with site.GetPage .url }}{{ with .Description }}{{ $d = . }}{{ end }}{{ $t = .LinkTitle }}{{ end }}
+        <li>{{ partial "docs/link-card.html" (dict "variant" "card" "url" .url "title" ($t | default .title) "desc" $d "icon" .icon "tone" "neutral") }}</li>
         {{- end }}
       </ul>
     </div>

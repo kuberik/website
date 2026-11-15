@@ -1,22 +1,14 @@
-{{- /* Section index list (R2-DES-9; STYLE 2 "index"). Role: the section's docs home card, expanded. The home card
-     (docs/home.html .kdh-card) shows the group's icon, outcome and three hand-picked rows; the index page is the same
-     card with EVERY child page (sidebar order, sidebar.exclude left out), each row now carrying the child's own title
-     and its full `description` (no clamp), so a reader picks a page without opening it.
-     Why not the old card grid (section-cards.html): six identical tiles with one repeated icon and clamped text read
-     thinner than the home card they expand, and left a ragged half-empty last row at 1440. A list in one card fills
-     the reading + TOC track at any count.
-     Proportions: the home card shell (radius 12, --card-border/-fill/-shadow, --card-pad) and its .kdh-links rows
-     (hairline between rows, 15/22 600 title, arrow on hover); at >= 1024 a row is title (fixed 280 track) beside its
-     description, the dashboard rail card dl's term/definition split. */ -}}
+{{- /* Section index (R3-DES-6; STYLE 2 "index"). Role: the section's docs home card, expanded. The home card
+     (docs/home.html .kdh-card) is the group's header, outcome and a row per page; this is the same set with EVERY child
+     page (sidebar order, sidebar.exclude left out) as a link-card carrying the child's title and description clamped to
+     two lines, in a 2-column grid. The group's tile is already the page head, so the cards carry no tile (the old
+     six-identical-tiles grid read thinner than the home card it expands). Component: docs/link-card.html, variant "card". */ -}}
 {{- $p := . -}}
 {{- $kids := where (union $p.RegularPages $p.Sections) "Params.sidebar.exclude" "!=" true -}}
 {{- with $kids -}}
-<ul class="kd-index-list">
+<ul class="kd-lc-grid kd-lc-grid-index">
   {{- range .ByWeight }}
-  <li><a class="kd-index-row" href="{{ .RelPermalink }}">
-    <span class="kd-index-title">{{ .Title }}</span>
-    {{- with .Description }}<span class="kd-index-desc">{{ . }}</span>{{ end }}
-  </a></li>
+  <li>{{ partial "docs/link-card.html" (dict "variant" "card" "url" .RelPermalink "title" .Title "desc" .Description) }}</li>
   {{- end }}
 </ul>
 {{- end -}}
