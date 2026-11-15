@@ -64,4 +64,4 @@ deployment "rollout-controller-controller-manager" successfully rolled out
 
 ## Next steps
 
-{{< next "/docs/getting-started/" "/docs/installation/dashboard-auth/" >}}
+{{< next "/docs/getting-started/" "/docs/integrations/fluxcd/" >}}
