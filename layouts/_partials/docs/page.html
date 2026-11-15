@@ -27,7 +27,7 @@
         {{- end }}
         {{- $c := string .Content -}}
         {{- /* STYLE 9: "Next steps" and "Related" are drawn only by {{< next >}}, whose cards are read from the target pages */}}
-        {{- if and (findRE `<h2>(Next steps|Related)<` $c 1) (not (findRE `class="kd-next"` $c 1)) }}{{ warnf "%s: ## Next steps / ## Related without {{< next >}} (STYLE 9)" .File.Path }}{{ end }}
+        {{- if and (findRE `<h2>(Next steps|Related)<` $c 1) (not (findRE `kd-lc-grid-next` $c 1)) }}{{ warnf "%s: ## Next steps / ## Related without {{< next >}} (STYLE 9)" .File.Path }}{{ end }}
         {{ $c | safeHTML }}
         {{- /* index pages list their children as cards unless the page already has a card block */}}
         {{- if and $isIndex .IsSection (not (findRE `hextra-cards|kd-lc-grid` .Content 1)) }}{{ partial "docs/section-list.html" . }}{{ end }}
