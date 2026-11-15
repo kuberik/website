@@ -49,11 +49,11 @@ Your CI builds the artifact and decides when a release exists by pushing its tag
 
 ### What Kuberik needs from GitHub, and what happens when GitHub is down
 
-To promote across environments, Kuberik needs a GitHub token in each app namespace that can read and write deployments on the app's repository. The environment-controller uses it only for the deployments API: it records each deploy as a GitHub deployment and reads the other tiers' deployments to decide what each tier may deploy. GitHub is the only backend an `Environment` supports today; GitLab is not one of them. The dashboard's commit and pull request views use a separate, optional GitHub App, and [the GitHub integration page](/docs/integrations/github/) sets up both.
+To promote across environments, Kuberik needs a GitHub token in each app namespace that can read and write deployments on the app's repository. The environment-controller uses it only for the deployments API: it records each deploy as a GitHub deployment and reads the other tiers' deployments to decide what each tier may deploy. GitHub is the only backend an `Environment` supports; GitLab is not one of them. The dashboard's commit and pull request views use a separate, optional GitHub App, and [the GitHub integration page](/docs/integrations/github/) sets up both.
 
 When GitHub is unreachable, running workloads are unaffected: Flux and Kubernetes keep running what is deployed, and Rollouts, health checks and bake times never call GitHub. Each environment keeps deploying the releases its gates already allow, and the Environment gate of the first tier's wave-1 leader allows every release unless `lockstep` holds it, so new builds still reach that leader. Promotion pauses: the controller can neither record new bakes nor read upstream ones, so the gates of later tiers and waves keep their last allowed versions. When GitHub is back, the controller records the deploys still in each Rollout's history, and promotion resumes.
 
-A `ReleaseSource` reads tags from your registry, not from GitHub. If that registry is `ghcr.io` and it is down as well, new releases arrive once it is back; a deploy whose artifact Flux cannot pull meanwhile waits in `Deploying` and fails when its `deployTimeout` runs out.
+A `ReleaseSource` reads tags from your registry, not from GitHub. If that registry is `ghcr.io` and it is down as well, new releases arrive once it is back; a deploy whose artifact Flux cannot pull meanwhile waits in `Deploying` and fails when its `deployTimeout` runs out, if it has one.
 
 ## Related
 

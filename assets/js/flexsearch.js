@@ -389,12 +389,13 @@ document.addEventListener("DOMContentLoaded", function () {
     for (const t of terms) {
       let th = hit(s.tw, t);
       // A part of a compound title word ("hub" in GitHub) scores as a prefix
-      // hit, but is no title match: no whole-title or page-entry bonus. Only for a one-word
-      // query that is not itself a camelCase name: a kind name, or a phrase, keeps
-      // the part hit at full title weight.
+      // hit, but is no title match: no whole-title or page-entry bonus. For a
+      // one-word query that is not itself a camelCase name, a part hit counts
+      // only when the word has no whole title hit ("git" keeps GitHub first).
+      // A kind name or a phrase keeps the part hit at full title weight.
       let partOnly = false;
       const tph = hit(s.tp, t);
-      if (tph > th && !th) {
+      if (tph > th && (!th || terms.length > 1 || ident)) {
         th = tph;
         partOnly = terms.length === 1 && !ident;
         if (partOnly) th = Math.min(th, 1);
