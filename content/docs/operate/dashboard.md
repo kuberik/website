@@ -91,9 +91,12 @@ To follow new releases again, select **Clear pin** on the Overview banner or the
 
 ### Roll back
 
-1. After a failed deploy, select **Roll back** on the **Deployment failed** banner of the rollout's **Overview**. It deploys the build before the failed one.
-2. Otherwise, select **Roll back** in the rollout header. It goes to the last older build this environment ran, else the release just below the running one. To pick the build yourself, choose an older one in **Change version**.
-3. A rollback always pins, so the dialog has no **Pin build** switch. Confirm with **Roll back**; in production, write why and type the build first.
+Start from one of two places:
+
+- **After a failed deploy:** select **Roll back** on the **Deployment failed** banner of the rollout's **Overview**. It deploys the build before the failed one.
+- **Any other build:** select **Roll back** in the rollout header. It shows whenever an older build exists, and goes to the last older build this environment ran, else the release just below the running one. To pick the build yourself, choose an older one in **Change version**.
+
+Then confirm. A rollback always pins, so the dialog has no **Pin build** switch. Select **Roll back**; in production, write why and type the build first.
 
 The rollout stays on that build, under a **Rolled back** banner, until you select **Clear pin**. A force-deploy back does not hold: see [Deploy a specific version](/docs/operate/manual-actions/#deploy-a-specific-version).
 
