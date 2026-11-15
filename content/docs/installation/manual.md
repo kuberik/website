@@ -8,7 +8,11 @@ weight: 30
 
 Install the Kuberik controllers by applying their release manifests with `kubectl`. The [Helm chart](/docs/installation/helm/) installs the same controllers plus the dashboard in one release; use this page when you manage controllers without Helm.
 
-Before you start, you need `kubectl` access with rights to create CRDs, and [Flux](https://fluxcd.io/flux/installation/) 2.6 or later in the cluster: Kuberik picks the version and [Flux](/docs/integrations/fluxcd/) applies it.
+Before you start, you need `kubectl` access with rights to create CRDs, and [Flux](https://fluxcd.io/flux/installation/) 2.7 or later in the cluster: Kuberik picks the version and [Flux](/docs/integrations/fluxcd/) applies it. The released rollout-controller does not start without Flux's `ImagePolicy` CRD (`image.toolkit.fluxcd.io/v1`), and a default `flux install` leaves out the image-reflector-controller that serves it. Add it:
+
+```bash {filename="Terminal"}
+flux install --components-extra=image-reflector-controller
+```
 
 {{< callout type="important" >}}
 These manifests are the released controllers. `ReleaseSource` and `spec.releaseSourceRef`, which [Deploy Your First App](/docs/getting-started/) uses, need the next releases {{< needs "Next release" >}}.
