@@ -27,11 +27,11 @@ An app's Progress tab shows how far each build has gone; a rollout's Gates tab s
 2. When two or more releases are in flight, pick one in the release list, beside the drawing or above it on a narrow screen. The drawing shows every environment as a column, its regions grouped by **Wave**, and each place's state: deployed, deploying, checking, held (with the rule that holds it), waiting for approval, failed, or **Not reached**.
 3. Select a place in the drawing to open that rollout. When the app waits or failed, the banner above also has **Open rollout**. To find what a banner's words mean and how to clear them, look them up in [What the dashboard shows](/docs/operate/troubleshooting/#what-the-dashboard-shows).
 
-![The Progress drawing of hello-world-app for build 3ea2311: development and staging are deployed, production eu-west in wave 1 is held by Business Hours Only, and us-east in wave 1 and ap-south in wave 2 are not reached](/images/docs/operate/dashboard-progress.png)
+![The Progress card of checkout-api on its oldest build in flight, 4.41.0-41: dev runs 4.45.0-45, staging 4.43.0-43, and production is grouped in waves, eu-central and us-east-1 in wave 1, us-east-2 in wave 2, af-south-1 and ap-southeast-2 in wave 3, not reached](/images/docs/operate/dashboard-progress.png)
 
 4. On the rollout, select the **Gates** tab. **Gated by** lists every gate, the environment before this one and the services this one depends on (its count is gates only), **Downstream** the rollouts that deploy after it. Below it, **Held builds**, **Waiting on** and **Depends on this** list held builds, dependencies and dependents. **All dependencies ›** opens the whole dependency network.
 
-![The Gates card of hello-world-app in production eu-west: a closed Business Hours Only schedule and two approvals that need approval hold the rollout, each with a Skip once button, and ap-south and us-east wait downstream](/images/docs/operate/dashboard-gated-by.png)
+![The Gates card of billing-edge in production: prod is waiting on an approval, and two gates hold build 5.8.0-62, the closed Business hours window and Release approval, which needs approval, each with a Skip once button, while billing-edge runs 5.7.1-61](/images/docs/operate/dashboard-gated-by.png)
 
 ## Follow a change
 

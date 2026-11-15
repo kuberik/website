@@ -210,7 +210,7 @@ kuberik_rollout_bake_status{bake_status="Succeeded",customresource_group="kuberi
 
 The dashboard reads the same fields: its Activity page is the deploy feed across every cluster, and each rollout page shows the bake and health-check state these metrics export.
 
-![The Activity page: no failed deploys, 99 deploys in seven days, a median of 2 minutes to production and a chart of deploys per day](/images/docs/operate/monitoring-activity.png)
+![The summary of the Activity page for the last day: 1 failed deploy, resolved, 0.8% of deploys; 128 deploys; a median of 6h 8m to production; 4 in flight; and a chart of deploys per hour](/images/docs/operate/monitoring-activity.png)
 
 ## Next steps
 
