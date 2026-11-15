@@ -60,7 +60,7 @@ const ids = ['gates', 'canary', 'health', 'gitops', 'dashboard', 'releases', 'st
 	const ctx = await mk(1440, { reducedMotion: 'reduce' }), p = await ctx.newPage(); await p.route(/\/islands\/.*\.js/, (r) => r.abort());
 	await p.goto(URL); await p.evaluate(() => document.querySelector('#features').scrollIntoView()); await p.waitForTimeout(1000);
 	const r = await p.evaluate(() => ({ live: document.querySelectorAll('[data-vg-live]').length, anim: document.querySelector('#features').getAnimations({ subtree: true }).filter((a) => a.effect?.target?.closest?.('.vg')).length, posters: document.querySelectorAll('.vg .vg-p').length }));
-	ok(r.live === 0 && r.anim === 0 && r.posters === 12, `reduced motion: nothing built, no animation, 12 posters stand (${JSON.stringify(r)})`);
+	ok(r.live === 0 && r.anim === 0 && r.posters === ids.length * 2, `reduced motion: nothing built, no animation, ${ids.length * 2} posters stand (${JSON.stringify(r)})`);
 	await ctx.close();
 }
 // 4
