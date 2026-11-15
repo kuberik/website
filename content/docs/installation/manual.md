@@ -8,58 +8,56 @@ weight: 15
 
 Install the Kuberik controllers by applying their release manifests with `kubectl`. The [Helm chart](/docs/installation/helm/) installs the same controllers plus the dashboard in one release; use this page when you manage controllers without Helm.
 
-Before you start, you need `kubectl` access with rights to create CRDs, and Flux 2.7 or later in the cluster ([install Flux](https://fluxcd.io/flux/installation/)): Kuberik picks the version and [Flux](/docs/integrations/fluxcd/) applies it. The released rollout-controller needs Flux's ImagePolicy v1 API (`image.toolkit.fluxcd.io/v1`), which Flux 2.7 serves with the image-reflector-controller; a default `flux install` leaves that controller out. Add it:
-
-```bash {filename="Terminal"}
-flux install --components-extra=image-reflector-controller
-```
-
-{{< callout type="important" >}}
-These manifests are the released controllers. `ReleaseSource` and `spec.releaseSourceRef`, which [Deploy Your First App](/docs/getting-started/) uses, need the next releases {{< needs "Next release" >}}.
-{{< /callout >}}
+Before you start, you need `kubectl` access with rights to create CRDs, and Flux 2.6 or later in the cluster ([install Flux](https://fluxcd.io/flux/installation/)): Kuberik picks the version and [Flux](/docs/integrations/fluxcd/) applies it.
 
 ## Install the rollout-controller
 
-The rollout-controller runs every `Rollout`. Apply its {{< param "rollout_controller_version" >}} release manifest:
+The rollout-controller runs every `Rollout`. Apply its latest release manifest:
 
 ```bash {filename="Terminal"}
-kubectl apply --server-side -f https://github.com/kuberik/rollout-controller/releases/download/{{< param "rollout_controller_version" >}}/install.yaml
+kubectl apply --server-side -f https://github.com/kuberik/rollout-controller/releases/latest/download/install.yaml
 ```
 
 The manifest creates the `kuberik-system` namespace, the CRDs and the `rollout-controller-controller-manager` Deployment.
 
 ## Install the release-controller
 
-Rollouts read their releases from `ReleaseSource` objects, which the release-controller serves. It has no release manifest yet {{< needs "Next release" >}}: install it with the [Helm chart](/docs/installation/helm/), or build it from [its repository](https://github.com/kuberik/release-controller#install).
+Rollouts read their releases from `ReleaseSource` objects, which the release-controller serves. Its manifest creates the `release-controller-system` namespace and the `release-controller-controller-manager` Deployment.
+
+```bash {filename="Terminal"}
+kubectl apply --server-side -f https://github.com/kuberik/release-controller/releases/latest/download/install.yaml
+```
 
 ## Add integration controllers
 
-Each integration is a separate controller. Install only the ones you use; the linked page names the version it needs.
+Each integration is a separate controller in `kuberik-system`. Install only the ones you use; the linked page shows what each one reads.
 
-| Controller | Adds | Install from |
+| Controller | Adds | Manifest |
 |---|---|---|
-| openkruise-controller | Canary steps with OpenKruise Rollout | [Roll Out with a Canary](/docs/releases/canary/) |
-| datadog-controller | Datadog monitors and incidents as health checks | [Datadog](/docs/integrations/datadog/) |
-| environment-controller | Promotion across clusters through GitHub deployments | No release manifest yet for the version [GitHub](/docs/integrations/github/) describes {{< needs "Next release" >}}: build it from [its repository](https://github.com/kuberik/environment-controller) |
+| [openkruise-controller](/docs/releases/canary/) | Canary steps with OpenKruise Rollout | `https://github.com/kuberik/openkruise-controller/releases/latest/download/install.yaml` |
+| [datadog-controller](/docs/integrations/datadog/) | Datadog monitors and incidents as health checks | `https://github.com/kuberik/datadog-controller/releases/latest/download/install.yaml` |
+| [environment-controller](/docs/integrations/github/) | Promotion across clusters through GitHub deployments | `https://github.com/kuberik/environment-controller/releases/latest/download/install.yaml` |
 
-## Install everything from one bundle
-
-The kuberik repository keeps a kustomize bundle with the rollout-controller and the three integration controllers, at the versions chart 0.7.0 ships: rollout-controller v0.9.2, older than the {{< param "rollout_controller_version" >}} step above. Comment out the integrations you do not use in a local copy, or apply it whole. Apply it server-side: openkruise-controller's `RolloutTest` CRD is larger than the 256 KiB annotation that client-side `kubectl apply` writes.
+Apply each one the same way, server-side: openkruise-controller's `RolloutTest` CRD is larger than the 256 KiB annotation a client-side apply writes.
 
 ```bash {filename="Terminal"}
-kubectl apply --server-side -k https://github.com/kuberik/kuberik/config/install
+kubectl apply --server-side -f https://github.com/kuberik/openkruise-controller/releases/latest/download/install.yaml
 ```
+
+The prometheus-controller publishes no manifest; [Prometheus](/docs/integrations/prometheus/) shows how to build and deploy it.
 
 ## Check the result
 
-Wait for the controller to become ready:
+Wait for the controllers to become ready:
 
 ```bash {filename="Terminal"}
 kubectl -n kuberik-system rollout status deployment/rollout-controller-controller-manager
+kubectl -n release-controller-system rollout status deployment/release-controller-controller-manager
 ```
 
 ```text {filename="Output"}
 deployment "rollout-controller-controller-manager" successfully rolled out
+deployment "release-controller-controller-manager" successfully rolled out
 ```
 
 ## Next steps
