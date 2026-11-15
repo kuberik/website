@@ -2,7 +2,8 @@
 title: "Set Up Dashboard Sign-in"
 description: "Put the dashboard behind your OIDC provider with one oauth2-proxy and an Envoy Gateway SecurityPolicy."
 type_: guide
-weight: 2
+icon: lock-closed
+weight: 20
 ---
 
 Put the Kuberik dashboard behind your OIDC provider, so people sign in with their own identity. One [oauth2-proxy](https://oauth2-proxy.github.io/oauth2-proxy/) in `auth-system` checks every request through [Envoy Gateway](https://gateway.envoyproxy.io) external authorization.
