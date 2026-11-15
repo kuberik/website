@@ -35,6 +35,16 @@ kubectl get rollout hello-world -n hello-world \
 kubectl events -n hello-world --for rollout/hello-world
 ```
 
+The controllers' logs hold the rest, such as "Retry annotation ignored". The Helm chart runs them in `kuberik-system`.
+
+```bash {filename="Terminal"}
+kubectl logs -n kuberik-system deployment/rollout-controller --since=1h
+kubectl logs -n kuberik-system deployment/release-controller --since=1h
+kubectl logs -n kuberik-system deployment/environment-controller-manager --since=1h
+```
+
+The integrations log as `datadog-controller-controller-manager` and `openkruise-controller-manager`. [Installed with kubectl](/docs/installation/manual/), the first two are `rollout-controller-controller-manager` and `release-controller-controller-manager`, the latter in `release-controller-system`.
+
 ## A new release is blocked
 
 ### No release source
