@@ -1,7 +1,0 @@
-{{- /* {{< needs "Next release" >}} / {{< needs "rollout-controller > v0.11.0" >}}: the inline availability chip
-     (R2-DES-7). Role: say a row or line needs a newer release than the latest tag, without reading as a warning.
-     Family: the product chip shape (.kd-chip: 20 tall, radius 4, 11/16 600 uppercase) drawn as an outline in lagoon
-     ink with the release (package) glyph, the same glyph and ink as the `important` callout, which is the block form.
-     Why not {{< badge >}}: badge colours mean state (healthy, failed, held, deploying); availability is not a state. */ -}}
-<span class="kd-needs">{{ partial "docs/icon.html" "releases" }}{{ .Get 0 | default "Next release" }}</span>
-{{- /* strip trailing newline */ -}}
