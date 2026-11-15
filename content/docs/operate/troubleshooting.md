@@ -1,11 +1,11 @@
 ---
 title: "Troubleshoot"
-description: "Match what the dashboard or kubectl shows to its fix: a blocked release, a deploy stuck in Deploying, a failed deploy, or a roll back."
+description: "Match what the dashboard or kubectl shows to its fix, from a blocked release to a roll back."
 type_: guide
 weight: 90
 ---
 
-Find what the dashboard shows, or the condition kubectl prints, in the table below and go to its fix. Every example uses the [Rollout](/docs/concepts/rollouts/) `hello-world` in namespace `hello-world`, in the environment `production`.
+Find what the dashboard shows, or the condition kubectl prints, in the table below and go to its fix. Examples use the [Rollout](/docs/concepts/rollouts/) `hello-world` in namespace `hello-world`, environment `production`.
 
 ## What the dashboard shows
 
@@ -88,7 +88,7 @@ kubectl edit releasesource hello-world -n hello-world
 
 ### Blocked by a closed schedule or a failing gate
 
-`GatesPassing` is False with reason `SomeGatesBlocking`. A release is waiting and a gate has `passing: false`, often a closed deployment window from a [`RolloutSchedule`](/docs/gates/schedules/) or a [`ClusterRolloutSchedule`](/docs/gates/schedules/). With nothing waiting, the condition stays `True` and the closed gate is still listed in `status.gates`. List the gates and schedules.
+`GatesPassing` is False with reason `SomeGatesBlocking`. A release is waiting and a gate has `passing: false`, often a closed window from a [`RolloutSchedule`](/docs/gates/schedules/) or [`ClusterRolloutSchedule`](/docs/gates/schedules/). With nothing waiting, the condition stays `True` and the closed gate is still listed in `status.gates`.
 
 ```bash {filename="Terminal"}
 kubectl get rollout hello-world -n hello-world -o jsonpath='{.status.gates}'
@@ -231,7 +231,7 @@ kubectl get rollout hello-world -n hello-world -o jsonpath='{.status.history[0].
 
 ### Roll back to the previous build
 
-This works for any build, failed or baked; Kuberik never rolls back on its own. In the dashboard, select **Roll back** ([Roll back](/docs/operate/dashboard/#roll-back)), which pins the Rollout to an earlier build. With kubectl, print the previous build's tag.
+This works for any build, failed or baked; Kuberik never rolls back on its own. In the dashboard, [Roll back](/docs/operate/dashboard/#roll-back) pins the Rollout to an earlier build. With kubectl, print the previous build's tag.
 
 ```bash {filename="Terminal"}
 kubectl get rollout hello-world -n hello-world -o jsonpath='{.status.history[1].version.tag}{"\n"}'
