@@ -10,7 +10,7 @@ Production deploys only the releases staging has already deployed and baked, wit
 
 {{< fig id="promote-waves" caption="A release reaches production wave 1 only after staging baked it, and wave 2 only after every wave-1 site baked it." >}}
 
-Works with the environment-controller, also when every tier runs in one cluster, a GitHub token Secret in each app namespace (see [GitHub](/docs/integrations/github/)), and Rollouts that take their releases from a [ReleaseSource](/docs/releases/publish/).
+Works with the environment-controller, a GitHub token Secret in each app namespace (see [GitHub](/docs/integrations/github/)), and Rollouts that take their releases from a [ReleaseSource](/docs/releases/publish/). The GitHub token is needed even when every tier runs in one cluster.
 
 ## Create the staging Environment
 
