@@ -16,7 +16,7 @@ journeys:
   - title: "Get Started"
     url: "/docs/what-is-kuberik/"   # a pseudo-group has no index page: the card opens its first page (docs/group.html)
     icon: rocket
-    outcome: "Install the controller and deploy an app with Flux."
+    outcome: "Install Kuberik and deploy an app with Flux."
     links:
       - { url: "/docs/what-is-kuberik/", title: "What Is Kuberik" }
       - { url: "/docs/installation/helm/", title: "Install with Helm" }
