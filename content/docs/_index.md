@@ -13,7 +13,7 @@ hero:
   primary: { title: "Deploy Your First App", url: "/docs/getting-started/" }
   secondary: { title: "Install", url: "/docs/installation/" }
 journeys:
-  - title: "Get Started"
+  - title: "Get started"
     url: "/docs/what-is-kuberik/"   # a pseudo-group has no index page: the card opens its first page (docs/group.html)
     icon: rocket
     outcome: "Install the controller and deploy an app with Flux."
@@ -29,7 +29,7 @@ journeys:
       - { url: "/docs/concepts/architecture/", title: "How Kuberik Works" }
       - { url: "/docs/concepts/rollouts/", title: "Rollouts" }
       - { url: "/docs/concepts/environments/", title: "Environments" }
-  - title: "Ship Releases"
+  - title: "Ship releases"
     url: "/docs/releases/"
     icon: releases
     outcome: "Publish releases from CI and move them through your environments."
@@ -37,7 +37,7 @@ journeys:
       - { url: "/docs/releases/publish/", title: "Publish Releases from CI" }
       - { url: "/docs/releases/promote/", title: "Promote Across Environments" }
       - { url: "/docs/releases/canary/", title: "Roll Out with a Canary" }
-  - title: "Gate Deploys"
+  - title: "Gate deploys"
     url: "/docs/gates/"
     icon: gates
     outcome: "Hold a deploy until health checks, people or time windows allow it."
