@@ -394,7 +394,7 @@ document.addEventListener("DOMContentLoaded", function () {
       // the part hit at full title weight.
       let partOnly = false;
       const tph = hit(s.tp, t);
-      if (tph > th) {
+      if (tph > th && !th) {
         th = tph;
         partOnly = terms.length === 1 && !ident;
         if (partOnly) th = Math.min(th, 1);
