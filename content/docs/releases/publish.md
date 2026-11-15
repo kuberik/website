@@ -273,7 +273,7 @@ kubectl get releasesource -n hello-world hello-world -o jsonpath='{.status.newes
 
 On the dashboard's **Apps** page, the app's card names the newest build. Publishing only makes it a release: here a deployment window still holds it, so staging and production stay one build behind.
 
-![The billing-edge card on the Apps page: the newest build, 5.8.0-62, held by the Business hours deploy window, with staging and production both held one build behind](/images/docs/releases/publish-newest.png)
+![The billing-edge card on the Apps page: the newest build, 5.8.0-62, held by the Business hours deploy window, with staging and production both held](/images/docs/releases/publish-newest.png)
 
 If the tag is missing, compare it with `filterTags.pattern`: tags that do not match are not releases. If `revision` is missing, the annotations were written to the per-platform manifests instead of the image index.
 
