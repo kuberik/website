@@ -103,7 +103,7 @@ subjects:
     name: james.porter@acme.com
 ```
 
-Two admission policies come with the controller and need Kubernetes 1.30 or later. `kuberik-rolloutapproval-by` rejects an `approval.kuberik.com/by` that is not the requesting user, so the name on an approval is trustworthy; the dashboard shows it only where that policy denies. `kuberik-approval-gate-guard` lets only the controller change an approval gate, so editing the gate's `allowedVersions` is refused.
+Two admission policies come with the controller and need Kubernetes 1.30 or later. `kuberik-rolloutapproval-by` rejects an `approval.kuberik.com/by` that is not the requesting user, so the name on an approval is trustworthy. The dashboard shows that name only when the cluster has the binding `kuberik-rolloutapproval-by` with the `Deny` action, because a `Warn` or `Audit` binding lets a false name through. `kuberik-approval-gate-guard` lets only the controller change an approval gate, so editing the gate's `allowedVersions` is refused.
 
 ## Know when approval is skipped
 
