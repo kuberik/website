@@ -30,7 +30,7 @@ metadata:
 spec:
   releaseSourceRef:
     name: hello-world
-  wantedVersion: "v1.2.3"  # remove to unpin
+  wantedVersion: "1.4.1"  # remove to unpin
 ```
 
 ```bash {filename="Terminal"}
@@ -43,11 +43,16 @@ In the dashboard, **Change version** with **Pin build** turned on sets the pin, 
 
 ## Roll back to the previous version
 
-Kuberik never rolls back on its own. To go back, pin the build deployed before the current one: `status.history[0]` is the current deploy, `status.history[1]` the one before it.
+Kuberik never starts a rollback on its own. To go back, pin the build deployed before the current one: `status.history[0]` is the current deploy, `status.history[1]` the one before it. Print its tag.
 
 ```bash {filename="Terminal"}
 kubectl -n hello-world get rollout hello-world -o jsonpath='{.status.history[1].version.tag}{"\n"}'
-kubectl -n hello-world patch rollout hello-world --type=merge -p '{"spec":{"wantedVersion":"v1.2.2"}}'
+```
+
+Then pin the tag it printed.
+
+```bash {filename="Terminal"}
+kubectl -n hello-world patch rollout hello-world --type=merge -p '{"spec":{"wantedVersion":"<previous-tag>"}}'
 ```
 
 **Roll back** on the dashboard's **Deployment failed** banner writes the same pin. Clear it as in [Pin a version](#pin-a-version) once a fixed release is out.
@@ -58,8 +63,8 @@ Set `rollout.kuberik.com/force-deploy` to deploy one build now, newer or older t
 
 ```bash {filename="Terminal"}
 kubectl -n hello-world annotate rollout hello-world --overwrite \
-  rollout.kuberik.com/force-deploy=v1.2.3 \
-  rollout.kuberik.com/deploy-message="Back to v1.2.3 while checkout timeouts are fixed" \
+  rollout.kuberik.com/force-deploy=1.4.0 \
+  rollout.kuberik.com/deploy-message="Back to 1.4.0 while checkout timeouts are fixed" \
   rollout.kuberik.com/deploy-user=emma.clarke
 ```
 
@@ -72,7 +77,7 @@ In the dashboard, **Change version** with **Pin build** off writes these annotat
 Set `rollout.kuberik.com/bypass-gates` to let one held build through every gate, once. Health checks and a failed bake still hold it, and the next build meets the gates as before.
 
 ```bash {filename="Terminal"}
-kubectl -n hello-world annotate rollout hello-world --overwrite rollout.kuberik.com/bypass-gates=v1.2.3
+kubectl -n hello-world annotate rollout hello-world --overwrite rollout.kuberik.com/bypass-gates=1.4.1
 ```
 
 The tag must be a candidate, a release newer than the deployed one; for any other tag nothing happens. The history message reads "Automatic deployment, with gate bypass", and the controller removes the annotation after the next deploy.
@@ -87,7 +92,7 @@ kubectl -n hello-world get rollout hello-world -o jsonpath='{.status.gates[*].na
 
 ```bash {filename="Terminal"}
 kubectl -n hello-world annotate rollout hello-world --overwrite \
-  rollout.kuberik.com/bypass-gates=v1.2.3 \
+  rollout.kuberik.com/bypass-gates=1.4.1 \
   rollout.kuberik.com/bypass-gates-only=schedule-gate-x7k2p,approval-gate-9fqzt
 ```
 
@@ -128,7 +133,7 @@ metadata:
 spec:
   releaseSourceRef:
     name: hello-world
-  deployTimeout: 10m  # healthy within 10m or the deploy fails
+  deployTimeout: 10m  # healthy within 10m
   bakeTime: 15m
 ```
 

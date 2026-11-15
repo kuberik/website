@@ -8,7 +8,7 @@ weight: 20
 
 Put the Kuberik dashboard behind your OIDC provider, so people sign in with their own identity. One [oauth2-proxy](https://oauth2-proxy.github.io/oauth2-proxy/) in `auth-system` checks every request through [Envoy Gateway](https://gateway.envoyproxy.io) external authorization.
 
-This page is the manual path. It needs Envoy Gateway and the dashboard's `rollout-dashboard` HTTPRoute in `kuberik-system`. With the [Helm chart](/docs/installation/helm/), the chart renders these manifests instead: set `auth.enabled` with `auth.oidc.issuerUrl`, `auth.canonicalHost` and `auth.gateway.name`, and `dashboard.gateway.enabled` and `dashboard.gateway.auth` with `dashboard.gateway.parentRef.name` and `dashboard.gateway.hostname`.
+This page is the manual path. It needs Envoy Gateway and the dashboard's `rollout-dashboard` HTTPRoute in `kuberik-system`; the dashboard and that HTTPRoute come only from the Helm chart (`dashboard.gateway.enabled`). With the [Helm chart](/docs/installation/helm/), the chart renders these manifests instead: set `auth.enabled` with `auth.oidc.issuerUrl`, `auth.canonicalHost` and `auth.gateway.name`, and `dashboard.gateway.enabled` and `dashboard.gateway.auth` with `dashboard.gateway.parentRef.name` and `dashboard.gateway.hostname`.
 
 {{< callout type="important" >}}
 On chart 0.7.0, add the two `--skip-auth-route` flags below through `auth.extraArgs`; charts after 0.7.0 set them by default with `auth.staticRoutes`.
@@ -168,4 +168,4 @@ To confirm cookie growth, open DevTools, then Application, then Cookies for the 
 
 ## Next steps
 
-{{< next "/docs/installation/helm/" "/docs/integrations/github/" "/docs/operate/troubleshooting/" >}}
+{{< next "/docs/getting-started/" "/docs/integrations/github/" "/docs/operate/troubleshooting/" >}}

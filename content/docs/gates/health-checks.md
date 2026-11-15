@@ -8,6 +8,8 @@ aliases: ["/docs/guides/health-checks/"]
 
 A [Rollout](/docs/concepts/rollouts/) with health checks marks a deploy succeeded only after its checks stay healthy for the bake time, and fails it when a check turns unhealthy. While a check is unhealthy, new automatic deploys wait.
 
+{{< fig id="health-bake" caption="deployTimeout limits the wait for every check to be Healthy, bakeTime runs from that moment, and a check error at any point fails the deploy." >}}
+
 Works with: Flux Kustomizations (built into rollout-controller), [Datadog](/docs/integrations/datadog/) monitors and incidents (datadog-controller), and [Prometheus](/docs/integrations/prometheus/) alerts (prometheus-controller).
 
 ## Add a health check
@@ -21,7 +23,7 @@ metadata:
   name: hello-world
   namespace: hello-world
   labels:
-    app: hello-world  # the Rollout selects on this
+    app: hello-world  # the Rollout selects this
   annotations:
     healthcheck.kuberik.com/kustomization: "hello-world"
 spec:
@@ -43,7 +45,7 @@ metadata:
 spec:
   releaseSourceRef:
     name: hello-world
-  bakeTime: 10m  # healthy this long after bake starts
+  bakeTime: 10m  # healthy this long
   deployTimeout: 15m
   healthCheckSelector:
     selector:

@@ -25,13 +25,13 @@ Kuberik is a set of controllers that decide which build of your app runs in each
 
 ## How a build travels
 
-A `ReleaseSource` finds a new tag in the OCI repository and adds it to its catalogue of releases. Every release newer than the deployed one becomes a candidate for the Rollout; `status.candidates` shows the newest of them.
+A ReleaseSource finds a new tag in the OCI repository and adds it to its catalogue of releases. Every release newer than the deployed one becomes a candidate for the Rollout; `status.candidates` shows the newest of them.
 
-`RolloutGates` decide which candidates may deploy. If any gate does not allow the build, the build waits until a gate changes. Gates never hold deploys you start by hand. On a Rollout's first deploy they never hold either: it deploys the newest release the gates allow, or the newest release if they allow none.
+RolloutGates decide which candidates may deploy. If any gate does not allow the build, the build waits until a gate changes. Gates never hold deploys you start by hand. On a Rollout's first deploy they never hold either: it deploys the newest release the gates allow, or the newest release if they allow none.
 
-Kuberik then updates the Flux source it owns, a substitution variable on a `Kustomization` or the tag on an `OCIRepository`, and Flux applies the change. See [Propagation Modes](/docs/concepts/propagation/).
+Kuberik then updates the Flux source it owns, a substitution variable on a Kustomization or the tag on an OCIRepository, and Flux applies the change. See [Propagation Modes](/docs/concepts/propagation/).
 
-Once every selected health check is healthy, the bake starts: Kuberik waits for `bakeTime` and watches the `HealthChecks` for errors. The deploy ends with one bake status:
+Once every selected health check is healthy, the bake starts: Kuberik waits for `bakeTime` and watches the HealthChecks for errors. The deploy ends with one bake status:
 
 - {{< badge content="Succeeded" color="green" >}} The bake ran its full `bakeTime` with no health-check error. On a recovery deploy (`BakeFailureDisabled=True`) errors do not count, so the full `bakeTime` is enough. Downstream environments can now admit the build through their gates.
 - {{< badge content="Failed" color="red" >}} A health check reported an error, or the checks were not healthy within `deployTimeout`. The build keeps running and further automatic deploys are held until someone acts; see [When a bake fails](/docs/concepts/rollouts/#when-a-bake-fails).

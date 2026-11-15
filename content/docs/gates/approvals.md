@@ -43,7 +43,7 @@ spec:
   namespaceSelector:
     matchLabels:
       environment: production
-  rolloutSelector: {}  # every Rollout in those namespaces
+  rolloutSelector: {}  # every Rollout there
 ```
 
 {{< callout type="important" >}}
@@ -63,7 +63,7 @@ metadata:
   name: hello-world-1-4-0
   namespace: hello-world
   annotations:
-    approval.kuberik.com/by: emma.clarke@acme.com  # optional; must equal your username
+    approval.kuberik.com/by: emma.clarke@acme.com  # optional, your username
 spec:
   rolloutRef:
     name: hello-world
@@ -124,7 +124,7 @@ metadata:
 spec:
   rolloutRef:
     name: hello-world
-  allowedVersions: []  # holds every build until you add one
+  allowedVersions: []  # holds every build
 ```
 
 ```bash {filename="Terminal"}

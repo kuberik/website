@@ -7,22 +7,22 @@
      landing-figs, scripts/landing-figs.mjs) are isometric, wordless and animated, made to sit under a question in a
      five-up row. Docs figures must carry resource names, so they are flat and labelled, and borrow the landing's
      parts: the mint plate (fig-top fill and line, light and dark), the Gates wire (1.5 px, 8 px corners, open
-     chevron, held = amber, pass = green), and the product chip (fig-chip: 20 tall, radius 4, 11/16 600 uppercase).
+     chevron, held = amber, pass = green), and the product chip (fig-chip shape, at figure scale: 22 tall, radius 4, 13 600 uppercase).
      Proportions come from the landing "gates" fig: plates about 4x the chip height, wires a plate-gap long.
 
      GRAMMAR (binding for every figure; STYLE.md 6).
      - One idea per figure, at most 7 plates. Every label is a resource, field, annotation or state name on main.
-     - Plates are objects: flat, radius 8, 1 px line. Title Inter 13/600 ink, one or two sub lines Inter 12 muted
-       (mono 12 for a field). Colour says who owns it: mint = Kuberik acting (resources and controllers),
+     - Plates are objects: flat, radius 8, 1 px line. Title Inter 13/600 ink, one or two sub lines Inter 13 muted
+       (mono 13 for a field). Colour says who owns it: mint = Kuberik acting (resources and controllers),
        lagoon = Flux and external systems (GitHub, Datadog), neutral = yours (workload, registry).
        The plate the figure is about has a 1.5 px mint line (is-key). A dashed plate is a state, not an object.
      - Regions (dashed, radius 12) group plates by owner or cluster; the label is the owner word in the owner's
        ink, or an environment chip in the tier colour (staging violet, production magenta) as on the landing.
      - Arrows: ink-subtle 1.5 px, small open head. Mint arrow = Kuberik writes into another object.
-       Amber = held, green = allowed. Dashed = a person acts (an annotation). Labels Inter 12 muted, haloed.
-     - State chips use the dashboard state colours: blue Deploying, yellow InProgress, green Succeeded/Healthy,
+       Amber = held, green = allowed. Dashed = a person acts (an annotation). Labels Inter 13 muted, haloed. No text under 13 px at 1440.
+     - State chips use the dashboard state colours: blue Deploying, yellow-green InProgress (the dashboard's checking), green Succeeded/Healthy,
        red Failed/Unhealthy, amber held/waiting, gray neutral.
-     - Footnotes for exceptions sit under a hairline: dot in the state colour, 12/16 text.
+     - Footnotes for exceptions sit under a hairline: dot in the state colour, 13/16 text.
      - Two drawings per figure: wide (632 units, 1:1 in the 680 column at 1440) and narrow (318 units, about 1:1
        at 390). The figure is a size container and shows the wide drawing only from 680 px, so text never renders
        below its set size on a desktop and never below 11 px on a phone. Colours are CSS variables

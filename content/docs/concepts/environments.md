@@ -22,12 +22,12 @@ metadata:
 spec:
   rolloutRef:
     name: hello-world
-  name: hello-world            # same on every Environment of this app
+  name: hello-world            # same on every Environment
   environment: production
   backend:
     type: github
     project: acme/hello-world
-    secret: github-token       # the default when left out
+    secret: github-token       # the default
 ```
 
 | Field | What it does |

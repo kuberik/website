@@ -8,6 +8,8 @@ aliases: ["/docs/guides/schedules/"]
 
 Hold automatic deploys outside the hours you choose, or block them during a freeze. A [`RolloutSchedule`](/docs/reference/api/#rolloutschedule) turns its time rules into a gate on every [Rollout](/docs/concepts/rollouts/) it selects.
 
+{{< fig id="schedule-week" caption="With `action: Allow`, the gate passes only inside the window; a release that arrives outside it deploys when the window opens." >}}
+
 ## Allow deploys during business hours
 
 A schedule selects Rollouts by label and is active while any of its rules matches the current time. With `action: Allow`, deploys pass only while the schedule is active. This one allows deploys Monday to Friday, 09:00 to 17:00 New York time.
@@ -132,7 +134,7 @@ spec:
 
 ## Check the result
 
-`kubectl get` shows whether each schedule is active now and how many Rollouts it selects. `ACTIVE` reads `true` while a rule matches and stays blank otherwise.
+`kubectl get` shows whether each schedule is active now and how many Rollouts it selects. `ACTIVE` reads `true` while a rule matches and `false` otherwise. {{< needs "Next release" >}} On rollout-controller v0.11.0, a closed schedule shows a blank `ACTIVE` cell.
 
 ```bash {filename="Terminal"}
 kubectl get rolloutschedule -n hello-world
@@ -140,7 +142,7 @@ kubectl get rolloutschedule -n hello-world
 
 ```text {filename="Output"}
 NAME             ACTION   ACTIVE   MATCHING   AGE
-business-hours   Allow             1          3h
+business-hours   Allow    false    1          3h
 ```
 
 While the window is closed, the dashboard holds the rollout and names the schedule, its hours, and when automatic deploys resume.

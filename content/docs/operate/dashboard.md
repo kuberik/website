@@ -89,7 +89,7 @@ To let the rollout follow new releases again, select **Clear pin** on the Overvi
 
 ### Roll back a failed deploy
 
-1. On the rollout's **Overview**, select **Roll back** on the **Deployment failed** banner. It shows when the rollout has deployed an earlier build.
+1. For a rollback, select **Roll back** on the **Deployment failed** banner of the rollout's **Overview**. It shows when the rollout has deployed an earlier build.
 2. The deploy dialog opens on the earlier build, with the pin always on. Confirm the deploy.
 
 The rollout stays on that build, under a **Rolled back** banner, until you select **Clear pin**.

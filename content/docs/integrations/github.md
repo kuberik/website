@@ -53,7 +53,7 @@ spec:
   backend:
     type: github
     project: acme/hello-world
-    secret: github-token     # the default; set it only for another name
+    secret: github-token     # the default
 ```
 
 Every deployment is created on the release's commit, which the release controller reads from the image's `org.opencontainers.image.revision` annotation. That commit must exist in `backend.project`, so build your images from that repository and set the annotation in CI.
