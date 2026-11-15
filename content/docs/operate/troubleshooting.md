@@ -16,7 +16,7 @@ The banner at the top of a rollout's **Overview** names what holds it. The words
 | **Deployment failed** banner<br>the **Retry** and **Roll back** buttons | `Ready=False`, `BakeTimeFailed` | [The deployment failed](#the-deployment-failed) |
 | The **stuck** chip<br>"Stuck — deploying for 2h" | `bakeStatus` `Deploying` | [A deploy is stuck in Deploying](#a-deploy-is-stuck-in-deploying) |
 | **Recovery mode**, while a deploy runs | `BakeFailureDisabled=True` | [A HealthCheck failed but the deploy did not](#a-healthcheck-failed-but-the-deploy-did-not) |
-| **Rolled back** | `status.history[0]` is older than the build before it (a pin) | [Roll back to the previous build](#roll-back-to-the-previous-build) |
+| **Rolled back** | `status.history[0]` is older than the build before it (a pin, or a force-deploy of an older build until its bake succeeds) | [Roll back to the previous build](#roll-back-to-the-previous-build) |
 | **Held** banner<br>"HealthCheck '…' in namespace '…' is not healthy" | `DeploymentBlocked=True`, `UnhealthyHealthChecks` | [Blocked by an unhealthy HealthCheck](#blocked-by-an-unhealthy-healthcheck) |
 | **production is waiting on an approval**<br>**Waiting for approval**<br>**Needs your approval** | `GatesPassing=False`, `NoAllowedVersions` | [Blocked by an approval](#blocked-by-an-approval-or-another-rule) |
 | **production is waiting for payments ^1.67.0** | `GatesPassing=False`, `NoAllowedVersions` | [Blocked by a service dependency](#blocked-by-a-service-dependency) |
@@ -76,7 +76,7 @@ kubectl get releasesource -n hello-world
 
 ### No releases yet
 
-`Ready` is False with reason `NoReleases`. The ReleaseSource admitted no tag: the image has no tags yet, or `spec.oci.filterTags` and `spec.oci.policy` match none of them. Correct the filter.
+`Ready` is False with reason `NoReleases`. The ReleaseSource admitted no tag: the image has no tags yet, or `spec.oci.filterTags` and `spec.oci.policy` match none of them. Compare the tags in the registry with the filter, then correct the ReleaseSource.
 
 ```bash {filename="Terminal"}
 kubectl get releasesource hello-world -n hello-world -o jsonpath='{.status.count}{"\n"}{.spec.oci}{"\n"}'
@@ -96,7 +96,7 @@ kubectl get rolloutschedules -n hello-world
 kubectl get clusterrolloutschedules
 ```
 
-To let one build through now, select **Skip once** on the gate's tile in the rollout's **Gates** tab ([Skip a gate once](/docs/operate/dashboard/#skip-a-gate-once)). With kubectl, bypass the gates for that build; the bypass takes effect on the next reconcile.
+To let one build through now, select **Skip once** on the gate's tile ([Skip a gate once](/docs/operate/dashboard/#skip-a-gate-once)). With kubectl, bypass the gates for that build; the bypass takes effect on the next reconcile.
 
 ```bash {filename="Terminal"}
 kubectl annotate rollout hello-world -n hello-world rollout.kuberik.com/bypass-gates=1.4.1 --overwrite
@@ -110,7 +110,7 @@ kubectl annotate rollout hello-world -n hello-world rollout.kuberik.com/bypass-g
 kubectl get rollout hello-world -n hello-world -o jsonpath='{range .status.candidates[*]}{.tag}{"\t"}{.blockedBy}{"\n"}{end}'
 ```
 
-An `approval-gate-…` lets a release through once a [`RolloutApproval`](/docs/gates/approvals/) names it. In the dashboard, select **Approve** on the gate's tile in the rollout's **Gates** tab ([Approve a build](/docs/operate/dashboard/#approve-a-build)). With kubectl, apply one to approve 1.4.1.
+An `approval-gate-…` lets a release through once a [`RolloutApproval`](/docs/gates/approvals/) names it. In the dashboard, select **Approve** on the gate's tile ([Approve a build](/docs/operate/dashboard/#approve-a-build)). With kubectl, apply one to approve 1.4.1.
 
 ```bash {filename="Terminal"}
 kubectl apply -f - <<EOF
@@ -215,7 +215,7 @@ See [Flux](/docs/integrations/fluxcd/) for the HealthCheck setup.
 
 ### The deploy never fails
 
-Set `deployTimeout` so such a deploy fails instead of waiting.
+Set `deployTimeout` so a deploy whose health checks never turn healthy fails instead of waiting.
 
 ```bash {filename="Terminal"}
 kubectl patch rollout hello-world -n hello-world --type merge -p '{"spec":{"deployTimeout":"15m"}}'
@@ -231,7 +231,7 @@ kubectl get rollout hello-world -n hello-world -o jsonpath='{.status.history[0].
 
 ### Roll back to the previous build
 
-Kuberik never starts a rollback on its own. **Roll back** on the dashboard's failure banner deploys the build before the failed one and pins the Rollout to it; with kubectl, print that build's tag.
+This works for any build, failed or baked; Kuberik never rolls back on its own. In the dashboard, select **Roll back** ([Roll back](/docs/operate/dashboard/#roll-back)), which pins the Rollout to an earlier build. With kubectl, print the previous build's tag.
 
 ```bash {filename="Terminal"}
 kubectl get rollout hello-world -n hello-world -o jsonpath='{.status.history[1].version.tag}{"\n"}'
