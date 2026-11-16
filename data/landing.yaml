@@ -38,7 +38,10 @@ features:
       name: "Canary and waves"
       title: "Wave 2 starts when the canary in wave 1 has baked."
       body: "OpenKruise shifts traffic in steps and runs a test at the step you pick. Once every region in wave 1 has baked the release, the regions in wave 2 start together."
-      link: { text: "Run a canary", href: "/docs/releases/canary/" }
+      # `links` instead of `link`: a card that covers two docs pages; the links sit on one line and wrap.
+      links:
+        - { text: "Run a canary", href: "/docs/releases/canary/" }
+        - { text: "Roll out in waves", href: "/docs/releases/promote/#roll-production-out-in-waves" }
     - id: health
       hue: mint
       name: "Health checks"

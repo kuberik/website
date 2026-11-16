@@ -21,7 +21,11 @@
             <p class="fx-name">{{ .name }}</p>
             <h3 class="fx-title">{{ .title }}</h3>
             <p class="fx-body">{{ .body }}</p>
-            <a class="link-arrow" href="{{ .link.href }}">{{ .link.text }}<svg viewBox="0 0 16 16" width="14" height="14" fill="none" stroke="currentColor" stroke-width="1.5" aria-hidden="true"><path d="M3 8h10M9 4l4 4-4 4" stroke-linecap="round" stroke-linejoin="round"/></svg></a>
+            {{- if .links }}
+            <p class="fx-links">{{ range .links }}{{ partial "home/fx-link.html" . }}{{ end }}</p>{{/* two docs pages: one line, wraps */}}
+            {{- else }}
+            {{ partial "home/fx-link.html" .link }}
+            {{- end }}
           </div>
           <div class="fx-canvas fx-vg" aria-hidden="true">{{ partial (printf "landing-vignettes/%s.html" .id) $ }}</div>
         </li>

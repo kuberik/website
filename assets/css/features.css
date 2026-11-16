@@ -55,6 +55,8 @@ html.dark .fx-stage .b2{background:radial-gradient(closest-side,oklch(.4 .07 182
 .fx-title{margin:4px 0 0;font:600 var(--t-card-title-s)/var(--t-card-title-l) var(--sans);letter-spacing:-.012em;color:var(--ink);text-wrap:balance}
 .fx-body{margin:8px 0 0;max-width:560px;font:400 var(--t-card-body-s)/var(--t-card-body-l) var(--sans);color:var(--ink-muted);text-wrap:pretty}
 .fx-copy .link-arrow{margin-top:16px;min-height:24px}
+.fx-links{display:flex;flex-wrap:wrap;gap:8px 24px;margin:16px 0 0}   /* a card with two docs links (Canary and waves): one line; when wrapped (641-711) the rows sit 8px apart */
+.fx-links .link-arrow{margin-top:0}
 .fx-canvas{flex:1;position:relative;margin:0 var(--canvas-m) var(--canvas-m);padding:var(--canvas-pad);border-radius:8px;min-width:0;
   background-color:var(--canvas-lagoon);background-image:radial-gradient(circle,var(--fx-dot) 1px,transparent 1.2px);background-size:20px 20px;background-position:-9px -9px}
 .fx-mint .fx-canvas{background-color:var(--canvas-mint)}
@@ -158,4 +160,6 @@ html.js .fx .reveal:nth-child(4){transition-delay:120ms}
   .fx-copy{padding:0 0 20px}
   .fx-canvas{width:100%;max-width:390px}
   .fx-copy .link-arrow{min-height:44px;margin-top:8px}
+  .fx-links{margin-top:8px}
+  .fx-links .link-arrow{margin-top:0}
 }
