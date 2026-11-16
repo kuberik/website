@@ -3,8 +3,8 @@
 <header class="nav" id="nav">
   <div class="cont">
     <a class="logo" href="/" aria-label="kuberik home">{{- /* inlined, not an <img>: the mark carries a SMIL rotation (15 s, forever), and an animated SVG <img> asks the main thread for a frame on every vsync while it is on screen. A sticky nav is always on screen, so every composited vignette animation below it was dragged onto per-frame main-thread style recalc (UpdateLayoutTree ~70/s, +150-420 ms/s at 4x). Inline, the page can pause it (see the vg-play listener in home.html). */ -}}
-    {{- /* both theme logos, as the footer and docs header do with <img class="ll|ld">; base.css shows .ll in light and .ld in dark. The light copy's gradient ids get a suffix: two inline copies must not share ids, or the shown one can paint from the hidden one's gradients. */ -}}
-    {{- $light := readFile "static/logo-light.svg" -}}{{- $light = replaceRE `<\?xml[^>]*\?>` "" $light -}}{{- $light = replaceRE `<svg ` `<svg class="logo-mark ll" aria-hidden="true" ` $light 1 -}}{{- $light = replaceRE `lgrad(hat|face)` "lgrad${1}-l" $light -}}
+    {{- /* both theme logos, as the footer and docs header do with <img class="ll|ld">; base.css shows .ll in light and .ld in dark. Every id in the light copy gets a suffix: two inline copies must not share ids, or the shown one can paint from the hidden one's gradients. */ -}}
+    {{- $light := readFile "static/logo-light.svg" -}}{{- $light = replaceRE `<\?xml[^>]*\?>` "" $light -}}{{- $light = replaceRE `<svg ` `<svg class="logo-mark ll" aria-hidden="true" ` $light 1 -}}{{- $light = replaceRE `(id="|url\(#)([^")]+)` "${1}${2}-l" $light -}}
     {{- $dark := readFile "static/logo-dark.svg" -}}{{- $dark = replaceRE `<\?xml[^>]*\?>` "" $dark -}}{{- $dark = replaceRE `<svg ` `<svg class="logo-mark ld" aria-hidden="true" ` $dark 1 -}}
     {{ $light | safeHTML }}{{ $dark | safeHTML }}kuberik</a>
     <nav class="links" aria-label="Primary">
