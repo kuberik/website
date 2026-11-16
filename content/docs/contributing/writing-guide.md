@@ -113,7 +113,7 @@ Colours come from the theme, so dark mode needs no second drawing. Do not add me
 
 Capture every dashboard screenshot in light and dark from the same mock-mode state, at 1x, cropped flush to the card or dialog. `<name>.png` and `<name>.dark.png` hold the desktop layout, `<name>.phone.png` and `<name>.phone.dark.png` the phone layout (under 768 pixels); the render hook picks by theme and screen, and light without JavaScript. A phone capture never replaces the desktop file, but one desktop capture may serve phones if it reads at 390 pixels. Never edit text in a capture, and write alt text that says what is shown.
 
-The quoted title after the path becomes the caption; leave it out for none:
+The quoted title after the path becomes the caption; the alt text stays the screen-reader description. Leave the title out for no caption:
 
 ```markdown {filename="content/docs/example.md"}
 ![The Gates tab of a held rollout, with one closed schedule](/images/docs/example-gates.png "A closed schedule holds the build until it opens.")
@@ -143,7 +143,7 @@ python3 scripts/linkcheck.py public
 node scripts/check-previews.mjs public
 ```
 
-Open the page at phone and desktop widths, light and dark. Word budgets count prose only, not front matter or code. Budgets: guide 1,000, concept 1,200, integration 1,400, tutorial 1,600, and the Troubleshoot page 2,000.
+Open the page at phone and desktop widths, light and dark. Word budgets count prose only: front matter and code blocks do not count. Budgets: guide 1,000, concept 1,200, integration 1,400, tutorial 1,600, and the Troubleshoot page 2,000, because readers jump to one symptom there.
 
 ## Next steps
 

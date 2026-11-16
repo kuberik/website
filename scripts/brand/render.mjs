@@ -8,8 +8,8 @@
 // window, captured from a running copy of the site.
 //
 // Usage (Playwright is not a site dependency; point PLAYWRIGHT at any install of it):
-//   npx hugo server --port 1313 &
-//   PLAYWRIGHT=/path/to/node_modules/playwright node scripts/brand/render.mjs http://localhost:1313/
+//   serve a build of the site, then
+//   PLAYWRIGHT=/path/to/node_modules/playwright node scripts/brand/render.mjs <site url>
 import { createRequire } from 'node:module';
 import { readFileSync, writeFileSync, mkdirSync } from 'node:fs';
 import { createHash } from 'node:crypto';

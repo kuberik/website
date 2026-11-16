@@ -1,12 +1,15 @@
 #!/usr/bin/env node
 // Build check for link previews and site icons. Run after `hugo` on the built site:
 //   node scripts/check-previews.mjs [public dir, default ./public]
+// The site's address is https://kuberik.com/, or SITE_URL when set; build with `hugo --baseURL` set to it.
 // Fails (exit 1) when
-//   - a built HTML page (redirect stubs aside) lacks og:title, og:description, og:image, og:url, og:type,
-//     og:site_name, twitter:card=summary_large_image or twitter:image;
-//   - an og:image / twitter:image is not an absolute URL on the site's own host, or does not resolve to a file in
-//     the build, or is not a PNG/JPEG of at least 1200x600 at about 1.91:1, or its og:image:width/height disagree;
-//   - a page lacks the icon links (icon, apple-touch-icon, manifest), or they point at missing files;
+//   - a built HTML page (redirect stubs aside) lacks og:title, og:description, og:image, og:image:alt, og:url,
+//     og:type, og:site_name, twitter:card=summary_large_image, twitter:title, twitter:description or twitter:image;
+//   - og:url, og:image or twitter:image is not an absolute URL under the site's address (a build without the
+//     right --baseURL links to example.org), an image does not resolve to a file in the build, is not a PNG/JPEG
+//     of at least 1200x600 at about 1.91:1, or its og:image:width/height disagree;
+//   - a page lacks the icon links (icon, apple-touch-icon, manifest), they point at missing files, a link's ?v=
+//     is not the first 8 hex of the file's md5, or the apple-touch-icon link is not /apple-touch-icon.png;
 //   - the touch icon is not a 180x180 opaque PNG, the web manifest is not ours (name "Kuberik", 192/512 icons and
 //     a maskable one, each file present at its stated size and its URL carrying ?v=<first 8 hex of the file's md5>, as
 //     the <link> tags do, so a phone that cached an older icon fetches the new one), or any built file is byte-identical to a file in a
@@ -76,9 +79,10 @@ function fileFor(url, host) {
 if (!existsSync(join(pub, 'index.html'))) { console.error(`check-previews: no built site at ${pub}`); process.exit(2); }
 const files = walk(pub);
 const pages = files.filter(f => f.endsWith('.html'));
-const home = tags(readFileSync(join(pub, 'index.html'), 'utf8'), 'meta').find(m => m.property === 'og:url');
-const host = home ? new URL(home.content).host : null;
-if (!host) fail('index.html', 'no og:url, so the site host is unknown');
+const site = new URL(process.env.SITE_URL || 'https://kuberik.com/');
+const host = site.host;
+const onSite = url => { try { const u = new URL(url); return u.protocol === site.protocol && u.host === host && u.pathname.startsWith(site.pathname); } catch { return false; } };
+const md5of = file => createHash('md5').update(readFileSync(file)).digest('hex').slice(0, 8);
 
 let checked = 0;
 const imageChecked = new Map();
@@ -90,15 +94,16 @@ for (const f of pages) {
   if (!/<head\b/i.test(html)) continue; // fragment, not a page
   checked++;
   const get = k => metas.find(m => m.property === k || m.name === k)?.content?.trim();
-  for (const k of ['og:title', 'og:description', 'og:image', 'og:url', 'og:type', 'og:site_name', 'twitter:card', 'twitter:image'])
+  for (const k of ['og:title', 'og:description', 'og:image', 'og:image:alt', 'og:url', 'og:type', 'og:site_name',
+    'twitter:card', 'twitter:title', 'twitter:description', 'twitter:image'])
     if (!get(k)) fail(where, `missing ${k}`);
   if (get('twitter:card') && get('twitter:card') !== 'summary_large_image') fail(where, `twitter:card is "${get('twitter:card')}", want summary_large_image`);
-  if (host && get('og:url') && new URL(get('og:url')).host !== host) fail(where, `og:url ${get('og:url')} is not on ${host}`);
+  if (get('og:url') && !onSite(get('og:url'))) fail(where, `og:url ${get('og:url')} is not under ${site.href} (build with --baseURL ${site.href})`);
 
   for (const k of ['og:image', 'twitter:image']) {
     const url = get(k);
-    if (!url || !host) continue;
-    if (!/^https?:\/\//.test(url)) { fail(where, `${k} ${url} is not an absolute URL`); continue; }
+    if (!url) continue;
+    if (!onSite(url)) { fail(where, `${k} ${url} is not an absolute URL under ${site.href} (build with --baseURL ${site.href})`); continue; }
     const file = fileFor(url, host);
     if (!file) { fail(where, `${k} ${url} does not resolve to a file in the build`); continue; }
     if (!imageChecked.has(file)) {
@@ -121,7 +126,13 @@ for (const f of pages) {
   const rel = r => links.filter(l => (l.rel || '').toLowerCase().split(/\s+/).includes(r));
   for (const r of ['icon', 'apple-touch-icon', 'manifest']) {
     if (!rel(r).length) { fail(where, `missing <link rel=${r}>`); continue; }
-    for (const l of rel(r)) if (host && !fileFor(l.href, host)) fail(where, `<link rel=${r}> ${l.href} does not resolve to a file in the build`);
+    for (const l of rel(r)) {
+      const file = fileFor(l.href, host);
+      if (!file) { fail(where, `<link rel=${r}> ${l.href} does not resolve to a file in the build`); continue; }
+      if (r === 'apple-touch-icon' && relative(pub, file) !== 'apple-touch-icon.png') fail(where, `<link rel=apple-touch-icon> ${l.href} is not /apple-touch-icon.png`);
+      const v = new URL(l.href, site).searchParams.get('v'), want = md5of(file);
+      if (v !== want) fail(where, `<link rel=${r}> ${l.href} needs ?v=${want}, the file's hash, so cached icons refresh`);
+    }
   }
 }
 
@@ -146,12 +157,12 @@ else {
       if (!icons.some(i => i.sizes === size && (i.purpose || 'any').split(/\s+/).includes('any'))) fail('site.webmanifest', `no ${size} icon`);
     if (!icons.some(i => (i.purpose || '').split(/\s+/).includes('maskable'))) fail('site.webmanifest', 'no maskable icon');
     for (const i of icons) {
-      const file = host && fileFor(new URL(i.src, `https://${host}/site.webmanifest`).href, host);
+      const file = fileFor(new URL(i.src, new URL('site.webmanifest', site)).href, host);
       if (!file) { fail('site.webmanifest', `icon ${i.src} does not resolve to a file in the build`); continue; }
       const info = imageInfo(readFileSync(file));
       if (!info || `${info.width}x${info.height}` !== i.sizes) fail('site.webmanifest', `icon ${i.src} is not ${i.sizes}`);
       if ((i.purpose || '').includes('maskable') && info?.alpha) fail('site.webmanifest', `maskable icon ${i.src} must be opaque`);
-      const want = createHash('md5').update(readFileSync(file)).digest('hex').slice(0, 8);
+      const want = md5of(file);
       if (new URL(i.src, 'https://x/').searchParams.get('v') !== want)
         fail('site.webmanifest', `icon ${i.src} needs ?v=${want}, the file's hash, so cached icons refresh (scripts/brand/render.mjs writes it)`);
     }
