@@ -21,7 +21,7 @@ thesis:
 # FEATURES: seven peers, one anatomy (visual card, title, two lines of body, one docs link).
 # Every sentence is checked against content/docs (fact sheet in BRIEF.md "Truth rules").
 features:
-  title: "Every step of a release, declared."
+  title: "Set up the release process each service needs."   # U+00A0 between release and process: no "release / process" line break at 1024
   body: "Gates, health checks, canaries and waves are declared on resources the controller reconciles in each cluster. Write them once and every build goes through them."
   # Order = the bento (assets/css/features.css): Gates, then Canary, each on its own row; Health beside GitOps; Dashboard beside
   # Releases; Step in on its own row.
