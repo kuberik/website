@@ -5,7 +5,7 @@
 //   static/android-chrome-maskable-512x512.png  512x512, opaque, logo inside the maskable safe zone
 //   static/images/og/kuberik.png        1200x630, the default link-preview card (og-card.html)
 // The icons come from static/logo-dark.svg (its gear rotation removed). The card shows the landing hero's product
-// window, captured from a running copy of the site.
+// window, captured from a running copy of the site, and static/logo-light.svg, since it sits on the light hero stage.
 //
 // Usage (Playwright is not a site dependency; point PLAYWRIGHT at any install of it):
 //   serve a build of the site, then
@@ -24,9 +24,11 @@ const require = createRequire(import.meta.url);
 const { chromium } = require(process.env.PLAYWRIGHT || 'playwright');
 
 const GROUND = '#0e1619'; // dark --page (assets/css/tokens.css), the dashboard's dark ground
-const logo = readFileSync(join(root, 'static/logo-dark.svg'), 'utf8')
+const readLogo = (f) => readFileSync(join(root, f), 'utf8')
   .replace(/<\?xml[^>]*\?>/, '')
   .replace(/<animateTransform[^>]*\/>/g, '');
+const logo = readLogo('static/logo-dark.svg');
+const cardLogo = readLogo('static/logo-light.svg');
 
 const browser = await chromium.launch();
 
@@ -72,7 +74,7 @@ const card = await browser.newPage({ viewport: { width: 1200, height: 630 }, dev
 const font = pathToFileURL(join(root, 'static/islands/fonts/inter-latin-opsz.woff2')).href;
 const html = readFileSync(join(here, 'og-card.html'), 'utf8')
   .replace('__FONT__', font)
-  .replace('__LOGO__', logo)
+  .replace('__LOGO__', cardLogo)
   .replace('__WINDOW__', 'data:image/png;base64,' + win.toString('base64'));
 await card.goto(pathToFileURL(join(here, 'og-card.html')).href); // file: origin, so the font URL may load
 await card.setContent(html, { waitUntil: 'load' });

@@ -45,8 +45,8 @@
   var d=document.documentElement,nav=document.getElementById('nav');
   function sc(){nav.classList.toggle('scrolled',scrollY>8)}addEventListener('scroll',sc,{passive:true});sc();
   /* the logo's SMIL rotation costs a main-thread frame per vsync while it runs; hold it (in place) while a feature vignette plays (vg.js dispatches vg-play) */
-  var lm=document.querySelector('.logo-mark');
-  if(lm&&lm.pauseAnimations)addEventListener('vg-play',function(e){e.detail?lm.pauseAnimations():lm.unpauseAnimations()});
+  var lm=document.querySelectorAll('.logo-mark');
+  addEventListener('vg-play',function(e){lm.forEach(function(m){if(m.pauseAnimations)e.detail?m.pauseAnimations():m.unpauseAnimations()})});
   document.getElementById('theme').addEventListener('click',function(){
     var t=d.classList.contains('dark')?'light':'dark';
     d.classList.remove('light','dark');d.classList.add(t);d.style.colorScheme=t;

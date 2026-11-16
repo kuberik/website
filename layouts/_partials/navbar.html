@@ -7,7 +7,7 @@
 {{- $section := .Section -}}
 <header class="nav kd-nav hextra-nav-container" id="nav">
   <div class="cont">
-    <a class="logo" href="/" aria-label="kuberik home"><img src="/logo-dark.svg" alt="" />kuberik</a>
+    <a class="logo" href="/" aria-label="kuberik home"><img class="ll" src="/logo-light.svg" alt="" /><img class="ld" src="/logo-dark.svg" alt="" />kuberik</a>
     <nav class="links" aria-label="Primary">
       <a href="/docs/"{{ if eq $section "docs" }} class="is-active" aria-current="true"{{ end }}>Docs</a><a href="/blog/"{{ if eq $section "blog" }} class="is-active" aria-current="true"{{ end }}>Blog</a>
     </nav>
