@@ -1,7 +1,28 @@
 baseURL = 'http://example.org/'
 languageCode = 'en-us'
 title = 'kuberik'
-theme = 'hextra'
+
+# The hextra theme, mounted without its static/ folder: hextra ships its own favicons, touch icons, web manifest and logo
+# under the same paths as ours, and anything we do not override would be published with the theme's logo.
+# Every icon and manifest the site serves comes from our static/ (see "Link previews and icons" in CLAUDE.md).
+[module]
+  [[module.imports]]
+    path = 'hextra'
+    [[module.imports.mounts]]
+      source = 'archetypes'
+      target = 'archetypes'
+    [[module.imports.mounts]]
+      source = 'assets'
+      target = 'assets'
+    [[module.imports.mounts]]
+      source = 'data'
+      target = 'data'
+    [[module.imports.mounts]]
+      source = 'i18n'
+      target = 'i18n'
+    [[module.imports.mounts]]
+      source = 'layouts'
+      target = 'layouts'
 
 [params]
   rollout_controller_version = "v0.11.0"
