@@ -11,7 +11,8 @@
 //   npx hugo server --port 1313 &
 //   PLAYWRIGHT=/path/to/node_modules/playwright node scripts/brand/render.mjs http://localhost:1313/
 import { createRequire } from 'node:module';
-import { readFileSync, mkdirSync } from 'node:fs';
+import { readFileSync, writeFileSync, mkdirSync } from 'node:fs';
+import { createHash } from 'node:crypto';
 import { dirname, join, resolve } from 'node:path';
 import { fileURLToPath, pathToFileURL } from 'node:url';
 
@@ -43,7 +44,20 @@ async function icon(out, size, scale, bg) {
 await icon('static/apple-touch-icon.png', 180, 0.68, GROUND);
 await icon('static/android-chrome-192x192.png', 192, 0.86);
 await icon('static/android-chrome-512x512.png', 512, 0.86);
-await icon('static/android-chrome-maskable-512x512.png', 512, 0.56, GROUND); // safe zone: a circle of 80% diameter
+await icon('static/android-chrome-maskable-512x512.png', 512, 0.68, GROUND); // farthest logo pixel ~0.33 of the width, inside the 0.40 safe-zone radius
+
+// site.webmanifest: each icon URL carries the file's hash (as favicons.html does for the <link> tags), so a phone
+// that cached an older icon fetches the new one; check-previews.mjs fails when a hash is stale
+{
+  const mf = join(root, 'static/site.webmanifest');
+  const m = JSON.parse(readFileSync(mf, 'utf8'));
+  for (const i of m.icons) {
+    const path = i.src.split('?')[0];
+    i.src = `${path}?v=${createHash('md5').update(readFileSync(join(root, 'static', path))).digest('hex').slice(0, 8)}`;
+  }
+  writeFileSync(mf, JSON.stringify(m, null, 2) + '\n');
+  console.log('wrote static/site.webmanifest');
+}
 
 // the card: capture the hero's product window at 2x, then lay out og-card.html around it
 const ctx = await browser.newContext({ viewport: { width: 1440, height: 1000 }, deviceScaleFactor: 2, colorScheme: 'light', reducedMotion: 'reduce' });

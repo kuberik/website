@@ -8,7 +8,8 @@
 //     the build, or is not a PNG/JPEG of at least 1200x600 at about 1.91:1, or its og:image:width/height disagree;
 //   - a page lacks the icon links (icon, apple-touch-icon, manifest), or they point at missing files;
 //   - the touch icon is not a 180x180 opaque PNG, the web manifest is not ours (name "Kuberik", 192/512 icons and
-//     a maskable one, each file present at its stated size), or any built file is byte-identical to a file in a
+//     a maskable one, each file present at its stated size and its URL carrying ?v=<first 8 hex of the file's md5>, as
+//     the <link> tags do, so a phone that cached an older icon fetches the new one), or any built file is byte-identical to a file in a
 //     theme's static/ folder (a theme default leaking into the site).
 // No dependencies: Node's standard library only.
 import { readFileSync, readdirSync, statSync, existsSync } from 'node:fs';
@@ -150,6 +151,9 @@ else {
       const info = imageInfo(readFileSync(file));
       if (!info || `${info.width}x${info.height}` !== i.sizes) fail('site.webmanifest', `icon ${i.src} is not ${i.sizes}`);
       if ((i.purpose || '').includes('maskable') && info?.alpha) fail('site.webmanifest', `maskable icon ${i.src} must be opaque`);
+      const want = createHash('md5').update(readFileSync(file)).digest('hex').slice(0, 8);
+      if (new URL(i.src, 'https://x/').searchParams.get('v') !== want)
+        fail('site.webmanifest', `icon ${i.src} needs ?v=${want}, the file's hash, so cached icons refresh (scripts/brand/render.mjs writes it)`);
     }
   }
 }

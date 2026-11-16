@@ -1,6 +1,6 @@
 <!DOCTYPE html>
 <!-- The site's default link-preview card (1200x630), rendered to static/images/og/kuberik.png by render.mjs.
-     Landing language: the hero's mint stage and dot grid, the nav's logo and wordmark, and the real product window
+     Landing language: the hero's stage (--st-hero, its two blooms, its 20px/.07 dot grid, scaled to the card), the nav's logo and wordmark, and the real product window
      captured from the landing hero. render.mjs fills in the window image, the logo and the font. -->
 <html lang="en">
 <head>
@@ -9,23 +9,27 @@
 @font-face{font-family:'Card Inter';src:url(__FONT__) format('woff2');font-weight:100 900}
 *{box-sizing:border-box;margin:0}
 html,body{width:1200px;height:630px;overflow:hidden}
-body{position:relative;background:#f4f7f9;font-family:'Card Inter',system-ui,sans-serif;color:#0e1619;-webkit-font-smoothing:antialiased}
-.stage{position:absolute;inset:0;background:
-  radial-gradient(520px 380px at 12% 18%,rgba(161,240,227,.55),transparent 70%),
-  radial-gradient(520px 380px at 90% 30%,rgba(195,238,243,.5),transparent 70%),
-  linear-gradient(180deg,#e8fbf7 0%,#f4f7f9 100%)}
-.stage::after{content:"";position:absolute;inset:0;background-image:radial-gradient(oklch(.195 .014 222/.08) 1px,transparent 1.2px);background-size:16px 16px}
+body{position:relative;background:oklch(.965 .03 206);font-family:'Card Inter',system-ui,sans-serif;color:#0e1619;-webkit-font-smoothing:antialiased}
+/* hero.css .stage-hero at the card's scale (0.89 = 1000/1120 window): --st-hero, blooms b1/b2 (base.css .bloom, 620px),
+   dot grid 20px at .07 */
+.stage{position:absolute;inset:0;overflow:hidden;background:linear-gradient(180deg,oklch(.955 .045 182),oklch(.965 .03 206))}
+.bloom{position:absolute;width:552px;height:552px;border-radius:50%;filter:blur(8px)}
+.b1{left:-160px;top:-142px;background:radial-gradient(closest-side,oklch(.88 .09 182/.6),transparent)}
+.b2{right:-178px;bottom:-178px;background:radial-gradient(closest-side,oklch(.9 .06 206/.6),transparent)}
+.stage::after{content:"";position:absolute;inset:0;background:radial-gradient(circle,oklch(.195 .014 222/.07) 1px,transparent 1.2px) 0 0/18px 18px}
 .head{position:absolute;left:0;right:0;top:58px;display:flex;flex-direction:column;align-items:center;gap:14px;z-index:1}
-.mark{display:flex;align-items:center;gap:14px;font-weight:700;font-size:46px;line-height:1;letter-spacing:-.02em}
-.mark svg{height:52px;width:auto;display:block}
+.mark{display:flex;align-items:center;gap:18px;font-weight:700;font-size:46px;line-height:1;letter-spacing:-.02em}
+.mark svg{height:55px;width:auto;display:block}
 .line{font-weight:450;font-size:24px;line-height:32px;color:#47555a;letter-spacing:-.005em}
-.win{position:absolute;left:100px;top:196px;width:1000px;border-radius:14px;overflow:hidden;z-index:1;background:#fff;
+.win{position:absolute;left:100px;top:214px;width:1000px;border-radius:12px;overflow:hidden;z-index:1;background:#fff;
   box-shadow:0 0 0 1px oklch(.195 .014 222/.10),0 1px 2px oklch(.195 .014 222/.06),0 24px 48px -16px oklch(.195 .014 222/.18)}
 .win img{display:block;width:100%;height:auto}
+/* top 214: the lockup sits 58px from the card top and 58px above the window, and the card edge (y 630) falls on the
+   border above the second row of wave cards, so it never cuts a label (re-check when the hero window changes) */
 </style>
 </head>
 <body>
-<div class="stage"></div>
+<div class="stage"><div class="bloom b1"></div><div class="bloom b2"></div></div>
 <div class="head">
   <div class="mark">__LOGO__kuberik</div>
   <div class="line">Kubernetes-native delivery controller</div>
