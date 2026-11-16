@@ -20,8 +20,10 @@
   d.classList.remove("light","dark");d.classList.add(t,"js");d.style.colorScheme=t})()</script>
   <link rel="preload" href="{{ "islands/fonts/inter-latin-opsz.woff2" | relURL }}" as="font" type="font/woff2" crossorigin>
   <link rel="stylesheet" href="{{ $css.RelPermalink }}" integrity="{{ $css.Data.Integrity }}">
-  <link rel="icon" type="image/svg+xml" href="/favicon.svg">
-  <link rel="alternate icon" href="/favicon.ico">
+  {{- /* icons and link previews: the same partials the docs and blog heads use */}}
+  {{ partial "favicons.html" . }}
+  {{ partial "opengraph.html" . }}
+  {{ partial "twitter_cards.html" . }}
 </head>
 <body>
 

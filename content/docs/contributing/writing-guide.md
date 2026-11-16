@@ -113,6 +113,16 @@ The quoted title after the path becomes the caption; the alt text stays the scre
 ![The Gates tab of a held rollout, with one closed schedule](/images/docs/example-gates.png "A closed schedule holds the build until it opens.")
 ```
 
+## Give the page a link preview
+
+Every page unfurls as a large card when shared. Write a `description` for every page; pages without an image use the default card, `static/images/og/kuberik.png`. Give each blog post an image of at least 1200 by 630 pixels at 1.91:1:
+
+```yaml {filename="content/blog/v0.9.0.md"}
+images:
+  - /screenshots/dashboard/og-v0.9.0.png
+imageAlt: "The dashboard home with merged pull requests"
+```
+
 ## Link between pages
 
 Write links as absolute paths with a trailing slash, such as `/docs/concepts/rollouts/`, never `../`. Link the first mention of each resource kind to its concept page, once. The link text is the destination's title or a verb phrase, never "here".
@@ -132,9 +142,12 @@ A moved page keeps its old URL in `aliases:`.
 Build the site and check links, with no errors:
 
 ```bash {filename="Terminal"}
-hugo -d public
+hugo -d public --baseURL https://kuberik.com/
 python3 scripts/linkcheck.py public
+node scripts/check-previews.mjs public
 ```
+
+`check-previews.mjs` also runs in every build and fails on a page without link-preview tags, a preview image that is missing or not 1200 by 630, or an icon that is not ours; its header lists every check.
 
 Open the page at phone and desktop widths, light and dark. Word budgets count prose only: front matter and code blocks do not count. Budgets: guide 1,000, concept 1,200, integration 1,400, tutorial 1,600, and the Troubleshoot page 2,000, because readers jump to one symptom there.
 

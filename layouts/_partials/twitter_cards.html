@@ -1,0 +1,7 @@
+{{- /* X/Twitter card tags for every page (replaces Hugo's built-in one). Values: utils/link-preview.html. */ -}}
+{{- $lp := partial "utils/link-preview.html" . }}
+<meta name="twitter:card" content="summary_large_image">
+<meta name="twitter:title" content="{{ $lp.title }}">
+<meta name="twitter:description" content="{{ $lp.description }}">
+<meta name="twitter:image" content="{{ $lp.image }}">
+<meta name="twitter:image:alt" content="{{ $lp.alt }}">

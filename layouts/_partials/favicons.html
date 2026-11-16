@@ -1,0 +1,15 @@
+{{- /* Site icons for every page: hextra pages include this through the theme head, the landing (home.html) and any
+     other standalone layout include it directly. Every file is ours (the theme's static/ is not mounted, hugo.toml).
+     Each URL carries a short hash of the file, so a browser or phone that cached an older icon fetches the new one
+     when it changes. Tab icons: favicon.svg, with favicon.ico and the PNGs for browsers that do not take SVG.
+     Home screen: apple-touch-icon.png (opaque, iOS) and site.webmanifest (Android, 192/512 plus a maskable 512). */ -}}
+{{- $v := dict -}}
+{{- range slice "favicon.ico" "favicon.svg" "favicon-16x16.png" "favicon-32x32.png" "apple-touch-icon.png" "site.webmanifest" -}}
+  {{- $v = merge $v (dict . (readFile (printf "static/%s" .) | md5 | truncate 8 "")) -}}
+{{- end }}
+<link rel="icon" href="{{ "favicon.ico" | relURL }}?v={{ index $v "favicon.ico" }}" sizes="32x32">
+<link rel="icon" href="{{ "favicon.svg" | relURL }}?v={{ index $v "favicon.svg" }}" type="image/svg+xml" id="favicon-svg">
+<link rel="icon" href="{{ "favicon-16x16.png" | relURL }}?v={{ index $v "favicon-16x16.png" }}" type="image/png" sizes="16x16">
+<link rel="icon" href="{{ "favicon-32x32.png" | relURL }}?v={{ index $v "favicon-32x32.png" }}" type="image/png" sizes="32x32">
+<link rel="apple-touch-icon" href="{{ "apple-touch-icon.png" | relURL }}?v={{ index $v "apple-touch-icon.png" }}" sizes="180x180">
+<link rel="manifest" href="{{ "site.webmanifest" | relURL }}?v={{ index $v "site.webmanifest" }}">

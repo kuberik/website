@@ -25,6 +25,12 @@ title = 'kuberik'
       target = 'layouts'
 
 [params]
+  # Link previews (layouts/_partials/utils/link-preview.html): og:site_name, the fallback description, and the default
+  # card for pages without their own `images` front matter (rendered by scripts/brand/render.mjs).
+  siteName = "Kuberik"
+  description = "Kuberik is a Kubernetes-native delivery controller. Declare when a version may deploy and when it counts as healthy; the controller runs the rollout and promotes it across environments. In your cluster, next to Flux."
+  images = ["/images/og/kuberik.png"]
+  imageAlt = "The Kuberik dashboard showing an app's release deployed through dev, staging and three production waves"
   rollout_controller_version = "v0.11.0"
   rollout_dashboard_version = "v0.9.1"
   openkruise_controller_version = "v0.4.0"

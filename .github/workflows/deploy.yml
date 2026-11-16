@@ -41,6 +41,9 @@ jobs:
           HUGO_ENVIRONMENT: production
         run: npx hugo --minify --baseURL "${{ steps.pages.outputs.base_url }}"
 
+      - name: Check link previews and icons
+        run: node scripts/check-previews.mjs public
+
       - name: Upload artifact
         uses: actions/upload-pages-artifact@v3
         with:

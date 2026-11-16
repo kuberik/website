@@ -2,7 +2,8 @@
   "scripts": {
     "generate": "scripts/genref/build.sh",
     "build": "npm run generate && hugo",
-    "serve": "hugo server"
+    "serve": "hugo server",
+    "check:previews": "node scripts/check-previews.mjs public"
   },
   "devDependencies": {
     "hugo-bin": "^0.149.2"

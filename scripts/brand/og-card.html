@@ -1,0 +1,35 @@
+<!DOCTYPE html>
+<!-- The site's default link-preview card (1200x630), rendered to static/images/og/kuberik.png by render.mjs.
+     Landing language: the hero's mint stage and dot grid, the nav's logo and wordmark, and the real product window
+     captured from the landing hero. render.mjs fills in the window image, the logo and the font. -->
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<style>
+@font-face{font-family:'Card Inter';src:url(__FONT__) format('woff2');font-weight:100 900}
+*{box-sizing:border-box;margin:0}
+html,body{width:1200px;height:630px;overflow:hidden}
+body{position:relative;background:#f4f7f9;font-family:'Card Inter',system-ui,sans-serif;color:#0e1619;-webkit-font-smoothing:antialiased}
+.stage{position:absolute;inset:0;background:
+  radial-gradient(520px 380px at 12% 18%,rgba(161,240,227,.55),transparent 70%),
+  radial-gradient(520px 380px at 90% 30%,rgba(195,238,243,.5),transparent 70%),
+  linear-gradient(180deg,#e8fbf7 0%,#f4f7f9 100%)}
+.stage::after{content:"";position:absolute;inset:0;background-image:radial-gradient(oklch(.195 .014 222/.08) 1px,transparent 1.2px);background-size:16px 16px}
+.head{position:absolute;left:0;right:0;top:58px;display:flex;flex-direction:column;align-items:center;gap:14px;z-index:1}
+.mark{display:flex;align-items:center;gap:14px;font-weight:700;font-size:46px;line-height:1;letter-spacing:-.02em}
+.mark svg{height:52px;width:auto;display:block}
+.line{font-weight:450;font-size:24px;line-height:32px;color:#47555a;letter-spacing:-.005em}
+.win{position:absolute;left:100px;top:196px;width:1000px;border-radius:14px;overflow:hidden;z-index:1;background:#fff;
+  box-shadow:0 0 0 1px oklch(.195 .014 222/.10),0 1px 2px oklch(.195 .014 222/.06),0 24px 48px -16px oklch(.195 .014 222/.18)}
+.win img{display:block;width:100%;height:auto}
+</style>
+</head>
+<body>
+<div class="stage"></div>
+<div class="head">
+  <div class="mark">__LOGO__kuberik</div>
+  <div class="line">Kubernetes-native delivery controller</div>
+</div>
+<div class="win"><img src="__WINDOW__" alt=""></div>
+</body>
+</html>

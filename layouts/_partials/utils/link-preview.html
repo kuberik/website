@@ -1,0 +1,43 @@
+{{- /* Values for a page's link preview (LinkedIn, Slack, X, iMessage...), shared by opengraph.html and
+     twitter_cards.html. Returns a dict: title, description, url, type, image (absolute URL), width, height, mime, alt.
+     The image is the page's first `images` front matter entry (a page resource or a path into static/), else the
+     site default card params.images (static/images/og/kuberik.png, 1200x630). The build check
+     (scripts/check-previews.mjs) fails when any page ends up without these tags or with an image that is not in
+     the build. */ -}}
+{{- $p := . -}}
+{{- $title := $p.Title | default site.Params.siteName -}}
+{{- $desc := $p.Description -}}
+{{- if $p.IsHome -}}
+  {{- /* the landing: the same title as its <title> (home.html), and the site description, not the page summary */ -}}
+  {{- with site.Data.landing.hero.h1 }}{{ $title = printf "%s · %s" site.Params.siteName (. | plainify | htmlUnescape) }}{{ end -}}
+  {{- $desc = $desc | default site.Params.description -}}
+{{- end -}}
+{{- if not $desc }}{{ $desc = $p.Summary }}{{ end -}}
+{{- $desc = $desc | plainify | htmlUnescape | strings.TrimSpace | replaceRE `\s+` " " | truncate 300 "…" -}}
+{{- if not $desc }}{{ $desc = site.Params.description }}{{ end -}}
+
+{{- $img := "" }}{{ $w := 0 }}{{ $h := 0 }}{{ $mime := "" -}}
+{{- $alt := $p.Params.imageAlt | default $title -}}
+{{- with $p.Params.images }}{{ with index . 0 -}}
+  {{- with $p.Resources.GetMatch . -}}
+    {{- $img = .Permalink }}{{ $mime = .MediaType.Type -}}
+    {{- if eq .ResourceType "image" }}{{ $w = .Width }}{{ $h = .Height }}{{ end -}}
+  {{- else -}}
+    {{- $img = . | absURL -}}
+    {{- $f := printf "static/%s" (strings.TrimPrefix "/" .) -}}
+    {{- if fileExists $f }}{{ with imageConfig $f }}{{ $w = .Width }}{{ $h = .Height }}{{ end }}{{ end -}}
+  {{- end -}}
+{{- end }}{{ end -}}
+{{- if not $img -}}
+  {{- $d := index site.Params.images 0 -}}
+  {{- $img = $d | absURL -}}
+  {{- with imageConfig (printf "static/%s" (strings.TrimPrefix "/" $d)) }}{{ $w = .Width }}{{ $h = .Height }}{{ end -}}
+  {{- $alt = site.Params.imageAlt -}}
+{{- end -}}
+{{- if not $mime -}}
+  {{- $ext := path.Ext (index (split $img "?") 0) | lower -}}
+  {{- $mime = index (dict ".png" "image/png" ".jpg" "image/jpeg" ".jpeg" "image/jpeg" ".webp" "image/webp" ".gif" "image/gif") $ext | default "" -}}
+{{- end -}}
+
+{{- return dict "title" $title "description" $desc "url" $p.Permalink "type" (cond (and $p.IsPage (eq $p.Section "blog")) "article" "website")
+      "image" $img "width" $w "height" $h "mime" $mime "alt" $alt -}}

@@ -15,21 +15,7 @@
 <link rel="stylesheet" href="{{ $blogCss.RelPermalink }}" integrity="{{ $blogCss.Data.Integrity }}">
 {{- end }}
 
-{{/* Link previews: image dimensions + author. The theme emits og:image from
-     `images` front matter but not its size; scrapers such as LinkedIn treat a
-     sized image as more trustworthy. Paths are site-relative into static/. */}}
-{{- with .Params.images }}
-  {{- $file := printf "static%s" (index . 0) }}
-  {{- if fileExists $file }}
-    {{- with imageConfig $file }}
-<meta property="og:image:width" content="{{ .Width }}">
-<meta property="og:image:height" content="{{ .Height }}">
-    {{- end }}
-    {{- if strings.HasSuffix $file ".png" }}
-<meta property="og:image:type" content="image/png">
-    {{- end }}
-  {{- end }}
-{{- end }}
+{{- /* link-preview tags (og:*, twitter:*) live in opengraph.html and twitter_cards.html */ -}}
 {{- with .Params.authors }}{{ with index . 0 }}
 <meta name="author" content="{{ .name }}">
 {{- end }}{{ end }}

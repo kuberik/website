@@ -1,0 +1,33 @@
+name: Check
+
+on:
+  pull_request:
+
+permissions:
+  contents: read
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+        with:
+          submodules: recursive
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+          cache: npm
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Build
+        env:
+          HUGO_ENVIRONMENT: production
+        run: npx hugo --minify --baseURL "https://kuberik.com/"
+
+      - name: Check link previews and icons
+        run: node scripts/check-previews.mjs public

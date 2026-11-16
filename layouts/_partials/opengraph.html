@@ -1,0 +1,25 @@
+{{- /* Open Graph tags for every page (replaces the theme's). Values: utils/link-preview.html. */ -}}
+{{- $lp := partial "utils/link-preview.html" . }}
+<meta property="og:site_name" content="{{ site.Params.siteName }}">
+<meta property="og:type" content="{{ $lp.type }}">
+<meta property="og:url" content="{{ $lp.url }}">
+<meta property="og:title" content="{{ $lp.title }}">
+<meta property="og:description" content="{{ $lp.description }}">
+<meta property="og:locale" content="en_US">
+<meta property="og:image" content="{{ $lp.image }}">
+{{- with $lp.mime }}
+<meta property="og:image:type" content="{{ . }}">
+{{- end }}
+{{- if $lp.width }}
+<meta property="og:image:width" content="{{ $lp.width }}">
+<meta property="og:image:height" content="{{ $lp.height }}">
+{{- end }}
+<meta property="og:image:alt" content="{{ $lp.alt }}">
+{{- if and .IsPage (eq $lp.type "article") }}
+{{- with .PublishDate }}
+<meta property="article:published_time" content="{{ .Format "2006-01-02T15:04:05-07:00" }}">
+{{- end }}
+{{- with .Lastmod }}
+<meta property="article:modified_time" content="{{ .Format "2006-01-02T15:04:05-07:00" }}">
+{{- end }}
+{{- end }}
