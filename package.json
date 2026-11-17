@@ -4,7 +4,7 @@
     "build": "npm run generate && hugo",
     "serve": "hugo server",
     "check:previews": "node scripts/check-previews.mjs public",
-    "check:logo": "node scripts/check-logo.mjs public"
+    "check:logo": "node scripts/check-logo.mjs public && node scripts/check-film-logo.mjs public"
   },
   "devDependencies": {
     "hugo-bin": "^0.149.2"

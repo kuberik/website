@@ -50,6 +50,14 @@ jobs:
       - name: Check the logo (light theme = white eyes, in every bundle, image and video)
         run: node scripts/check-logo.mjs public
 
+      - name: Install playwright for the film check (drives the runner's Google Chrome)
+        run: npm i --no-save --ignore-scripts playwright@1.58.2 && google-chrome --version
+
+      - name: Check the film draws the logo of the page theme
+        env:
+          FILM_CHECK_CHANNEL: chrome
+        run: node scripts/check-film-logo.mjs public
+
       - name: Upload artifact
         uses: actions/upload-pages-artifact@v3
         with:
