@@ -16,6 +16,7 @@
 // keep the screenshots they were published with.
 // No npm dependencies: Node's standard library and ffmpeg.
 import { readFileSync, readdirSync, statSync, existsSync } from 'node:fs';
+import { eyeFills } from './logo-eyes.mjs';
 import { execFileSync, execFile } from 'node:child_process';
 import { availableParallelism } from 'node:os';
 import { promisify } from 'node:util';
@@ -36,19 +37,6 @@ function walk(dir, out = []) {
 }
 
 // ---------- vector: the eye fills of an SVG logo's markup ----------
-// The eyes are the two circles at cx 288.69 and 525.31 and the gear path drawn around the left one (its outline starts at M 215.315 603.094).
-function eyeFills(svg) {
-  const fills = [];
-  for (const m of svg.matchAll(/<circle\b[^>]*cx=["']?(288\.69|525\.30)[^>]*>/gi)) {
-    const f = m[0].match(/fill=["']?(#[0-9a-f]{3,6})/i);
-    fills.push(f ? f[1] : 'none');
-  }
-  for (const m of svg.matchAll(/<path\b[^>]*d=["']?\s*M\s*215\.315[\s,]+603\.094[^>]*>/gi)) {
-    const f = m[0].match(/fill=["']?(#[0-9a-f]{3,6})/i);
-    fills.push(f ? f[1] : 'none');
-  }
-  return fills;
-}
 const norm = (s) => s.replace(/<\?xml[^>]*\?>/, '').replace(/'/g, '"').replace(/\s+/g, ' ').replace(/> </g, '><').trim();
 
 // Every logo embedded in a built text file: data:image/svg+xml URLs (URL- or base64-encoded) and inline <svg>.

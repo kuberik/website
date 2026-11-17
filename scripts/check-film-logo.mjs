@@ -9,6 +9,7 @@ import { createServer } from 'node:http';
 import { readFile, stat } from 'node:fs/promises';
 import { join, resolve, extname, normalize } from 'node:path';
 import { chromium } from 'playwright';
+import { eyeFills } from './logo-eyes.mjs';
 
 const pub = resolve(process.argv[2] || 'public');
 const TYPES = { '.html': 'text/html', '.js': 'text/javascript', '.css': 'text/css', '.svg': 'image/svg+xml', '.png': 'image/png',
@@ -31,8 +32,10 @@ const drawn = () => {
   const imgs = [...(host.shadowRoot || host).querySelectorAll('img')]
     .filter((i) => i.src.startsWith('data:image/svg+xml') && /lgradface/.test(decodeURIComponent(i.src)))
     .filter((i) => i.getBoundingClientRect().width > 0);
-  return imgs.map((i) => { const s = decodeURIComponent(i.src).toLowerCase(); return s.includes('#ffffff') ? 'white' : s.includes('#181a22') ? 'dark' : 'unknown'; });
+  return imgs.map((i) => decodeURIComponent(i.src.replace(/^data:image\/svg\+xml(;utf8)?,/, '')));
 };
+// the eye circles and the gear, read as check-logo.mjs reads them
+const eyesOf = (svg) => { const f = eyeFills(svg); return f.length === 3 && f.every((x) => /^#(fff|ffffff)$/i.test(x)) ? 'white' : f.length === 3 && f.every((x) => /^#181a22$/i.test(x)) ? 'dark' : `mixed (${f.join(', ') || 'none'})`; };
 const want = { light: 'white', dark: 'dark' };
 
 const browser = await chromium.launch(process.env.FILM_CHECK_CHANNEL ? { channel: process.env.FILM_CHECK_CHANNEL } : {});
@@ -49,7 +52,7 @@ try {
       for (const t of [2, 12, 22]) {
         await page.evaluate((t) => document.querySelector('[data-island="hero"]').__story.at(t), t);
         await page.waitForTimeout(300);
-        const eyes = await page.evaluate(drawn);
+        const eyes = (await page.evaluate(drawn)).map(eyesOf);
         const tag = `system ${scheme}, page ${theme}, film ${t}s`;
         if (!eyes.length) errors.push(`${tag}: the film draws no logo`);
         else if (!eyes.every((e) => e === want[theme])) errors.push(`${tag}: the film's logo has ${eyes.join(', ')} eyes, want ${want[theme]}`);
