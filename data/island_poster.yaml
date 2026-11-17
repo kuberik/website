@@ -3,7 +3,7 @@
 # serving windows wider than the previous band's w: hb = the shot window's height, p* = the panel box, l/c/r = the pieces, cw = the canvas width,
 # mx/my = the main column's left/top in % of W, fw = the foot's width in % of W, cy = [from W, the first frame's camera y in canvas px] runs
 {
- "v": "b80ebc29a290",
+ "v": "5061b6bf6fd5",
  "top": 60,
  "panel": {
   "light": {
