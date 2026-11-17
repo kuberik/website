@@ -51,8 +51,9 @@ try {
       await page.evaluate((t) => { document.documentElement.classList.toggle('dark', t === 'dark'); document.documentElement.classList.toggle('light', t === 'light'); }, theme);
       for (const t of [2, 12, 22]) {
         await page.evaluate((t) => document.querySelector('[data-island="hero"]').__story.at(t), t);
-        await page.waitForTimeout(300);
-        const eyes = (await page.evaluate(drawn)).map(eyesOf);
+        // the first frames after a load or seek may not have drawn the sidebar yet: give it up to 5 s
+        let eyes = [];
+        for (let i = 0; i < 20 && !eyes.length; i++) { await page.waitForTimeout(250); eyes = (await page.evaluate(drawn)).map(eyesOf); }
         const tag = `system ${scheme}, page ${theme}, film ${t}s`;
         if (!eyes.length) errors.push(`${tag}: the film draws no logo`);
         else if (!eyes.every((e) => e === want[theme])) errors.push(`${tag}: the film's logo has ${eyes.join(', ')} eyes, want ${want[theme]}`);
