@@ -36,10 +36,14 @@ function walk(dir, out = []) {
 }
 
 // ---------- vector: the eye fills of an SVG logo's markup ----------
-// The eyes are the two circles at cx 288.69 and 525.31 and the gear path drawn around the left one.
+// The eyes are the two circles at cx 288.69 and 525.31 and the gear path drawn around the left one (its outline starts at M 215.315 603.094).
 function eyeFills(svg) {
   const fills = [];
   for (const m of svg.matchAll(/<circle\b[^>]*cx=["']?(288\.69|525\.30)[^>]*>/gi)) {
+    const f = m[0].match(/fill=["']?(#[0-9a-f]{3,6})/i);
+    fills.push(f ? f[1] : 'none');
+  }
+  for (const m of svg.matchAll(/<path\b[^>]*d=["']?\s*M\s*215\.315[\s,]+603\.094[^>]*>/gi)) {
     const f = m[0].match(/fill=["']?(#[0-9a-f]{3,6})/i);
     fills.push(f ? f[1] : 'none');
   }
@@ -121,7 +125,7 @@ function findLogos(img) {
     }
     if (maxx < 0) continue;
     const bw = maxx - minx + 1, bh = maxy - miny + 1;
-    if (bh < (Number(process.env.LOGO_MIN_H) || 10)) continue;
+    if (bh < (Number(process.env.LOGO_MIN_H) || 7)) continue;
     comps.push({ minx, miny, bw, bh, n });
   }
   const found = [];
@@ -271,9 +275,12 @@ if (process.argv[2] === '--embedded') {
 }
 
 
-for (const [f, want, re] of [['static/logo-light.svg', 'white', WHITE], ['static/logo.svg', 'white', WHITE], ['static/logo-dark.svg', '#181a22', DARK]]) {
+// every logo file the site publishes: a name that says dark keeps #181a22, any other is drawn on light and has white eyes
+const logoFiles = readdirSync(join(root, 'static')).filter((n) => /^logo([-.].*)?\.svg$/.test(n)).map((n) => `static/${n}`);
+for (const need of ['static/logo.svg', 'static/logo-light.svg', 'static/logo-dark.svg']) if (!logoFiles.includes(need)) fail(need, 'missing');
+for (const [f, want, re] of logoFiles.map((f) => /dark/.test(basename(f)) ? [f, '#181a22', DARK] : [f, 'white', WHITE])) {
   const fills = eyeFills(readFileSync(join(root, f), 'utf8'));
-  if (fills.length !== 2 || !fills.every((x) => re.test(x))) fail(f, `eyes must be ${want}, found ${fills.join(', ') || 'none'}`);
+  if (fills.length !== 3 || !fills.every((x) => re.test(x))) fail(f, `eyes and gear must be ${want}, found ${fills.join(', ') || 'none'}`);
 }
 {
   const fav = readFileSync(join(root, 'static/favicon.svg'), 'utf8');
