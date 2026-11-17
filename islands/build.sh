@@ -18,4 +18,6 @@ if ! node scripts/gen-sources.mjs; then node scripts/gen-css.mjs; node_modules/.
 mkdir -p ../static/islands/fonts && cp "$DASHBOARD_SRC"/static/fonts/*.woff2 ../static/islands/fonts/
 bash scripts/subset-fonts.sh "$DASHBOARD_SRC/static/fonts" ../static/islands/fonts
 echo "dashboard $(git -C "$DASHBOARD_SRC" rev-parse --short HEAD 2>/dev/null || echo '?')" > ../static/islands/BUILT-FROM
+# The light theme's logo has white eyes: refuse a bundle compiled from a dashboard whose logo-rotate-light.svg has dark ones.
+node ../scripts/check-logo.mjs --embedded ../static/islands || { echo "the bundle's light logo has dark eyes; rebuild from a dashboard with white-eyed logo-rotate-light.svg (#191)"; exit 1; }
 ls -l ../static/islands
