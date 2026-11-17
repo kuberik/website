@@ -6,6 +6,7 @@
 import '../.gen/island.css';
 import './island-base.css';
 import { mount } from 'svelte';
+import { theme } from '$lib/stores/theme';
 import { registry } from './registry';
 import { Timeline } from './timeline';
 import { reactive as makeProps } from './reactive.svelte';
@@ -49,7 +50,8 @@ export async function mountIsland(host: HTMLElement, BASE: string) {
 	root.appendChild(wrap);
 
 	if (host.hasAttribute('data-theme-sync')) {
-		const sync = () => wrap.classList.toggle('dark', dark());
+		/* the dashboard's theme store too: components that pick by it (the sidebar logo, light or dark eyes) follow the page */
+		const sync = () => { wrap.classList.toggle('dark', dark()); theme.set(dark() ? 'dark' : 'light'); };
 		sync();
 		new MutationObserver(sync).observe(document.documentElement, { attributes: true, attributeFilter: ['class'] });
 	}
