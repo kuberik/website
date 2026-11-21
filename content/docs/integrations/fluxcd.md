@@ -122,7 +122,7 @@ spec:
       repository: ghcr.io/acme/hello-world  # no tag: the Rollout owns it
 ```
 
-When the chart version is the release, annotate with `rollout.kuberik.com/chart-version.from: <rollout name>` instead, and the Rollout writes `spec.chart.spec.version`. For a HelmRelease that takes its chart through `spec.chartRef` from an OCIRepository, annotate the OCIRepository as in [Set an OCIRepository tag](#set-an-ocirepository-tag).
+When the chart version is the release, annotate with `rollout.kuberik.com/chart-version.from: <rollout name>` instead, and the Rollout writes `spec.chart.spec.version`. For a HelmRelease that takes its chart through `spec.chartRef` from an OCIRepository, annotate the OCIRepository as in [Set an OCIRepository tag](#set-an-ocirepository-tag). Tag the chart artifact with its chart version (the `version` in `Chart.yaml`): the `helmrelease` health check compares the tag with the chart version Helm installed, and stays `Pending` while they differ.
 
 Leave the field the Rollout writes out of the HelmRelease you commit, and keep its first-install default in the chart's `values.yaml`. The Rollout writes only that field, with server-side apply and without forcing ownership. If Git or another tool also sets it, the Rollout writes nothing for that deploy and reports `Ready=False` with reason `HelmReleaseFieldConflict`, naming the field and the other writer. Remove the field from Git, and the Rollout deploys at its next retry, within a minute.
 
@@ -218,7 +218,7 @@ The check stays `Pending` until helm-controller has acted on the HelmRelease's c
 
 {{< fig id="flux-propagation" caption="The Rollout picks a release from the ReleaseSource and writes its tag into Flux; Flux applies it, and the Kustomization's health comes back as a HealthCheck." >}}
 
-The ReleaseSource lists releases from the registry. When the Rollout picks a release, it writes the tag with server-side apply under the field manager `rollout-controller`: into the substitute variable, the HelmRelease value or chart version, or the OCIRepository's `spec.ref.tag`. Flux then reconciles as usual. When the tag moves on an OCIRepository, the `kustomization` and `helmrelease` checks stay `Pending` until Flux has fetched the new artifact and applied it, so the bake never starts on the previous release.
+The ReleaseSource lists releases from the registry. When the Rollout picks a release, it writes the tag with server-side apply: into the substitute variable or the OCIRepository's `spec.ref.tag` under the field manager `rollout-controller`, or into the HelmRelease value or chart version under a field manager of its own, `rollout-controller/<namespace>/<name>`, so two Rollouts can each own a value on one HelmRelease. Flux then reconciles as usual. When the tag moves on an OCIRepository, the `kustomization` and `helmrelease` checks stay `Pending` until Flux has fetched the new artifact and applied it, so the bake never starts on the previous release.
 
 ![The Health checks card, 3/3 healthy with the Flux Deployment check passing, above the Resources card: 2/2 ready, hello-world, 1/1 ready, and one more ready resource folded](/images/docs/integrations/fluxcd-health-resources.png)
 
