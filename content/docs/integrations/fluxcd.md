@@ -91,6 +91,8 @@ Keep at least one other key in `postBuild.substitute`, or a `postBuild.substitut
 
 Never set `APP_VERSION` itself in Git. The Rollout writes only its own variable, with server-side apply and without forcing ownership. If Git or another tool also sets that variable, the Rollout writes nothing for that deploy and reports `Ready=False` with reason `KustomizationFieldConflict`, naming the variable and the other writer. Remove the variable from the Kustomization in Git, and the Rollout deploys at its next retry, within a minute. Other variables in `postBuild.substitute` stay with whoever set them.
 
+If you upgrade from a version before this change and your Kustomization in Git sets the Rollout's variable to a starting value, remove it and put the default in the manifests (`${APP_VERSION:=1.0.0}`). Earlier versions overwrote such a value; now the Rollout refuses to deploy until it is gone.
+
 One Kustomization can carry several of these annotations, one per variable, each naming its own Rollout. A frontend and a backend Rollout can then deploy into the same Kustomization independently.
 
 ## Set a HelmRelease value or chart version
