@@ -16,6 +16,7 @@ Flux applies your manifests and Kuberik decides which version it applies. A [`Ro
 | Flux 2.7 or later, with the kustomize-controller feature gate `CancelHealthCheckOnNewRevision` | Only for Kustomizations with `wait: true` (see [Report Kustomization health](#report-kustomization-health)) |
 | A [`ReleaseSource`](/docs/releases/publish/) in the Rollout's namespace | Lists your releases. Flux image automation is not required |
 | Flux 2.8 or later (helm-controller 1.7.1 or later recommended) | Only for HelmReleases: the dashboard lists a chart's resources from `status.inventory`, and 1.7.1 stops reporting a failed upgrade as ready |
+| RBAC for the rollout-controller: `get`, `list`, `watch` and `patch` on `helmreleases` | Only for HelmReleases. The Helm chart and the controller's install manifest grant it; without it the controller skips HelmReleases and turns the `helmrelease` check off |
 | The Kustomization, HelmRelease or OCIRepository in the Rollout's namespace | The Rollout looks for annotated Flux objects only in its own namespace |
 
 Kuberik drives three Flux objects. Annotate a Kustomization and the Rollout sets a `postBuild.substitute` variable; annotate a HelmRelease and it sets a chart value or the chart version; annotate an OCIRepository and it sets its tag. [Propagation Modes](/docs/concepts/propagation/) compares the two.
@@ -234,8 +235,24 @@ The ReleaseSource lists releases from the registry. When the Rollout picks a rel
 | HealthCheck stays `Pending`: `Kustomization has no managed resources` | The Kustomization has not applied anything yet, or its inventory is empty | Check the Kustomization with `flux get kustomizations -n hello-world` |
 | Rollout `Ready=False`: `KustomizationFieldConflict` | Git or another tool also sets the substitute variable the Rollout writes | Remove the variable from the Kustomization in Git; keep the default in the manifests (`${APP_VERSION:=1.0.0}`) |
 | Rollout `Ready=False`: `HelmReleaseFieldConflict` | Git or another tool also sets the HelmRelease field the Rollout writes | Remove the field from the HelmRelease in Git; keep the default in the chart's `values.yaml` |
+| Rollout `Ready=False`: `HelmReleaseInvalidAnnotation` | A `values.<path>.from` path has an empty key, or `chart-version.from` is on a HelmRelease with `spec.chartRef` or without `spec.chart.spec` | Fix the path; for `spec.chartRef`, annotate the OCIRepository instead |
+| An annotated HelmRelease never changes, and `helmrelease` checks never leave their first state | The controller lacks RBAC on `helmreleases`, or Flux's HelmRelease CRD was installed after the controller started | Upgrade the chart, then restart the rollout-controller Deployment |
 | HealthCheck `Unhealthy`: `HelmRelease not found` | Wrong name in `healthcheck.kuberik.com/helmrelease` | Use the HelmRelease's name, or `<namespace>/<name>` |
 | With `wait: true`, a fixed release waits for the failed one to time out | kustomize-controller runs without `CancelHealthCheckOnNewRevision` | Enable the feature gate (Flux 2.7 or later), or set `wait: false` |
+
+### The conflict names another Rollout
+
+The `KustomizationFieldConflict` or `HelmReleaseFieldConflict` message names a manager `rollout-controller/<namespace>/<rollout>` when you moved the annotation from one Rollout to another. The first Rollout still owns the field and never lets go of it on its own. Release it with a server-side apply under that manager, of a body without the field; the new Rollout writes the field at its next retry. Keep in the body any other variable or value the first Rollout still writes on that object.
+
+```bash {filename="Terminal"}
+kubectl apply --server-side --field-manager=rollout-controller/hello-world/hello-world-old -f - <<'EOF'
+apiVersion: kustomize.toolkit.fluxcd.io/v1
+kind: Kustomization
+metadata:
+  name: hello-world
+  namespace: hello-world
+EOF
+```
 
 ### The version reverts after a deploy
 
