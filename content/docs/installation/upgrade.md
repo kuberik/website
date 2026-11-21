@@ -104,7 +104,7 @@ Read the dry run first: a kill-switch gate can look like an approval gate. Then 
 
 ```bash {filename="Terminal"}
 helm list -n kuberik-system
-kubectl get rollouts -A -o custom-columns=NAMESPACE:.metadata.namespace,NAME:.metadata.name,SOURCE:.spec.releaseSourceRef.name,READY:.status.conditions[?(@.type==\"Ready\")].reason
+kubectl get rollouts -A -o jsonpath='{range .items[*]}{.metadata.namespace}/{.metadata.name} {.spec.releaseSourceRef.name} {.status.conditions[?(@.type=="Ready")].reason}{"\n"}{end}'
 ```
 
 Every Rollout names a source, and none reads `KustomizationFieldConflict`, `HelmReleaseFieldConflict` or `ReleaseSourceRequired`.
