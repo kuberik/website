@@ -61,7 +61,7 @@ The two annotations name the gate in the dashboard. Kuberik copies them onto the
 
 ## Freeze deploys across namespaces
 
-A [`ClusterRolloutSchedule`](/docs/reference/api/#clusterrolloutschedule) works the same way, and adds `namespaceSelector` to reach Rollouts in every namespace with matching labels. This one blocks production deploys over the holidays. A `dateRange` includes both its start and end day.
+A [`ClusterRolloutSchedule`](/docs/reference/api/#clusterrolloutschedule) works the same way, and adds `namespaceSelector` to reach Rollouts in every namespace with matching labels; without it, the schedule covers matching Rollouts in every namespace. This one blocks production deploys over the holidays. A `dateRange` includes both its start and end day.
 
 ```yaml {filename="holiday-freeze.yaml"}
 apiVersion: kuberik.com/v1alpha1
