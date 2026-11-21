@@ -1347,7 +1347,7 @@ HealthCheckSpec defines the desired state of HealthCheck.
 <tr id="healthcheckspec-rollbackon"><td><code>rollbackOn</code>
       
 <br/>
-<a href="#[]github-com-kuberik-rollout-controller-api-v1alpha1-failurekind"><code>[]github.com/kuberik/rollout-controller/api/v1alpha1.FailureKind</code></a>
+<a href="#failurekind"><code>[]FailureKind</code></a>
 </td>
 <td>RollbackOn lists the kinds of failure that roll back a Rollout that has
 spec.autoRollback.enabled. Unset means the default for the check's class;

@@ -87,6 +87,13 @@ for f in ${BUILD_TEMP_OUT}/*.md; do
     perl -pi -e 'my $T = qr{(?:[\w.\-/]*&lt;[A-Za-z0-9][\w\- ]*?&gt;)+(?:[\w\-/]|\.(?=\w))*}; s{"($T)"}{<code>$1</code>}g; s{(?<![\w.\-/>])($T)}{<code>$1</code>}g' "$f"
 done
 
+# A pointer to a slice of a local type (*[]FailureKind) comes out with its full
+# package path and a "#[]github-com-..." anchor that matches no heading: link the
+# type's own heading and print the short name.
+for f in ${BUILD_TEMP_OUT}/*.md; do
+    perl -pi -e 's{<a href="#\[\]github-com-kuberik-[a-z-]+-api-v1alpha1-([a-z0-9]+)"><code>\[\]github\.com/kuberik/[a-z-]+/api/v1alpha1\.(\w+)</code></a>}{<a href="#$1"><code>[]$2</code></a>}g' "$f"
+done
+
 # The docs are written as if everything on main is released (STYLE §1), so the
 # groups carry no release-state label, and deprecation notes that promise
 # removal "in the next release" read "in a later version".
