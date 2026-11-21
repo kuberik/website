@@ -445,6 +445,33 @@ taken when the history entry was written.
 </table>
 
 
+#### AutoRollbackSpec     {#autorollbackspec}
+
+
+
+**Appears in:**
+
+- [RolloutSpec](#rolloutspec)
+
+
+AutoRollbackSpec configures automatic rollback.
+
+<table>
+<thead><tr><th width="30%">Field</th><th>Description</th></tr></thead>
+<tbody>
+    
+  
+<tr id="autorollbackspec-enabled"><td><code>enabled</code>
+      
+<br/>
+<code>bool</code>
+</td>
+<td>Enabled turns automatic rollback on. Off by default.</td>
+</tr>
+</tbody>
+</table>
+
+
 #### BlockedRelease     {#blockedrelease}
 
 
@@ -734,6 +761,22 @@ DayOfWeek represents a day of the week.
 
 
 
+#### DeployKind     {#deploykind}
+
+
+(Alias of `string`)
+
+**Appears in:**
+
+- [DeploymentHistoryEntry](#deploymenthistoryentry)
+
+
+DeployKind says what caused a deploy, so automation can tell its own deploys
+from a person's.
+
+
+
+
 #### DeploymentHistoryEntry     {#deploymenthistoryentry}
 
 
@@ -817,6 +860,23 @@ This field contains human-readable information about why the bake status is what
 <td>BakeStartTime is the time when the bake period started for this deployment
 This is when the rollout controller began monitoring the deployment for stability.</td>
 </tr>
+<tr id="deploymenthistoryentry-bakeholdstarttime"><td><code>bakeHoldStartTime</code>
+      
+<br/>
+<a href="https://kubernetes.io/docs/reference/generated/kubernetes-api/v1.33/#time-v1-meta"><code>Time</code></a>
+</td>
+<td>BakeHoldStartTime is when the bake clock was stopped because a selected
+health check was not Healthy. It is nil while the bake clock is running.</td>
+</tr>
+<tr id="deploymenthistoryentry-bakeheldduration"><td><code>bakeHeldDuration</code>
+      
+<br/>
+<a href="https://kubernetes.io/docs/reference/generated/kubernetes-api/v1.33/#duration-v1-meta"><code>Duration</code></a>
+</td>
+<td>BakeHeldDuration is the total time the bake clock was stopped, excluding
+the hold in progress (see BakeHoldStartTime). Held time does not count
+toward the bake time.</td>
+</tr>
 <tr id="deploymenthistoryentry-bakeendtime"><td><code>bakeEndTime</code>
       
 <br/>
@@ -850,6 +910,21 @@ ignored as they reflect the pre-retry state.</td>
 </td>
 <td>Approval names the RolloutApproval that let this build through an
 approval gate. Nil when no approval gate applied, or when gates were bypassed.</td>
+</tr>
+<tr id="deploymenthistoryentry-deploykind"><td><code>deployKind</code>
+      
+<br/>
+<a href="#deploykind"><code>DeployKind</code></a>
+</td>
+<td>DeployKind is what caused this deploy. Entries written before it existed
+have none and are never rolled back to or from automatically.</td>
+</tr>
+<tr id="deploymenthistoryentry-rollbackof"><td><code>rollbackOf</code>
+      
+<br/>
+<code>int64</code>
+</td>
+<td>RollbackOf is the ID of the history entry this deploy rolled back.</td>
 </tr>
 </tbody>
 </table>
@@ -900,6 +975,176 @@ FailedHealthCheck represents a health check that failed during bake.
 <td>Observations is a snapshot of the health check's status.observations taken
 when the failure was recorded. It is not updated afterwards, so the figure
 survives the health check recovering.</td>
+</tr>
+<tr id="failedhealthcheck-class"><td><code>class</code>
+      
+<br/>
+<code>string</code>
+</td>
+<td>Class is the health check's spec.class.</td>
+</tr>
+<tr id="failedhealthcheck-rollbackon"><td><code>rollbackOn</code>
+      
+<br/>
+<a href="#failurekind"><code>[]FailureKind</code></a>
+</td>
+<td>RollbackOn is the check's spec.rollbackOn as resolved when the failure was
+recorded (the class default when the check sets none).</td>
+</tr>
+<tr id="failedhealthcheck-failures"><td><code>failures</code>
+      
+<br/>
+<a href="#failureverdict"><code>[]FailureVerdict</code></a>
+</td>
+<td>Failures lists what failed in this check, each with the decision it led to.</td>
+</tr>
+</tbody>
+</table>
+
+
+#### FailureKind     {#failurekind}
+
+
+(Alias of `string`)
+
+**Appears in:**
+
+- [FailedHealthCheck](#failedhealthcheck)
+
+- [FailureVerdict](#failureverdict)
+
+- [HealthCheckFailure](#healthcheckfailure)
+
+
+FailureKind classifies why a health check failed.
+
+
+
+
+#### FailureVerdict     {#failureverdict}
+
+
+
+**Appears in:**
+
+- [FailedHealthCheck](#failedhealthcheck)
+
+
+FailureVerdict is one failure of a health check and whether it rolls back.
+
+<table>
+<thead><tr><th width="30%">Field</th><th>Description</th></tr></thead>
+<tbody>
+    
+  
+<tr id="failureverdict-source"><td><code>source</code>
+      
+<br/>
+<code>string</code>
+</td>
+<td>Source names what failed.</td>
+</tr>
+<tr id="failureverdict-kind"><td><code>kind</code>
+      
+<br/>
+<a href="#failurekind"><code>FailureKind</code></a>
+</td>
+<td>Kind classifies the failure.</td>
+</tr>
+<tr id="failureverdict-reason"><td><code>reason</code>
+      
+<br/>
+<code>string</code>
+</td>
+<td>Reason is the machine reason.</td>
+</tr>
+<tr id="failureverdict-message"><td><code>message</code>
+      
+<br/>
+<code>string</code>
+</td>
+<td>Message is one line of detail.</td>
+</tr>
+<tr id="failureverdict-rollsback"><td><code>rollsBack</code>
+      
+<br/>
+<code>bool</code>
+</td>
+<td>RollsBack is true when this failure triggers an automatic rollback.</td>
+</tr>
+<tr id="failureverdict-why"><td><code>why</code>
+      
+<br/>
+<code>string</code>
+</td>
+<td>Why is the rule that decided: CheckRollbackOn, NotInRollbackOn,
+SourceOptedOut, SourceOptedIn or CheckErrorNever.</td>
+</tr>
+</tbody>
+</table>
+
+
+#### HealthCheckFailure     {#healthcheckfailure}
+
+
+
+**Appears in:**
+
+- [HealthCheckStatus](#healthcheckstatus)
+
+
+HealthCheckFailure is one thing that failed, with its kind. Like
+lastErrorTime it is a witness: it stays after the source recovers and is
+cleared only by the reset at the next deploy or retry.
+
+<table>
+<thead><tr><th width="30%">Field</th><th>Description</th></tr></thead>
+<tbody>
+    
+  
+<tr id="healthcheckfailure-source"><td><code>source</code>
+      
+<br/>
+<code>string</code>
+</td>
+<td>Source names what failed, e.g. "RolloutTest ns/name" or "Kustomization ns/name".</td>
+</tr>
+<tr id="healthcheckfailure-kind"><td><code>kind</code>
+      
+<br/>
+<a href="#failurekind"><code>FailureKind</code></a>
+</td>
+<td>Kind classifies the failure.</td>
+</tr>
+<tr id="healthcheckfailure-reason"><td><code>reason</code>
+      
+<br/>
+<code>string</code>
+</td>
+<td>Reason is the machine reason (RolloutTestFailed, JobFailed,
+ProgressDeadlineExceeded, BuildFailed, ...).</td>
+</tr>
+<tr id="healthcheckfailure-rollback"><td><code>rollback</code>
+      
+<br/>
+<code>bool</code>
+</td>
+<td>Rollback is the source's own switch, read from the
+rollout.kuberik.com/rollback annotation. Nil when the source has none.</td>
+</tr>
+<tr id="healthcheckfailure-message"><td><code>message</code>
+      
+<br/>
+<code>string</code>
+</td>
+<td>Message is one line of detail.</td>
+</tr>
+<tr id="healthcheckfailure-firstseentime"><td><code>firstSeenTime</code>
+      
+<br/>
+<a href="https://kubernetes.io/docs/reference/generated/kubernetes-api/v1.33/#time-v1-meta"><code>Time</code></a>
+</td>
+<td>FirstSeenTime is when this source and kind were first recorded as failing.</td>
 </tr>
 </tbody>
 </table>
@@ -981,6 +1226,16 @@ Count (value), State (no number; label only).</td>
 <code>string</code>
 </td>
 <td>Window the observation covers, e.g. "5m".</td>
+</tr>
+<tr id="healthcheckobservation-message"><td><code>message</code>
+      
+<br/>
+<code>string</code>
+</td>
+<td>Message says what this observation is about when Name alone does not: the
+failing resource's status message, the alert's identifying labels, the
+monitor's alerting groups. One line of plain text. Consumers show it
+verbatim and never parse it.</td>
 </tr>
 <tr id="healthcheckobservation-healthy"><td><code>healthy</code>
       
@@ -1089,6 +1344,16 @@ HealthCheckSpec defines the desired state of HealthCheck.
 </td>
 <td>Class specifies the type of health check (e.g., 'kustomization')</td>
 </tr>
+<tr id="healthcheckspec-rollbackon"><td><code>rollbackOn</code>
+      
+<br/>
+<a href="#[]github-com-kuberik-rollout-controller-api-v1alpha1-failurekind"><code>[]github.com/kuberik/rollout-controller/api/v1alpha1.FailureKind</code></a>
+</td>
+<td>RollbackOn lists the kinds of failure that roll back a Rollout that has
+spec.autoRollback.enabled. Unset means the default for the check's class;
+an empty list means this check never rolls back. CheckError cannot be
+listed: a check that fails to run never rolls anything back.</td>
+</tr>
 </tbody>
 </table>
 
@@ -1145,6 +1410,15 @@ HealthCheckStatus defines the observed state of HealthCheck.
 <td>Observations are the facts the check last evaluated, most important first.
 Consumers (the dashboard) draw the first one as the headline figure; Message
 stays the human sentence. Providers may leave this empty.</td>
+</tr>
+<tr id="healthcheckstatus-failures"><td><code>failures</code>
+      
+<br/>
+<a href="#healthcheckfailure"><code>[]HealthCheckFailure</code></a>
+</td>
+<td>Failures is the witness of what failed, by source and kind. Entries are
+added when a source fails and kept after it recovers; the reset at a new
+deploy or retry clears them together with lastErrorTime.</td>
 </tr>
 </tbody>
 </table>
@@ -1251,6 +1525,15 @@ requires) lives in the ReleaseSlice catalogue and in history entries.
 <code>[]string</code>
 </td>
 <td>BlockedBy lists the gates that do not let this release through.</td>
+</tr>
+<tr id="releasecandidate-failedbake"><td><code>failedBake</code>
+      
+<br/>
+<code>bool</code>
+</td>
+<td>FailedBake is true when this Rollout's newest deploy of the release failed
+its bake. Automatic selection skips it until someone names the build
+(spec.wantedVersion, force-deploy or bypass-gates).</td>
 </tr>
 </tbody>
 </table>
@@ -1815,6 +2098,14 @@ If not specified, the rollout will wait indefinitely for bake to start.</td>
 <a href="#healthcheckselectorconfig"><code>HealthCheckSelectorConfig</code></a>
 </td>
 <td>HealthCheckSelector specifies how to select HealthChecks for this rollout</td>
+</tr>
+<tr id="rolloutspec-autorollback"><td><code>autoRollback</code>
+      
+<br/>
+<a href="#autorollbackspec"><code>AutoRollbackSpec</code></a>
+</td>
+<td>AutoRollback turns on rolling back to the last good build when a build
+fails its bake because of a failure the health checks say should roll back.</td>
 </tr>
 </tbody>
 </table>
