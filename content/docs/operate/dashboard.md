@@ -18,6 +18,8 @@ Search reaches every app, rollout and pull request.
 
 ![The command palette resolving a pasted pull request URL to Open change #80 · checkout-api](/images/docs/dashboard/command-palette-pr.png)
 
+Times show in your browser's time zone. Select **Local** next to the theme switch to show them in UTC; the choice stays in this browser.
+
 ## Read a rollout
 
 **Progress** shows where a release is, **Gates** what holds it.
@@ -99,6 +101,8 @@ Start from one of two places:
 Then confirm. A rollback always pins, so the dialog has no **Pin build** switch. Select **Roll back**; in production, write why and type the build first.
 
 The rollout stays on that build, under a **Rolled back** banner, until you select **Clear pin**. A force-deploy back does not hold: see [Deploy a specific version](/docs/operate/manual-actions/#deploy-a-specific-version).
+
+When the Rollout rolled back on its own, the banner reads **Rolled back automatically**, names each failure with whether it rolls back, and offers **Deploy anyway** to try the held build again ([Roll Back Automatically](/docs/releases/rollback/#release-a-held-build)).
 
 ## Check the result
 
