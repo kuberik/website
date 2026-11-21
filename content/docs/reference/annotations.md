@@ -31,7 +31,7 @@ The rollout-controller and the openkruise-controller read this from a Flux `Kust
 
 | Annotation | Values | Default | Set by | Effect |
 |---|---|---|---|---|
-| `rollout.kuberik.com/substitute.<VAR>.from` | Rollout name | None | You | On each deploy the rollout-controller writes the release tag to `spec.postBuild.substitute.<VAR>`; the openkruise-controller uses it to find the Rollout behind a canary ([Set a Kustomization substitute](/docs/integrations/fluxcd/#set-a-kustomization-substitute)). |
+| `rollout.kuberik.com/substitute.<VAR>.from` | Rollout name | None | You | On each deploy the rollout-controller writes the release tag to `spec.postBuild.substitute.<VAR>`, as field manager `rollout-controller/<namespace>/<rollout>`, and refuses the deploy (`KustomizationFieldConflict`) when another writer sets `<VAR>`; the openkruise-controller uses it to find the Rollout behind a canary ([Set a Kustomization substitute](/docs/integrations/fluxcd/#set-a-kustomization-substitute)). |
 
 ## HelmRelease
 

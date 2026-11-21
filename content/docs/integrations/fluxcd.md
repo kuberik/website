@@ -89,7 +89,7 @@ spec:
 
 Keep at least one other key in `postBuild.substitute`, or a `postBuild.substituteFrom` entry, in the Kustomization you commit. With an empty `postBuild` or `substitute`, Flux runs no substitution at all, so until the Rollout writes its key `${APP_VERSION:=1.0.0}` reaches the cluster as written.
 
-Never set `APP_VERSION` itself in Git. When Flux applies this Kustomization from Git with the key set, then after every deploy it writes the Git value back at the parent Kustomization's next reconcile, and the Rollout keeps reporting the version it deployed.
+Never set `APP_VERSION` itself in Git. The Rollout writes only its own variable, with server-side apply and without forcing ownership. If Git or another tool also sets that variable, the Rollout writes nothing for that deploy and reports `Ready=False` with reason `KustomizationFieldConflict`, naming the variable and the other writer. Remove the variable from the Kustomization in Git, and the Rollout deploys at its next retry, within a minute. Other variables in `postBuild.substitute` stay with whoever set them.
 
 One Kustomization can carry several of these annotations, one per variable, each naming its own Rollout. A frontend and a backend Rollout can then deploy into the same Kustomization independently.
 
@@ -218,7 +218,7 @@ The check stays `Pending` until helm-controller has acted on the HelmRelease's c
 
 {{< fig id="flux-propagation" caption="The Rollout picks a release from the ReleaseSource and writes its tag into Flux; Flux applies it, and the Kustomization's health comes back as a HealthCheck." >}}
 
-The ReleaseSource lists releases from the registry. When the Rollout picks a release, it writes the tag with server-side apply: into the substitute variable or the OCIRepository's `spec.ref.tag` under the field manager `rollout-controller`, or into the HelmRelease value or chart version under a field manager of its own, `rollout-controller/<namespace>/<name>`, so two Rollouts can each own a value on one HelmRelease. Flux then reconciles as usual. When the tag moves on an OCIRepository, the `kustomization` and `helmrelease` checks stay `Pending` until Flux has fetched the new artifact and applied it, so the bake never starts on the previous release.
+The ReleaseSource lists releases from the registry. When the Rollout picks a release, it writes the tag with server-side apply: into the OCIRepository's `spec.ref.tag` under the field manager `rollout-controller`, or into the substitute variable, the HelmRelease value or the chart version under a field manager of its own, `rollout-controller/<namespace>/<name>`, so two Rollouts can each own a variable on one Kustomization or a value on one HelmRelease. Variables and values written by the shared `rollout-controller` manager of earlier versions move to the Rollout's own manager at its next deploy. Flux then reconciles as usual. When the tag moves on an OCIRepository, the `kustomization` and `helmrelease` checks stay `Pending` until Flux has fetched the new artifact and applied it, so the bake never starts on the previous release.
 
 ![The Health checks card, 3/3 healthy with the Flux Deployment check passing, above the Resources card: 2/2 ready, hello-world, 1/1 ready, and one more ready resource folded](/images/docs/integrations/fluxcd-health-resources.png)
 
@@ -230,13 +230,14 @@ The ReleaseSource lists releases from the registry. When the Rollout picks a rel
 | The Rollout has no releases | The ReleaseSource cannot reach the registry (`SourceReachable` is `False`) | Run `kubectl -n hello-world describe releasesource hello-world` and check the image path and `spec.oci.secretRef` |
 | HealthCheck `Unhealthy`: `Kustomization not found` | Wrong name in `healthcheck.kuberik.com/kustomization` | Use the Kustomization's name, or `<namespace>/<name>` if it lives in another namespace |
 | HealthCheck stays `Pending`: `Kustomization has no managed resources` | The Kustomization has not applied anything yet, or its inventory is empty | Check the Kustomization with `flux get kustomizations -n hello-world` |
+| Rollout `Ready=False`: `KustomizationFieldConflict` | Git or another tool also sets the substitute variable the Rollout writes | Remove the variable from the Kustomization in Git; keep the default in the manifests (`${APP_VERSION:=1.0.0}`) |
 | Rollout `Ready=False`: `HelmReleaseFieldConflict` | Git or another tool also sets the HelmRelease field the Rollout writes | Remove the field from the HelmRelease in Git; keep the default in the chart's `values.yaml` |
 | HealthCheck `Unhealthy`: `HelmRelease not found` | Wrong name in `healthcheck.kuberik.com/helmrelease` | Use the HelmRelease's name, or `<namespace>/<name>` |
 | With `wait: true`, a fixed release waits for the failed one to time out | kustomize-controller runs without `CancelHealthCheckOnNewRevision` | Enable the feature gate (Flux 2.7 or later), or set `wait: false` |
 
 ### The version reverts after a deploy
 
-The Kustomization in Git sets the Rollout's substitute key. The Rollout writes the key only when it deploys a new version, and Flux applies the Git copy at its next interval and takes the key back. The cluster then runs the Git value while the Rollout and the dashboard show the deployed one. Compare the two tags; in the field owners, the `manager:` line right after `f:APP_VERSION` reads `kustomize-controller` when Git owns the key.
+The Kustomization in Git started setting the Rollout's substitute key after the Rollout last deployed. Flux applies the Git copy at its next interval and takes the key back; the Rollout refuses its next deploy with `KustomizationFieldConflict`, but until then nothing reports the revert. The cluster then runs the Git value while the Rollout and the dashboard show the deployed one. Compare the two tags; in the field owners, the `manager:` line right after `f:APP_VERSION` reads `kustomize-controller` when Git owns the key.
 
 ```bash {filename="Terminal"}
 kubectl -n hello-world get kustomization hello-world -o jsonpath='{.spec.postBuild.substitute.APP_VERSION}{"\n"}'
@@ -250,10 +251,10 @@ Without the key, substitution renders the `${APP_VERSION:=1.0.0}` default, so su
 flux suspend kustomization hello-world -n hello-world
 ```
 
-Remove `APP_VERSION` from the Kustomization in Git and wait until the parent has applied that (the first `jsonpath` command under the symptom prints nothing); `flux reconcile kustomization flux-system --with-source` hurries a bootstrapped parent. Put back the tag the second `jsonpath` command printed, then resume; the Rollout keeps the key from its next deploy on.
+Remove `APP_VERSION` from the Kustomization in Git and wait until the parent has applied that (the first `jsonpath` command under the symptom prints nothing); `flux reconcile kustomization flux-system --with-source` hurries a bootstrapped parent. Put back the tag the second `jsonpath` command printed, under the Rollout's own field manager, then resume; the Rollout keeps the key from its next deploy on.
 
 ```bash {filename="Terminal"}
-kubectl -n hello-world patch kustomization hello-world --type merge --field-manager=rollout-controller \
+kubectl -n hello-world patch kustomization hello-world --type merge --field-manager=rollout-controller/hello-world/hello-world \
   -p '{"spec":{"postBuild":{"substitute":{"APP_VERSION":"<deployed-tag>"}}}}'
 flux resume kustomization hello-world -n hello-world
 ```
