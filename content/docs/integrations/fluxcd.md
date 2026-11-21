@@ -133,7 +133,7 @@ A HelmRelease can carry several `values.<path>.from` annotations. Path segments 
 
 ## Set an OCIRepository tag
 
-Annotate an OCIRepository with `rollout.kuberik.com/rollout: <rollout name>`. The Rollout owns `spec.ref.tag` and sets it to the release tag. Give each environment its own artifact path and OCIRepository, so a rollback in production moves one tag and leaves every other environment alone:
+Annotate an OCIRepository with `rollout.kuberik.com/rollout: <rollout name>`. The Rollout writes only `spec.ref.tag`, the release tag. Give each environment its own artifact path and OCIRepository, so a rollback in production moves one tag and leaves every other environment alone:
 
 ```yaml {filename="ocirepository.yaml"}
 apiVersion: source.toolkit.fluxcd.io/v1
@@ -163,6 +163,8 @@ spec:
     kind: OCIRepository
     name: hello-world
 ```
+
+Leave `spec.ref.tag` out of the OCIRepository you commit. The Rollout writes it with server-side apply and without forcing ownership. If Git or another tool also sets it, the Rollout writes nothing for that deploy and reports `Ready=False` with reason `OCIRepositoryFieldConflict`, naming the other writer. Remove the tag from Git, and the Rollout deploys at its next retry, within a minute. Other `spec.ref` fields stay yours, but Flux prefers `digest` and `semver` over `tag`, so leave those out too.
 
 `OCIRepository` can verify a Cosign signature with `spec.verify`, so an unsigned artifact never reaches the cluster.
 
@@ -221,7 +223,7 @@ The check stays `Pending` until helm-controller has acted on the HelmRelease's c
 
 {{< fig id="flux-propagation" caption="The Rollout picks a release from the ReleaseSource and writes its tag into Flux; Flux applies it, and the Kustomization's health comes back as a HealthCheck." >}}
 
-The ReleaseSource lists releases from the registry. When the Rollout picks a release, it writes the tag with server-side apply: into the OCIRepository's `spec.ref.tag` under the field manager `rollout-controller`, or into the substitute variable, the HelmRelease value or the chart version under a field manager of its own, `rollout-controller/<namespace>/<name>`, so two Rollouts can each own a variable on one Kustomization or a value on one HelmRelease. Variables and values written by the shared `rollout-controller` manager of earlier versions move to the Rollout's own manager at its next deploy. Flux then reconciles as usual. When the tag moves on an OCIRepository, the `kustomization` and `helmrelease` checks stay `Pending` until Flux has fetched the new artifact and applied it, so the bake never starts on the previous release.
+The ReleaseSource lists releases from the registry. When the Rollout picks a release, it writes the tag with server-side apply into the OCIRepository's `spec.ref.tag`, the substitute variable, the HelmRelease value or the chart version, under a field manager of its own, `rollout-controller/<namespace>/<name>`, so two Rollouts can each own a variable on one Kustomization or a value on one HelmRelease. Tags, variables and values written by the shared `rollout-controller` manager of earlier versions move to the Rollout's own manager at its next deploy. Flux then reconciles as usual. When the tag moves on an OCIRepository, the `kustomization` and `helmrelease` checks stay `Pending` until Flux has fetched the new artifact and applied it, so the bake never starts on the previous release.
 
 ![The Health checks card, 3/3 healthy with the Flux Deployment check passing, above the Resources card: 2/2 ready, hello-world, 1/1 ready, and one more ready resource folded](/images/docs/integrations/fluxcd-health-resources.png)
 
@@ -234,6 +236,7 @@ The ReleaseSource lists releases from the registry. When the Rollout picks a rel
 | HealthCheck `Pending`: `Kustomization not found` | Wrong name in `healthcheck.kuberik.com/kustomization` | Use the Kustomization's name, or `<namespace>/<name>` if it lives in another namespace |
 | HealthCheck stays `Pending`: `Kustomization has no managed resources` | The Kustomization has not applied anything yet, or its inventory is empty | Check the Kustomization with `flux get kustomizations -n hello-world` |
 | Rollout `Ready=False`: `KustomizationFieldConflict` | Git or another tool also sets the substitute variable the Rollout writes | Remove the variable from the Kustomization in Git; keep the default in the manifests (`${APP_VERSION:=1.0.0}`) |
+| Rollout `Ready=False`: `OCIRepositoryFieldConflict` | Git or another tool also sets the OCIRepository's `spec.ref.tag` | Remove `spec.ref.tag` from the OCIRepository in Git |
 | Rollout `Ready=False`: `HelmReleaseFieldConflict` | Git or another tool also sets the HelmRelease field the Rollout writes | Remove the field from the HelmRelease in Git; keep the default in the chart's `values.yaml` |
 | Rollout `Ready=False`: `HelmReleaseInvalidAnnotation` | A `values.<path>.from` path has an empty key, or `chart-version.from` is on a HelmRelease with `spec.chartRef` or without `spec.chart.spec` | Fix the path; for `spec.chartRef`, annotate the OCIRepository instead |
 | An annotated HelmRelease never changes, and `helmrelease` checks never leave their first state | The controller lacks RBAC on `helmreleases`, or Flux's HelmRelease CRD was installed after the controller started | Upgrade the chart, then restart the rollout-controller Deployment |
@@ -242,7 +245,7 @@ The ReleaseSource lists releases from the registry. When the Rollout picks a rel
 
 ### The conflict names another Rollout
 
-The `KustomizationFieldConflict` or `HelmReleaseFieldConflict` message names a manager `rollout-controller/<namespace>/<rollout>` when you moved the annotation from one Rollout to another. The first Rollout still owns the field and never lets go of it on its own. Release it with a server-side apply under that manager, of a body without the field; the new Rollout writes the field at its next retry. Keep in the body any other variable or value the first Rollout still writes on that object.
+The `KustomizationFieldConflict`, `HelmReleaseFieldConflict` or `OCIRepositoryFieldConflict` message names a manager `rollout-controller/<namespace>/<rollout>` when you moved the annotation from one Rollout to another. The first Rollout still owns the field and never lets go of it on its own. Release it with a server-side apply under that manager, of a body without the field; the new Rollout writes the field at its next retry. Keep in the body any other variable or value the first Rollout still writes on that object.
 
 ```bash {filename="Terminal"}
 kubectl apply --server-side --field-manager=rollout-controller/hello-world/hello-world-old -f - <<'EOF'

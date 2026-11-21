@@ -36,6 +36,8 @@ Times show in your browser's time zone. Select **Local** next to the theme switc
 
 5. On a rendered-manifests rollout, select **View source** in the rollout header to read the deployed files ([Rendered manifests](/docs/concepts/propagation/#rendered-manifests)).
 
+When the Rollout refuses a deploy or is not ready for another reason, a **Deploy refused** or **Not ready** banner at the top of the **Overview** names the `Ready=False` reason, the field and the other writer, for example `KustomizationFieldConflict on spec.postBuild.substitute.APP_VERSION, also set by kustomize-controller`.
+
 ## Follow a change
 
 The Changes page tracks each merged pull request through every service and environment.

@@ -155,7 +155,6 @@ True RolledBack: 1.4.1 failed bake (RolloutTest hello-world/checkout-test); roll
 - The decision is made once, when the bake turns `Failed`. If the controller stops before it records the decision, that failure does not roll back.
 - A rollback is not verified. Check errors do not fail it, and if the earlier build is now unhealthy too, nothing rolls back further.
 - A rollback skips every gate, dependencies included, and holds count per Rollout: a build that failed in staging is not held in production.
-- Check times have one-second resolution. A failure from the previous build recorded in the same second as the new deploy counts against the new build.
 - While a rollback is pending or being retried (`AutoRollback` `Unknown` with reason `RollbackPending`, or `DeployError`), the dashboard shows the plain **Deployment failed** banner. Read the condition with the command above.
 
 ## Next steps

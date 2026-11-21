@@ -27,6 +27,7 @@ The banner at the top of a rollout's **Overview** names what holds it. The words
 | **production is pinned to 1.4.1**<br>the **Clear pin** button | `DeploymentBlocked` reason `ManualDeployment` | [Blocked by a pin](#blocked-by-a-pin-or-a-pending-deploy-by-hand) |
 | **No release source** | `ReleasesUpdated=False`, `ReleaseSourceRequired` | [No release source](#no-release-source) |
 | **No releases yet** | `Ready=False`, `NoReleases` | [No releases yet](#no-releases-yet) |
+| **Deploy refused** or **Not ready**, with the reason and where it applies | `Ready=False` with any other reason, such as `KustomizationFieldConflict` | The reason's row on this page or on [Flux](/docs/integrations/fluxcd/#troubleshoot) |
 
 To read the same facts with kubectl, print the conditions and the Rollout's events (`HealthCheckBlocking`, `BakeTimeFailed`).
 

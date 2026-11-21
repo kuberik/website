@@ -5,7 +5,7 @@ type_: guide
 weight: 25
 ---
 
-Upgrade a running install to chart 0.10.0 without a refused deploy. Two changes need you before or right after the upgrade: Kustomization variables the Rollout writes must leave Git, and every Rollout needs a ReleaseSource.
+Upgrade a running install to chart 0.10.0 without a refused deploy. Two changes need you before or right after the upgrade: the version fields the Rollout writes must leave Git, and every Rollout needs a ReleaseSource.
 
 The chart and the controllers it installs upgrade together. If you installed with kubectl, apply each controller's new install manifest as in [Install with kubectl](/docs/installation/manual/) instead of `helm upgrade`, and make the same changes in Git.
 
@@ -13,7 +13,7 @@ The chart and the controllers it installs upgrade together. If you installed wit
 
 | Change | What you do |
 |---|---|
-| A Rollout writes its Kustomization variable without forcing ownership, so Git must not set it | [Remove the Rollout's variables from Git](#remove-the-rollouts-variables-from-git) |
+| A Rollout writes its Kustomization variable and its OCIRepository's `spec.ref.tag` without forcing ownership, so Git must set neither | [Remove the Rollout's version fields from Git](#remove-the-rollouts-version-fields-from-git) |
 | Rollouts read releases only from a `ReleaseSource`; `spec.releasesImagePolicy` is ignored | [Give every Rollout a ReleaseSource](#give-every-rollout-a-releasesource) |
 | New CRDs: `ApprovalPolicy`, `ClusterApprovalPolicy`, `RolloutApproval`, `ReleaseSource`, `ReleaseSlice`, and new fields on `Rollout` and `HealthCheck` | Nothing: `helm upgrade` installs them |
 | The release-controller is on by default | Nothing |
@@ -22,9 +22,9 @@ The chart and the controllers it installs upgrade together. If you installed wit
 | A build whose bake failed on a Rollout is held there and not redeployed automatically | Nothing; [Release a held build](/docs/releases/rollback/#release-a-held-build) to try it again |
 | Hand-made approval gates can move to `ApprovalPolicy` | Optional: [Move hand-made approval gates](#move-hand-made-approval-gates) |
 
-## Remove the Rollout's variables from Git
+## Remove the Rollout's version fields from Git
 
-A Rollout now writes its `postBuild.substitute` variable under its own field manager, `rollout-controller/<namespace>/<rollout>`, and no longer takes the field from other writers. If the Kustomization you commit also sets that variable, often as a first value such as `APP_VERSION: "1.0.0"`, the Rollout refuses its next deploy with `Ready=False`, reason `KustomizationFieldConflict`, and names the variable and the other writer. Nothing that already runs changes.
+A Rollout now writes its `postBuild.substitute` variable and its OCIRepository's `spec.ref.tag` under its own field manager, `rollout-controller/<namespace>/<rollout>`, and no longer takes these fields from other writers. If the Kustomization you commit also sets that variable, often as a first value such as `APP_VERSION: "1.0.0"`, the Rollout refuses its next deploy with `Ready=False`, reason `KustomizationFieldConflict`, and names the variable and the other writer. An OCIRepository in Git that sets `spec.ref.tag` is refused the same way, with reason `OCIRepositoryFieldConflict`: remove the tag from Git. Nothing that already runs changes.
 
 Find the Kustomizations in Git that set a variable named in one of their own `rollout.kuberik.com/substitute.<VAR>.from` annotations. Remove the variable and give the manifests a default instead:
 
@@ -50,7 +50,7 @@ spec:
 
 When Flux applies a Kustomization without the variable, substitution renders that default, which can roll the app back to it. Suspend the Kustomization while you change Git, then put the deployed tag back under the Rollout's field manager, as in [The version reverts after a deploy](/docs/integrations/fluxcd/#the-version-reverts-after-a-deploy). Keep one other key in `postBuild.substitute`, or Flux turns substitution off ([Set a Kustomization substitute](/docs/integrations/fluxcd/#set-a-kustomization-substitute)).
 
-Variables that earlier versions wrote under the shared `rollout-controller` manager move to the Rollout's own manager at its next deploy; you do nothing for those. The same rule holds for HelmRelease values the Rollout writes, with reason `HelmReleaseFieldConflict`.
+Variables and tags that earlier versions wrote under the shared `rollout-controller` manager move to the Rollout's own manager at its next deploy; you do nothing for those. The same rule holds for HelmRelease values the Rollout writes, with reason `HelmReleaseFieldConflict`.
 
 ## Give every Rollout a ReleaseSource
 
@@ -107,13 +107,13 @@ helm list -n kuberik-system
 kubectl get rollouts -A -o jsonpath='{range .items[*]}{.metadata.namespace}/{.metadata.name} {.spec.releaseSourceRef.name} {.status.conditions[?(@.type=="Ready")].reason}{"\n"}{end}'
 ```
 
-Every Rollout names a source, and none reads `KustomizationFieldConflict`, `HelmReleaseFieldConflict` or `ReleaseSourceRequired`.
+Every Rollout names a source, and none reads `KustomizationFieldConflict`, `OCIRepositoryFieldConflict`, `HelmReleaseFieldConflict` or `ReleaseSourceRequired`.
 
 ## Troubleshoot
 
 | Symptom | Cause | Fix |
 |---|---|---|
-| `Ready=False`: `KustomizationFieldConflict` | Git still sets the variable the Rollout writes | [Remove the Rollout's variables from Git](#remove-the-rollouts-variables-from-git) |
+| `Ready=False`: `KustomizationFieldConflict` or `OCIRepositoryFieldConflict` | Git still sets the variable or the tag the Rollout writes | [Remove the Rollout's version fields from Git](#remove-the-rollouts-version-fields-from-git) |
 | The conflict names `rollout-controller/<namespace>/<rollout>` | The annotation moved to another Rollout and the first still owns the field | [The conflict names another Rollout](/docs/integrations/fluxcd/#the-conflict-names-another-rollout) |
 | `ReleasesUpdated=False`: `ReleaseSourceRequired` | The Rollout has no `releaseSourceRef` | [Give every Rollout a ReleaseSource](#give-every-rollout-a-releasesource) |
 | `helm upgrade` fails with `invalid ownership metadata` | The CRDs were installed outside this release | Adopt them as in [Install with Helm](/docs/installation/helm/#upgrade) |

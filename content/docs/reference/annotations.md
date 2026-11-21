@@ -48,7 +48,7 @@ These go on a Flux `OCIRepository`.
 
 | Annotation | Values | Default | Set by | Effect |
 |---|---|---|---|---|
-| `rollout.kuberik.com/rollout` | Rollout name | None | You | On each deploy the rollout-controller writes the release tag to `spec.ref.tag` of an OCIRepository in the Rollout's namespace ([Set an OCIRepository tag](/docs/integrations/fluxcd/#set-an-ocirepository-tag)). |
+| `rollout.kuberik.com/rollout` | Rollout name | None | You | On each deploy the rollout-controller writes the release tag to `spec.ref.tag` of an OCIRepository in the Rollout's namespace, as field manager `rollout-controller/<namespace>/<rollout>` and without forcing ownership; if Git also sets the tag, the deploy is refused with `OCIRepositoryFieldConflict` ([Set an OCIRepository tag](/docs/integrations/fluxcd/#set-an-ocirepository-tag)). |
 | `rollout.kuberik.com/name` | Rollout name | None | You | Read only by the openkruise-controller to find the Rollout behind a canary; the rollout-controller does not patch the OCIRepository for it. |
 | `rollout.kuberik.com/namespace` | Namespace | The OCIRepository's namespace | You | Namespace of the Rollout named by `rollout.kuberik.com/name`. |
 
