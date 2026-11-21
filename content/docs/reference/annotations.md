@@ -33,6 +33,15 @@ The rollout-controller and the openkruise-controller read this from a Flux `Kust
 |---|---|---|---|---|
 | `rollout.kuberik.com/substitute.<VAR>.from` | Rollout name | None | You | On each deploy the rollout-controller writes the release tag to `spec.postBuild.substitute.<VAR>`; the openkruise-controller uses it to find the Rollout behind a canary ([Set a Kustomization substitute](/docs/integrations/fluxcd/#set-a-kustomization-substitute)). |
 
+## HelmRelease
+
+The rollout-controller reads this from a Flux `HelmRelease` in the Rollout's namespace.
+
+| Annotation | Values | Default | Set by | Effect |
+|---|---|---|---|---|
+| `rollout.kuberik.com/values.<path>.from` | Rollout name | None | You | On a HelmRelease. On each deploy the rollout-controller writes the release tag to `spec.values.<path>` (dotted map keys), without forcing ownership; a field Git also sets stops the deploy with `HelmReleaseFieldConflict` ([Set a HelmRelease value or chart version](/docs/integrations/fluxcd/#set-a-helmrelease-value-or-chart-version)). |
+| `rollout.kuberik.com/chart-version.from` | Rollout name | None | You | On a HelmRelease with `spec.chart`. On each deploy the rollout-controller writes the release tag to `spec.chart.spec.version` ([Set a HelmRelease value or chart version](/docs/integrations/fluxcd/#set-a-helmrelease-value-or-chart-version)). |
+
 ## OCIRepository
 
 These go on a Flux `OCIRepository`.
@@ -58,6 +67,7 @@ Each class is served by its own controller, which reads only the annotations in 
 | Annotation | Values | Default | Set by | Effect |
 |---|---|---|---|---|
 | `healthcheck.kuberik.com/kustomization` | `<name>` or `<namespace>/<name>` | None, required | You | The rollout-controller reports the health of this Kustomization; a bare name is looked up in the HealthCheck's namespace ([Choose how a Kustomization is checked](/docs/gates/health-checks/#choose-how-a-kustomization-is-checked)). |
+| `healthcheck.kuberik.com/helmrelease` | `<name>` or `<namespace>/<name>` | None, required | You | The rollout-controller reports the health of this HelmRelease (class `helmrelease`); a bare name is looked up in the HealthCheck's namespace ([Report HelmRelease health](/docs/integrations/fluxcd/#report-helmrelease-health)). |
 | `healthcheck.kuberik.com/requeue-interval` | Go duration (`30s`, `2m`) | `30s` | You | How often the check is evaluated again; values under `5s` count as `5s` and a value that does not parse uses the default ([Report Kustomization health](/docs/integrations/fluxcd/#report-kustomization-health)). |
 
 ### Classes `datadog` and `datadog-incidents`

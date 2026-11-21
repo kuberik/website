@@ -1,11 +1,11 @@
 ---
 title: "Flux"
-description: "Let Kuberik choose the version Flux applies, through a Kustomization substitute or an OCIRepository tag, and gate deploys on Kustomization health."
+description: "Let Kuberik choose the version Flux applies, through a Kustomization substitute, a HelmRelease value or chart version, or an OCIRepository tag, and gate deploys on Kustomization and HelmRelease health."
 type_: integration
 weight: 10
 ---
 
-Flux applies your manifests and Kuberik decides which version it applies. A [`Rollout`](/docs/concepts/rollouts/) writes the chosen version into a Flux `Kustomization` or `OCIRepository`, and reads the Kustomization's health back to decide whether the deploy succeeded.
+Flux applies your manifests and Kuberik decides which version it applies. A [`Rollout`](/docs/concepts/rollouts/) writes the chosen version into a Flux `Kustomization`, `HelmRelease` or `OCIRepository`, and reads its health back to decide whether the deploy succeeded.
 
 ## What you need
 
@@ -15,9 +15,10 @@ Flux applies your manifests and Kuberik decides which version it applies. A [`Ro
 | Flux's image-reflector-controller, serving `image.toolkit.fluxcd.io/v1` (optional) | Only for a ReleaseSource that reads an existing `ImagePolicy` through `imagePolicyRef` |
 | Flux 2.7 or later, with the kustomize-controller feature gate `CancelHealthCheckOnNewRevision` | Only for Kustomizations with `wait: true` (see [Report Kustomization health](#report-kustomization-health)) |
 | A [`ReleaseSource`](/docs/releases/publish/) in the Rollout's namespace | Lists your releases. Flux image automation is not required |
-| The Kustomization or OCIRepository in the Rollout's namespace | The Rollout looks for annotated Flux objects only in its own namespace |
+| Flux 2.8 or later (helm-controller 1.7.1 or later recommended) | Only for HelmReleases: the dashboard lists a chart's resources from `status.inventory`, and 1.7.1 stops reporting a failed upgrade as ready |
+| The Kustomization, HelmRelease or OCIRepository in the Rollout's namespace | The Rollout looks for annotated Flux objects only in its own namespace |
 
-Kuberik drives one of two Flux objects. Annotate a Kustomization and the Rollout sets a `postBuild.substitute` variable; annotate an OCIRepository and the Rollout sets its tag. [Propagation Modes](/docs/concepts/propagation/) compares the two.
+Kuberik drives three Flux objects. Annotate a Kustomization and the Rollout sets a `postBuild.substitute` variable; annotate a HelmRelease and it sets a chart value or the chart version; annotate an OCIRepository and it sets its tag. [Propagation Modes](/docs/concepts/propagation/) compares the two.
 
 ## Discover releases
 
@@ -92,6 +93,41 @@ Never set `APP_VERSION` itself in Git. When Flux applies this Kustomization from
 
 One Kustomization can carry several of these annotations, one per variable, each naming its own Rollout. A frontend and a backend Rollout can then deploy into the same Kustomization independently.
 
+## Set a HelmRelease value or chart version
+
+Annotate the HelmRelease with `rollout.kuberik.com/values.<path>.from: <rollout name>`. The Rollout writes the release tag into `spec.values` at that dotted path, most often the image tag:
+
+```yaml {filename="helmrelease.yaml"}
+apiVersion: helm.toolkit.fluxcd.io/v2
+kind: HelmRelease
+metadata:
+  name: hello-world
+  namespace: hello-world
+  annotations:
+    rollout.kuberik.com/values.image.tag.from: "hello-world"
+spec:
+  interval: 10m
+  chart:
+    spec:
+      chart: hello-world
+      version: 1.4.0
+      sourceRef:
+        kind: HelmRepository
+        name: acme
+  upgrade:
+    remediation:
+      retries: 1
+  values:
+    image:
+      repository: ghcr.io/acme/hello-world  # no tag: the Rollout owns it
+```
+
+When the chart version is the release, annotate with `rollout.kuberik.com/chart-version.from: <rollout name>` instead, and the Rollout writes `spec.chart.spec.version`. For a HelmRelease that takes its chart through `spec.chartRef` from an OCIRepository, annotate the OCIRepository as in [Set an OCIRepository tag](#set-an-ocirepository-tag).
+
+Leave the field the Rollout writes out of the HelmRelease you commit, and keep its first-install default in the chart's `values.yaml`. The Rollout writes only that field, with server-side apply and without forcing ownership. If Git or another tool also sets it, the Rollout writes nothing for that deploy and reports `Ready=False` with reason `HelmReleaseFieldConflict`, naming the field and the other writer. Remove the field from Git, and the Rollout deploys at its next retry, within a minute.
+
+A HelmRelease can carry several `values.<path>.from` annotations. Path segments are map keys separated by dots; list indexes and keys that contain a dot are not supported.
+
 ## Set an OCIRepository tag
 
 Annotate an OCIRepository with `rollout.kuberik.com/rollout: <rollout name>`. The Rollout owns `spec.ref.tag` and sets it to the release tag. Give each environment its own artifact path and OCIRepository, so a rollback in production moves one tag and leaves every other environment alone:
@@ -158,11 +194,31 @@ With `wait: true`, Kuberik trusts kustomize-controller's own health checks and a
 
 The check polls every 30 seconds and on every Kustomization change. Set `healthcheck.kuberik.com/requeue-interval` (for example `"60s"`, minimum `5s`) to change the poll. [Verify with Health Checks](/docs/gates/health-checks/) explains how the Rollout uses the result.
 
+## Report HelmRelease health
+
+A `HealthCheck` with class `helmrelease` reports the health of one HelmRelease:
+
+```yaml {filename="healthcheck-helm.yaml"}
+apiVersion: kuberik.com/v1alpha1
+kind: HealthCheck
+metadata:
+  name: hello-world-helm
+  namespace: hello-world
+  labels:
+    app: hello-world  # the Rollout selects this
+  annotations:
+    healthcheck.kuberik.com/helmrelease: "hello-world"
+spec:
+  class: helmrelease
+```
+
+The check stays `Pending` until helm-controller has acted on the HelmRelease's current generation, so a `Ready` left over from the previous release never starts the bake. It turns `Unhealthy` as soon as the current release fails (for example `UpgradeFailed`, or `RollbackSucceeded` after Helm remediated), without waiting for Helm's retries to run out, and `Healthy` when `Ready` is `True` for the release the Rollout deployed. Set `upgrade.remediation.retries: 1` so Helm's own rollback is a safety net and the Rollout's bake decides.
+
 ## How it works
 
 {{< fig id="flux-propagation" caption="The Rollout picks a release from the ReleaseSource and writes its tag into Flux; Flux applies it, and the Kustomization's health comes back as a HealthCheck." >}}
 
-The ReleaseSource lists releases from the registry. When the Rollout picks a release, it writes the tag with server-side apply under the field manager `rollout-controller`: into the substitute variable, or into the OCIRepository's `spec.ref.tag`. Flux then reconciles as usual.
+The ReleaseSource lists releases from the registry. When the Rollout picks a release, it writes the tag with server-side apply under the field manager `rollout-controller`: into the substitute variable, the HelmRelease value or chart version, or the OCIRepository's `spec.ref.tag`. Flux then reconciles as usual. When the tag moves on an OCIRepository, the `kustomization` and `helmrelease` checks stay `Pending` until Flux has fetched the new artifact and applied it, so the bake never starts on the previous release.
 
 ![The Health checks card, 3/3 healthy with the Flux Deployment check passing, above the Resources card: 2/2 ready, hello-world, 1/1 ready, and one more ready resource folded](/images/docs/integrations/fluxcd-health-resources.png)
 
@@ -174,6 +230,8 @@ The ReleaseSource lists releases from the registry. When the Rollout picks a rel
 | The Rollout has no releases | The ReleaseSource cannot reach the registry (`SourceReachable` is `False`) | Run `kubectl -n hello-world describe releasesource hello-world` and check the image path and `spec.oci.secretRef` |
 | HealthCheck `Unhealthy`: `Kustomization not found` | Wrong name in `healthcheck.kuberik.com/kustomization` | Use the Kustomization's name, or `<namespace>/<name>` if it lives in another namespace |
 | HealthCheck stays `Pending`: `Kustomization has no managed resources` | The Kustomization has not applied anything yet, or its inventory is empty | Check the Kustomization with `flux get kustomizations -n hello-world` |
+| Rollout `Ready=False`: `HelmReleaseFieldConflict` | Git or another tool also sets the HelmRelease field the Rollout writes | Remove the field from the HelmRelease in Git; keep the default in the chart's `values.yaml` |
+| HealthCheck `Unhealthy`: `HelmRelease not found` | Wrong name in `healthcheck.kuberik.com/helmrelease` | Use the HelmRelease's name, or `<namespace>/<name>` |
 | With `wait: true`, a fixed release waits for the failed one to time out | kustomize-controller runs without `CancelHealthCheckOnNewRevision` | Enable the feature gate (Flux 2.7 or later), or set `wait: false` |
 
 ### The version reverts after a deploy
