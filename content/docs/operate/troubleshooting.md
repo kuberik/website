@@ -17,6 +17,7 @@ The banner at the top of a rollout's **Overview** names what holds it. The words
 | The **stuck** chip<br>"Stuck — deploying for 2h" | `bakeStatus` `Deploying` | [A deploy is stuck in Deploying](#a-deploy-is-stuck-in-deploying) |
 | **Recovery mode**, while a deploy runs | `BakeFailureDisabled=True` | [A HealthCheck failed but the deploy did not](#a-healthcheck-failed-but-the-deploy-did-not) |
 | **Rolled back** | `status.history[0]` is older than the build before it (a pin, or a force-deploy of an older build until its bake succeeds) | [Roll back to the previous build](#roll-back-to-the-previous-build) |
+| **Rolled back automatically** | `AutoRollback=True`, `RolledBack` | [Roll Back Automatically](/docs/releases/rollback/#release-a-held-build) |
 | **Held** banner<br>"HealthCheck '…' in namespace '…' is not healthy" | `DeploymentBlocked=True`, `UnhealthyHealthChecks` | [Blocked by an unhealthy HealthCheck](#blocked-by-an-unhealthy-healthcheck) |
 | **production is waiting on an approval**<br>**Waiting for approval**<br>**Needs your approval** | `GatesPassing=False`, `NoAllowedVersions` | [Blocked by an approval](#blocked-by-an-approval-or-another-rule) |
 | **production is waiting for payments ^1.67.0** | `GatesPassing=False`, `NoAllowedVersions` | [Blocked by a service dependency](#blocked-by-a-service-dependency) |
@@ -229,7 +230,7 @@ kubectl get rollout hello-world -n hello-world -o jsonpath='{.status.history[0].
 
 ### Roll back to the previous build
 
-This works for any build, failed or baked; Kuberik never rolls back on its own. In the dashboard, [Roll back](/docs/operate/dashboard/#roll-back) pins the Rollout to an earlier build. With kubectl, print the previous build's tag.
+This works for any build, failed or baked. Kuberik rolls back on its own only when the Rollout has [automatic rollback](/docs/releases/rollback/) on. In the dashboard, [Roll back](/docs/operate/dashboard/#roll-back) pins the Rollout to an earlier build. With kubectl, print the previous build's tag.
 
 ```bash {filename="Terminal"}
 kubectl get rollout hello-world -n hello-world -o jsonpath='{.status.history[1].version.tag}{"\n"}'
@@ -241,7 +242,7 @@ Then set `spec.wantedVersion` to the tag it printed.
 kubectl patch rollout hello-world -n hello-world --type merge -p '{"spec":{"wantedVersion":"<previous-tag>"}}'
 ```
 
-The pin deploys past gates and any failed bake, and the dashboard shows **Rolled back**. New releases wait until you clear the pin, as in [Blocked by a pin](#blocked-by-a-pin-or-a-pending-deploy-by-hand). Do not roll back with `force-deploy`: once the earlier build's bake succeeds, the Rollout deploys the newest release the gates allow, the failed one included.
+The pin deploys past gates and any failed bake, and the dashboard shows **Rolled back**. New releases wait until you clear the pin, as in [Blocked by a pin](#blocked-by-a-pin-or-a-pending-deploy-by-hand). Do not roll back with `force-deploy`: once the earlier build's bake succeeds, the Rollout deploys the newest release the gates allow. A build whose bake failed on this Rollout is held and skipped, but a bad build that never failed here deploys again.
 
 ### Retry the same build
 

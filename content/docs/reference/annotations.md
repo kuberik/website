@@ -181,6 +181,14 @@ The openkruise-controller reads and writes these on an OpenKruise `Rollout` (`ro
 | `kuberik.com/display-name` | Text | `metadata.name` | You | Read by the dashboard: the test's name in the retry dialog. |
 | `rollout.kuberik.com/link.<label>` | URL | None | You | Read by the dashboard: a link named `<label>` on the test's row in the rollout's pipeline; a `Logs`, `CI` or `Trace` label (any case) replaces the link of that name the dashboard builds from the test job's `DD_SERVICE` and `DD_ENV` variables. |
 
+## Objects a Kustomization applies
+
+The rollout-controller reads this from any object in the inventory of a Kustomization a `kustomization` HealthCheck follows (a `RolloutTest`, a `Job`, a `Deployment`, an OpenKruise `Rollout`), and from the Kustomization itself.
+
+| Annotation | Values | Default | Set by | Effect |
+|---|---|---|---|---|
+| `rollout.kuberik.com/rollback` | `"true"`, `"false"` | The check's `spec.rollbackOn` | You | When this object's failure fails a bake, `"true"` rolls the Rollout back and `"false"` does not, whatever the check's `rollbackOn`; needs `spec.autoRollback.enabled` on the Rollout, and other values are ignored ([Opt one test in or out](/docs/releases/rollback/#opt-one-test-in-or-out)). |
+
 ## OCI artifact
 
 The release-controller reads these from each release's OCI manifest, manifest annotations first and then the config descriptor's, when it adds the release to a `ReleaseSource` catalogue; set them in CI when you push.
