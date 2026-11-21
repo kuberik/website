@@ -153,6 +153,8 @@ The controller writes Datadog's state into the HealthCheck status:
 | `Warn`, `No Data`, `Skipped`, `Ignored` | `Healthy` | `Pending` |
 | API error or unknown monitor ID | `Pending` | Not applicable |
 
+A `datadog` check also writes one entry per monitor to `status.observations`: for a metric monitor, its current value against the critical threshold (the controller runs the monitor's query again), otherwise the monitor's state. A `datadog-incidents` check writes the count of open incidents and names each one. The dashboard shows these entries on the check's card, and a check that cannot run writes none.
+
 The Rollout starts the bake once every selected HealthCheck is `Healthy`, and fails the deploy if any of them turns `Unhealthy` after the deploy started. While a check is `Unhealthy`, the Rollout also holds new automatic deploys and reports `DeploymentBlocked` with reason `UnhealthyHealthChecks`. See [Verify with Health Checks](/docs/gates/health-checks/) for the full rules.
 
 ## Troubleshoot
