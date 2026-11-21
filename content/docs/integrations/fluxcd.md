@@ -231,7 +231,7 @@ The ReleaseSource lists releases from the registry. When the Rollout picks a rel
 |---|---|---|
 | The Kustomization substitute never changes | The annotation value is not the Rollout's name, or the Kustomization is in another namespace | Set `rollout.kuberik.com/substitute.<variable>.from` to the exact Rollout name, in the Rollout's namespace |
 | The Rollout has no releases | The ReleaseSource cannot reach the registry (`SourceReachable` is `False`) | Run `kubectl -n hello-world describe releasesource hello-world` and check the image path and `spec.oci.secretRef` |
-| HealthCheck `Unhealthy`: `Kustomization not found` | Wrong name in `healthcheck.kuberik.com/kustomization` | Use the Kustomization's name, or `<namespace>/<name>` if it lives in another namespace |
+| HealthCheck `Pending`: `Kustomization not found` | Wrong name in `healthcheck.kuberik.com/kustomization` | Use the Kustomization's name, or `<namespace>/<name>` if it lives in another namespace |
 | HealthCheck stays `Pending`: `Kustomization has no managed resources` | The Kustomization has not applied anything yet, or its inventory is empty | Check the Kustomization with `flux get kustomizations -n hello-world` |
 | Rollout `Ready=False`: `KustomizationFieldConflict` | Git or another tool also sets the substitute variable the Rollout writes | Remove the variable from the Kustomization in Git; keep the default in the manifests (`${APP_VERSION:=1.0.0}`) |
 | Rollout `Ready=False`: `HelmReleaseFieldConflict` | Git or another tool also sets the HelmRelease field the Rollout writes | Remove the field from the HelmRelease in Git; keep the default in the chart's `values.yaml` |

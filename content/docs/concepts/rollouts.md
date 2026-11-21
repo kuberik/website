@@ -72,9 +72,9 @@ Automatic deploys also wait while any selected health check reports `Unhealthy`.
 
 After a deploy, the history entry starts in `Deploying`. The bake starts (`InProgress`) once every selected health check is `Healthy` and has changed state since the deploy, so a check that was healthy before the deploy does not count until it reports on the new build. The deploy:
 
-- succeeds when `bakeTime` passes after the bake started, with no error;
+- succeeds when the bake clock has run for `bakeTime` with no error and every check is `Healthy`; the clock stops while any check is not `Healthy`;
 - fails when a health check reports an error at any point after the deploy, before or during the bake;
-- fails when `deployTimeout` passes before the bake starts;
+- fails when `deployTimeout` passes before the bake starts, or while the bake clock is stopped;
 - is cancelled when a deploy you start by hand replaces it.
 
 {{< fig id="rollout-bake" caption="The bake status of the newest deploy: health starts the bake, bakeTime ends it, any HealthCheck error fails it." >}}

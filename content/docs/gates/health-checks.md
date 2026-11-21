@@ -10,7 +10,7 @@ A [Rollout](/docs/concepts/rollouts/) with health checks marks a deploy succeede
 
 {{< fig id="health-bake" caption="deployTimeout limits the wait for every check to be Healthy, bakeTime runs from that moment, and a check error at any point fails the deploy." >}}
 
-Works with: Flux Kustomizations (built into rollout-controller), [Datadog](/docs/integrations/datadog/) monitors and incidents (datadog-controller), and [Prometheus](/docs/integrations/prometheus/) alerts (prometheus-controller).
+Works with: Flux Kustomizations and HelmReleases (built into rollout-controller), [Datadog](/docs/integrations/datadog/) monitors and incidents (datadog-controller), and [Prometheus](/docs/integrations/prometheus/) alerts (prometheus-controller).
 
 ## Add a health check
 
@@ -59,11 +59,13 @@ Each deploy, and each retry, then goes through these rules:
 |---|---|
 | Deploy starts | Every selected HealthCheck is reset to `Pending` and its `lastErrorTime` is cleared, and the deploy's `bakeStatus` is `Deploying` |
 | Every check is `Healthy` again | Bake starts: `bakeStatus` is `InProgress` |
+| A check is not `Healthy` during the bake, for example `Pending` | The bake clock stops ("Bake paused: waiting for health check ...") and starts again once every check is `Healthy`. `bakeHoldStartTime` marks the pause, `bakeHeldDuration` adds up the paused time, which does not count toward `bakeTime` |
+| A pause lasts longer than `deployTimeout` | The deploy fails ("Health checks were not Healthy within deployTimeout during bake.") |
 | Any check reports an error after the deploy started | The deploy fails (`bakeStatus` `Failed`, `Ready` reason `BakeTimeFailed`), before or during bake |
 | `deployTimeout` passes before bake starts | The deploy fails ("Deploy timeout reached before bake could start") |
-| `bakeTime` passes with no error | The deploy succeeds. Without `bakeTime`, it succeeds as soon as bake starts |
+| The bake clock has run for `bakeTime` with no error, and every check is `Healthy` | The deploy succeeds. Without `bakeTime`, it succeeds as soon as bake starts |
 
-`deployTimeout` fails the deploy if bake has not started by then; without it, the deploy waits. A Rollout without `healthCheckSelector` has no checks: bake starts at once.
+`deployTimeout` fails the deploy if bake has not started by then, or if a pause runs longer; without it, the deploy waits. A check that cannot run, such as a query error, missing credentials or a Kustomization that does not exist, reports `Pending` with the error as its message: it pauses the bake but does not fail the deploy. With [automatic rollback](/docs/releases/rollback/) on, the failure kinds a check records decide whether a failed deploy rolls back. A Rollout without `healthCheckSelector` has no checks: bake starts at once.
 
 ## Hold deploys on an unhealthy check
 
@@ -138,7 +140,7 @@ hello-world   Healthy   Kustomization and all managed resources are healthy
 InProgress: Bake started, monitoring for errors.
 ```
 
-A failed deploy lists the checks that failed it in `status.history[0].failedHealthChecks`.
+A failed deploy lists the checks that failed it in `status.history[0].failedHealthChecks`, with what each check observed and, for `kustomization` checks, every failed object and its kind.
 
 The rollout page's Health checks card lists every check the Rollout selects and its state:
 
