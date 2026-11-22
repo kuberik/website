@@ -102,6 +102,12 @@ spec:
 
 The most specific rule decides each failure: `CheckError` never rolls back, then the annotation on the failed object, then the check's `rollbackOn`, then the class default. The bake rolls back if any one failure does.
 
+### When the tests have not reported yet
+
+A `kustomization` check can fail because an OpenKruise Rollout is waiting on its RolloutTests before any test has reported. The check then has no failed object to name, so it marks the failure as deferred (`status.failuresDeferred: true`). With automatic rollback on, the Rollout waits up to 2 minutes, counted from when it starts waiting, before it decides the bake. Meanwhile the bake message reads `Waiting up to 2m for the RolloutTests of HealthCheck <namespace>/<name> to report the failure.` and the `AutoRollback` condition is `Unknown` with reason `WaitingForTests`.
+
+When a test reports its failure, that test's annotation decides as above: `"false"` keeps the build, `"true"` rolls back, and without the annotation the check's `rollbackOn` decides (the `kustomization` default includes `TestFailed`). If no test reports within 2 minutes, the failure counts as `Unclassified` and the check's `rollbackOn` decides. Without automatic rollback the Rollout does not wait.
+
 ## What a rollback does
 
 The Rollout redeploys the newest build in its history whose bake succeeded, other than the failed build and any held build. The new history entry has `deployKind: AutoRollback`, `rollbackOf` set to the failed entry's ID, `triggeredBy` the `rollout-controller`, and a message that names the failures:
@@ -152,6 +158,7 @@ True RolledBack: 1.4.1 failed bake (RolloutTest hello-world/checkout-test); roll
 ## Known limitations
 
 - Only `kustomization` checks name what failed. A failure of any other check (`prometheus-alert`, `datadog`, `helmrelease`) counts as one `Unclassified` failure, so the annotation cannot opt out one alert. Split the check, or set `rollbackOn: []` on it.
+- While one check waits for its tests, the whole bake decision waits too, even if another check has already failed, for at most 2 minutes.
 - The decision is made once, when the bake turns `Failed`. If the controller stops before it records the decision, that failure does not roll back.
 - A rollback is not verified. Check errors do not fail it, and if the earlier build is now unhealthy too, nothing rolls back further.
 - A rollback skips every gate, dependencies included, and holds count per Rollout: a build that failed in staging is not held in production.
