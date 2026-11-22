@@ -27,6 +27,8 @@ The chart and the controllers it installs upgrade together. If you installed wit
 
 A Rollout now writes its `postBuild.substitute` variable and its OCIRepository's `spec.ref.tag` under its own field manager, `rollout-controller/<namespace>/<rollout>`, and no longer takes these fields from other writers. If the Kustomization you commit also sets that variable, often as a first value such as `APP_VERSION: "1.0.0"`, the Rollout refuses its next deploy with `Ready=False`, reason `KustomizationFieldConflict`, and names the variable and the other writer. An OCIRepository in Git that sets `spec.ref.tag` is refused the same way, with reason `OCIRepositoryFieldConflict`: remove the tag from Git. Nothing that already runs changes.
 
+Remove the tag from Git only together with, or after, a Kuberik deploy that writes it. When Git was the last writer of `spec.ref.tag`, removing it from Git removes it from the cluster too, and source-controller then pulls `latest`. To be safe, suspend the OCIRepository with `flux suspend source oci <name>`, remove the tag from Git, and resume it once the Rollout's next deploy has written the tag.
+
 Find the Kustomizations in Git that set a variable named in one of their own `rollout.kuberik.com/substitute.<VAR>.from` annotations. Remove the variable and give the manifests a default instead:
 
 ```yaml {filename="deploy/production/deployment.yaml"}
