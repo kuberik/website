@@ -1420,6 +1420,19 @@ stays the human sentence. Providers may leave this empty.</td>
 added when a source fails and kept after it recovers; the reset at a new
 deploy or retry clears them together with lastErrorTime.</td>
 </tr>
+<tr id="healthcheckstatus-failuresdeferred"><td><code>failuresDeferred</code>
+      
+<br/>
+<code>bool</code>
+</td>
+<td>FailuresDeferred says the check is Unhealthy for a reason other sources
+report (for example a Kruise Rollout left to its RolloutTests), so an empty
+failures list does not yet mean the failure is unclassified. A Rollout with
+automatic rollback enabled waits up to 2 minutes, from when it starts
+waiting, for those sources to report before it treats the failure as
+unclassified. Like failures it is a witness: set by the check, cleared only
+by the reset at a new deploy or retry.</td>
+</tr>
 </tbody>
 </table>
 
