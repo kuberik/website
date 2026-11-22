@@ -164,7 +164,7 @@ spec:
     name: hello-world
 ```
 
-Leave `spec.ref.tag` out of the OCIRepository you commit. The Rollout writes it with server-side apply and without forcing ownership. If Git or another tool also sets it, the Rollout writes nothing for that deploy and reports `Ready=False` with reason `OCIRepositoryFieldConflict`, naming the other writer. Remove the tag from Git, and the Rollout deploys at its next retry, within a minute. Other `spec.ref` fields stay yours, but Flux prefers `digest` and `semver` over `tag`, so leave those out too.
+Leave `spec.ref.tag` out of the OCIRepository you commit. The Rollout writes it with server-side apply and without forcing ownership. If Git or another tool also sets it, the Rollout writes nothing for that deploy and reports `Ready=False` with reason `OCIRepositoryFieldConflict`, naming the other writer. Remove the tag from Git, and the Rollout deploys at its next retry, within a minute. Until then an OCIRepository without a tag fetches `latest`, so suspend it (`flux suspend source oci hello-world -n hello-world`) while you change Git, and resume it once the Rollout has written the tag. Other `spec.ref` fields stay yours, but Flux prefers `digest` and `semver` over `tag`, so leave those out too.
 
 `OCIRepository` can verify a Cosign signature with `spec.verify`, so an unsigned artifact never reaches the cluster.
 
