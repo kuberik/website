@@ -5,7 +5,7 @@ type_: guide
 weight: 25
 ---
 
-Upgrade a running install to chart 0.10.0 without a refused deploy. Two changes need you before or right after the upgrade: the version fields the Rollout writes must leave Git, and every Rollout needs a ReleaseSource.
+Upgrade a running install to chart 0.10.0 without a refused deploy. Three changes need you before or right after the upgrade: the version fields the Rollout writes must leave Git, every Rollout needs a ReleaseSource, and every Environment needs a tier name.
 
 The chart and the controllers it installs upgrade together. If you installed with kubectl, apply each controller's new install manifest as in [Install with kubectl](/docs/installation/manual/) instead of `helm upgrade`, and make the same changes in Git.
 
@@ -15,6 +15,7 @@ The chart and the controllers it installs upgrade together. If you installed wit
 |---|---|
 | A Rollout writes its Kustomization variable and its OCIRepository's `spec.ref.tag` without forcing ownership, so Git must set neither | [Remove the Rollout's version fields from Git](#remove-the-rollouts-version-fields-from-git) |
 | Rollouts read releases only from a `ReleaseSource`; `spec.releasesImagePolicy` is ignored | [Give every Rollout a ReleaseSource](#give-every-rollout-a-releasesource) |
+| Environments are ordered by tier name; `spec.relationship` is ignored | [Check your Environment names](#check-your-environment-names) |
 | New CRDs: `ApprovalPolicy`, `ClusterApprovalPolicy`, `RolloutApproval`, `ReleaseSource`, `ReleaseSlice`, and new fields on `Rollout` and `HealthCheck` | Nothing: `helm upgrade` installs them |
 | The release-controller is on by default | Nothing |
 | The rollout-controller may `patch` Flux `HelmReleases` | Nothing with the chart; with kubectl, apply the new rollout-controller manifest |
@@ -70,6 +71,12 @@ spec:
 
 The kind exists once the chart is upgraded, so apply it and set `releaseSourceRef` right after the upgrade, in the next section. Keep the `ImagePolicy` and its `ImageRepository` while a ReleaseSource reads them.
 
+## Check your Environment names
+
+The environment-controller now orders environments by tier, from `spec.environment`, and no longer reads `spec.relationship`. The name must be one of `dev`, `development`, `test`, `qa`, `staging`, `stage`, `preprod`, `prod` or `production`. Any other name closes that Environment's gate with `WaveReady=False`, reason `UnknownTier`. Two names of one tier used as a chain, such as `staging` before `preprod`, stop every Environment that sees both with `InvalidTopology`. Rename those Environments to one tier name and split the stages with [sites and waves](/docs/concepts/environments/#sites-and-waves). Renaming starts that environment's deploy history fresh, so do it while nothing is rolling out.
+
+`spec.relationship` is accepted and ignored, with `Deprecated=True`, reason `RelationshipIgnored`; remove it from Git when convenient. Upgrade every cluster that reports to the same GitHub repository, and leave `spec.site` unset on existing Environments until each has reconciled once after the upgrade, so their history carries over as site `default`.
+
 ## Upgrade the chart
 
 ```bash {filename="Terminal"}
@@ -116,6 +123,7 @@ Every Rollout names a source, and none reads `KustomizationFieldConflict`, `OCIR
 | `Ready=False`: `KustomizationFieldConflict` or `OCIRepositoryFieldConflict` | Git still sets the variable or the tag the Rollout writes | [Remove the Rollout's version fields from Git](#remove-the-rollouts-version-fields-from-git) |
 | The conflict names `rollout-controller/<namespace>/<rollout>` | The annotation moved to another Rollout and the first still owns the field | [The conflict names another Rollout](/docs/integrations/fluxcd/#the-conflict-names-another-rollout) |
 | `ReleasesUpdated=False`: `ReleaseSourceRequired` | The Rollout has no `releaseSourceRef` | [Give every Rollout a ReleaseSource](#give-every-rollout-a-releasesource) |
+| `WaveReady=False`: `UnknownTier` or `InvalidTopology` | The Environment name is not a tier, or two names of one tier form a chain | [Check your Environment names](#check-your-environment-names) |
 | `helm upgrade` fails with `invalid ownership metadata` | The CRDs were installed outside this release | Adopt them as in [Install with Helm](/docs/installation/helm/#upgrade) |
 
 ## Next steps
