@@ -117,9 +117,6 @@ spec:
       sourceRef:
         kind: HelmRepository
         name: acme
-  upgrade:
-    remediation:
-      retries: 1
   values:
     image:
       repository: ghcr.io/acme/hello-world  # no tag: the Rollout owns it
@@ -128,6 +125,8 @@ spec:
 When the chart version is the release, annotate with `rollout.kuberik.com/chart-version.from: <rollout name>` instead, and the Rollout writes `spec.chart.spec.version`. For a HelmRelease that takes its chart through `spec.chartRef` from an OCIRepository, annotate the OCIRepository as in [Set an OCIRepository tag](#set-an-ocirepository-tag). Tag the chart artifact with its chart version (the `version` in `Chart.yaml`): the `helmrelease` health check compares the tag with the chart version Helm installed, and stays `Pending` while they differ.
 
 Leave the field the Rollout writes out of the HelmRelease you commit, and keep its first-install default in the chart's `values.yaml`. The Rollout writes only that field, with server-side apply and without forcing ownership. If Git or another tool also sets it, the Rollout writes nothing for that deploy and reports `Ready=False` with reason `HelmReleaseFieldConflict`, naming the field and the other writer. Remove the field from Git, and the Rollout deploys at its next retry, within a minute.
+
+The Rollout also turns off Helm's own upgrade remediation: each write sets `spec.upgrade.remediation.retries: 0` and `remediateLastFailure: false`. A failed upgrade then stays failed until the Rollout's health checks and [automatic rollback](/docs/releases/rollback/) decide, instead of Helm rolling it back first, outside the Rollout's history. Leave `upgrade.remediation` out of Git, or set those same two values there. A different value from Git or another tool stops the deploy with `Ready=False` reason `HelmReleaseRemediationConflict`, naming the field and the other writer; the dashboard shows it as "Deploy refused". The upgrade `strategy` and install remediation stay yours.
 
 A HelmRelease can carry several `values.<path>.from` annotations. Path segments are map keys separated by dots; list indexes and keys that contain a dot are not supported.
 
@@ -217,7 +216,7 @@ spec:
   class: helmrelease
 ```
 
-The check stays `Pending` until helm-controller has acted on the HelmRelease's current generation, so a `Ready` left over from the previous release never starts the bake. It turns `Unhealthy` as soon as the current release fails (for example `UpgradeFailed`, or `RollbackSucceeded` after Helm remediated), without waiting for Helm's retries to run out, and `Healthy` when `Ready` is `True` for the release the Rollout deployed. Set `upgrade.remediation.retries: 1` so Helm's own rollback is a safety net and the Rollout's bake decides.
+The check stays `Pending` until helm-controller has acted on the HelmRelease's current generation, so a `Ready` left over from the previous release never starts the bake. It turns `Unhealthy` as soon as the current release fails (for example `UpgradeFailed`), and `Healthy` when `Ready` is `True` for the release the Rollout deployed. Helm does not roll the release back on its own: the Rollout turns its upgrade remediation off ([Set a HelmRelease value or chart version](#set-a-helmrelease-value-or-chart-version)), so the Rollout's bake decides.
 
 ## How it works
 
@@ -238,6 +237,7 @@ The ReleaseSource lists releases from the registry. When the Rollout picks a rel
 | Rollout `Ready=False`: `KustomizationFieldConflict` | Git or another tool also sets the substitute variable the Rollout writes | Remove the variable from the Kustomization in Git; keep the default in the manifests (`${APP_VERSION:=1.0.0}`) |
 | Rollout `Ready=False`: `OCIRepositoryFieldConflict` | Git or another tool also sets the OCIRepository's `spec.ref.tag` | Remove `spec.ref.tag` from the OCIRepository in Git |
 | Rollout `Ready=False`: `HelmReleaseFieldConflict` | Git or another tool also sets the HelmRelease field the Rollout writes | Remove the field from the HelmRelease in Git; keep the default in the chart's `values.yaml` |
+| Rollout `Ready=False`: `HelmReleaseRemediationConflict` | Git or another tool turns on Helm's upgrade remediation (`retries` other than 0, or `remediateLastFailure: true`) | Remove `spec.upgrade.remediation.retries` and `remediateLastFailure` from the HelmRelease in Git, or set them to `0` and `false` |
 | Rollout `Ready=False`: `HelmReleaseInvalidAnnotation` | A `values.<path>.from` path has an empty key, or `chart-version.from` is on a HelmRelease with `spec.chartRef` or without `spec.chart.spec` | Fix the path; for `spec.chartRef`, annotate the OCIRepository instead |
 | An annotated HelmRelease never changes, and `helmrelease` checks never leave their first state | The controller lacks RBAC on `helmreleases`, or Flux's HelmRelease CRD was installed after the controller started | Upgrade the chart, then restart the rollout-controller Deployment |
 | HealthCheck `Unhealthy`: `HelmRelease not found` | Wrong name in `healthcheck.kuberik.com/helmrelease` | Use the HelmRelease's name, or `<namespace>/<name>` |

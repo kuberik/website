@@ -39,7 +39,7 @@ The rollout-controller reads this from a Flux `HelmRelease` in the Rollout's nam
 
 | Annotation | Values | Default | Set by | Effect |
 |---|---|---|---|---|
-| `rollout.kuberik.com/values.<path>.from` | Rollout name | None | You | On a HelmRelease. On each deploy the rollout-controller writes the release tag to `spec.values.<path>` (dotted map keys), without forcing ownership; a field Git also sets stops the deploy with `HelmReleaseFieldConflict` ([Set a HelmRelease value or chart version](/docs/integrations/fluxcd/#set-a-helmrelease-value-or-chart-version)). |
+| `rollout.kuberik.com/values.<path>.from` | Rollout name | None | You | On a HelmRelease. On each deploy the rollout-controller writes the release tag to `spec.values.<path>` (dotted map keys), without forcing ownership; a field Git also sets stops the deploy with `HelmReleaseFieldConflict`. It also turns off Helm's upgrade remediation (`retries: 0`, `remediateLastFailure: false`); another value stops the deploy with `HelmReleaseRemediationConflict` ([Set a HelmRelease value or chart version](/docs/integrations/fluxcd/#set-a-helmrelease-value-or-chart-version)). |
 | `rollout.kuberik.com/chart-version.from` | Rollout name | None | You | On a HelmRelease with `spec.chart`. On each deploy the rollout-controller writes the release tag to `spec.chart.spec.version` ([Set a HelmRelease value or chart version](/docs/integrations/fluxcd/#set-a-helmrelease-value-or-chart-version)). |
 
 ## OCIRepository
