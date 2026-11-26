@@ -111,8 +111,8 @@ Example: 2.4.0 fails, and 2.3.0 and 2.2.0 baked successfully.
 | None | Deploys 2.3.0 |
 | 2.4.0 carries the rollback barrier | Not rolled back: nothing older may replace 2.4.0 |
 | 2.3.0 carries the rollback barrier | Deploys 2.3.0; 2.2.0 would be rejected |
-| A rollback gate with `versionConstraint: ">=2.3.0"` | Deploys 2.3.0 |
-| A rollback gate with `versionConstraint: ">=2.4.0"` | Not rolled back: 2.4.0 stays |
+| A rollback gate with `allowedVersions: ["2.3.0"]` | Deploys 2.3.0 |
+| A rollback gate with `allowedVersions: ["2.2.0"]` | Deploys 2.2.0 |
 | A rollback gate with `passing: false` | Not rolled back: 2.4.0 stays |
 
 ### Mark a build that cannot be rolled back
@@ -130,8 +130,7 @@ docker buildx build --push -t ghcr.io/acme/hello-world:2.4.0 \
 | Deploy | Rolls back |
 |---|---|
 | Automatic, including through an approval or after a gate bypass | Yes |
-| `unblock-failed` | Yes |
-| Pin (`spec.wantedVersion`) or `rollout.kuberik.com/force-deploy` | Never |
+| Pin (`spec.wantedVersion`), `rollout.kuberik.com/force-deploy` or `rollout.kuberik.com/unblock-failed` | Never |
 | An automatic rollback | Never: there is one attempt and no chain |
 
 A rollback runs during a schedule freeze and needs no approval, because the build already ran there.
@@ -157,10 +156,10 @@ True RolledBack: smoke-test failed (Critical); rolled back 2.4.0 to 2.3.0.
 | `NotATrigger` | No failure reached the Rollout's `minSeverity`, or the failed deploy was itself a rollback |
 | `Blocked` | Guards rejected every earlier build; the message names them |
 | `NoTarget` | No earlier build baked successfully |
-| `ManualDeploy` | The failed build was pinned or force-deployed |
+| `ManualDeploy` | The failed build was pinned, force-deployed or deployed with `unblock-failed` |
 | `ManualIntent` | A pin or force deploy for another build was waiting |
 | `DeployError` | The rollback could not be written to Flux; the controller retries |
-| `WaitingForGates` (`Unknown`) | A rollback gate has not been evaluated since the deploy started; the Rollout waits up to 2 minutes |
+| `WaitingForGateRefresh` (`Unknown`) | The Rollout asked its [rollback gates](/docs/concepts/gates/#keep-a-controllers-rollback-gate-current) to refresh and waits up to 2 minutes for them |
 
 `status.history[].failedHealthChecks[].failures` lists each failure with its `severity`, `rollsBack` and `why`: `AtOrAboveThreshold`, `BelowThreshold`, `CheckErrorNever` or `PredatesDeploy`.
 

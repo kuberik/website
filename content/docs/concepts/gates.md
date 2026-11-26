@@ -57,30 +57,61 @@ Set them up in [Verify with Health Checks](/docs/gates/health-checks/).
 
 ## Gates that guard rollbacks
 
-A gate holds deploys by default. Set `appliesTo: [Rollback]` to make it guard [automatic rollbacks](/docs/releases/rollback/) instead. A rollback gate takes a semver `versionConstraint` rather than a list of tags, so it stays right when a new build finishes.
+A gate holds deploys by default. Set `appliesTo: [Rollback]` to make it guard [automatic rollbacks](/docs/releases/rollback/) instead, with the same `passing` and `allowedVersions` fields.
 
 ```yaml {filename="rollback-gate.yaml"}
 apiVersion: kuberik.com/v1alpha1
 kind: RolloutGate
 metadata:
-  name: no-rollback-below-2-3
+  name: rollback-targets
   namespace: hello-world
 spec:
   rolloutRef:
     name: hello-world
   appliesTo: [Rollback]  # default: [Deploy]
   passing: true
-  versionConstraint: ">=2.3.0"
+  allowedVersions: ["2.3.0", "2.2.0"]
 ```
 
 | Gate | Effect on a rollback |
 |---|---|
 | `passing: false` | No rollback |
 | `allowedVersions` | Rolls back only to a listed tag |
-| `versionConstraint: ">=2.3.0"` | Rolls back only to 2.3.0 or newer |
 | `appliesTo: [Deploy, Rollback]` | Guards both directions |
 
-Schedules, approvals and dependency gates keep the default `[Deploy]`, so a rollback runs during a freeze and needs no approval. A controller that owns a rollback gate writes `status.evaluatedTime` each time it evaluates it. If that time is before the failed deploy started, the Rollout waits up to 2 minutes; then it does not roll back, and the failed build stays. A gate without `status.evaluatedTime`, such as one you write by hand, counts as current.
+Schedules, approvals and dependency gates keep the default `[Deploy]`, so a rollback runs during a freeze and needs no approval.
+
+### Keep a controller's rollback gate current
+
+A controller that writes rollback gates labels them with its name. Before it rolls back, the Rollout asks each labeled gate to refresh, and waits for the answer:
+
+```yaml {filename="rollback-gate.yaml"}
+apiVersion: kuberik.com/v1alpha1
+kind: RolloutGate
+metadata:
+  name: rollback-targets
+  namespace: hello-world
+  labels:
+    kuberik.com/gate-controller: my-controller  # you keep it current
+  annotations:
+    kuberik.com/refresh-requested: "42"  # set by the Rollout
+spec:
+  rolloutRef:
+    name: hello-world
+  appliesTo: [Rollback]
+  passing: true
+  allowedVersions: ["2.3.0"]
+status:
+  lastHandledRefresh: "42"  # your controller's answer
+```
+
+| Step | Who | What |
+|---|---|---|
+| 1 | Rollout | Sets `kuberik.com/refresh-requested` to the failed deploy's history ID |
+| 2 | Your controller | Re-evaluates the gate, then writes the same ID to `status.lastHandledRefresh` |
+| 3 | Rollout | Rolls back once every labeled gate has answered |
+
+A gate that has not answered within 2 minutes stops the rollback: the failed build stays, and the `AutoRollback` condition names the gate. A gate without the label, such as one you write by hand, is used as it is.
 
 ## The GatesPassing condition
 
