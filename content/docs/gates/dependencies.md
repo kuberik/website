@@ -82,9 +82,9 @@ Example: payments 1.66.0 fails its bake and 1.65.0 baked successfully. The runni
 | `providerRollback` | Result |
 |---|---|
 | `Allow` (default) | payments rolls back to 1.65.0, and checkout may break |
-| `Block` | payments stays on 1.66.0, held. Its `AutoRollback` condition names checkout. An older build that satisfies `^1.66.0` would deploy instead, if one existed |
+| `Block` | Not rolled back: payments stays on 1.66.0, and automatic deploys skip it. Its `AutoRollback` condition names checkout. An older build that satisfies `^1.66.0` would deploy instead, if one existed |
 
-A consumer whose requirement cannot be read counts as needing the newest version, so `Block` holds the provider.
+A consumer whose requirement cannot be read counts as needing the newest version, so with `Block` the provider is not rolled back.
 
 ## Know the limits
 

@@ -38,7 +38,7 @@ spec:
 | `Critical` | Critical failures |
 | `Warning` | Critical and warning failures |
 
-The decision is made once, when the bake turns `Failed`. A failure that does not roll back still fails the bake, and the build is held.
+The decision is made once, when the bake turns `Failed`. A failure that does not roll back still fails the bake: the failed build stays, and automatic deploys skip it.
 
 ## Mark a flaky test as a warning
 
@@ -70,7 +70,7 @@ What happens when `ui-test` is the only failure:
 
 | Rollout `severity` | Result |
 |---|---|
-| `Critical` | The bake fails and the build is held. No rollback |
+| `Critical` | Not rolled back. The bake fails, the build stays, and automatic deploys skip it |
 | `Warning` | Rolls back |
 
 The same annotation on a HealthCheck sets the severity of all its failures. An annotation on the failed object wins over the HealthCheck's.
@@ -102,18 +102,18 @@ The Rollout tries the earlier builds whose bake succeeded, newest first, and dep
 | Target requirement | The target needs a version of another service that it no longer serves |
 | Rollback gate | A [RolloutGate](/docs/concepts/gates/#gates-that-guard-rollbacks) with `appliesTo: [Rollback]` does not allow the target |
 
-If no build is left, nothing deploys: the failed build stays and the `AutoRollback` condition names the guards.
+If no build is left, nothing deploys: the failed build stays, and the `AutoRollback` condition names the guards.
 
 Example: 2.4.0 fails, and 2.3.0 and 2.2.0 baked successfully.
 
 | Guards | Result |
 |---|---|
 | None | Deploys 2.3.0 |
-| 2.4.0 carries the rollback barrier | Held: nothing older may replace it |
+| 2.4.0 carries the rollback barrier | Not rolled back: nothing older may replace 2.4.0 |
 | 2.3.0 carries the rollback barrier | Deploys 2.3.0; 2.2.0 would be rejected |
 | A rollback gate with `versionConstraint: ">=2.3.0"` | Deploys 2.3.0 |
-| A rollback gate with `versionConstraint: ">=2.4.0"` | Held |
-| A rollback gate with `passing: false` | Held |
+| A rollback gate with `versionConstraint: ">=2.4.0"` | Not rolled back: 2.4.0 stays |
+| A rollback gate with `passing: false` | Not rolled back: 2.4.0 stays |
 
 ### Mark a build that cannot be rolled back
 
@@ -136,9 +136,9 @@ docker buildx build --push -t ghcr.io/acme/hello-world:2.4.0 \
 
 A rollback runs during a schedule freeze and needs no approval, because the build already ran there.
 
-## Release a held build
+## Deploy a failed build again
 
-A build whose bake failed is held on that Rollout: automatic deploys skip it, and `status.candidates[].failedBake` is `true`. To try it again, name it: pin it, or set `rollout.kuberik.com/force-deploy` or `rollout.kuberik.com/bypass-gates` to its tag ([Operate with kubectl](/docs/operate/manual-actions/)). In the dashboard, press **Deploy anyway** on the rollout's banner or on the build's row under **Newer builds**.
+Automatic deploys skip a build whose bake failed on that Rollout, and `status.candidates[].failedBake` is `true` for it. To try it again, name it: pin it, or set `rollout.kuberik.com/force-deploy` or `rollout.kuberik.com/bypass-gates` to its tag ([Operate with kubectl](/docs/operate/manual-actions/)). In the dashboard, press **Deploy anyway** on the rollout's banner or on the build's row under **Newer builds**.
 
 ## Check the result
 
