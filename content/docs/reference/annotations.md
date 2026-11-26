@@ -188,7 +188,7 @@ The rollout-controller reads this from any object in the inventory of a Kustomiz
 
 | Annotation | Values | Default | Set by | Effect |
 |---|---|---|---|---|
-| `kuberik.com/severity` | `Critical`, `Warning` | `Critical` | You | The severity of this object's failure when it fails a bake; the Rollout's `spec.autoRollback.severity` decides whether it rolls back. Other values count as `Critical` ([Mark a flaky test as a warning](/docs/releases/rollback/#mark-a-flaky-test-as-a-warning)). |
+| `kuberik.com/severity` | `Critical`, `Warning` | `Critical` | You | The severity of this object's failure when it fails a bake; the Rollout's `spec.autoRollback.minSeverity` decides whether it rolls back. Other values count as `Critical` ([Mark a flaky test as a warning](/docs/releases/rollback/#mark-a-flaky-test-as-a-warning)). |
 
 ## OCI artifact
 

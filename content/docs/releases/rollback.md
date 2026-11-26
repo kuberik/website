@@ -12,7 +12,7 @@ Works with: [health checks](/docs/gates/health-checks/) selected by the Rollout.
 
 ## Turn on automatic rollback
 
-Set `spec.autoRollback.severity` on the Rollout to the lowest severity that rolls back.
+Add `spec.autoRollback` to the Rollout. Without it, nothing rolls back. `minSeverity` is the lowest failure severity that rolls back.
 
 ```yaml {filename="rollout.yaml"}
 apiVersion: kuberik.com/v1alpha1
@@ -29,14 +29,14 @@ spec:
       matchLabels:
         app: hello-world
   autoRollback:
-    severity: Critical  # Never, Critical or Warning
+    minSeverity: Critical  # default; or Warning
 ```
 
-| `severity` | Rolls back on |
+| `spec.autoRollback` | Rolls back on |
 |---|---|
-| `Never` (default) | Nothing |
-| `Critical` | Critical failures |
-| `Warning` | Critical and warning failures |
+| Absent | Nothing |
+| `{}` or `minSeverity: Critical` | Critical failures |
+| `minSeverity: Warning` | Critical and warning failures |
 
 The decision is made once, when the bake turns `Failed`. A failure that does not roll back still fails the bake: the failed build stays, and automatic deploys skip it.
 
@@ -68,7 +68,7 @@ spec:
 
 What happens when `ui-test` is the only failure:
 
-| Rollout `severity` | Result |
+| Rollout `minSeverity` | Result |
 |---|---|
 | `Critical` | Not rolled back. The bake fails, the build stays, and automatic deploys skip it |
 | `Warning` | Rolls back |
@@ -154,7 +154,7 @@ True RolledBack: smoke-test failed (Critical); rolled back 2.4.0 to 2.3.0.
 | Reason | Meaning |
 |---|---|
 | `RolledBack` | A rollback was deployed |
-| `NotATrigger` | No failure reached the Rollout's `severity`, or the failed deploy was itself a rollback |
+| `NotATrigger` | No failure reached the Rollout's `minSeverity`, or the failed deploy was itself a rollback |
 | `Blocked` | Guards rejected every earlier build; the message names them |
 | `NoTarget` | No earlier build baked successfully |
 | `ManualDeploy` | The failed build was pinned or force-deployed |
