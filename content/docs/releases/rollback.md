@@ -125,6 +125,36 @@ docker buildx build --push -t ghcr.io/acme/hello-world:2.4.0 \
   --annotation "index:com.kuberik.rollout.rollback-barrier=true" .
 ```
 
+## Resolve a blocked rollback
+
+When every earlier build would break a [`Block` consumer](/docs/gates/dependencies/#when-the-provider-rolls-back) or needs more than its own providers serve, nothing rolls back. The failed build stays live, and `AutoRollback` is `False` with reason `ConsumerRequires` or `TargetRequires`:
+
+```text {filename="Output"}
+False ConsumerRequires: Not rolled back: 5.1.0 would break checkout (needs ledger ^6.0.0).
+```
+
+Then choose one:
+
+- **Roll forward:** ship a fixed build.
+- **Roll back anyway:** use **Roll back** on the rollout page. A manual rollback warns but is never refused.
+- **Move the consumer first:** then roll the provider back. The dashboard says when the rollback becomes safe.
+
+The decision is made once. Nothing retries it automatically.
+
+## Read where a rollback would go
+
+While a build bakes, and while a rollback is blocked, `status.autoRollback` shows the target, the builds it would skip, and what blocks it:
+
+```bash {filename="Terminal"}
+kubectl get rollout ledger-core -n ledger -o jsonpath='{.status.autoRollback}'
+```
+
+The history entry of each rollback, and of a blocked failed build, keeps the same record in `autoRollback`. A rollback that skipped a build says so:
+
+```text {filename="Output"}
+True RolledBack: 7.0.0 failed bake (smoke-test); rolled back to 6.0.2. Skipped 5.1.0 (checkout needs ledger ^6.0.0).
+```
+
 ## Which deploys roll back
 
 | Deploy | Rolls back |
@@ -155,6 +185,8 @@ True RolledBack: smoke-test failed (Critical); rolled back 2.4.0 to 2.3.0.
 | `RolledBack` | A rollback was deployed |
 | `NotATrigger` | No failure reached the Rollout's `minSeverity`, or the failed deploy was itself a rollback |
 | `Blocked` | Guards rejected every earlier build; the message names them |
+| `ConsumerRequires` | Every earlier build would break a consumer whose dependency sets `providerRollback: Block` |
+| `TargetRequires` | Every earlier build needs more than its providers serve now |
 | `NoTarget` | No earlier build baked successfully |
 | `ManualDeploy` | The failed build was deployed by hand |
 | `ManualIntent` | A pin or force deploy for another build was waiting |

@@ -91,6 +91,7 @@ A consumer whose requirement cannot be read counts as needing the newest version
 - The consumer must be in the same namespace as the `RolloutDependency`, because a `RolloutGate` can only reference a Rollout in its own namespace. The provider may live elsewhere via `spec.providerRef.namespace`.
 - The provider's `org.opencontainers.image.version` must be a semantic version. A git SHA there cannot be ordered against a constraint.
 - One `RolloutDependency` covers one contract. A consumer that requires two services gets two objects.
+- The rollback check reads one cluster. A consumer running in another cluster does not protect the provider.
 
 ## Check the result
 
