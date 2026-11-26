@@ -195,7 +195,9 @@ jobs:
           echo "version=main-${GITHUB_SHA::7}-$(git log -1 --format=%ct)" >> "$GITHUB_OUTPUT"
 
       - name: Install the Flux CLI
-        uses: fluxcd/flux2/action@main
+        uses: fluxcd/flux2/action@v2.10.1
+        with:
+          version: 2.10.1
 
       - name: Set up Docker Buildx
         uses: docker/setup-buildx-action@v3
