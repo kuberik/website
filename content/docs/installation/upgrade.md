@@ -19,6 +19,7 @@ The chart and the controllers it installs upgrade together. If you installed wit
 | New CRDs: `ApprovalPolicy`, `ClusterApprovalPolicy`, `RolloutApproval`, `ReleaseSource`, `ReleaseSlice`, and new fields on `Rollout` and `HealthCheck` | Nothing: `helm upgrade` installs them |
 | The release-controller is on by default | Nothing |
 | The rollout-controller may `patch` Flux `HelmReleases` | Nothing with the chart; with kubectl, apply the new rollout-controller manifest |
+| A Rollout that writes a HelmRelease turns off its Helm upgrade remediation | Remove `spec.upgrade.remediation.retries` and `remediateLastFailure` from those HelmReleases in Git, or set them to `0` and `false`; otherwise every deploy is refused with `HelmReleaseRemediationConflict` |
 | Approval admission policies, served from Kubernetes 1.30 | Nothing: on an older cluster the chart leaves them out, and the name on an approval is not verified |
 | A build whose bake failed on a Rollout is held there and not redeployed automatically | Nothing; [Release a held build](/docs/releases/rollback/#release-a-held-build) to try it again |
 | Hand-made approval gates can move to `ApprovalPolicy` | Optional: [Move hand-made approval gates](#move-hand-made-approval-gates) |
@@ -116,7 +117,7 @@ helm list -n kuberik-system
 kubectl get rollouts -A -o jsonpath='{range .items[*]}{.metadata.namespace}/{.metadata.name} {.spec.releaseSourceRef.name} {.status.conditions[?(@.type=="Ready")].reason}{"\n"}{end}'
 ```
 
-Every Rollout names a source, and none reads `KustomizationFieldConflict`, `OCIRepositoryFieldConflict`, `HelmReleaseFieldConflict` or `ReleaseSourceRequired`.
+Every Rollout names a source, and none reads `KustomizationFieldConflict`, `OCIRepositoryFieldConflict`, `HelmReleaseFieldConflict`, `HelmReleaseRemediationConflict` or `ReleaseSourceRequired`.
 
 ## Troubleshoot
 
