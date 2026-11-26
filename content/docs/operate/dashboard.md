@@ -104,7 +104,7 @@ Then confirm. A rollback always pins, so the dialog has no **Pin build** switch.
 
 The rollout stays on that build, under a **Rolled back** banner, until you select **Clear pin**. A force-deploy back does not hold: see [Deploy a specific version](/docs/operate/manual-actions/#deploy-a-specific-version).
 
-When the Rollout rolled back on its own, the banner reads **Rolled back automatically**, names each failure with whether it rolls back, and offers **Deploy anyway** to try the held build again ([Roll Back Automatically](/docs/releases/rollback/#release-a-held-build)).
+When the Rollout rolled back on its own, the banner reads **Rolled back automatically**, shows the failed and the running build, names each failure with its severity, and offers **Deploy anyway** to try the failed build again ([Roll Back Automatically](/docs/releases/rollback/#deploy-a-failed-build-again)).
 
 ## Check the result
 

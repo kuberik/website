@@ -73,7 +73,7 @@ kubectl -n hello-world annotate rollout hello-world --overwrite \
 
 The tag must be in the `ReleaseSource` catalogue, or the Rollout reports `Ready=False` ("force deploy version … is not in available releases"). A pin wins over `force-deploy`. `deploy-message` and `deploy-user` fill the history entry's message and `triggeredBy` ([defaults](/docs/reference/annotations/#rollout-action-annotations)). The controller removes all three once the build is deployed.
 
-A force-deploy does not hold an older build: once its bake succeeds, the Rollout deploys the newest release the gates allow. A release whose bake failed on this Rollout is [held](/docs/releases/rollback/#release-a-held-build) and skipped; any other bad release that is still newer deploys again. To stay on an older build, pin it as in [Roll back to the previous version](#roll-back-to-the-previous-version).
+A force-deploy does not hold an older build: once its bake succeeds, the Rollout deploys the newest release the gates allow. A release whose bake failed on this Rollout is [skipped by automatic deploys](/docs/releases/rollback/#deploy-a-failed-build-again); any other bad release that is still newer deploys again. To stay on an older build, pin it as in [Roll back to the previous version](#roll-back-to-the-previous-version).
 
 In the dashboard, **Change version** with **Pin build** off writes these annotations with your login and clears any pin. **Deploy** on a held build opens the same dialog.
 
