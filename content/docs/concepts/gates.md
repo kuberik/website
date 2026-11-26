@@ -76,10 +76,11 @@ spec:
 | Gate | Effect on a rollback |
 |---|---|
 | `passing: false` | No rollback |
+| `allowedVersions` | Rolls back only to a listed tag |
 | `versionConstraint: ">=2.3.0"` | Rolls back only to 2.3.0 or newer |
 | `appliesTo: [Deploy, Rollback]` | Guards both directions |
 
-Schedules, approvals and dependency gates keep the default `[Deploy]`, so a rollback runs during a freeze and needs no approval. A rollback gate that a controller updates must have been evaluated after the failed deploy started. The Rollout waits up to 2 minutes for it, then holds the failed build.
+Schedules, approvals and dependency gates keep the default `[Deploy]`, so a rollback runs during a freeze and needs no approval. A controller that owns a rollback gate writes `status.evaluatedTime` each time it evaluates it. If that time is before the failed deploy started, the Rollout waits up to 2 minutes, then holds the failed build. A gate without `status.evaluatedTime`, such as one you write by hand, counts as current.
 
 ## The GatesPassing condition
 

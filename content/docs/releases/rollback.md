@@ -153,14 +153,15 @@ True RolledBack: smoke-test failed (Critical); rolled back 2.4.0 to 2.3.0.
 | Reason | Meaning |
 |---|---|
 | `RolledBack` | A rollback was deployed |
-| `BelowThreshold` | No failure reached the Rollout's `severity` |
+| `NotATrigger` | No failure reached the Rollout's `severity`, or the failed deploy was itself a rollback |
 | `Blocked` | Guards rejected every earlier build; the message names them |
 | `NoTarget` | No earlier build baked successfully |
 | `ManualDeploy` | The failed build was pinned or force-deployed |
 | `ManualIntent` | A pin or force deploy for another build was waiting |
 | `DeployError` | The rollback could not be written to Flux; the controller retries |
+| `WaitingForGates` (`Unknown`) | A rollback gate has not been evaluated since the deploy started; the Rollout waits up to 2 minutes |
 
-`status.history[].failedHealthChecks[].failures` lists each failure with its `severity` and whether it rolled back.
+`status.history[].failedHealthChecks[].failures` lists each failure with its `severity`, `rollsBack` and `why`: `AtOrAboveThreshold`, `BelowThreshold`, `CheckErrorNever` or `PredatesDeploy`.
 
 ## Next steps
 
