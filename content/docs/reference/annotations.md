@@ -61,6 +61,7 @@ Each class is served by its own controller, which reads only the annotations in 
 | Annotation | Values | Default | Set by | Effect |
 |---|---|---|---|---|
 | `kuberik.com/display-name` | Text | `metadata.name` | You | Read by the dashboard: the name it shows for the check. |
+| `kuberik.com/severity` | `Critical`, `Warning` | `Critical` | You | The severity of this check's failures, unless the failed object sets its own ([Mark a flaky test as a warning](/docs/releases/rollback/#mark-a-flaky-test-as-a-warning)). |
 
 ### Class `kustomization`
 
@@ -187,7 +188,7 @@ The rollout-controller reads this from any object in the inventory of a Kustomiz
 
 | Annotation | Values | Default | Set by | Effect |
 |---|---|---|---|---|
-| `rollout.kuberik.com/rollback` | `"true"`, `"false"` | The check's `spec.rollbackOn` | You | When this object's failure fails a bake, `"true"` rolls the Rollout back and `"false"` does not, whatever the check's `rollbackOn`; needs `spec.autoRollback.enabled` on the Rollout, and other values are ignored ([Opt one test in or out](/docs/releases/rollback/#opt-one-test-in-or-out)). |
+| `kuberik.com/severity` | `Critical`, `Warning` | `Critical` | You | The severity of this object's failure when it fails a bake; the Rollout's `spec.autoRollback.severity` decides whether it rolls back. Other values count as `Critical` ([Mark a flaky test as a warning](/docs/releases/rollback/#mark-a-flaky-test-as-a-warning)). |
 
 ## OCI artifact
 
@@ -202,6 +203,7 @@ The release-controller reads these from each release's OCI manifest, manifest an
 | `org.opencontainers.image.title` | Text | None | Your CI | Copied to the Rollout's `status.title` ([Publishing releases](/docs/releases/publish/)). |
 | `org.opencontainers.image.description` | Text | None | Your CI | Copied to the Rollout's `status.description` ([Publishing releases](/docs/releases/publish/)). |
 | `com.kuberik.rollout.requires.<contract>` | Semver constraint (`^1.66.0`) | None | Your CI | What this release requires of `<contract>`, checked by a `RolloutDependency`; at most 32 per image, contract name up to 64 bytes, value up to 256 ([Declare the contract on the images](/docs/gates/dependencies/#declare-the-contract-on-the-images)). |
+| `com.kuberik.rollout.rollback-barrier` | `"true"` | None | Your CI | No automatic rollback goes below this release, for example after a forward-only migration ([Mark a build that cannot be rolled back](/docs/releases/rollback/#mark-a-build-that-cannot-be-rolled-back)). |
 
 ## Example
 

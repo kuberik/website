@@ -55,6 +55,32 @@ A HealthCheck selected by the Rollout's `healthCheckSelector` is not a gate. It 
 
 Set them up in [Verify with Health Checks](/docs/gates/health-checks/).
 
+## Gates that guard rollbacks
+
+A gate holds deploys by default. Set `appliesTo: [Rollback]` to make it guard [automatic rollbacks](/docs/releases/rollback/) instead. A rollback gate takes a semver `versionConstraint` rather than a list of tags, so it stays right when a new build finishes.
+
+```yaml {filename="rollback-gate.yaml"}
+apiVersion: kuberik.com/v1alpha1
+kind: RolloutGate
+metadata:
+  name: no-rollback-below-2-3
+  namespace: hello-world
+spec:
+  rolloutRef:
+    name: hello-world
+  appliesTo: [Rollback]  # default: [Deploy]
+  passing: true
+  versionConstraint: ">=2.3.0"
+```
+
+| Gate | Effect on a rollback |
+|---|---|
+| `passing: false` | No rollback |
+| `versionConstraint: ">=2.3.0"` | Rolls back only to 2.3.0 or newer |
+| `appliesTo: [Deploy, Rollback]` | Guards both directions |
+
+Schedules, approvals and dependency gates keep the default `[Deploy]`, so a rollback runs during a freeze and needs no approval. A rollback gate that a controller updates must have been evaluated after the failed deploy started. The Rollout waits up to 2 minutes for it, then holds the failed build.
+
 ## The GatesPassing condition
 
 The Rollout reports the combined result of its gates in the `GatesPassing` condition. `kubectl get rollout` shows it in the `Gates` column. `status.gates` lists each gate with its message. Each entry in `status.candidates` shows `gated`, and `blockedBy` lists the gates that hold that release.
@@ -75,6 +101,8 @@ Gates do not hold every deploy.
 - For one bypassed build. The `rollout.kuberik.com/bypass-gates` annotation lets one named build past the gates once. The build must be a release newer than the deployed one. The controller removes the annotation after the next deploy, whichever build it ships. Add `rollout.kuberik.com/bypass-gates-only` with a comma-separated list of gate names to skip only those gates; the annotations then stay until the named build deploys. A bypass does not skip health checks or a failed bake.
 
 None of these skips the bake. It still waits for the health checks to turn `Healthy`, and fails on a HealthCheck error or on `deployTimeout`. The exceptions are a deploy that follows a bake that failed or did not finish, and a deploy by hand made while a HealthCheck is `Unhealthy`: their bakes ignore health check errors (`BakeFailureDisabled`).
+
+An automatic rollback skips deploy gates too, but not [rollback gates](#gates-that-guard-rollbacks).
 
 The [Annotations](/docs/reference/annotations/) reference lists the exact values.
 
