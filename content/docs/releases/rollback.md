@@ -156,7 +156,7 @@ True RolledBack: smoke-test failed (Critical); rolled back 2.4.0 to 2.3.0.
 | `NotATrigger` | No failure reached the Rollout's `minSeverity`, or the failed deploy was itself a rollback |
 | `Blocked` | Guards rejected every earlier build; the message names them |
 | `NoTarget` | No earlier build baked successfully |
-| `ManualDeploy` | The failed build was pinned or force-deployed |
+| `ManualDeploy` | The failed build was deployed by hand |
 | `ManualIntent` | A pin or force deploy for another build was waiting |
 | `DeployError` | The rollback could not be written to Flux; the controller retries |
 | `WaitingForGateRefresh` (`Unknown`) | The Rollout asked its [rollback gates](/docs/concepts/gates/#keep-a-controllers-rollback-gate-current) to refresh and waits up to 2 minutes for them |
