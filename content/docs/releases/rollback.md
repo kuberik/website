@@ -73,7 +73,7 @@ What happens when `ui-test` is the only failure:
 | `Critical` | Not rolled back. The bake fails, the build stays, and automatic deploys skip it |
 | `Warning` | Rolls back |
 
-The same annotation on a HealthCheck sets the severity of all its failures. An annotation on the failed object wins over the HealthCheck's.
+Alerts and monitors carry their own severity: a [Prometheus](/docs/integrations/prometheus/#set-how-severe-an-alert-is) alert's `severity` label, a [Datadog](/docs/integrations/datadog/#set-how-severe-a-monitor-or-incident-is) monitor's priority. The same annotation on a HealthCheck sets the severity of all its failures. An annotation on the failed object wins over the HealthCheck's.
 
 ```yaml {filename="healthcheck.yaml"}
 apiVersion: kuberik.com/v1alpha1

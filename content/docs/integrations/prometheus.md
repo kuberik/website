@@ -110,6 +110,17 @@ The controller also writes one entry to `status.observations`, which the dashboa
 
 Without these annotations, the controller reads the limit from a rule expression of the form `<expr> > N` (or `>=`, `<`, `<=`). When no alert is active there is no value: with a declared limit the entry is a healthy or unhealthy state, otherwise a count named `firing alerts`.
 
+## Set how severe an alert is
+
+Each firing alert is one failure, and its `severity` label sets how severe it is for [automatic rollback](/docs/releases/rollback/):
+
+| Alert `severity` label | Failure |
+|---|---|
+| `warning` | Warning |
+| `critical`, missing or anything else | Critical |
+
+A `kuberik.com/severity` annotation on the HealthCheck overrides the label for all its alerts.
+
 ## Select the checks from the Rollout
 
 The [`Rollout`](/docs/concepts/rollouts/) picks up every HealthCheck whose labels match `healthCheckSelector`, in its own namespace unless you add a `namespaceSelector`:
