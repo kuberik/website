@@ -109,7 +109,8 @@ Example: 2.4.0 fails, and 2.3.0 and 2.2.0 baked successfully.
 | Guards | Result |
 |---|---|
 | None | Deploys 2.3.0 |
-| 2.3.0 carries the rollback barrier | 2.3.0 and 2.2.0 are rejected. Held |
+| 2.4.0 carries the rollback barrier | Held: nothing older may replace it |
+| 2.3.0 carries the rollback barrier | Deploys 2.3.0; 2.2.0 would be rejected |
 | A rollback gate with `versionConstraint: ">=2.3.0"` | Deploys 2.3.0 |
 | A rollback gate with `versionConstraint: ">=2.4.0"` | Held |
 | A rollback gate with `passing: false` | Held |
