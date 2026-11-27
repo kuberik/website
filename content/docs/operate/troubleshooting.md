@@ -133,8 +133,19 @@ EOF
 A `dependency-…` gate in `blockedBy` means the provider has not deployed the contract version yet. Ship the provider, or see [Wait for Service Dependencies](/docs/gates/dependencies/).
 
 ```bash {filename="Terminal"}
-kubectl get rolloutdependencies -n hello-world
+kubectl get rolloutdependency frontend-needs-backend -n hello-world -o jsonpath='{range .status.blockedReleases[*]}{.tag}{"\t"}{.requiredVersion}{"\t"}{.reason}{"\n"}{end}'
 ```
+
+| `reason` | Means | Fix |
+|---|---|---|
+| `ConstraintNotSatisfied` | Newest succeeded provider release fails the constraint | Ship a provider release that meets it |
+| `RunningVersionNotSatisfied` | Provider's running release, baking or failed, fails it | Wait for the bake, or roll the provider back |
+| `RunningVersionUnknown` | Provider's running release has no contract version | Publish it with `org.opencontainers.image.version` |
+| `ProviderVersionUnknown` | No succeeded provider release with a contract version | Ship the provider |
+| `InvalidVersion` | A constraint or version does not parse | Fix the annotation |
+| `MetadataUnresolved` | Release manifest unreadable | Check the registry |
+
+The `Satisfied` condition message names the provider's running release and the releases it holds back: `…; the provider's running release <tag> (contract version <v>) is not a succeeded release; blocked by it: <tags>`.
 
 ### Blocked by an unhealthy HealthCheck
 
@@ -199,7 +210,18 @@ A failed deploy stops automatic deploys until someone acts: see [The deployment 
 
 ### A HealthCheck stays Pending or Unhealthy
 
-For a Kustomization HealthCheck, the message names the resources Flux has not finished (`Pending resources: …`).
+For a Kustomization HealthCheck, the message names the resources Flux has not finished (`Pending resources: …`). A Kustomization that reads Ready also stays `Pending` until Flux has applied the revision its source serves:
+
+| Message | Cause | Fix |
+|---|---|---|
+| `Kustomization pending (Suspended): <ns>/<name> is suspended, so new revisions are not applied` | `spec.suspend: true` | `flux resume kustomization <name>` |
+| `Kustomization pending: has not applied source revision <rev> yet (last applied <rev>)` | Flux has not applied the new revision yet | Wait, or `flux reconcile kustomization <name> --with-source` |
+| `Kustomization pending: source <Kind> <ns>/<name> is not ready for its current spec` | The source has not fetched the new tag or ref | Check the source: `flux get sources all -A` |
+| `Kustomization pending: source <Kind> <ns>/<name> not found` | `spec.sourceRef` names a missing source | Fix `spec.sourceRef` |
+| `Kustomization pending: cannot read source <Kind> <ns>/<name>: forbidden` | The rollout-controller may not read that source kind | Upgrade the chart, or apply the new rollout-controller manifest; it grants `get`, `list`, `watch` on `gitrepositories`, `buckets`, `externalartifacts` |
+| `Kustomization pending: cannot read source …: kind is not installed (source.toolkit.fluxcd.io/v1)` | The source kind's CRD is missing | Install the Flux source-controller CRDs |
+
+These never fail a deploy on their own; they hold the bake until `deployTimeout`.
 
 ```bash {filename="Terminal"}
 kubectl get healthchecks -n hello-world -o jsonpath='{range .items[*]}{.metadata.name}{"\t"}{.status.status}{"\t"}{.status.message}{"\n"}{end}'
@@ -274,6 +296,16 @@ While the deploy runs, the dashboard shows **Recovery mode**; `BakeFailureDisabl
 ```bash {filename="Terminal"}
 kubectl get rollout hello-world -n hello-world -o jsonpath='{.status.conditions[?(@.type=="BakeFailureDisabled")]}'
 ```
+
+## The hub shows no other clusters
+
+A request to a spoke returns `502` with `{"error": "spoke not allowlisted", "details": "set SPOKE_URL_ALLOWLIST"}`, and the hub's log reads:
+
+```text {filename="Hub log"}
+spoke allowlist: dropping discovered spoke "https://dashboard.staging.example.com" (origin not in SPOKE_URL_ALLOWLIST); logged once per process
+```
+
+Add the spoke's origin to `dashboard.spokeUrlAllowlist` on the hub: [List the spokes the hub trusts](/docs/installation/helm/#list-the-spokes-the-hub-trusts).
 
 ## Troubleshoot other parts
 

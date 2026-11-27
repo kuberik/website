@@ -101,6 +101,27 @@ The `environmentUrl` comes from the environment integration: on each cluster, th
 
 The chart writes these values to the `kuberik-cluster-info` ConfigMap. `insecureSkipTLSVerify: true` skips TLS checks on hub-to-spoke calls; set it only for self-signed development clusters.
 
+### List the spokes the hub trusts
+
+The hub sends the viewer's sign-in to a spoke only when the spoke's origin is listed in `dashboard.spokeUrlAllowlist`. Set it on the hub:
+
+```yaml {filename="values.yaml"}
+dashboard:
+  spokeUrlAllowlist:
+    - https://dashboard.staging.example.com
+    - https://*.spokes.example.com
+```
+
+| Rule | Detail |
+|---|---|
+| Format | A list, or one comma-separated string, of origins: `scheme://host[:port]`, no path |
+| Wildcard | `https://*.example.com` matches any subdomain, never `example.com` itself |
+| `http://` | Only when the origin is listed with `http://` |
+| Unset | **The hub shows no spokes.** It drops every discovered spoke and logs each once |
+| Spokes | Leave it unset on spokes and on a single cluster |
+
+Spoke URLs come from GitHub deployment statuses, which anyone who can post a deployment status can set, so the list is the hub's trust boundary. Calls to a listed spoke carry only the `Accept`, `Content-Type` and `If-None-Match` headers, the bearer token and the `gh_token` cookie, and the hub never follows a redirect from a spoke.
+
 ## Use the production values
 
 The chart ships `values-production.yaml`: three controller replicas with a PodDisruptionBudget, the restricted Pod Security level on the namespace, a ServiceMonitor, a NetworkPolicy, the dashboard behind an Ingress, and the Datadog and environment integrations. The chart owns the namespace there, so install into `default` without `--create-namespace`:
@@ -179,6 +200,8 @@ The `rollout-controller` Deployment is ready, plus `release-controller`, `rollou
 | Sign-in redirects in a loop | The redirect URI or cookie domain does not match the host | Register `https://<canonicalHost>/oauth2/callback`; make `auth.cookieDomain` a parent of the host |
 | Prometheus does not scrape the controller | The ServiceMonitor is in `kuberik-system` | Set `metrics.serviceMonitor.namespace` to the Prometheus Operator's namespace |
 | No ServiceMonitor exists | The Prometheus Operator CRDs were not in the cluster when the chart was installed | Run `helm upgrade` after installing the Prometheus Operator |
+| The hub shows no other clusters; its log reads `dropping discovered spoke "…" (origin not in SPOKE_URL_ALLOWLIST)` | The spoke's origin is not in `dashboard.spokeUrlAllowlist` | [List the spokes the hub trusts](#list-the-spokes-the-hub-trusts) |
+| The dashboard does not load inside an iframe | The dashboard refuses to be framed by any site (`frame-ancestors 'none'`) | Open it in its own tab |
 
 ## Next steps
 
