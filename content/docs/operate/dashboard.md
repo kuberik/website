@@ -18,6 +18,8 @@ Search reaches every app, rollout and pull request.
 
 ![The command palette resolving a pasted pull request URL to Open change #80 · checkout-api](/images/docs/dashboard/command-palette-pr.png)
 
+Times show in your browser's time zone. Select **Local** next to the theme switch to show them in UTC; the choice stays in this browser.
+
 ## Read a rollout
 
 **Progress** shows where a release is, **Gates** what holds it.
@@ -33,6 +35,8 @@ Search reaches every app, rollout and pull request.
 ![The Gates graph of billing-edge in production: Business hours and Release approval hold build 5.8.0-62, each with Skip once](/images/docs/operate/dashboard-gated-by.png)
 
 5. On a rendered-manifests rollout, select **View source** in the rollout header to read the deployed files ([Rendered manifests](/docs/concepts/propagation/#rendered-manifests)).
+
+When the Rollout refuses a deploy or is not ready for another reason, a **Deploy refused** or **Not ready** banner at the top of the **Overview** names the `Ready=False` reason, the field and the other writer, for example `KustomizationFieldConflict on spec.postBuild.substitute.APP_VERSION, also set by kustomize-controller`.
 
 ## Follow a change
 
@@ -99,6 +103,8 @@ Start from one of two places:
 Then confirm. A rollback always pins, so the dialog has no **Pin build** switch. Select **Roll back**; in production, write why and type the build first.
 
 The rollout stays on that build, under a **Rolled back** banner, until you select **Clear pin**. A force-deploy back does not hold: see [Deploy a specific version](/docs/operate/manual-actions/#deploy-a-specific-version).
+
+When the Rollout rolled back on its own, the banner reads **Rolled back automatically**, shows the failed and the running build, names each failure with its severity, and offers **Deploy anyway** to try the failed build again ([Roll Back Automatically](/docs/releases/rollback/#deploy-a-failed-build-again)).
 
 ## Check the result
 

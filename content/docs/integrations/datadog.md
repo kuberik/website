@@ -91,6 +91,18 @@ spec:
 
 The controller sends `state:(active OR stable) AND <your query>` to Datadog's incident search. Join facets with `AND`, and put parentheses only around one facet's values.
 
+## Set how severe a monitor or incident is
+
+Each alerting monitor and each open incident is one failure, and its priority sets how severe it is for [automatic rollback](/docs/releases/rollback/):
+
+| Datadog | Failure |
+|---|---|
+| Monitor priority P1, P2; incident SEV-1, SEV-2 | Critical |
+| Monitor priority P3 to P5; incident SEV-3 to SEV-5 | Warning |
+| No priority or severity | Critical |
+
+A `kuberik.com/severity` annotation on the HealthCheck overrides it for all its monitors or incidents.
+
 ## Use DatadogMonitor resources
 
 If you manage monitors with the Datadog Operator, annotate a `DatadogMonitor` with `kuberik.com/health-check: "true"`. The controller creates a HealthCheck named `datadog-check-<monitor name>` in the same namespace, with class `datadog-monitor-crd` and a copy of the monitor's labels.
@@ -152,6 +164,8 @@ The controller writes Datadog's state into the HealthCheck status:
 | `Alert` | `Unhealthy` | `Unhealthy` |
 | `Warn`, `No Data`, `Skipped`, `Ignored` | `Healthy` | `Pending` |
 | API error or unknown monitor ID | `Pending` | Not applicable |
+
+A `datadog` check also writes one entry per monitor to `status.observations`: for a metric monitor, its current value against the critical threshold (the controller runs the monitor's query again), otherwise the monitor's state. A `datadog-incidents` check writes the count of open incidents and names each one. The dashboard shows these entries on the check's card, and a check that cannot run writes none.
 
 The Rollout starts the bake once every selected HealthCheck is `Healthy`, and fails the deploy if any of them turns `Unhealthy` after the deploy started. While a check is `Unhealthy`, the Rollout also holds new automatic deploys and reports `DeploymentBlocked` with reason `UnhealthyHealthChecks`. See [Verify with Health Checks](/docs/gates/health-checks/) for the full rules.
 

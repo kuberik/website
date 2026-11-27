@@ -24,7 +24,7 @@ A release is a tagged artifact in a registry: the application image, or the rend
 | Verify | Health checks must report healthy, then stay healthy for the bake time. | [`HealthCheck`](/docs/gates/health-checks/) |
 | Record | The deploy is recorded in the Rollout's history as `Succeeded` or `Failed`, or `Cancelled` when a deploy you start by hand replaced it before it finished. | `Rollout` |
 
-A failed bake stops automatic deploys of that Rollout. They resume when someone deploys a version by hand, pins one, unblocks the Rollout, or retries the bake and it succeeds.
+A failed bake stops automatic deploys of that Rollout, and the failed build is held: it does not deploy again on its own. With [automatic rollback](/docs/releases/rollback/) on, the Rollout redeploys the last good build. Otherwise automatic deploys resume when someone deploys a version by hand, pins one, unblocks the Rollout, or retries the bake and it succeeds.
 
 ## Works with
 

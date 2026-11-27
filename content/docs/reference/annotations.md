@@ -31,7 +31,16 @@ The rollout-controller and the openkruise-controller read this from a Flux `Kust
 
 | Annotation | Values | Default | Set by | Effect |
 |---|---|---|---|---|
-| `rollout.kuberik.com/substitute.<VAR>.from` | Rollout name | None | You | On each deploy the rollout-controller writes the release tag to `spec.postBuild.substitute.<VAR>`; the openkruise-controller uses it to find the Rollout behind a canary ([Set a Kustomization substitute](/docs/integrations/fluxcd/#set-a-kustomization-substitute)). |
+| `rollout.kuberik.com/substitute.<VAR>.from` | Rollout name | None | You | On each deploy the rollout-controller writes the release tag to `spec.postBuild.substitute.<VAR>`, as field manager `rollout-controller/<namespace>/<rollout>`, and refuses the deploy (`KustomizationFieldConflict`) when another writer sets `<VAR>`; the openkruise-controller uses it to find the Rollout behind a canary ([Set a Kustomization substitute](/docs/integrations/fluxcd/#set-a-kustomization-substitute)). |
+
+## HelmRelease
+
+The rollout-controller reads this from a Flux `HelmRelease` in the Rollout's namespace.
+
+| Annotation | Values | Default | Set by | Effect |
+|---|---|---|---|---|
+| `rollout.kuberik.com/values.<path>.from` | Rollout name | None | You | On a HelmRelease. On each deploy the rollout-controller writes the release tag to `spec.values.<path>` (dotted map keys), without forcing ownership; a field Git also sets stops the deploy with `HelmReleaseFieldConflict`. It also turns off Helm's upgrade remediation (`retries: 0`, `remediateLastFailure: false`); another value stops the deploy with `HelmReleaseRemediationConflict` ([Set a HelmRelease value or chart version](/docs/integrations/fluxcd/#set-a-helmrelease-value-or-chart-version)). |
+| `rollout.kuberik.com/chart-version.from` | Rollout name | None | You | On a HelmRelease with `spec.chart`. On each deploy the rollout-controller writes the release tag to `spec.chart.spec.version` ([Set a HelmRelease value or chart version](/docs/integrations/fluxcd/#set-a-helmrelease-value-or-chart-version)). |
 
 ## OCIRepository
 
@@ -39,7 +48,7 @@ These go on a Flux `OCIRepository`.
 
 | Annotation | Values | Default | Set by | Effect |
 |---|---|---|---|---|
-| `rollout.kuberik.com/rollout` | Rollout name | None | You | On each deploy the rollout-controller writes the release tag to `spec.ref.tag` of an OCIRepository in the Rollout's namespace ([Set an OCIRepository tag](/docs/integrations/fluxcd/#set-an-ocirepository-tag)). |
+| `rollout.kuberik.com/rollout` | Rollout name | None | You | On each deploy the rollout-controller writes the release tag to `spec.ref.tag` of an OCIRepository in the Rollout's namespace, as field manager `rollout-controller/<namespace>/<rollout>` and without forcing ownership; if Git also sets the tag, the deploy is refused with `OCIRepositoryFieldConflict` ([Set an OCIRepository tag](/docs/integrations/fluxcd/#set-an-ocirepository-tag)). |
 | `rollout.kuberik.com/name` | Rollout name | None | You | Read only by the openkruise-controller to find the Rollout behind a canary; the rollout-controller does not patch the OCIRepository for it. |
 | `rollout.kuberik.com/namespace` | Namespace | The OCIRepository's namespace | You | Namespace of the Rollout named by `rollout.kuberik.com/name`. |
 
@@ -52,12 +61,14 @@ Each class is served by its own controller, which reads only the annotations in 
 | Annotation | Values | Default | Set by | Effect |
 |---|---|---|---|---|
 | `kuberik.com/display-name` | Text | `metadata.name` | You | Read by the dashboard: the name it shows for the check. |
+| `kuberik.com/severity` | `Critical`, `Warning` | `Critical` | You | The severity of this check's failures, unless the failed object sets its own ([Mark a flaky test as a warning](/docs/releases/rollback/#mark-a-flaky-test-as-a-warning)). |
 
 ### Class `kustomization`
 
 | Annotation | Values | Default | Set by | Effect |
 |---|---|---|---|---|
 | `healthcheck.kuberik.com/kustomization` | `<name>` or `<namespace>/<name>` | None, required | You | The rollout-controller reports the health of this Kustomization; a bare name is looked up in the HealthCheck's namespace ([Choose how a Kustomization is checked](/docs/gates/health-checks/#choose-how-a-kustomization-is-checked)). |
+| `healthcheck.kuberik.com/helmrelease` | `<name>` or `<namespace>/<name>` | None, required | You | The rollout-controller reports the health of this HelmRelease (class `helmrelease`); a bare name is looked up in the HealthCheck's namespace ([Report HelmRelease health](/docs/integrations/fluxcd/#report-helmrelease-health)). |
 | `healthcheck.kuberik.com/requeue-interval` | Go duration (`30s`, `2m`) | `30s` | You | How often the check is evaluated again; values under `5s` count as `5s` and a value that does not parse uses the default ([Report Kustomization health](/docs/integrations/fluxcd/#report-kustomization-health)). |
 
 ### Classes `datadog` and `datadog-incidents`
@@ -171,6 +182,14 @@ The openkruise-controller reads and writes these on an OpenKruise `Rollout` (`ro
 | `kuberik.com/display-name` | Text | `metadata.name` | You | Read by the dashboard: the test's name in the retry dialog. |
 | `rollout.kuberik.com/link.<label>` | URL | None | You | Read by the dashboard: a link named `<label>` on the test's row in the rollout's pipeline; a `Logs`, `CI` or `Trace` label (any case) replaces the link of that name the dashboard builds from the test job's `DD_SERVICE` and `DD_ENV` variables. |
 
+## Objects a Kustomization applies
+
+The rollout-controller reads this from any object in the inventory of a Kustomization a `kustomization` HealthCheck follows (a `RolloutTest`, a `Job`, a `Deployment`, an OpenKruise `Rollout`), and from the Kustomization itself.
+
+| Annotation | Values | Default | Set by | Effect |
+|---|---|---|---|---|
+| `kuberik.com/severity` | `Critical`, `Warning` | `Critical` | You | The severity of this object's failure when it fails a bake; the Rollout's `spec.autoRollback.minSeverity` decides whether it rolls back. Other values count as `Critical` ([Mark a flaky test as a warning](/docs/releases/rollback/#mark-a-flaky-test-as-a-warning)). |
+
 ## OCI artifact
 
 The release-controller reads these from each release's OCI manifest, manifest annotations first and then the config descriptor's, when it adds the release to a `ReleaseSource` catalogue; set them in CI when you push.
@@ -184,6 +203,7 @@ The release-controller reads these from each release's OCI manifest, manifest an
 | `org.opencontainers.image.title` | Text | None | Your CI | Copied to the Rollout's `status.title` ([Publishing releases](/docs/releases/publish/)). |
 | `org.opencontainers.image.description` | Text | None | Your CI | Copied to the Rollout's `status.description` ([Publishing releases](/docs/releases/publish/)). |
 | `com.kuberik.rollout.requires.<contract>` | Semver constraint (`^1.66.0`) | None | Your CI | What this release requires of `<contract>`, checked by a `RolloutDependency`; at most 32 per image, contract name up to 64 bytes, value up to 256 ([Declare the contract on the images](/docs/gates/dependencies/#declare-the-contract-on-the-images)). |
+| `com.kuberik.rollout.rollback-barrier` | `"true"` | None | Your CI | No automatic rollback goes below this release, for example after a forward-only migration ([Mark a build that cannot be rolled back](/docs/releases/rollback/#mark-a-build-that-cannot-be-rolled-back)). |
 
 ## Example
 

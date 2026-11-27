@@ -340,6 +340,10 @@ html.dark .kd-content table:not(.kd-table table) th{background:color-mix(in okla
 .kd-content .kd-table td:first-child code{white-space:nowrap}
 /* code in other cells (and in sentence keys): wraps at spaces only, never inside a token; a long token widens its column and the card scrolls */
 .kd-content .kd-table td:not(:first-child) code,.kd-content .kd-table[data-key=prose] td:first-child code{white-space:normal;overflow-wrap:normal;word-break:normal}
+/* except in a prose-key table (Symptom | Cause | Fix): it must fit the reading column, so a token that cannot fit its cell
+   breaks there (overflow-wrap:anywhere breaks only when it must) instead of pushing the Fix column off the card
+   (HelmReleaseRemediationConflict in the 240px key, spec.upgrade.remediation.retries in Fix, fluxcd troubleshooting) */
+.kd-content .kd-table[data-key=prose] td code,.kd-content .kd-table[data-key=prose] td:first-child code{overflow-wrap:anywhere}
 /* prose column: the last column of a 3+ column table is the explanation; give it a reading width */
 .kd-content .kd-table:is([data-cols="3"],[data-cols="4"],[data-cols="5"],[data-cols="6"]) :is(th,td):last-child{min-width:220px}
 .kd-content .kd-table td:first-child p{margin:0}
