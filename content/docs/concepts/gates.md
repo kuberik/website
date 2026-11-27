@@ -55,6 +55,64 @@ A HealthCheck selected by the Rollout's `healthCheckSelector` is not a gate. It 
 
 Set them up in [Verify with Health Checks](/docs/gates/health-checks/).
 
+## Gates that guard rollbacks
+
+A gate holds deploys by default. Set `appliesTo: [Rollback]` to make it guard [automatic rollbacks](/docs/releases/rollback/) instead, with the same `passing` and `allowedVersions` fields.
+
+```yaml {filename="rollback-gate.yaml"}
+apiVersion: kuberik.com/v1alpha1
+kind: RolloutGate
+metadata:
+  name: rollback-targets
+  namespace: hello-world
+spec:
+  rolloutRef:
+    name: hello-world
+  appliesTo: [Rollback]  # default: [Deploy]
+  passing: true
+  allowedVersions: ["2.3.0", "2.2.0"]
+```
+
+| Gate | Effect on a rollback |
+|---|---|
+| `passing: false` | No rollback |
+| `allowedVersions` | Rolls back only to a listed tag |
+| `appliesTo: [Deploy, Rollback]` | Guards both directions |
+
+Schedules, approvals and dependency gates keep the default `[Deploy]`, so a rollback runs during a freeze and needs no approval.
+
+### Keep a controller's rollback gate current
+
+A controller that writes rollback gates labels them with its name. Before it rolls back, the Rollout asks each labeled gate to refresh, and waits for the answer:
+
+```yaml {filename="rollback-gate.yaml"}
+apiVersion: kuberik.com/v1alpha1
+kind: RolloutGate
+metadata:
+  name: rollback-targets
+  namespace: hello-world
+  labels:
+    kuberik.com/gate-controller: my-controller  # you keep it current
+  annotations:
+    kuberik.com/refresh-requested: "42"  # set by the Rollout
+spec:
+  rolloutRef:
+    name: hello-world
+  appliesTo: [Rollback]
+  passing: true
+  allowedVersions: ["2.3.0"]
+status:
+  lastHandledRefresh: "42"  # your controller's answer
+```
+
+| Step | Who | What |
+|---|---|---|
+| 1 | Rollout | Sets `kuberik.com/refresh-requested` to the failed deploy's history ID |
+| 2 | Your controller | Re-evaluates the gate, then writes the same ID to `status.lastHandledRefresh` |
+| 3 | Rollout | Rolls back once every labeled gate has answered |
+
+A gate that has not answered within 2 minutes stops the rollback: the failed build stays, and the `AutoRollback` condition names the gate. A gate without the label, such as one you write by hand, is used as it is.
+
 ## The GatesPassing condition
 
 The Rollout reports the combined result of its gates in the `GatesPassing` condition. `kubectl get rollout` shows it in the `Gates` column. `status.gates` lists each gate with its message. Each entry in `status.candidates` shows `gated`, and `blockedBy` lists the gates that hold that release.
@@ -75,6 +133,8 @@ Gates do not hold every deploy.
 - For one bypassed build. The `rollout.kuberik.com/bypass-gates` annotation lets one named build past the gates once. The build must be a release newer than the deployed one. The controller removes the annotation after the next deploy, whichever build it ships. Add `rollout.kuberik.com/bypass-gates-only` with a comma-separated list of gate names to skip only those gates; the annotations then stay until the named build deploys. A bypass does not skip health checks or a failed bake.
 
 None of these skips the bake. It still waits for the health checks to turn `Healthy`, and fails on a HealthCheck error or on `deployTimeout`. The exceptions are a deploy that follows a bake that failed or did not finish, and a deploy by hand made while a HealthCheck is `Unhealthy`: their bakes ignore health check errors (`BakeFailureDisabled`).
+
+An automatic rollback skips deploy gates too, but not [rollback gates](#gates-that-guard-rollbacks).
 
 The [Annotations](/docs/reference/annotations/) reference lists the exact values.
 

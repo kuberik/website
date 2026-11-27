@@ -91,6 +91,18 @@ spec:
 
 The controller sends `state:(active OR stable) AND <your query>` to Datadog's incident search. Join facets with `AND`, and put parentheses only around one facet's values.
 
+## Set how severe a monitor or incident is
+
+Each alerting monitor and each open incident is one failure, and its priority sets how severe it is for [automatic rollback](/docs/releases/rollback/):
+
+| Datadog | Failure |
+|---|---|
+| Monitor priority P1, P2; incident SEV-1, SEV-2 | Critical |
+| Monitor priority P3 to P5; incident SEV-3 to SEV-5 | Warning |
+| No priority or severity | Critical |
+
+A `kuberik.com/severity` annotation on the HealthCheck overrides it for all its monitors or incidents.
+
 ## Use DatadogMonitor resources
 
 If you manage monitors with the Datadog Operator, annotate a `DatadogMonitor` with `kuberik.com/health-check: "true"`. The controller creates a HealthCheck named `datadog-check-<monitor name>` in the same namespace, with class `datadog-monitor-crd` and a copy of the monitor's labels.

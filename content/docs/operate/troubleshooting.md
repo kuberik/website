@@ -17,7 +17,7 @@ The banner at the top of a rollout's **Overview** names what holds it. The words
 | The **stuck** chip<br>"Stuck — deploying for 2h" | `bakeStatus` `Deploying` | [A deploy is stuck in Deploying](#a-deploy-is-stuck-in-deploying) |
 | **Recovery mode**, while a deploy runs | `BakeFailureDisabled=True` | [A HealthCheck failed but the deploy did not](#a-healthcheck-failed-but-the-deploy-did-not) |
 | **Rolled back** | `status.history[0]` is older than the build before it (a pin, or a force-deploy of an older build until its bake succeeds) | [Roll back to the previous build](#roll-back-to-the-previous-build) |
-| **Rolled back automatically** | `AutoRollback=True`, `RolledBack` | [Roll Back Automatically](/docs/releases/rollback/#release-a-held-build) |
+| **Rolled back automatically** | `AutoRollback=True`, `RolledBack` | [Roll Back Automatically](/docs/releases/rollback/#check-the-result) |
 | **Held** banner<br>"HealthCheck '…' in namespace '…' is not healthy" | `DeploymentBlocked=True`, `UnhealthyHealthChecks` | [Blocked by an unhealthy HealthCheck](#blocked-by-an-unhealthy-healthcheck) |
 | **production is waiting on an approval**<br>**Waiting for approval**<br>**Needs your approval** | `GatesPassing=False`, `NoAllowedVersions` | [Blocked by an approval](#blocked-by-an-approval-or-another-rule) |
 | **production is waiting for payments ^1.67.0** | `GatesPassing=False`, `NoAllowedVersions` | [Blocked by a service dependency](#blocked-by-a-service-dependency) |

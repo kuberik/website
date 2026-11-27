@@ -58,6 +58,34 @@ A provider with no `bakeTime`, `deployTimeout` or `healthCheckSelector` records 
 
 Gates never hold a Rollout's first deploy: a brand-new consumer deploys the newest release the dependency admits, or the newest release if it admits none.
 
+## When the provider rolls back
+
+An [automatic rollback](/docs/releases/rollback/) of the provider can go below the version a running consumer needs. By default it does. Set `providerRollback: Block` on the consumer's dependency to stop that:
+
+```yaml {filename="checkout-needs-payments.yaml"}
+apiVersion: kuberik.com/v1alpha1
+kind: RolloutDependency
+metadata:
+  name: checkout-needs-payments
+  namespace: hello-world
+spec:
+  rolloutRef:
+    name: checkout
+  providerRef:
+    name: payments
+  contract: payments
+  providerRollback: Block  # default: Allow
+```
+
+Example: payments 1.66.0 fails its bake and 1.65.0 baked successfully. The running checkout requires `^1.66.0`.
+
+| `providerRollback` | Result |
+|---|---|
+| `Allow` (default) | payments rolls back to 1.65.0, and checkout may break |
+| `Block` | Not rolled back: payments stays on 1.66.0, and automatic deploys skip it. Its `AutoRollback` condition names checkout. An older build that satisfies `^1.66.0` would deploy instead, if one existed |
+
+A consumer whose requirement cannot be read counts as needing the newest version, so with `Block` the provider is not rolled back.
+
 ## Know the limits
 
 - The consumer must be in the same namespace as the `RolloutDependency`, because a `RolloutGate` can only reference a Rollout in its own namespace. The provider may live elsewhere via `spec.providerRef.namespace`.
