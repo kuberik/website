@@ -461,12 +461,58 @@ AutoRollbackSpec configures automatic rollback.
 <tbody>
     
   
-<tr id="autorollbackspec-enabled"><td><code>enabled</code>
+<tr id="autorollbackspec-minseverity"><td><code>minSeverity</code>
       
 <br/>
-<code>bool</code>
+<a href="#rollbackseverity"><code>RollbackSeverity</code></a>
 </td>
-<td>Enabled turns automatic rollback on. Off by default.</td>
+<td>MinSeverity is the lowest failure severity that rolls this Rollout back
+to the last good build: Critical rolls back on Critical failures, Warning
+on Warning and Critical ones. Failures carry their severity from the
+kuberik.com/severity annotation or the provider (see
+HealthCheckFailure.severity); unmarked is Critical.</td>
+</tr>
+</tbody>
+</table>
+
+
+#### AutoRollbackStatus     {#autorollbackstatus}
+
+
+
+**Appears in:**
+
+- [RolloutStatus](#rolloutstatus)
+
+
+AutoRollbackStatus is where an automatic rollback would go for the newest deploy.
+
+<table>
+<thead><tr><th width="30%">Field</th><th>Description</th></tr></thead>
+<tbody>
+    
+  
+<tr id="autorollbackstatus-for"><td><code>for</code>
+      
+<br/>
+<code>string</code>
+</td>
+<td>For is the tag of history[0], the build this evaluation is for.</td>
+</tr>
+<tr id="autorollbackstatus-rollbackselection"><td><code>RollbackSelection</code>
+      
+<br/>
+<a href="#rollbackselection"><code>RollbackSelection</code></a>
+</td>
+<td>(Members of <code>RollbackSelection</code> are embedded into this type.)
+   </td>
+</tr>
+<tr id="autorollbackstatus-evaluatedtime"><td><code>evaluatedTime</code>
+      
+<br/>
+<a href="https://kubernetes.io/docs/reference/generated/kubernetes-api/v1.33/#time-v1-meta"><code>Time</code></a>
+</td>
+<td>EvaluatedTime is when the evaluation last changed.</td>
 </tr>
 </tbody>
 </table>
@@ -761,12 +807,115 @@ DayOfWeek represents a day of the week.
 
 
 
+#### DependencyBreak     {#dependencybreak}
+
+
+
+**Appears in:**
+
+- [RollbackSelection](#rollbackselection)
+
+- [SkippedRollbackTarget](#skippedrollbacktarget)
+
+
+DependencyBreak is one dependency a rollback target would break.
+
+<table>
+<thead><tr><th width="30%">Field</th><th>Description</th></tr></thead>
+<tbody>
+    
+  
+<tr id="dependencybreak-kind"><td><code>kind</code>
+      
+<br/>
+<code>string</code>
+</td>
+<td>Kind is ConsumerRequires (the target does not serve what a running consumer
+needs) or TargetRequires (the target needs a contract version its provider
+does not serve now).</td>
+</tr>
+<tr id="dependencybreak-rollout"><td><code>rollout</code>
+      
+<br/>
+<code>string</code>
+</td>
+<td>Rollout and Namespace name the other side: the consumer (ConsumerRequires)
+or the provider (TargetRequires).</td>
+</tr>
+<tr id="dependencybreak-namespace"><td><code>namespace</code>
+      
+<br/>
+<code>string</code>
+</td>
+<td></td>
+</tr>
+<tr id="dependencybreak-dependency"><td><code>dependency</code>
+      
+<br/>
+<code>string</code>
+</td>
+<td>Dependency is the RolloutDependency; it lives in the consumer's namespace.</td>
+</tr>
+<tr id="dependencybreak-contract"><td><code>contract</code>
+      
+<br/>
+<code>string</code>
+</td>
+<td>Contract is the contract name the dependency gates on.</td>
+</tr>
+<tr id="dependencybreak-requires"><td><code>requires</code>
+      
+<br/>
+<code>string</code>
+</td>
+<td>Requires is the constraint, verbatim. Empty when it could not be read.</td>
+</tr>
+<tr id="dependencybreak-version"><td><code>version</code>
+      
+<br/>
+<code>string</code>
+</td>
+<td>Version is, for ConsumerRequires, the consumer's running build (its OCI
+version, else its tag); for TargetRequires, the contract version the
+provider serves now (empty when unknown).</td>
+</tr>
+<tr id="dependencybreak-reason"><td><code>reason</code>
+      
+<br/>
+<code>string</code>
+</td>
+<td>Reason is ConstraintNotSatisfied, RequirementUnreadable, InvalidVersion or
+ProviderVersionUnknown.</td>
+</tr>
+<tr id="dependencybreak-deploykind"><td><code>deployKind</code>
+      
+<br/>
+<a href="#deploykind"><code>DeployKind</code></a>
+</td>
+<td>DeployKind is how the consumer's running build was deployed (ConsumerRequires
+only), so a build deployed by hand can be said so.</td>
+</tr>
+<tr id="dependencybreak-allowed"><td><code>allowed</code>
+      
+<br/>
+<code>bool</code>
+</td>
+<td>Allowed is true when the edge allows rolling back under this consumer
+(providerRollback is Allow or unset), so this break does not stop the rollback.
+Only an unreadable requirement of a target is ever Allowed for TargetRequires.</td>
+</tr>
+</tbody>
+</table>
+
+
 #### DeployKind     {#deploykind}
 
 
 (Alias of `string`)
 
 **Appears in:**
+
+- [DependencyBreak](#dependencybreak)
 
 - [DeploymentHistoryEntry](#deploymenthistoryentry)
 
@@ -926,6 +1075,15 @@ have none and are never rolled back to or from automatically.</td>
 </td>
 <td>RollbackOf is the ID of the history entry this deploy rolled back.</td>
 </tr>
+<tr id="deploymenthistoryentry-autorollback"><td><code>autoRollback</code>
+      
+<br/>
+<a href="#rollbackselection"><code>RollbackSelection</code></a>
+</td>
+<td>AutoRollback records how the target of an automatic rollback was chosen
+against the dependencies (on the rollback entry), or what stopped a rollback
+(on the failed entry).</td>
+</tr>
 </tbody>
 </table>
 
@@ -983,14 +1141,6 @@ survives the health check recovering.</td>
 </td>
 <td>Class is the health check's spec.class.</td>
 </tr>
-<tr id="failedhealthcheck-rollbackon"><td><code>rollbackOn</code>
-      
-<br/>
-<a href="#failurekind"><code>[]FailureKind</code></a>
-</td>
-<td>RollbackOn is the check's spec.rollbackOn as resolved when the failure was
-recorded (the class default when the check sets none).</td>
-</tr>
 <tr id="failedhealthcheck-failures"><td><code>failures</code>
       
 <br/>
@@ -1009,14 +1159,31 @@ recorded (the class default when the check sets none).</td>
 
 **Appears in:**
 
-- [FailedHealthCheck](#failedhealthcheck)
+- [FailureVerdict](#failureverdict)
+
+- [HealthCheckFailure](#healthcheckfailure)
+
+
+FailureKind classifies why a health check failed. It is a display hint only:
+it never decides whether a Rollout rolls back (severity does).
+
+
+
+
+#### FailureSeverity     {#failureseverity}
+
+
+(Alias of `string`)
+
+**Appears in:**
 
 - [FailureVerdict](#failureverdict)
 
 - [HealthCheckFailure](#healthcheckfailure)
 
 
-FailureKind classifies why a health check failed.
+FailureSeverity is how severe a failure is. A Rollout's
+spec.autoRollback.severity is the lowest severity that rolls it back.
 
 
 
@@ -1049,7 +1216,15 @@ FailureVerdict is one failure of a health check and whether it rolls back.
 <br/>
 <a href="#failurekind"><code>FailureKind</code></a>
 </td>
-<td>Kind classifies the failure.</td>
+<td>Kind classifies the failure. Display only.</td>
+</tr>
+<tr id="failureverdict-severity"><td><code>severity</code>
+      
+<br/>
+<a href="#failureseverity"><code>FailureSeverity</code></a>
+</td>
+<td>Severity is the failure's resolved severity: the source object's
+kuberik.com/severity annotation, else the HealthCheck's, else Critical.</td>
 </tr>
 <tr id="failureverdict-reason"><td><code>reason</code>
       
@@ -1077,11 +1252,28 @@ FailureVerdict is one failure of a health check and whether it rolls back.
 <br/>
 <code>string</code>
 </td>
-<td>Why is the rule that decided: CheckRollbackOn, NotInRollbackOn,
-SourceOptedOut, SourceOptedIn or CheckErrorNever.</td>
+<td>Why is the rule that decided: AtOrAboveThreshold (severity reaches the
+Rollout's autoRollback.severity), BelowThreshold, CheckErrorNever (a check
+that fails to run never rolls back) or PredatesDeploy (first seen before this
+deploy started, so not attributed to it).</td>
 </tr>
 </tbody>
 </table>
+
+
+#### GateDirection     {#gatedirection}
+
+
+(Alias of `string`)
+
+**Appears in:**
+
+- [RolloutGateSpec](#rolloutgatespec)
+
+
+GateDirection is a kind of move a RolloutGate can decide.
+
+
 
 
 #### HealthCheckFailure     {#healthcheckfailure}
@@ -1114,7 +1306,21 @@ cleared only by the reset at the next deploy or retry.
 <br/>
 <a href="#failurekind"><code>FailureKind</code></a>
 </td>
-<td>Kind classifies the failure.</td>
+<td>Kind classifies the failure. Display only; it does not decide rollbacks.</td>
+</tr>
+<tr id="healthcheckfailure-severity"><td><code>severity</code>
+      
+<br/>
+<a href="#failureseverity"><code>FailureSeverity</code></a>
+</td>
+<td>Severity is how severe this failure is: Critical or Warning. Providers that
+are not the kustomization check fill it from their own signal: the
+Prometheus alert's "severity" label (warning = Warning; critical, missing
+or anything else = Critical), Datadog monitor priority and incident
+severity (P1/P2 and SEV-1/SEV-2 = Critical, P3-P5 and SEV-3-SEV-5 =
+Warning, unset = Critical). A kuberik.com/severity annotation on the
+HealthCheck overrides the provider's value. Empty means unmarked: the
+HealthCheck's annotation applies, else Critical.</td>
 </tr>
 <tr id="healthcheckfailure-reason"><td><code>reason</code>
       
@@ -1123,14 +1329,6 @@ cleared only by the reset at the next deploy or retry.
 </td>
 <td>Reason is the machine reason (RolloutTestFailed, JobFailed,
 ProgressDeadlineExceeded, BuildFailed, ...).</td>
-</tr>
-<tr id="healthcheckfailure-rollback"><td><code>rollback</code>
-      
-<br/>
-<code>bool</code>
-</td>
-<td>Rollback is the source's own switch, read from the
-rollout.kuberik.com/rollback annotation. Nil when the source has none.</td>
 </tr>
 <tr id="healthcheckfailure-message"><td><code>message</code>
       
@@ -1344,16 +1542,6 @@ HealthCheckSpec defines the desired state of HealthCheck.
 </td>
 <td>Class specifies the type of health check (e.g., 'kustomization')</td>
 </tr>
-<tr id="healthcheckspec-rollbackon"><td><code>rollbackOn</code>
-      
-<br/>
-<a href="#failurekind"><code>[]FailureKind</code></a>
-</td>
-<td>RollbackOn lists the kinds of failure that roll back a Rollout that has
-spec.autoRollback.enabled. Unset means the default for the check's class;
-an empty list means this check never rolls back. CheckError cannot be
-listed: a check that fails to run never rolls anything back.</td>
-</tr>
 </tbody>
 </table>
 
@@ -1447,6 +1635,22 @@ by the reset at a new deploy or retry.</td>
 - [HealthCheckStatus](#healthcheckstatus)
 
 
+
+
+
+
+#### ProviderRollbackPolicy     {#providerrollbackpolicy}
+
+
+(Alias of `string`)
+
+**Appears in:**
+
+- [RolloutDependencySpec](#rolloutdependencyspec)
+
+
+ProviderRollbackPolicy says what an automatic rollback of a provider may do
+to a consumer that depends on it.
 
 
 
@@ -1607,6 +1811,82 @@ ReleaseSourceStatusRef is a Rollout's view of its ReleaseSource.
 </table>
 
 
+#### RollbackSelection     {#rollbackselection}
+
+
+
+**Appears in:**
+
+- [AutoRollbackStatus](#autorollbackstatus)
+
+- [DeploymentHistoryEntry](#deploymenthistoryentry)
+
+
+RollbackSelection is how an automatic rollback target was chosen against the
+dependencies.
+
+<table>
+<thead><tr><th width="30%">Field</th><th>Description</th></tr></thead>
+<tbody>
+    
+  
+<tr id="rollbackselection-usualtarget"><td><code>usualTarget</code>
+      
+<br/>
+<code>string</code>
+</td>
+<td>UsualTarget is the newest earlier good build before dependency checks (tag).
+Empty when there is none.</td>
+</tr>
+<tr id="rollbackselection-target"><td><code>target</code>
+      
+<br/>
+<code>string</code>
+</td>
+<td>Target is the build chosen (tag): the newest earlier good build that breaks no
+blocking dependency. Empty when there is none.</td>
+</tr>
+<tr id="rollbackselection-skipped"><td><code>skipped</code>
+      
+<br/>
+<a href="#skippedrollbacktarget"><code>[]SkippedRollbackTarget</code></a>
+</td>
+<td>Skipped lists the earlier good builds passed over, newest first.</td>
+</tr>
+<tr id="rollbackselection-blockedby"><td><code>blockedBy</code>
+      
+<br/>
+<a href="#dependencybreak"><code>[]DependencyBreak</code></a>
+</td>
+<td>BlockedBy is, when Target is empty, what the usual target would break.</td>
+</tr>
+<tr id="rollbackselection-allowed"><td><code>allowed</code>
+      
+<br/>
+<a href="#dependencybreak"><code>[]DependencyBreak</code></a>
+</td>
+<td>Allowed lists running consumers that Target breaks but whose edge allows it.</td>
+</tr>
+</tbody>
+</table>
+
+
+#### RollbackSeverity     {#rollbackseverity}
+
+
+(Alias of `string`)
+
+**Appears in:**
+
+- [AutoRollbackSpec](#autorollbackspec)
+
+
+RollbackSeverity is the lowest failure severity that rolls a Rollout back.
+It takes the same values as a failure's severity.
+
+
+
+
 #### RolloutApprovalSpec     {#rolloutapprovalspec}
 
 
@@ -1690,6 +1970,16 @@ lookup.</td>
 <td>Contract is the contract name matched against the consumer's
 <code>com.kuberik.rollout.requires.&lt;contract&gt;</code> annotations.
 Defaults to the name of the provider Rollout.</td>
+</tr>
+<tr id="rolloutdependencyspec-providerrollback"><td><code>providerRollback</code>
+      
+<br/>
+<a href="#providerrollbackpolicy"><code>ProviderRollbackPolicy</code></a>
+</td>
+<td>ProviderRollback says what an automatic rollback of the provider may do
+to this consumer. Allow (the default) rolls the provider back even when the
+consumer's running build requires more of the contract than the target
+serves. Block never rolls the provider back below what that build requires.</td>
 </tr>
 </tbody>
 </table>
@@ -1807,6 +2097,17 @@ RolloutGateSpec defines the desired state of RolloutGate.
 </td>
 <td>AllowedVersions is a list of versions that Rollout can be updated to.</td>
 </tr>
+<tr id="rolloutgatespec-appliesto"><td><code>appliesTo</code>
+      
+<br/>
+<a href="#gatedirection"><code>[]GateDirection</code></a>
+</td>
+<td>AppliesTo says which moves the gate decides: Deploy (moving forward to a
+new release, the only direction before this field existed) and/or Rollback
+(an automatic rollback to an earlier build). Unset means Deploy only, so
+existing gates are unchanged. A gate that does not list Deploy is ignored
+when the Rollout picks its next release.</td>
+</tr>
 </tbody>
 </table>
 
@@ -1822,7 +2123,24 @@ RolloutGateSpec defines the desired state of RolloutGate.
 
 RolloutGateStatus defines the observed state of RolloutGate.
 
-
+<table>
+<thead><tr><th width="30%">Field</th><th>Description</th></tr></thead>
+<tbody>
+    
+  
+<tr id="rolloutgatestatus-lasthandledrefresh"><td><code>lastHandledRefresh</code>
+      
+<br/>
+<code>string</code>
+</td>
+<td>LastHandledRefresh is the refresh request the gate's controller last
+answered: the value of the kuberik.com/refresh-requested annotation it had
+re-evaluated the gate for. Before an automatic rollback the Rollout asks every
+gate that carries the kuberik.com/gate-controller label and applies to
+Rollback to refresh, and waits until this field echoes the request.</td>
+</tr>
+</tbody>
+</table>
 
 
 #### RolloutGateStatusSummary     {#rolloutgatestatussummary}
@@ -2118,7 +2436,9 @@ If not specified, the rollout will wait indefinitely for bake to start.</td>
 <a href="#autorollbackspec"><code>AutoRollbackSpec</code></a>
 </td>
 <td>AutoRollback turns on rolling back to the last good build when a build
-fails its bake because of a failure the health checks say should roll back.</td>
+fails its bake with a failure at or above autoRollback.minSeverity.
+Present means on (`autoRollback: {}` rolls back on Critical failures);
+absent means off.</td>
 </tr>
 </tbody>
 </table>
@@ -2154,6 +2474,15 @@ RolloutStatus defines the observed state of Rollout.
 </td>
 <td>History tracks the deployment history of this Rollout.
 Each entry contains the version deployed and the timestamp of the deployment.</td>
+</tr>
+<tr id="rolloutstatus-autorollback"><td><code>autoRollback</code>
+      
+<br/>
+<a href="#autorollbackstatus"><code>AutoRollbackStatus</code></a>
+</td>
+<td>AutoRollback is where an automatic rollback would go for the newest deploy,
+written while it bakes (and after a failed bake that a dependency stopped from
+rolling back). Cleared when automatic rollback is off or the build baked.</td>
 </tr>
 <tr id="rolloutstatus-availablereleases"><td><code>availableReleases</code>
       
@@ -2292,6 +2621,47 @@ The schedule is active if the current time/date matches this rule.
 <a href="#daterange"><code>DateRange</code></a>
 </td>
 <td>DateRange restricts the rule to specific date range</td>
+</tr>
+</tbody>
+</table>
+
+
+#### SkippedRollbackTarget     {#skippedrollbacktarget}
+
+
+
+**Appears in:**
+
+- [RollbackSelection](#rollbackselection)
+
+
+SkippedRollbackTarget is an earlier good build an automatic rollback passed over.
+
+<table>
+<thead><tr><th width="30%">Field</th><th>Description</th></tr></thead>
+<tbody>
+    
+  
+<tr id="skippedrollbacktarget-tag"><td><code>tag</code>
+      
+<br/>
+<code>string</code>
+</td>
+<td>Tag is the image tag of the skipped build.</td>
+</tr>
+<tr id="skippedrollbacktarget-version"><td><code>version</code>
+      
+<br/>
+<code>string</code>
+</td>
+<td>Version is its OCI version, when it has one.</td>
+</tr>
+<tr id="skippedrollbacktarget-breaks"><td><code>breaks</code>
+      
+<br/>
+<a href="#dependencybreak"><code>[]DependencyBreak</code></a>
+</td>
+<td>Breaks are the dependencies that stopped it (Allowed=false only).</td>
 </tr>
 </tbody>
 </table>
@@ -2446,6 +2816,17 @@ read, so Requires and the version fields say nothing about the image.
 A RolloutDependency blocks such a release rather than reading the absent
 annotations as "declares no requirement", which would open the gate
 whenever the registry is unreachable.</td>
+</tr>
+<tr id="versioninfo-rollbackbarrier"><td><code>rollbackBarrier</code>
+      
+<br/>
+<code>bool</code>
+</td>
+<td>RollbackBarrier is true when this release carries the OCI annotation
+"com.kuberik.rollout.rollback-barrier: true" (release-controller publishes it
+in the slice release's metadata). Automatic rollback never rolls back past a
+barrier: a target is rejected when any release after it, up to and including
+the failed one, is a barrier (for example a release that migrated a schema).</td>
 </tr>
 </tbody>
 </table>
