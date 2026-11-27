@@ -23,6 +23,9 @@ The chart and the controllers it installs upgrade together. If you installed wit
 | Approval admission policies, served from Kubernetes 1.30 | Nothing: on an older cluster the chart leaves them out, and the name on an approval is not verified |
 | A build whose bake failed on a Rollout is not redeployed automatically there | Nothing; [Deploy a failed build again](/docs/releases/rollback/#deploy-a-failed-build-again) to try it again |
 | Hand-made approval gates can move to `ApprovalPolicy` | Optional: [Move hand-made approval gates](#move-hand-made-approval-gates) |
+| Multi-cluster hubs must set `dashboard.spokeUrlAllowlist` to their spoke origins, otherwise the hub shows no spokes. | Set it on the hub before you upgrade: [List the spokes the hub trusts](/docs/installation/helm/#list-the-spokes-the-hub-trusts) |
+| The dashboard can no longer be embedded in an iframe. | Open it in its own tab |
+| A Kustomization HealthCheck stays `Pending` while the Kustomization is suspended or has not applied its source's revision, and the rollout-controller may `get`, `list`, `watch` Flux `GitRepositories`, `Buckets` and `ExternalArtifacts` | Nothing with the chart; with kubectl, apply the new rollout-controller manifest |
 
 ## Remove the Rollout's version fields from Git
 

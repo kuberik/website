@@ -555,7 +555,15 @@ provider's contract, verbatim from its requires annotation.</td>
 <br/>
 <code>string</code>
 </td>
-<td>Reason is a short, machine-readable reason the candidate is blocked.</td>
+<td>Reason is a short, machine-readable reason the candidate is blocked:
+MetadataUnresolved (the release's manifest could not be read),
+ProviderVersionUnknown (the provider has no succeeded release with a
+readable contract version), InvalidVersion (the constraint or a version
+does not parse), ConstraintNotSatisfied (the provider's newest succeeded
+release does not satisfy the constraint), RunningVersionNotSatisfied (the
+provider's running release, still baking or failed, does not satisfy it)
+or RunningVersionUnknown (that running release has no readable contract
+version).</td>
 </tr>
 </tbody>
 </table>
